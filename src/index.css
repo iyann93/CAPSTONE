@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-primary-50: #f0f7ff;
+  --color-primary-100: #e0effe;
+  --color-primary-500: #0A1931;
+  --color-primary-600: #1A3D63;
+  --color-primary-700: #4A7FA7;
+  
+  /* Mapping user's guide to named tokens for easy use */
+  --color-brand: #0A1931;
+  --color-active: #B3CFE5;
+  --color-cta: #1A3D63;
+  --color-steel: #4A7FA7;
+  --color-success: #5EE9B5;
+  
+  --font-sans: 'Inter', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: #F3F4F6;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 99px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.4s ease both;
+}
+
+/* Hide native Edge/IE password reveal eye icon to prevent duplicates */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
+/* Hide Vercel Toolbar / Speed Insights badge */
+#__vercel-toolbar,
+#vercel-live-feedback,
+[data-vercel-toolbar],
+vercel-live-feedback,
+body > div[style*="z-index: 2147483647"],
+body > div[style*="position: fixed"][style*="bottom"],
+body > iframe[title*="Vercel"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Hide Vite/SW dev overlay badges (from other local projects) */
+vite-plugin-pwa-register,
+#vite-plugin-pwa\:register-sw,
+[id*="workbox"],
+[class*="workbox"],
+div[id^="sw-"] {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
