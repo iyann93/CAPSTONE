@@ -64,8 +64,7 @@ const menuSections = [
     section: "MANAJEMEN PENGGUNA",
     items: [
       { label: "Mengelola Akun User", icon: <UserSettingsIcon /> },
-      { label: "Aktivasi & Nonaktif", icon: <UsersIcon /> },
-      { label: "Reset Password", icon: <LockIcon /> }
+      { label: "Aktivasi & Nonaktif", icon: <UsersIcon /> }
     ],
     roles: ["Super Admin"]
   },
