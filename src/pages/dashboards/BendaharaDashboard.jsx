@@ -129,6 +129,7 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
   const [toastMessage, setToastMessage] = useState("");
   const [selectedYear, setSelectedYear] = useState("2023/2024");
   const [showBillingModal, setShowBillingModal] = useState(false);
+  const [showGenerateMonthModal, setShowGenerateMonthModal] = useState(false);
 
   const [studentsBill, setStudentsBill] = useState([
     { nis: "2024001", name: "Ahmad Fauzi", class: "Kelas 7A", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "08 Mei 2026" },
@@ -228,7 +229,7 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                 </div>
                 
                 <button 
-                  onClick={() => triggerToast("Tagihan SPP bulan ini berhasil digenerate!")}
+                  onClick={() => setShowGenerateMonthModal(true)}
                   className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-4 sm:px-5 py-2.5 text-xs sm:text-[13px] font-bold cursor-pointer transition-all active:scale-95 shadow-[0_10px_20px_-10px_rgba(26,61,99,0.3)]"
                 >
                   <IconPlus /> Generate Tagihan Bulan Ini
@@ -1274,6 +1275,83 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Generate Month Modal Dialog */}
+      {showGenerateMonthModal && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowGenerateMonthModal(false)}
+          />
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-[480px] w-full relative z-10 shadow-2xl animate-scaleUp border border-gray-100 font-sans">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 flex-shrink-0">
+                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-800">Generate Tagihan SPP</h3>
+                <p className="text-sm text-gray-500">Bulan: Juni 2026</p>
+              </div>
+            </div>
+            
+            <div className="mb-6">
+              <h4 className="text-[11px] font-bold text-gray-400 mb-4 uppercase tracking-wider">Ringkasan Generate</h4>
+              <div className="space-y-3.5 text-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Kelas 7 (semua rombel)</span>
+                  <span className="font-bold text-gray-800">4 siswa</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Kelas 8 (semua rombel)</span>
+                  <span className="font-bold text-gray-800">3 siswa</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Kelas 9 (semua rombel)</span>
+                  <span className="font-bold text-gray-800">3 siswa</span>
+                </div>
+              </div>
+              <div className="border-t border-gray-100 my-4"></div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-bold text-gray-700">Total Tagihan</span>
+                <span className="text-lg font-bold text-blue-600">Rp 2.725.000</span>
+              </div>
+            </div>
+            
+            <div className="bg-[#FFF8E6] border border-[#FDE6B5] rounded-xl p-4 flex gap-3 mb-6">
+              <div className="text-amber-500 mt-0.5 flex-shrink-0">
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <p className="text-xs text-amber-700 leading-relaxed font-medium">
+                Tagihan akan dikirim otomatis ke Orang Tua / Wali masing-masing siswa.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setShowGenerateMonthModal(false)}
+                className="flex-1 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 py-3 rounded-xl text-xs font-bold cursor-pointer transition-all"
+              >
+                Batal
+              </button>
+              <button 
+                onClick={() => {
+                  setShowGenerateMonthModal(false);
+                  triggerToast("Tagihan SPP bulan ini berhasil digenerate!");
+                }}
+                className="flex-1 bg-[#1A3D63] hover:bg-[#122A44] text-white py-3 rounded-xl text-xs font-bold cursor-pointer border-none shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+              >
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
+                </svg>
+                Konfirmasi Generate
+              </button>
+            </div>
           </div>
         </div>
       )}
