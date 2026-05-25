@@ -4,7 +4,6 @@ import TopBar from "./components/TopBar";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
-import AdminDashboard from "./pages/dashboards/AdminDashboard";
 import SiswaDashboard from "./pages/dashboards/SiswaDashboard";
 import SuperAdminDashboard from "./pages/dashboards/SuperAdminDashboard";
 import PlaceholderDashboard from "./pages/dashboards/PlaceholderDashboard";
@@ -62,7 +61,7 @@ const App = () => {
     if (!user) return null;
     switch (user.role) {
       case "Admin":
-        return <AdminDashboard user={user} activeMenu={activeMenu} />;
+        return <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
       case "Super Admin":
         return <SuperAdminDashboard user={user} activeMenu={activeMenu} />;
       case "Siswa":

@@ -130,6 +130,21 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
   const [selectedYear, setSelectedYear] = useState("2023/2024");
   const [showBillingModal, setShowBillingModal] = useState(false);
 
+  const [studentsBill, setStudentsBill] = useState([
+    { nis: "2024001", name: "Ahmad Fauzi", class: "Kelas 7A", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "08 Mei 2026" },
+    { nis: "2024002", name: "Aulia Rahma", class: "Kelas 7B", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "07 Mei 2026" },
+    { nis: "2024003", name: "Budi Prasetyo", class: "Kelas 8A", amount: "Rp 275.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Belum Bayar", payDate: "—" },
+    { nis: "2024004", name: "Citra Dewi", class: "Kelas 8B", amount: "Rp 275.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Cicilan", payDate: "11 Mei 2026" },
+    { nis: "2024005", name: "Danu Pratama", class: "Kelas 9A", amount: "Rp 300.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Belum Bayar", payDate: "—" },
+    { nis: "2024006", name: "Eka Putri", class: "Kelas 9A", amount: "Rp 300.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "05 Mei 2026" },
+    { nis: "2024007", name: "Fajar Ramadhan", class: "Kelas 7C", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "09 Mei 2026" },
+    { nis: "2024008", name: "Gita Maharani", class: "Kelas 8C", amount: "Rp 275.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Belum Bayar", payDate: "—" },
+    { nis: "2024009", name: "Hendra Kusuma", class: "Kelas 9B", amount: "Rp 300.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "03 Mei 2026" },
+    { nis: "2024010", name: "Indah Permata", class: "Kelas 7A", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Cicilan", payDate: "10 Mei 2026" }
+  ]);
+  const [billSearchQuery, setBillSearchQuery] = useState("");
+  const [billClassFilter, setBillClassFilter] = useState("Semua");
+
   // Form states for manually recording payments
   const [inputStudent, setInputStudent] = useState("");
   const [inputClass, setInputClass] = useState("Kelas 7A");
@@ -175,91 +190,204 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
     triggerToast("Sukses mencatat pembayaran siswa baru!");
   };
 
+  const filteredBills = studentsBill.filter((row) => {
+    const matchesSearch = row.name.toLowerCase().includes(billSearchQuery.toLowerCase()) || 
+                          row.nis.includes(billSearchQuery);
+    
+    if (billClassFilter === "Semua") return matchesSearch;
+    const targetGrade = billClassFilter.replace("Kelas ", "");
+    const matchesClass = row.class.includes(`Kelas ${targetGrade}`);
+    return matchesSearch && matchesClass;
+  });
+
   // Rendering dashboard based on activeMenu selection
   const renderContent = () => {
     switch (activeMenu) {
       case "Tagihan SPP":
         return (
-          <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm animate-fadeIn">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+          <div className="flex flex-col gap-6 animate-fadeIn font-sans">
+            {/* Header Area */}
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div>
-                <h2 className="text-xl font-bold text-gray-800">Daftar Tagihan SPP Aktif</h2>
-                <p className="text-sm text-gray-500">Kelola dan pantau seluruh tagihan SPP siswa berjalan.</p>
+                <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Tagihan SPP Siswa</h1>
+                <p className="text-sm text-gray-500 mt-1">Generate dan kelola tagihan SPP bulanan seluruh siswa.</p>
               </div>
-              <button 
-                onClick={() => setShowBillingModal(true)}
-                className="bg-[#1A3D63] hover:bg-[#122A44] text-white px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all active:scale-95 cursor-pointer border-none"
-              >
-                <IconPlus /> Buat Tagihan Baru
-              </button>
+              <div className="flex gap-2 sm:gap-3 items-center flex-wrap">
+                <div className="relative">
+                  <select 
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value)}
+                    className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
+                  >
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                  </select>
+                  <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
+                    <IconChevronDown />
+                  </span>
+                </div>
+                
+                <button 
+                  onClick={() => triggerToast("Tagihan SPP bulan ini berhasil digenerate!")}
+                  className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-4 sm:px-5 py-2.5 text-xs sm:text-[13px] font-bold cursor-pointer transition-all active:scale-95 shadow-[0_10px_20px_-10px_rgba(26,61,99,0.3)]"
+                >
+                  <IconPlus /> Generate Tagihan Bulan Ini
+                </button>
+              </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 mb-6">
-              <div className="relative flex-1 max-w-sm">
-                <input 
-                  type="text" 
-                  placeholder="Cari nama siswa..." 
-                  className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:border-[#1A3D63]"
-                />
-                <span className="absolute left-3 top-2.5 text-gray-400">
-                  <IconSearch />
-                </span>
+            {/* Stat Cards Row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {/* Card 1: Total Tagihan */}
+              <div className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center gap-4 shadow-sm relative overflow-hidden">
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#1A3D63]" />
+                <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-500 flex-shrink-0">
+                  <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Total Tagihan</div>
+                  <div className="text-2xl font-black text-gray-800">Rp 2.725.000</div>
+                  <div className="text-[11px] font-bold text-gray-400">10 siswa</div>
+                </div>
               </div>
-              <select className="border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-600 focus:outline-none">
-                <option>Semua Kelas</option>
-                <option>Kelas 7</option>
-                <option>Kelas 8</option>
-                <option>Kelas 9</option>
-              </select>
-              <select className="border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-600 focus:outline-none">
-                <option>Semua Status</option>
-                <option>Lunas</option>
-                <option>Cicilan</option>
-                <option>Belum Bayar</option>
-              </select>
+
+              {/* Card 2: Sudah Terbayar */}
+              <div className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center gap-4 shadow-sm relative overflow-hidden">
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#10B981]" />
+                <div className="w-12 h-12 bg-[#E8FDF5] rounded-2xl flex items-center justify-center text-[#059669] flex-shrink-0">
+                  <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Sudah Terbayar</div>
+                  <div className="text-2xl font-black text-gray-800">Rp 1.350.000</div>
+                  <div className="text-[11px] font-bold text-gray-400">5 siswa lunas</div>
+                </div>
+              </div>
+
+              {/* Card 3: Belum / Cicilan */}
+              <div className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center gap-4 shadow-sm relative overflow-hidden">
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#EF4444]" />
+                <div className="w-12 h-12 bg-[#FEE2E2] rounded-2xl flex items-center justify-center text-[#DC2626] flex-shrink-0">
+                  <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Belum / Cicilan</div>
+                  <div className="text-2xl font-black text-gray-800">Rp 1.375.000</div>
+                  <div className="text-[11px] font-bold text-gray-400">5 perlu tindak lanjut</div>
+                </div>
+              </div>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-gray-50 text-gray-400 font-bold text-[10px] tracking-wider border-b border-gray-100">
-                    <th className="py-3 px-4">SISWA</th>
-                    <th className="py-3 px-4">KELAS</th>
-                    <th className="py-3 px-4">NOMINAL</th>
-                    <th className="py-3 px-4">PERIODE</th>
-                    <th className="py-3 px-4">JATUH TEMPO</th>
-                    <th className="py-3 px-4">STATUS</th>
-                    <th className="py-3 px-4">AKSI</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50 text-xs">
-                  {sppPayments.map((row) => (
-                    <tr key={row.id} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="py-4 px-4 font-bold text-gray-800">{row.name}</td>
-                      <td className="py-4 px-4 text-gray-500">{row.class}</td>
-                      <td className="py-4 px-4 font-bold text-gray-700">{row.amount}</td>
-                      <td className="py-4 px-4 text-gray-500">{row.period}</td>
-                      <td className="py-4 px-4 text-gray-500">10 Mei 2026</td>
-                      <td className="py-4 px-4">
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                          row.status === "Lunas" ? "bg-[#5EE9B5]/10 text-[#2B8B67]" :
-                          row.status === "Cicilan" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"
-                        }`}>
-                          {row.status}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4">
-                        <button 
-                          onClick={() => triggerToast(`Mengirim pengingat tagihan ke ${row.name}`)}
-                          className="bg-transparent border-none text-[#1A3D63] hover:text-[#122A44] font-bold text-xs cursor-pointer"
+            {/* Filter and Table Container */}
+            <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                {/* Search Input */}
+                <div className="relative flex-1 max-w-md">
+                  <input 
+                    type="text" 
+                    value={billSearchQuery}
+                    onChange={(e) => setBillSearchQuery(e.target.value)}
+                    placeholder="Cari nama atau NIS..." 
+                    className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-[#1A3D63] font-medium"
+                  />
+                  <span className="absolute left-3.5 top-3.5 text-gray-400">
+                    <IconSearch />
+                  </span>
+                </div>
+
+                {/* Tabs Filter and Export */}
+                <div className="flex items-center justify-between md:justify-end gap-3 flex-wrap">
+                  <div className="flex bg-gray-50 border border-gray-100 p-1 rounded-xl">
+                    {["Semua", "Kelas 7", "Kelas 8", "Kelas 9"].map((tab) => {
+                      const isActive = billClassFilter === tab;
+                      return (
+                        <button
+                          key={tab}
+                          onClick={() => setBillClassFilter(tab)}
+                          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border-none ${
+                            isActive 
+                              ? "bg-[#1A3D63] text-white shadow-sm" 
+                              : "text-gray-500 hover:text-gray-900 bg-transparent"
+                          }`}
                         >
-                          Kirim WhatsApp
+                          {tab}
                         </button>
-                      </td>
+                      );
+                    })}
+                  </div>
+                  
+                  <button 
+                    onClick={() => triggerToast("Mengekspor data tagihan SPP ke file Excel...")}
+                    className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all border-solid"
+                  >
+                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    Export
+                  </button>
+                </div>
+              </div>
+
+              {/* Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      <th className="pb-3 px-3">NIS</th>
+                      <th className="pb-3 px-3">NAMA SISWA</th>
+                      <th className="pb-3 px-3">KELAS</th>
+                      <th className="pb-3 px-3">NOMINAL SPP</th>
+                      <th className="pb-3 px-3">BULAN</th>
+                      <th className="pb-3 px-3">JATUH TEMPO</th>
+                      <th className="pb-3 px-3">STATUS</th>
+                      <th className="pb-3 px-3 text-right">TGL BAYAR</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 text-xs">
+                    {filteredBills.map((row) => (
+                      <tr key={row.nis} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="py-4 px-3 text-gray-400 font-mono font-medium">{row.nis}</td>
+                        <td className="py-4 px-3 font-bold text-gray-800">{row.name}</td>
+                        <td className="py-4 px-3">
+                          <span className="bg-blue-50 text-blue-600 font-semibold px-2.5 py-0.5 rounded-full text-[10px]">
+                            {row.class}
+                          </span>
+                        </td>
+                        <td className="py-4 px-3 font-bold text-gray-700">{row.amount}</td>
+                        <td className="py-4 px-3 text-gray-400 font-medium">{row.month}</td>
+                        <td className="py-4 px-3 text-gray-500">{row.dueDate}</td>
+                        <td className="py-4 px-3">
+                          {row.status === "Lunas" && (
+                            <span className="bg-[#E8FDF5] text-[#059669] border border-[#A7F3D0] rounded-full px-2.5 py-0.5 flex items-center gap-1 font-bold text-[10px] w-fit border-solid">
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-2.5 h-2.5"><polyline points="20 6 9 17 4 12" /></svg>
+                              Lunas
+                            </span>
+                          )}
+                          {row.status === "Cicilan" && (
+                            <span className="bg-[#FEF3C7] text-[#D97706] border border-[#FCD34D] rounded-full px-2.5 py-0.5 flex items-center gap-1 font-bold text-[10px] w-fit border-solid">
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-2.5 h-2.5"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                              Cicilan
+                            </span>
+                          )}
+                          {row.status === "Belum Bayar" && (
+                            <span className="bg-[#FEE2E2] text-[#DC2626] border border-[#FCA5A5] rounded-full px-2.5 py-0.5 flex items-center gap-1 font-bold text-[10px] w-fit border-solid">
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-2.5 h-2.5"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+                              Belum Bayar
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-4 px-3 text-right text-gray-500 font-medium">{row.payDate}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         );
