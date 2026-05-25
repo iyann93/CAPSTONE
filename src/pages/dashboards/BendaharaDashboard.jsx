@@ -157,6 +157,25 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
   const [billClass, setBillClass] = useState("Semua Kelas");
   const [billAmount, setBillAmount] = useState("250000");
   const [billDueDate, setBillDueDate] = useState("2026-06-10");
+  
+  // Beasiswa Modal State
+  const [showAddProgramModal, setShowAddProgramModal] = useState(false);
+  const [beasiswaTab, setBeasiswaTab] = useState("program");
+
+  // Pengaturan SPP states
+  const [sppSettingTab, setSppSettingTab] = useState("nominal");
+  const [sppList, setSppList] = useState([
+    { id: 1, grade: "Kelas 7 SMP", ta: "2024/2025", amount: "Rp 250.000", amountNum: 250000, denda: 15000, jatuhTempo: 10, catatan: "Berlaku mulai Juli 2024" },
+    { id: 2, grade: "Kelas 8 SMP", ta: "2024/2025", amount: "Rp 275.000", amountNum: 275000, denda: 15000, jatuhTempo: 10, catatan: "Berlaku mulai Juli 2024" },
+    { id: 3, grade: "Kelas 9 SMP", ta: "2024/2025", amount: "Rp 300.000", amountNum: 300000, denda: 15000, jatuhTempo: 10, catatan: "Berlaku mulai Juli 2024" }
+  ]);
+  const [editingSppId, setEditingSppId] = useState(null);
+  const [editSppAmount, setEditSppAmount] = useState("");
+  const [editSppDenda, setEditSppDenda] = useState("");
+  const [editSppJatuhTempo, setEditSppJatuhTempo] = useState("");
+  const [editSppCatatan, setEditSppCatatan] = useState("");
+  const [editSppGrade, setEditSppGrade] = useState("");
+  const [editSppTa, setEditSppTa] = useState("");
 
   const triggerToast = (message) => {
     setToastMessage(message);
@@ -395,219 +414,718 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
 
       case "Pengaturan SPP":
         return (
-          <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm animate-fadeIn">
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Pengaturan Parameter SPP</h2>
-            <p className="text-sm text-gray-500 mb-6">Atur besaran tarif iuran bulanan SPP per tingkat angkatan kelas.</p>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              {[
-                { grade: "Tingkat 7", rate: "Rp 250.000", desc: "Tarif standar siswa baru masuk angkatan 2025/2026" },
-                { grade: "Tingkat 8", rate: "Rp 250.000", desc: "Tarif berjalan siswa angkatan 2024/2025" },
-                { grade: "Tingkat 9", rate: "Rp 275.000", desc: "Tarif termasuk biaya tambahan persiapan ujian & wisuda" }
-              ].map((item, idx) => (
-                <div key={idx} className="border border-gray-100 p-5 rounded-2xl bg-gray-50/50">
-                  <span className="text-[10px] font-bold text-[#1A3D63] uppercase tracking-wider block mb-1">{item.grade}</span>
-                  <div className="text-2xl font-black text-gray-800 mb-2">{item.rate}</div>
-                  <p className="text-[11px] text-gray-400 leading-relaxed mb-4">{item.desc}</p>
-                  <button 
-                    onClick={() => triggerToast(`Membuka modal edit tarif untuk ${item.grade}`)}
-                    className="w-full bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+          <div className="flex flex-col gap-6 animate-fadeIn font-sans">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div>
+                <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Pengaturan SPP</h1>
+                <p className="text-sm text-gray-500 mt-1">Atur nominal SPP, diskon, dan jadwal pembayaran per kelas (Kelas 7, 8, 9 SMP).</p>
+              </div>
+              <div className="flex gap-2 sm:gap-3 items-center flex-wrap">
+                <div className="relative">
+                  <select
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value)}
+                    className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
                   >
-                    Edit Nominal
-                  </button>
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                  </select>
+                  <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
+                    <IconChevronDown />
+                  </span>
                 </div>
+                <button
+                  onClick={() => triggerToast("Semua pengaturan SPP berhasil disimpan!")}
+                  className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-4 sm:px-5 py-2.5 text-xs sm:text-[13px] font-bold cursor-pointer transition-all active:scale-95 shadow-[0_10px_20px_-10px_rgba(26,61,99,0.3)]"
+                >
+                  <IconPlus /> Simpan Semua Pengaturan
+                </button>
+              </div>
+            </div>
+
+            {/* Tab Navigation */}
+            <div className="bg-white rounded-2xl border border-gray-100 p-1 flex gap-1 shadow-sm">
+              {[
+                { key: "nominal", icon: "$", label: "Nominal SPP per Kelas" },
+                { key: "diskon", icon: "≡", label: "Kategori Diskon / Potongan" },
+                { key: "kalender", icon: "📅", label: "Kalender Pembayaran" }
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setSppSettingTab(tab.key)}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-[13px] font-bold transition-all cursor-pointer border-none ${
+                    sppSettingTab === tab.key
+                      ? "bg-[#1A3D63] text-white shadow-sm"
+                      : "text-gray-500 hover:text-gray-800 bg-transparent"
+                  }`}
+                >
+                  <span className="text-sm">{tab.icon}</span>
+                  {tab.label}
+                </button>
               ))}
             </div>
 
-            <div className="border-t border-gray-100 pt-6">
-              <h3 className="text-sm font-bold text-gray-800 mb-4">Pengaturan Otomatisasi Tagihan</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border border-gray-100 rounded-xl">
-                  <div>
-                    <div className="text-xs font-bold text-gray-700 mb-0.5">Generate Tagihan Otomatis</div>
-                    <div className="text-[11px] text-gray-400">Tagihan SPP baru dibuat secara otomatis setiap tanggal 1 awal bulan.</div>
-                  </div>
-                  <input type="checkbox" defaultChecked className="w-4 h-4 text-[#1A3D63]" />
+            {/* Tab: Nominal SPP per Kelas */}
+            {sppSettingTab === "nominal" && (
+              <div className="flex flex-col gap-5">
+                {/* 3 Quick View Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {sppList.map((item) => (
+                    <div key={item.id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+                      <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{item.grade}</div>
+                      <div className="text-3xl font-black text-gray-800 mb-2">{item.amount}</div>
+                      <div className="text-[11px] text-gray-400">Denda: Rp {item.denda.toLocaleString("id-ID")}/bln · Jatuh tempo tgl {item.jatuhTempo}</div>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex items-center justify-between p-4 border border-gray-100 rounded-xl">
-                  <div>
-                    <div className="text-xs font-bold text-gray-700 mb-0.5">Pengingat WhatsApp Otomatis</div>
-                    <div className="text-[11px] text-gray-400">Kirim WhatsApp otomatis kepada wali murid H-3 sebelum tanggal jatuh tempo.</div>
+
+                {/* Daftar Pengaturan SPP */}
+                <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+                  <div className="flex items-center justify-between mb-5">
+                    <h3 className="text-sm font-bold text-gray-800">Daftar Pengaturan SPP ({sppList.length} angkatan)</h3>
+                    <button
+                      onClick={() => triggerToast("Membuka form tambah angkatan SPP baru...")}
+                      className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-4 py-2 text-xs font-bold cursor-pointer transition-all active:scale-95"
+                    >
+                      <IconPlus /> Tambah Angkatan SPP
+                    </button>
                   </div>
-                  <input type="checkbox" defaultChecked className="w-4 h-4 text-[#1A3D63]" />
+
+                  <div className="flex flex-col gap-3">
+                    {sppList.map((item) => {
+                      const isEditing = editingSppId === item.id;
+                      return (
+                        <div
+                          key={item.id}
+                          className={`border rounded-xl transition-all duration-200 ${
+                            isEditing
+                              ? "border-[#1A3D63] shadow-[0_0_0_3px_rgba(26,61,99,0.1)] p-5"
+                              : "border-gray-100 hover:bg-gray-50/50 p-4"
+                          }`}
+                        >
+                          {/* Header row (always visible) */}
+                          <div className="flex items-center gap-4">
+                            {/* Icon */}
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0 ${
+                              isEditing ? "bg-[#1A3D63] text-white" : "bg-blue-50 text-blue-500"
+                            }`}>
+                              $
+                            </div>
+
+                            {/* Info */}
+                            <div className="flex-1">
+                              <div className="text-sm font-bold text-gray-800">
+                                {item.grade}
+                                <span className="text-[11px] font-semibold text-gray-400 ml-2">TA {item.ta}</span>
+                              </div>
+                              {!isEditing && (
+                                <div className="text-[11px] text-gray-400 mt-0.5">
+                                  {item.amount}/bln · Denda Rp {item.denda.toLocaleString("id-ID")} · Jatuh tempo tgl {item.jatuhTempo}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Actions */}
+                            {isEditing ? (
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                <button
+                                  onClick={() => setEditingSppId(null)}
+                                  className="flex items-center gap-1.5 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all border-solid"
+                                >
+                                  <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                  Batal
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setSppList(sppList.map(s => s.id === item.id ? {
+                                      ...s,
+                                      grade: editSppGrade,
+                                      ta: editSppTa,
+                                      amount: `Rp ${Number(editSppAmount).toLocaleString("id-ID")}`,
+                                      amountNum: Number(editSppAmount),
+                                      denda: Number(editSppDenda),
+                                      jatuhTempo: Number(editSppJatuhTempo),
+                                      catatan: editSppCatatan
+                                    } : s));
+                                    setEditingSppId(null);
+                                    triggerToast(`Nominal ${editSppGrade} berhasil diperbarui!`);
+                                  }}
+                                  className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white border-none px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all active:scale-95"
+                                >
+                                  <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                  </svg>
+                                  Simpan
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                <button
+                                  onClick={() => {
+                                    setEditingSppId(item.id);
+                                    setEditSppAmount(String(item.amountNum));
+                                    setEditSppDenda(String(item.denda));
+                                    setEditSppJatuhTempo(String(item.jatuhTempo));
+                                    setEditSppCatatan(item.catatan);
+                                    setEditSppGrade(item.grade);
+                                    setEditSppTa(item.ta);
+                                  }}
+                                  className="flex items-center gap-1.5 bg-white hover:bg-gray-50 border border-gray-200 text-gray-600 hover:text-gray-900 px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all border-solid"
+                                >
+                                  <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
+                                  </svg>
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setSppList(sppList.filter(s => s.id !== item.id));
+                                    triggerToast(`Pengaturan ${item.grade} berhasil dihapus!`);
+                                  }}
+                                  className="flex items-center gap-1.5 bg-white hover:bg-red-50 border border-red-200 text-red-500 hover:text-red-700 px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all border-solid"
+                                >
+                                  <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                  </svg>
+                                  Hapus
+                                </button>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Inline Expand Edit Form */}
+                          {isEditing && (
+                            <div className="mt-5 pt-5 border-t border-gray-100">
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Kelas</label>
+                                  <input
+                                    type="text"
+                                    value={editSppGrade}
+                                    onChange={(e) => setEditSppGrade(e.target.value)}
+                                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#1A3D63] transition-colors"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Tahun Ajaran</label>
+                                  <input
+                                    type="text"
+                                    value={editSppTa}
+                                    onChange={(e) => setEditSppTa(e.target.value)}
+                                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#1A3D63] transition-colors"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Nominal SPP (Rp)</label>
+                                  <input
+                                    type="number"
+                                    value={editSppAmount}
+                                    onChange={(e) => setEditSppAmount(e.target.value)}
+                                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm font-bold text-gray-800 focus:outline-none focus:border-[#1A3D63] transition-colors"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Jatuh Tempo (Tanggal)</label>
+                                  <input
+                                    type="number"
+                                    value={editSppJatuhTempo}
+                                    onChange={(e) => setEditSppJatuhTempo(e.target.value)}
+                                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#1A3D63] transition-colors"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Denda Keterlambatan (Rp)</label>
+                                  <input
+                                    type="number"
+                                    value={editSppDenda}
+                                    onChange={(e) => setEditSppDenda(e.target.value)}
+                                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#1A3D63] transition-colors"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Catatan</label>
+                                  <input
+                                    type="text"
+                                    value={editSppCatatan}
+                                    onChange={(e) => setEditSppCatatan(e.target.value)}
+                                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#1A3D63] transition-colors"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Warning Banner */}
+                  <div className="mt-5 flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4 border-solid">
+                    <svg width="18" height="18" fill="none" stroke="#D97706" strokeWidth="2" viewBox="0 0 24 24" className="flex-shrink-0 mt-0.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                    </svg>
+                    <p className="text-xs text-amber-700 leading-relaxed">
+                      <strong>Perhatian:</strong> Perubahan nominal SPP akan diterapkan untuk tagihan bulan berikutnya. Tagihan bulan berjalan tidak akan berubah otomatis.
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Tab: Kategori Diskon / Potongan */}
+            {sppSettingTab === "diskon" && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-5">
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-800">Kategori Diskon & Potongan SPP</h3>
+                    <p className="text-[11px] text-gray-400 mt-1">Kelola jenis potongan SPP berdasarkan kategori siswa.</p>
+                  </div>
+                  <button onClick={() => triggerToast("Membuka form kategori diskon baru...")} className="flex items-center gap-1.5 bg-[#1A3D63] text-white border-none rounded-xl px-4 py-2 text-xs font-bold cursor-pointer hover:bg-[#122A44] transition-all">
+                    <IconPlus /> Tambah Kategori
+                  </button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="bg-gray-50/50 text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
+                        <th className="py-3 px-4 rounded-tl-lg">NAMA KATEGORI</th>
+                        <th className="py-3 px-4">POTONGAN SPP</th>
+                        <th className="py-3 px-4">BERLAKU UNTUK</th>
+                        <th className="py-3 px-4 rounded-tr-lg">AKSI</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50 text-xs">
+                      {[
+                        { name: "Beasiswa Prestasi", cut: "100% Gratis", cutColor: "green", target: "Semua Kelas" },
+                        { name: "Kurang Mampu (KIP)", cut: "100% Gratis", cutColor: "green", target: "Semua Kelas" },
+                        { name: "Anak Guru/Karyawan", cut: "50% Gratis", cutColor: "orange", target: "Semua Kelas" },
+                        { name: "Diskon Saudara Kandung", cut: "25% Gratis", cutColor: "orange", target: "Semua Kelas" }
+                      ].map((row, i) => (
+                        <tr key={i} className="hover:bg-gray-50/30 transition-colors">
+                          <td className="py-4 px-4 font-bold text-gray-700">{row.name}</td>
+                          <td className="py-4 px-4">
+                            <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold inline-block ${
+                              row.cutColor === "green" ? "bg-[#E6F4EA] text-[#137333]" : "bg-[#FEF7E0] text-[#B06000]"
+                            }`}>
+                              {row.cut}
+                            </span>
+                          </td>
+                          <td className="py-4 px-4 text-gray-500 font-medium">{row.target}</td>
+                          <td className="py-4 px-4">
+                            <button 
+                              onClick={() => triggerToast(`Menghapus kategori ${row.name}`)}
+                              className="flex items-center gap-1.5 bg-[#FCE8E6] hover:bg-[#FAD2CF] text-[#C5221F] border border-[#FAD2CF] px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-colors"
+                            >
+                              <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                              </svg>
+                              Hapus
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Tab: Kalender Pembayaran */}
+            {sppSettingTab === "kalender" && (
+              <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                <div className="mb-6">
+                  <h3 className="text-sm font-bold text-gray-800">Kalender Tagihan SPP Tahun Ajaran 2024/2025</h3>
+                  <p className="text-[11px] text-gray-400 mt-1">Periode penagihan SPP Juli 2024 — Juni 2025</p>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                  {[
+                    { month: "Januari 2025", active: false, hasDetails: false },
+                    { month: "Februari 2025", active: false, hasDetails: false },
+                    { month: "Maret 2025", active: false, hasDetails: false },
+                    { month: "April 2025", active: false, hasDetails: false },
+                    { month: "Mei 2025", active: false, hasDetails: false },
+                    { month: "Juni 2025", active: false, hasDetails: false },
+                    { month: "Juli 2024", active: false, hasDetails: true },
+                    { month: "Agustus 2024", active: false, hasDetails: true },
+                    { month: "September 2024", active: false, hasDetails: true },
+                    { month: "Oktober 2024", active: false, hasDetails: true },
+                    { month: "November 2024", active: true, hasDetails: true },
+                    { month: "Desember 2024", active: false, hasDetails: true }
+                  ].map((item, i) => (
+                    <div 
+                      key={i} 
+                      className={`p-4 rounded-xl border ${
+                        item.active 
+                          ? "border-blue-500 bg-blue-50/30" 
+                          : "border-gray-100 bg-white"
+                      } h-[84px] flex flex-col justify-center`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm ${
+                          item.active 
+                            ? "font-bold text-blue-700" 
+                            : item.hasDetails 
+                              ? "font-bold text-gray-700" 
+                              : "font-semibold text-gray-400"
+                        }`}>
+                          {item.month}
+                        </span>
+                        {item.active && (
+                          <span className="bg-blue-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">Aktif</span>
+                        )}
+                      </div>
+                      
+                      {item.hasDetails && (
+                        <div className={`text-[10px] mt-1 ${item.active ? "text-blue-500/80" : "text-gray-400"}`}>
+                          Jatuh tempo tgl 10 · Kelas 7-9
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         );
 
       case "Catat Pembayaran":
         return (
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6 animate-fadeIn">
-            {/* Form Pencatatan */}
-            <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm h-fit">
-              <h2 className="text-base font-bold text-gray-800 mb-4">Catat Pembayaran SPP</h2>
-              <form onSubmit={handleAddPayment} className="space-y-4">
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase">Nama Siswa</label>
-                  <input 
-                    type="text" 
-                    value={inputStudent}
-                    onChange={(e) => setInputStudent(e.target.value)}
-                    placeholder="Masukkan nama lengkap siswa" 
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#1A3D63]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase">Kelas</label>
-                  <select 
-                    value={inputClass}
-                    onChange={(e) => setInputClass(e.target.value)}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none"
-                  >
-                    <option>Kelas 7A</option>
-                    <option>Kelas 7B</option>
-                    <option>Kelas 7C</option>
-                    <option>Kelas 8A</option>
-                    <option>Kelas 8B</option>
-                    <option>Kelas 9A</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase">Nominal</label>
-                  <select 
-                    value={inputAmount}
-                    onChange={(e) => setInputAmount(e.target.value)}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none"
-                  >
-                    <option>Rp 250.000</option>
-                    <option>Rp 275.000</option>
-                    <option>Rp 150.000</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase">Status Pembayaran</label>
-                  <select 
-                    value={inputStatus}
-                    onChange={(e) => setInputStatus(e.target.value)}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none"
-                  >
-                    <option value="Lunas">Lunas (Langsung)</option>
-                    <option value="Cicilan">Cicilan</option>
-                  </select>
-                </div>
-                <button 
-                  type="submit"
-                  className="w-full bg-[#1A3D63] hover:bg-[#122A44] text-white py-3 rounded-xl font-bold text-xs transition-all active:scale-[0.98] border-none cursor-pointer mt-2"
-                >
-                  Simpan Transaksi Pembayaran
-                </button>
-              </form>
+          <div className="animate-fadeIn">
+            <div className="mb-6">
+              <h2 className="text-xl font-bold text-gray-800">Catat Pembayaran SPP</h2>
+              <p className="text-sm text-gray-500 mt-1">Input dan konfirmasi pembayaran SPP siswa secara manual maupun online.</p>
             </div>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
+              {/* Main Content: Cari Siswa & List */}
+              <div className="flex flex-col gap-6">
+                
+                {/* Search & List */}
+                <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                  <div className="relative mb-6">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+                    </div>
+                    <input 
+                      type="text" 
+                      placeholder="Cari nama siswa atau NIS..."
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:bg-white transition-colors"
+                    />
+                  </div>
 
-            {/* Riwayat Pembayaran Hari Ini */}
-            <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-              <h2 className="text-base font-bold text-gray-800 mb-4">Riwayat Pengentrian Pembayaran Terkini</h2>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="bg-gray-50 text-gray-400 font-bold text-[10px] tracking-wider border-b border-gray-100">
-                      <th className="py-2.5 px-3">SISWA</th>
-                      <th className="py-2.5 px-3">KELAS</th>
-                      <th className="py-2.5 px-3">NOMINAL</th>
-                      <th className="py-2.5 px-3">STATUS</th>
-                      <th className="py-2.5 px-3">PERIODE</th>
-                      <th className="py-2.5 px-3">AKSI</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50 text-xs">
-                    {sppPayments.map((row) => (
-                      <tr key={row.id}>
-                        <td className="py-3 px-3 font-bold text-gray-800">{row.name}</td>
-                        <td className="py-3 px-3 text-gray-500">{row.class}</td>
-                        <td className="py-3 px-3 font-bold text-gray-700">{row.amount}</td>
-                        <td className="py-3 px-3">
-                          <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold ${
-                            row.status === "Lunas" ? "bg-green-100 text-green-700" :
-                            row.status === "Cicilan" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"
-                          }`}>
-                            {row.status}
-                          </span>
-                        </td>
-                        <td className="py-3 px-3 text-gray-500">{row.period}</td>
-                        <td className="py-3 px-3">
-                          <button 
-                            onClick={() => triggerToast(`Mencetak kwitansi pembayaran ${row.name}`)}
-                            className="bg-transparent border-none text-gray-500 hover:text-gray-900 cursor-pointer"
-                          >
-                            <IconPrinter />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                  <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-4">Belum Lunas Bulan Ini</h3>
+                  
+                  <div className="flex flex-col gap-3">
+                    {/* Budi Prasetyo - Selected */}
+                    <div className="flex items-center justify-between p-4 rounded-xl border-2 border-blue-500 bg-white cursor-pointer hover:bg-gray-50/50 transition-colors shadow-sm">
+                      <div>
+                        <div className="text-sm font-bold text-gray-800">Budi Prasetyo</div>
+                        <div className="text-[11px] text-gray-400 mt-1">XII IPA 3 · NIS: 2024/003</div>
+                        <div className="text-[11px] font-medium text-red-500 mt-1">Tunggakan: 1 bulan</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-bold text-red-500">Rp 450.000</div>
+                        <div className="text-[10px] text-red-400 font-bold mt-1">2 bln</div>
+                      </div>
+                    </div>
+
+                    {/* Citra Dewi */}
+                    <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-white cursor-pointer hover:bg-gray-50/50 transition-colors">
+                      <div>
+                        <div className="text-sm font-bold text-gray-800">Citra Dewi</div>
+                        <div className="text-[11px] text-gray-400 mt-1">XI IPS 2 · NIS: 2024/004</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-bold text-red-500">Rp 225.000</div>
+                        <div className="text-[10px] text-red-400 font-bold mt-1">1 bln</div>
+                      </div>
+                    </div>
+
+                    {/* Danu Pratama */}
+                    <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-white cursor-pointer hover:bg-gray-50/50 transition-colors">
+                      <div>
+                        <div className="text-sm font-bold text-gray-800">Danu Pratama</div>
+                        <div className="text-[11px] text-gray-400 mt-1">X IPS 1 · NIS: 2024/005</div>
+                        <div className="text-[11px] font-medium text-red-500 mt-1">Tunggakan: 2 bulan</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-bold text-red-500">Rp 1.350.000</div>
+                        <div className="text-[10px] text-red-400 font-bold mt-1">3 bln</div>
+                      </div>
+                    </div>
+
+                    {/* Putri Handayani */}
+                    <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-white cursor-pointer hover:bg-gray-50/50 transition-colors">
+                      <div>
+                        <div className="text-sm font-bold text-gray-800">Putri Handayani</div>
+                        <div className="text-[11px] text-gray-400 mt-1">XI IPS 1 · NIS: 2024/008</div>
+                        <div className="text-[11px] font-medium text-red-500 mt-1">Tunggakan: 3 bulan</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-bold text-red-500">Rp 1.800.000</div>
+                        <div className="text-[10px] text-red-400 font-bold mt-1">4 bln</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Riwayat Pembayaran */}
+                <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                  <h3 className="text-sm font-bold text-gray-800 mb-5">Riwayat Pembayaran Hari Ini</h3>
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex gap-3">
+                        <div className="mt-0.5 text-[#0F9D58]">
+                          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-gray-800">Ahmad Fauzi — X IPA 1</div>
+                          <div className="text-[11px] text-gray-400 mt-1">Mei 2026 · Transfer Bank · 09.14 WIB</div>
+                        </div>
+                      </div>
+                      <div className="text-sm font-bold text-[#0F9D58]">Rp 450.000</div>
+                    </div>
+                    
+                    <div className="w-full h-px bg-gray-50"></div>
+
+                    <div className="flex items-start justify-between">
+                      <div className="flex gap-3">
+                        <div className="mt-0.5 text-[#0F9D58]">
+                          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-gray-800">Aulia Rahma — XII IPS 1</div>
+                          <div className="text-[11px] text-gray-400 mt-1">Mei 2026 · Tunai · 09.02 WIB</div>
+                        </div>
+                      </div>
+                      <div className="text-sm font-bold text-[#0F9D58]">Rp 450.000</div>
+                    </div>
+
+                    <div className="w-full h-px bg-gray-50"></div>
+
+                    <div className="flex items-start justify-between">
+                      <div className="flex gap-3">
+                        <div className="mt-0.5 text-[#0F9D58]">
+                          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-gray-800">Eka Putri — XI IPA 2</div>
+                          <div className="text-[11px] text-gray-400 mt-1">Mei 2026 · Transfer Bank · 08.45 WIB</div>
+                        </div>
+                      </div>
+                      <div className="text-sm font-bold text-[#0F9D58]">Rp 450.000</div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
+
+              {/* Sidebar: Form Pembayaran */}
+              <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm h-fit sticky top-6">
+                <h3 className="text-sm font-bold text-gray-800 mb-5">Form Pembayaran</h3>
+                
+                <div className="bg-gray-50 rounded-xl p-4 mb-6">
+                  <div className="text-sm font-bold text-gray-800">Budi Prasetyo</div>
+                  <div className="text-[11px] text-gray-500 mt-1">XII IPA 3</div>
+                </div>
+
+                <div className="flex flex-col gap-4 mb-6">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500">Tagihan Bulan Ini</span>
+                    <span className="font-bold text-gray-800">Rp 450.000</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-500">Total Termasuk Tunggakan</span>
+                    <span className="font-bold text-gray-800">Rp 450.000</span>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <label className="block text-[11px] font-bold text-gray-500 mb-2">Metode Pembayaran</label>
+                  <select className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#0F9D58]">
+                    <option>Transfer Bank</option>
+                    <option>Tunai</option>
+                  </select>
+                </div>
+
+                <button 
+                  onClick={() => triggerToast('Pembayaran berhasil dikonfirmasi!')}
+                  className="w-full flex items-center justify-center gap-2 bg-[#0F9D58] hover:bg-[#0b8043] text-white py-3 rounded-xl text-xs font-bold transition-all active:scale-[0.98] border-none cursor-pointer"
+                >
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                  Konfirmasi Pembayaran
+                </button>
+              </div>
+
             </div>
           </div>
         );
 
       case "Beasiswa & Potongan SPP":
         return (
-          <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm animate-fadeIn">
-            <div className="flex justify-between items-center mb-6">
+          <div className="animate-fadeIn">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8">
               <div>
-                <h2 className="text-xl font-bold text-gray-800">Daftar Penerima Beasiswa & Potongan</h2>
-                <p className="text-sm text-gray-500">Atur kompensasi keringanan SPP siswa berprestasi atau kurang mampu.</p>
+                <h2 className="text-xl font-bold text-gray-800">Beasiswa & Potongan</h2>
+                <p className="text-sm text-gray-500 mt-1">Kelola program beasiswa dan potongan SPP siswa.</p>
               </div>
-              <button 
-                onClick={() => triggerToast("Membuka form pendaftaran beasiswa baru")}
-                className="bg-[#1A3D63] text-white font-bold text-xs px-4 py-2 rounded-lg cursor-pointer border-none hover:bg-[#122A44] transition-all"
+              <div className="flex items-center gap-3">
+                <div className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 flex items-center gap-2 text-sm text-gray-600 shadow-sm">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>
+                  Tahun Ajaran: 2023/2024
+                  <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                </div>
+                <button 
+                  onClick={() => setShowAddProgramModal(true)}
+                  className="bg-[#1A3D63] text-white font-bold text-sm px-4 py-2.5 rounded-xl cursor-pointer border-none hover:bg-[#122A44] transition-all flex items-center gap-1.5 shadow-sm"
+                >
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                  Tambah Program
+                </button>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm border-l-4 border-l-blue-500">
+                <div className="text-2xl font-bold text-gray-800">5</div>
+                <div className="text-[11px] text-gray-400 mt-1 font-semibold uppercase tracking-wider">Total Program Aktif</div>
+              </div>
+              <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm border-l-4 border-l-green-500">
+                <div className="text-2xl font-bold text-gray-800">78 Siswa</div>
+                <div className="text-[11px] text-gray-400 mt-1 font-semibold uppercase tracking-wider">Penerima Beasiswa</div>
+              </div>
+              <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm border-l-4 border-l-orange-500">
+                <div className="text-2xl font-bold text-gray-800">Rp 28 Jt</div>
+                <div className="text-[11px] text-gray-400 mt-1 font-semibold uppercase tracking-wider">Total Potongan/Bln</div>
+              </div>
+              <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm border-l-4 border-l-purple-500">
+                <div className="text-2xl font-bold text-gray-800">Rp 142 Jt</div>
+                <div className="text-[11px] text-gray-400 mt-1 font-semibold uppercase tracking-wider">Dana Beasiswa/Thn</div>
+              </div>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex gap-6 border-b border-gray-200 mb-6">
+              <div 
+                className={`text-sm font-bold pb-3 cursor-pointer ${beasiswaTab === "program" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-400 hover:text-gray-600"}`}
+                onClick={() => setBeasiswaTab("program")}
               >
-                + Daftarkan Siswa
-              </button>
+                Daftar Program (6)
+              </div>
+              <div 
+                className={`text-sm font-bold pb-3 cursor-pointer ${beasiswaTab === "penerima" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-400 hover:text-gray-600"}`}
+                onClick={() => setBeasiswaTab("penerima")}
+              >
+                Data Penerima
+              </div>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-gray-50 text-gray-400 font-bold text-[10px] tracking-wider border-b border-gray-100">
-                    <th className="py-3 px-4">SISWA</th>
-                    <th className="py-3 px-4">KELAS</th>
-                    <th className="py-3 px-4">KATEGORI BEASISWA</th>
-                    <th className="py-3 px-4">BESAR POTONGAN</th>
-                    <th className="py-3 px-4">STATUS BEASISWA</th>
-                    <th className="py-3 px-4">AKSI</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50 text-xs">
-                  {[
-                    { id: 1, name: "Doni Haryono", class: "Kelas 8A", type: "Beasiswa Prestasi Akademik", cut: "50% (Rp 125.000)", status: "Aktif" },
-                    { id: 2, name: "Amelia Putri", class: "Kelas 7B", type: "Beasiswa Kurang Mampu (KIP)", cut: "100% (Rp 250.000)", status: "Aktif" },
-                    { id: 3, name: "Reza Rahadian", class: "Kelas 9C", type: "Potongan Anak Kandung Guru/Karyawan", cut: "30% (Rp 82.500)", status: "Aktif" }
-                  ].map((row) => (
-                    <tr key={row.id}>
-                      <td className="py-4 px-4 font-bold text-gray-800">{row.name}</td>
-                      <td className="py-4 px-4 text-gray-500">{row.class}</td>
-                      <td className="py-4 px-4 font-semibold text-[#1A3D63]">{row.type}</td>
-                      <td className="py-4 px-4 font-bold text-green-600">{row.cut}</td>
-                      <td className="py-4 px-4">
-                        <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full font-bold text-[9px]">
-                          {row.status}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4">
-                        <button 
-                          onClick={() => triggerToast(`Menghapus status beasiswa ${row.name}`)}
-                          className="bg-transparent border-none text-red-500 hover:text-red-700 font-bold text-xs cursor-pointer"
-                        >
-                          Hapus Akses
+
+            {/* Tab Content */}
+            {beasiswaTab === "program" ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {[
+                  { title: "Beasiswa Prestasi Akademik", subtitle: "2024/2025", type: "Beasiswa", amount: "100%", status: "Aktif", users: "12 siswa", typeColor: "blue" },
+                  { title: "Beasiswa Yayasan Peduli", subtitle: "2024/2025", type: "Beasiswa", amount: "50%", status: "Aktif", users: "24 siswa", typeColor: "blue" },
+                  { title: "Potongan Anak Guru", subtitle: "Setiap Bulan", type: "Potongan", amount: "Rp 100.000", status: "Aktif", users: "8 siswa", typeColor: "orange" },
+                  { title: "Potongan Kakak-Adik", subtitle: "Setiap Bulan", type: "Potongan", amount: "25%", status: "Aktif", users: "16 siswa", typeColor: "orange" },
+                  { title: "Beasiswa Dhuafa", subtitle: "2024/2025", type: "Beasiswa", amount: "75%", status: "Aktif", users: "18 siswa", typeColor: "blue" },
+                  { title: "Subsidi Bencana Alam", subtitle: "Jan-Mar 2025", type: "Potongan", amount: "Rp 150.000", status: "Non-Aktif", users: "3 siswa", typeColor: "orange" }
+                ].map((item, i) => (
+                  <div key={i} className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between gap-4">
+                    <div className="flex justify-between items-start gap-4">
+                      <div className="flex items-start gap-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                          item.typeColor === 'blue' ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'
+                        }`}>
+                          <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1 0 9.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1 1 14.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-gray-800">{item.title}</div>
+                          <div className="text-[11px] text-gray-400 mt-1">{item.subtitle}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <button className="w-8 h-8 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center text-blue-500 transition-colors cursor-pointer">
+                          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" /></svg>
                         </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                        <button className="w-8 h-8 rounded-lg border border-red-100 bg-red-50 hover:bg-red-100 flex items-center justify-center text-red-500 transition-colors cursor-pointer">
+                          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 flex-wrap mt-2">
+                      <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold ${
+                        item.typeColor === 'blue' ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'
+                      }`}>{item.type}</span>
+                      
+                      <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-[#E6F4EA] text-[#137333]">
+                        {item.amount}
+                      </span>
+                      
+                      <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold ${
+                        item.status === 'Aktif' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'
+                      }`}>{item.status}</span>
+                      
+                      <span className="flex items-center gap-1 text-[11px] text-gray-500 font-medium ml-2">
+                        <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" /></svg>
+                        {item.users}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="bg-gray-50 text-gray-400 font-bold text-[10px] tracking-wider border-b border-gray-100">
+                        <th className="py-3 px-5">NAMA SISWA</th>
+                        <th className="py-3 px-5">KELAS</th>
+                        <th className="py-3 px-5">PROGRAM</th>
+                        <th className="py-3 px-5">POTONGAN</th>
+                        <th className="py-3 px-5">SPP AWAL</th>
+                        <th className="py-3 px-5">SPP AKHIR</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50 text-xs">
+                      {[
+                        { name: "Aulia Rahma", class: "Kelas 9A", program: "Beasiswa Prestasi Akademik", pot: "100%", awal: "Rp 300.000", akhir: "Rp 0" },
+                        { name: "Bima Saputra", class: "Kelas 8B", program: "Beasiswa Yayasan Peduli", pot: "50%", awal: "Rp 275.000", akhir: "Rp 137.500" },
+                        { name: "Citra Dewi", class: "Kelas 7A", program: "Potongan Anak Guru", pot: "Rp 100.000", awal: "Rp 250.000", akhir: "Rp 150.000" },
+                        { name: "Danu Pratama", class: "Kelas 7B", program: "Potongan Kakak-Adik", pot: "25%", awal: "Rp 250.000", akhir: "Rp 187.500" }
+                      ].map((row, idx) => (
+                        <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="py-4 px-5 font-bold text-gray-800">{row.name}</td>
+                          <td className="py-4 px-5">
+                            <span className="text-blue-500 bg-blue-50 px-2 py-1 rounded-md text-[10px] font-bold">{row.class}</span>
+                          </td>
+                          <td className="py-4 px-5 text-gray-600">{row.program}</td>
+                          <td className="py-4 px-5">
+                            <span className="text-[#137333] bg-[#E6F4EA] px-2.5 py-1 rounded-md text-[10px] font-bold">{row.pot}</span>
+                          </td>
+                          <td className="py-4 px-5 text-gray-400 font-medium decoration-gray-300 relative">
+                            {row.awal}
+                            <div className="absolute top-1/2 left-5 w-14 h-px bg-gray-300"></div>
+                          </td>
+                          <td className="py-4 px-5 font-bold text-[#0F9D58]">{row.akhir}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
           </div>
         );
 
@@ -1278,6 +1796,8 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
           </div>
         </div>
       )}
+      {/* Edit SPP - handled inline, no modal needed */}
+
       {/* Generate Month Modal Dialog */}
       {showGenerateMonthModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
@@ -1350,6 +1870,110 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                   <path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
                 </svg>
                 Konfirmasi Generate
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Tambah Program Baru */}
+      {showAddProgramModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowAddProgramModal(false)}></div>
+          <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl relative animate-scaleIn z-10">
+            {/* Modal Header */}
+            <div className="flex justify-between items-center p-6 border-b border-gray-100">
+              <h2 className="text-lg font-bold text-gray-800">Tambah Program Baru</h2>
+              <button 
+                onClick={() => setShowAddProgramModal(false)}
+                className="text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer"
+              >
+                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            
+            {/* Form Content */}
+            <div className="p-6">
+              <div className="flex flex-col gap-5">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Nama Program</label>
+                  <input 
+                    type="text" 
+                    placeholder="Contoh: Beasiswa Yatim Piatu"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Jenis</label>
+                    <select className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700 h-[46px]">
+                      <option value="" disabled selected>Pilih jenis</option>
+                      <option>Beasiswa</option>
+                      <option>Potongan</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Kategori</label>
+                    <select className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700 h-[46px]">
+                      <option value="" disabled selected>Pilih kategori</option>
+                      <option>Akademik</option>
+                      <option>Non-Akademik</option>
+                      <option>Sosial</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Nilai (%)</label>
+                    <input 
+                      type="text" 
+                      placeholder="50%"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Jumlah Penerima</label>
+                    <input 
+                      type="number" 
+                      placeholder="0"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Periode</label>
+                    <input 
+                      type="text" 
+                      placeholder="Contoh: 2024/2025"
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                    <select className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700 h-[46px]">
+                      <option>Aktif</option>
+                      <option>Non-Aktif</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-6 border-t border-gray-100 flex justify-end gap-3 rounded-b-2xl">
+              <button 
+                onClick={() => setShowAddProgramModal(false)}
+                className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 py-3 px-8 rounded-xl text-sm font-bold cursor-pointer transition-colors"
+              >
+                Batal
+              </button>
+              <button 
+                onClick={() => {
+                  setShowAddProgramModal(false);
+                  triggerToast("Program baru berhasil ditambahkan!");
+                }}
+                className="bg-[#1A3D63] hover:bg-[#122A44] text-white py-3 px-8 rounded-xl text-sm font-bold cursor-pointer border-none shadow-md transition-all active:scale-[0.98] flex items-center gap-2"
+              >
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                Tambah Program
               </button>
             </div>
           </div>
