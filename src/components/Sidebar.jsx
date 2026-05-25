@@ -81,8 +81,7 @@ const menuSections = [
     section: "SISTEM & DATA",
     items: [
       { label: "Akses Seluruh Data", icon: <DatabaseIcon /> },
-      { label: "Backup & Maintenance", icon: <ServerIcon /> },
-      { label: "Log Aktivitas", icon: <ActivityIcon /> }
+      { label: "Backup & Maintenance", icon: <ServerIcon /> }
     ],
     roles: ["Super Admin"]
   },
