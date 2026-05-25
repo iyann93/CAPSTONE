@@ -54,11 +54,11 @@ const ActivityIcon = () => <svg width="20" height="20" fill="none" stroke="curre
   </svg>;
 const menuSections = [
   {
-    section: "",
+    section: "OVERVIEW",
     items: [
       { label: "Dashboard", icon: <BarChartIcon /> }
     ],
-    roles: ["Admin", "Kepala Sekolah", "Wakil Kepsek", "Guru", "Super Admin"]
+    roles: ["Admin", "Kepala Sekolah", "Wakil Kepsek", "Guru", "Super Admin", "Bendahara"]
   },
   {
     section: "MANAJEMEN PENGGUNA",
@@ -112,6 +112,35 @@ const menuSections = [
       { label: "Penggajian (Payroll)", icon: <WalletIcon /> }
     ],
     roles: ["Admin", "Kepala Sekolah", "Wakil Kepsek"]
+  },
+  {
+    section: "SPP SISWA",
+    items: [
+      { label: "Tagihan SPP", icon: <ReceiptIcon /> },
+      { label: "Pengaturan SPP", icon: <SettingsIcon /> },
+      { label: "Catat Pembayaran", icon: <CalendarIcon /> },
+      { label: "Beasiswa & Potongan SPP", icon: <AwardIcon /> },
+      { label: "Transaksi Pembayaran", icon: <FileChartIcon /> },
+      { label: "Monitor Tunggakan", icon: <ActivityIcon /> }
+    ],
+    roles: ["Bendahara"]
+  },
+  {
+    section: "PENGGAJIAN",
+    items: [
+      { label: "Komponen Gaji", icon: <GridIcon /> },
+      { label: "Generate Slip Gaji", icon: <FileChartIcon /> },
+      { label: "Status Bayar Gaji", icon: <WalletIcon /> },
+      { label: "Transfer Gaji", icon: <WalletIcon /> }
+    ],
+    roles: ["Bendahara"]
+  },
+  {
+    section: "LAPORAN",
+    items: [
+      { label: "Cetak Laporan Keuangan", icon: <FileChartIcon /> }
+    ],
+    roles: ["Bendahara"]
   },
   {
     section: "LAINNYA",

@@ -8,6 +8,7 @@ import AdminDashboard from "./pages/dashboards/AdminDashboard";
 import SiswaDashboard from "./pages/dashboards/SiswaDashboard";
 import SuperAdminDashboard from "./pages/dashboards/SuperAdminDashboard";
 import PlaceholderDashboard from "./pages/dashboards/PlaceholderDashboard";
+import BendaharaDashboard from "./pages/dashboards/BendaharaDashboard";
 const App = () => {
   const [user, setUser] = useState(null);
   const [collapsed, setCollapsed] = useState(true);
@@ -66,6 +67,8 @@ const App = () => {
         return <SuperAdminDashboard user={user} activeMenu={activeMenu} />;
       case "Siswa":
         return <SiswaDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
+      case "Bendahara":
+        return <BendaharaDashboard user={user} activeMenu={activeMenu} />;
       default:
         return <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
     }

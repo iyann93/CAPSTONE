@@ -50,6 +50,18 @@ const MOCK_USERS = [
     fullName: "Budi Santoso",
     role: "Super Admin",
     avatar: "https://ui-avatars.com/api/?name=Budi+Santoso&background=1e293b&color=fff"
+  },
+  {
+    id: "7",
+    username: "bendahara",
+    password: "bendahara123",
+    fullName: "Budi Santoso",
+    role: "Bendahara",
+    avatar: "https://ui-avatars.com/api/?name=Budi+Santoso&background=1e293b&color=fff",
+    email: "bendahara@smanusantara.sch.id",
+    phone: "+62 812-9876-5432",
+    nip: "199005052015052002",
+    address: "Jl. Pendidikan No. 1, Jakarta"
   }
 ];
 export {
