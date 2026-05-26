@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import {
   BarChart,
   Bar,
@@ -187,6 +187,10 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
   const [showDeleteKomponenModal, setShowDeleteKomponenModal] = useState(false);
   const [selectedKomponen, setSelectedKomponen] = useState(null);
   const [editKomponenForm, setEditKomponenForm] = useState({ name: "", category: "Pendapatan", type: "Bulanan", nominal: "", status: "Aktif" });
+
+  // Status Bayar Gaji Modal State
+  const [selectedDetailGaji, setSelectedDetailGaji] = useState(null);
+  const [showDetailGajiModal, setShowDetailGajiModal] = useState(false);
 
   const triggerToast = (message) => {
     setToastMessage(message);
@@ -1470,103 +1474,253 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
 
       case "Generate Slip Gaji":
         return (
-          <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm animate-fadeIn">
-            <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-col gap-6 animate-fadeIn font-sans">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div>
-                <h2 className="text-xl font-bold text-gray-800">Generate Slip Gaji Bulanan</h2>
-                <p className="text-sm text-gray-500">Kalkulasi akhir, generate berkas PDF slip gaji staf &amp; guru.</p>
+                <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Generate Slip Gaji</h1>
+                <p className="text-sm text-gray-500 mt-1">Generate dan kelola slip gaji bulanan guru &amp; karyawan.</p>
               </div>
-              <button 
-                onClick={() => triggerToast("Mengalkulasi dan generate masal seluruh slip gaji Guru & Karyawan...")}
-                className="bg-[#1A3D63] hover:bg-[#122A44] text-white font-bold text-xs px-4 py-2.5 rounded-lg border-none cursor-pointer transition-all active:scale-95"
+              <button
+                onClick={() => triggerToast("Generate masal seluruh slip gaji Guru & Karyawan...")}
+                className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-4 sm:px-5 py-2.5 text-xs sm:text-[13px] font-bold cursor-pointer transition-all active:scale-95 shadow-sm"
               >
-                Generate Masal (PDF)
+                <IconPlus /> Generate Semua Slip
               </button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-gray-50 text-gray-400 font-bold text-[10px] tracking-wider border-b border-gray-100">
-                    <th className="py-3 px-4">NAMA</th>
-                    <th className="py-3 px-4">JABATAN</th>
-                    <th className="py-3 px-4">HONOR MENGAJAR (JAM)</th>
-                    <th className="py-3 px-4">GAJI BERSIH</th>
-                    <th className="py-3 px-4">SLIP GAJI</th>
-                    <th className="py-3 px-4">TINDAKAN</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50 text-xs">
-                  {payrollMockData.map((row) => (
-                    <tr key={row.id}>
-                      <td className="py-4 px-4 font-bold text-gray-800">{row.name}</td>
-                      <td className="py-4 px-4 text-gray-500">{row.role}</td>
-                      <td className="py-4 px-4 font-bold text-gray-700">32 Jam</td>
-                      <td className="py-4 px-4 font-bold text-green-600">{row.salary}</td>
-                      <td className="py-4 px-4">
-                        <span className="text-[10px] font-bold text-gray-400 font-mono">DRAFT_SLIP_{row.id}.PDF</span>
-                      </td>
-                      <td className="py-4 px-4 flex items-center gap-3">
-                        <button 
-                          onClick={() => triggerToast(`Preview slip gaji ${row.name}`)}
-                          className="bg-transparent border-none text-[#1A3D63] font-bold cursor-pointer hover:underline"
-                        >
-                          Preview
-                        </button>
-                        <button 
-                          onClick={() => triggerToast(`Slip gaji ${row.name} sukses terkirim ke email!`)}
-                          className="bg-transparent border-none text-green-600 font-bold cursor-pointer hover:underline"
-                        >
-                          Kirim Slip
-                        </button>
-                      </td>
+            {/* Stat Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { label: "Total Pegawai", value: "6", accent: "border-l-4 border-l-[#6366F1]", iconBg: "bg-indigo-50 text-indigo-500" },
+                { label: "Slip Sudah Generate", value: "4", accent: "border-l-4 border-l-[#10B981]", iconBg: "bg-green-50 text-green-500" },
+                { label: "Belum Generate", value: "2", accent: "border-l-4 border-l-[#EF4444]", iconBg: "bg-red-50 text-red-500" },
+                { label: "Total Payroll", value: "Rp 20.335.000", accent: "border-l-4 border-l-[#3B82F6]", iconBg: "bg-blue-50 text-blue-500" }
+              ].map((card, idx) => (
+                <div key={idx} className={`bg-white rounded-2xl border border-gray-100 p-4 sm:p-5 shadow-sm ${card.accent} flex items-center gap-3`}>
+                  <div className={`w-10 h-10 rounded-xl ${card.iconBg} flex items-center justify-center flex-shrink-0 text-lg font-bold`}>
+                    {idx === 0 && <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>}
+                    {idx === 1 && <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>}
+                    {idx === 2 && <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>}
+                    {idx === 3 && <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" /></svg>}
+                  </div>
+                  <div>
+                    <div className="text-[20px] sm:text-2xl font-black text-gray-800 leading-none">{card.value}</div>
+                    <div className="text-[11px] text-gray-400 font-medium mt-0.5">{card.label}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Table Card */}
+            <div className="bg-white rounded-[24px] border border-gray-100 p-5 sm:p-6 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-5 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-gray-500">Periode Gaji:</span>
+                  <div className="relative">
+                    <select className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-700 focus:outline-none appearance-none pr-7 font-semibold">
+                      <option>Mei 2026</option>
+                      <option>April 2026</option>
+                      <option>Maret 2026</option>
+                    </select>
+                    <span className="absolute right-2 top-2 text-gray-400 pointer-events-none"><IconChevronDown /></span>
+                  </div>
+                </div>
+                <span className="bg-[#E6F4EA] text-[#059669] font-bold px-3 py-1 rounded-full text-[11px]">3 sudah transfer</span>
+                <span className="bg-[#FEF3C7] text-[#D97706] font-bold px-3 py-1 rounded-full text-[11px]">1 pending</span>
+              </div>
+
+              <div className="overflow-x-auto rounded-xl border border-gray-100">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50/60 text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
+                      <th className="p-4 pl-5">NIP</th>
+                      <th className="p-4">NAMA PEGAWAI</th>
+                      <th className="p-4">JABATAN</th>
+                      <th className="p-4">GAJI BERSIH</th>
+                      <th className="p-4">STATUS SLIP</th>
+                      <th className="p-4">STATUS BAYAR</th>
+                      <th className="p-4 pr-5 text-right">AKSI</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 text-xs">
+                    {[
+                      { nip: "1980001", name: "Andi Susanto, S.Pd", role: "Guru Matematika", salary: "Rp 4.105.500", slipStatus: "Sudah Generate", payStatus: "Sudah Transfer" },
+                      { nip: "1985002", name: "Maya Putri, M.Pd", role: "Guru B. Indonesia", salary: "Rp 3.720.000", slipStatus: "Sudah Generate", payStatus: "Sudah Transfer" },
+                      { nip: "1990003", name: "Hendro Wibowo", role: "Staff TU", salary: "Rp 2.408.500", slipStatus: "Sudah Generate", payStatus: "Pending" },
+                      { nip: "1982004", name: "Lina Sari, S.Kom", role: "Guru TIK", salary: "Rp 3.085.000", slipStatus: "Belum Generate", payStatus: "none" },
+                      { nip: "1978005", name: "Rini Astuti, S.Si", role: "Guru Kimia", salary: "Rp 4.320.000", slipStatus: "Sudah Generate", payStatus: "Sudah Transfer" },
+                      { nip: "1995006", name: "Doni Prasetya", role: "Guru Olahraga", salary: "Rp 2.696.000", slipStatus: "Belum Generate", payStatus: "none" }
+                    ].map((row, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="p-4 pl-5 font-mono text-gray-400 text-[11px]">{row.nip}</td>
+                        <td className="p-4 font-bold text-gray-800">{row.name}</td>
+                        <td className="p-4 text-gray-500">{row.role}</td>
+                        <td className="p-4 font-bold text-[#1A3D63]">{row.salary}</td>
+                        <td className="p-4">
+                          <span className={`font-bold px-2.5 py-1 rounded-md text-[10px] inline-block ${row.slipStatus === "Sudah Generate" ? "bg-[#E6F4EA] text-[#059669]" : "bg-[#FEE2E2] text-[#EF4444]"}`}>
+                            {row.slipStatus}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          {row.payStatus === "none" ? (
+                            <span className="text-gray-300 font-bold text-base">â€”</span>
+                          ) : (
+                            <span className={`font-bold px-2.5 py-1 rounded-md text-[10px] inline-block ${row.payStatus === "Sudah Transfer" ? "bg-[#E6F4EA] text-[#059669]" : "bg-[#FEF3C7] text-[#D97706]"}`}>
+                              {row.payStatus}
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-4 pr-5">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button onClick={() => triggerToast(`Preview slip gaji ${row.name}`)} className="text-gray-400 hover:text-gray-700 hover:bg-gray-100 p-1.5 rounded-lg border-none bg-transparent cursor-pointer transition-colors" title="Preview">
+                              <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+                            </button>
+                            <button onClick={() => triggerToast(`Mengunduh slip gaji ${row.name}...`)} className="text-gray-400 hover:text-gray-700 hover:bg-gray-100 p-1.5 rounded-lg border-none bg-transparent cursor-pointer transition-colors" title="Download">
+                              <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                            </button>
+                            {row.slipStatus === "Belum Generate" && (
+                              <button onClick={() => triggerToast(`Generate slip gaji ${row.name}...`)} className="bg-[#1A3D63] hover:bg-[#122A44] text-white p-1.5 rounded-lg border-none cursor-pointer transition-all active:scale-95 shadow-sm" title="Generate Slip">
+                                <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         );
-
       case "Status Bayar Gaji":
-        return (
-          <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm animate-fadeIn">
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Monitoring Pembayaran Gaji Karyawan</h2>
-            <p className="text-sm text-gray-500 mb-6">Daftar verifikasi status pencairan gaji &amp; payroll bulanan.</p>
+        const statusBayarData = [
+          { name: "Andi Susanto, S.Pd", role: "Guru Matematika", salary: "Rp 4.250.000", status: "Sudah Dibayar", date: "25 Mei 2026", bank: "BCA" },
+          { name: "Maya Putri, M.Pd", role: "Guru Bahasa Indo", salary: "Rp 3.800.000", status: "Sudah Dibayar", date: "25 Mei 2026", bank: "Mandiri" },
+          { name: "Hendro Wibowo", role: "Staff TU", salary: "Rp 2.500.000", status: "Proses Transfer", date: "â€”", bank: "BCA" },
+          { name: "Lina Sari, S.Kom", role: "Guru TIK", salary: "Rp 3.200.000", status: "Belum Diproses", date: "â€”", bank: "BRI" },
+          { name: "Dr. Hendra Wijaya", role: "Kepala Sekolah", salary: "Rp 7.500.000", status: "Sudah Dibayar", date: "24 Mei 2026", bank: "BCA" }
+        ];
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-gray-50 text-gray-400 font-bold text-[10px] tracking-wider border-b border-gray-100">
-                    <th className="py-3 px-4">KARYAWAN / GURU</th>
-                    <th className="py-3 px-4">JABATAN</th>
-                    <th className="py-3 px-4">GAJI BERSIH</th>
-                    <th className="py-3 px-4">METODE BAYAR</th>
-                    <th className="py-3 px-4">STATUS PAYROLL</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50 text-xs">
-                  {payrollMockData.map((row) => (
-                    <tr key={row.id}>
-                      <td className="py-4 px-4 font-bold text-gray-800">{row.name}</td>
-                      <td className="py-4 px-4 text-gray-500">{row.role}</td>
-                      <td className="py-4 px-4 font-bold text-gray-700">{row.salary}</td>
-                      <td className="py-4 px-4 text-gray-500">Host-to-Host Bank Mandiri</td>
-                      <td className="py-4 px-4">
-                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                          row.status === "Sudah Transfer" ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
-                        }`}>
-                          {row.status}
-                        </span>
-                      </td>
+        return (
+          <div className="flex flex-col gap-6 animate-fadeIn font-sans">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div>
+                <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Status Pembayaran Gaji</h1>
+                <p className="text-sm text-gray-500 mt-1">Monitoring status real-time pembayaran gaji guru dan karyawan.</p>
+              </div>
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                <div className="relative">
+                  <select className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-8 py-2.5 text-xs sm:text-[13px] font-bold text-gray-600 cursor-pointer appearance-none focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 shadow-sm transition-all">
+                    <option>Tahun Ajaran: 2023/2024</option>
+                  </select>
+                  <span className="absolute left-3.5 top-2.5 text-gray-400 pointer-events-none">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+                  </span>
+                  <span className="absolute right-3.5 top-3 text-gray-400 pointer-events-none">
+                    <IconChevronDown />
+                  </span>
+                </div>
+                <button
+                  onClick={() => triggerToast("Review semua pembayaran...")}
+                  className="flex items-center gap-1.5 bg-white border border-gray-200 text-gray-700 rounded-xl px-4 py-2.5 text-xs sm:text-[13px] font-bold cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
+                >
+                  <IconPlus /> Review Semua
+                </button>
+              </div>
+            </div>
+
+            {/* Stat Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { label: "TOTAL PEGAWAI", value: "87", accent: "border-t-[#1A3D63]", icon: <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" /></svg>, iconColor: "text-gray-400" },
+                { label: "SUDAH TERBAYAR", value: "62", accent: "border-t-[#10B981]", icon: <IconCheckCircle />, iconColor: "text-[#10B981]" },
+                { label: "PROSES TRANSFER", value: "15", accent: "border-t-[#3B82F6]", icon: <IconClock />, iconColor: "text-[#3B82F6]" },
+                { label: "BELUM DIPROSES", value: "10", accent: "border-t-[#EF4444]", icon: <IconAlertCircle />, iconColor: "text-[#EF4444]" }
+              ].map((card, idx) => (
+                <div key={idx} className={`bg-white rounded-[20px] border border-gray-100 p-5 shadow-sm border-t-[3px] ${card.accent} flex flex-col justify-between h-[104px]`}>
+                  <div className="flex justify-between items-start">
+                    <div className="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-wider">{card.label}</div>
+                    <div className={`${card.iconColor}`}>{card.icon}</div>
+                  </div>
+                  <div className="text-3xl font-black text-gray-800 leading-none">{card.value}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Table Card */}
+            <div className="bg-white rounded-[24px] border border-gray-100 p-5 sm:p-6 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div className="relative w-full sm:w-[320px]">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                    <IconSearch />
+                  </div>
+                  <input 
+                    type="text" 
+                    placeholder="Cari nama pegawai..."
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-100 rounded-xl text-xs sm:text-[13px] focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all font-medium"
+                  />
+                </div>
+                <button
+                  onClick={() => triggerToast("Mencetak daftar pembayaran...")}
+                  className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-4 py-2.5 rounded-xl text-xs sm:text-[13px] font-bold flex items-center gap-2 cursor-pointer transition-colors shadow-sm"
+                >
+                  <IconPrinter /> Cetak Daftar
+                </button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-white text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
+                      <th className="py-4 px-4 font-semibold bg-gray-50/50 rounded-tl-xl">NAMA PEGAWAI</th>
+                      <th className="py-4 px-4 font-semibold bg-gray-50/50">JABATAN</th>
+                      <th className="py-4 px-4 font-semibold bg-gray-50/50">TOTAL GAJI</th>
+                      <th className="py-4 px-4 font-semibold bg-gray-50/50">STATUS</th>
+                      <th className="py-4 px-4 font-semibold bg-gray-50/50">TGL BAYAR</th>
+                      <th className="py-4 px-4 font-semibold bg-gray-50/50">BANK</th>
+                      <th className="py-4 px-4 font-semibold bg-gray-50/50 rounded-tr-xl text-right">AKSI</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 text-xs">
+                    {statusBayarData.map((row, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="py-4 px-4 font-bold text-gray-800">{row.name}</td>
+                        <td className="py-4 px-4 text-gray-500 font-medium">{row.role}</td>
+                        <td className="py-4 px-4 font-bold text-gray-800">{row.salary}</td>
+                        <td className="py-4 px-4">
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold inline-block ${
+                            row.status === 'Sudah Dibayar' ? 'bg-[#E6F4EA] text-[#059669]' : 
+                            row.status === 'Proses Transfer' ? 'bg-blue-50 text-blue-600' :
+                            'bg-[#FEE2E2] text-[#EF4444]'
+                          }`}>
+                            {row.status}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 text-gray-500 font-medium">{row.date}</td>
+                        <td className="py-4 px-4 text-gray-500 font-medium">{row.bank}</td>
+                        <td className="py-4 px-4 text-right">
+                                                    <button 
+                            onClick={() => {
+                              setSelectedDetailGaji(row);
+                              setShowDetailGajiModal(true);
+                            }}
+                            className="inline-flex items-center gap-1.5 text-blue-500 hover:text-blue-700 font-bold bg-transparent border-none cursor-pointer text-[11px] sm:text-xs transition-colors"
+                          >
+                            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+                            Detail
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         );
-
       case "Transfer Gaji":
         return (
           <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm animate-fadeIn">
@@ -2693,6 +2847,98 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
               >
                 <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
                 Ya, Hapus Komponen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Detail Gaji Modal */}
+      {showDetailGajiModal && selectedDetailGaji && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDetailGajiModal(false)} />
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl relative z-10 font-sans overflow-hidden">
+            {/* Header */}
+            <div className="bg-[#1A3D63] p-6 pb-5 flex justify-between items-start text-white">
+              <div>
+                <div className="text-[10px] text-blue-200/80 uppercase tracking-widest font-bold mb-1">DETAIL PEMBAYARAN GAJI</div>
+                <h2 className="text-lg font-bold tracking-tight">{selectedDetailGaji.name}</h2>
+                <p className="text-[13px] text-blue-200 mt-0.5">{selectedDetailGaji.role}</p>
+              </div>
+              <button onClick={() => setShowDetailGajiModal(false)} className="text-blue-200 hover:text-white bg-transparent border-none cursor-pointer p-1 rounded-full hover:bg-white/10 transition-colors">
+                <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            
+            <div className="p-6 pb-4">
+              {/* Status Badge */}
+              <div className="flex justify-between items-center mb-6 pb-6 border-b border-gray-100 border-dashed">
+                <span className="text-sm font-medium text-gray-500">Status Pembayaran</span>
+                <span className={`px-3 py-1.5 rounded-full text-[11px] font-bold ${
+                  selectedDetailGaji.status === 'Sudah Dibayar' ? 'bg-[#E6F4EA] text-[#059669]' : 
+                  selectedDetailGaji.status === 'Proses Transfer' ? 'bg-blue-50 text-blue-600' :
+                  'bg-[#FEE2E2] text-[#EF4444]'
+                }`}>
+                  {selectedDetailGaji.status}
+                </span>
+              </div>
+
+              {/* Info List */}
+              <div className="space-y-3.5 mb-6 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-400 font-medium">ID Transaksi</span>
+                  <span className="font-bold text-gray-800">G-101</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400 font-medium">Tanggal Bayar</span>
+                  <span className="font-bold text-gray-800">{selectedDetailGaji.date}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400 font-medium">Metode</span>
+                  <span className="font-bold text-gray-800">Transfer Bank</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400 font-medium">Bank Tujuan</span>
+                  <span className="font-bold text-gray-800">{selectedDetailGaji.bank}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-400 font-medium">No. Rekening</span>
+                  <span className="font-bold text-gray-800">8821-****-9901</span>
+                </div>
+              </div>
+
+              {/* Rincian Gaji */}
+              <div className="bg-gray-50/50 border border-gray-100 rounded-2xl p-5 mb-2">
+                <div className="text-[10px] font-bold text-gray-400 mb-3 tracking-wider uppercase">RINCIAN GAJI</div>
+                <div className="space-y-2.5 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 font-medium">Gaji Pokok</span>
+                    <span className="font-bold text-gray-800">Rp 3.500.000</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#059669] font-medium">+ Tunjangan</span>
+                    <span className="font-bold text-[#059669]">+Rp 1.000.000</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[#EF4444] font-medium">- Potongan</span>
+                    <span className="font-bold text-[#EF4444]">-Rp 394.500</span>
+                  </div>
+                </div>
+                
+                <div className="border-t border-dashed border-gray-200 my-4"></div>
+                
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-gray-800">Gaji Bersih</span>
+                  <span className="text-xl font-black text-[#059669]">{selectedDetailGaji.salary}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6 pt-0">
+              <button
+                onClick={() => setShowDetailGajiModal(false)}
+                className="w-full bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 py-3.5 rounded-xl text-[13px] font-bold cursor-pointer transition-colors shadow-sm"
+              >
+                Tutup
               </button>
             </div>
           </div>
