@@ -177,6 +177,17 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
   const [editSppGrade, setEditSppGrade] = useState("");
   const [editSppTa, setEditSppTa] = useState("");
 
+  // Transaction Modal States
+  const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [transactionTab, setTransactionTab] = useState("Pemasukan");
+  const [transactionCategory, setTransactionCategory] = useState("SPP"); // SPP for Pemasukan, Gaji/Operasional for Pengeluaran
+
+  // Komponen Gaji Modal States
+  const [showEditKomponenModal, setShowEditKomponenModal] = useState(false);
+  const [showDeleteKomponenModal, setShowDeleteKomponenModal] = useState(false);
+  const [selectedKomponen, setSelectedKomponen] = useState(null);
+  const [editKomponenForm, setEditKomponenForm] = useState({ name: "", category: "Pendapatan", type: "Bulanan", nominal: "", status: "Aktif" });
+
   const triggerToast = (message) => {
     setToastMessage(message);
     setShowToast(true);
@@ -1129,142 +1140,329 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
           </div>
         );
 
-      case "Transaksi Pembayaran":
-        return (
-          <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm animate-fadeIn">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h2 className="text-xl font-bold text-gray-800">Buku Jurnal Kas Masuk SPP</h2>
-                <p className="text-sm text-gray-500">Mutasi transaksi pembayaran iuran SPP siswa real-time.</p>
-              </div>
-              <button 
-                onClick={() => triggerToast("Mengunduh ekspor laporan mutasi transaksi dalam bentuk Excel...")}
-                className="bg-green-600 hover:bg-green-700 text-white font-bold text-xs px-4 py-2 rounded-lg cursor-pointer border-none transition-all"
-              >
-                Ekspor Jurnal (.XLSX)
-              </button>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-gray-50 text-gray-400 font-bold text-[10px] tracking-wider border-b border-gray-100">
-                    <th className="py-3 px-4">KODE REF</th>
-                    <th className="py-3 px-4">WAKTU</th>
-                    <th className="py-3 px-4">SISWA</th>
-                    <th className="py-3 px-4">METODE BAYAR</th>
-                    <th className="py-3 px-4">NOMINAL</th>
-                    <th className="py-3 px-4">PERIODE</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50 text-xs">
-                  {[
-                    { id: "SPP-9921", time: "Hari ini, 11:22", name: "Ahmad Fauzi", method: "Virtual Account BCA", amount: "Rp 250.000", period: "Mei 2026" },
-                    { id: "SPP-9918", time: "Hari ini, 09:15", name: "Aulia Rahma", method: "Cash / Tunai", amount: "Rp 250.000", period: "Mei 2026" },
-                    { id: "SPP-9912", time: "Kemarin, 14:30", name: "Sinta Bella", method: "Virtual Account Mandiri", amount: "Rp 250.000", period: "Mei 2026" }
-                  ].map((row) => (
-                    <tr key={row.id}>
-                      <td className="py-4 px-4 font-mono font-bold text-gray-700">{row.id}</td>
-                      <td className="py-4 px-4 text-gray-400">{row.time}</td>
-                      <td className="py-4 px-4 font-bold text-gray-800">{row.name}</td>
-                      <td className="py-4 px-4 text-gray-500">{row.method}</td>
-                      <td className="py-4 px-4 font-bold text-green-600">{row.amount}</td>
-                      <td className="py-4 px-4 text-gray-500">{row.period}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
 
       case "Monitor Tunggakan":
         return (
-          <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm animate-fadeIn">
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Monitoring Piutang & Tunggakan SPP</h2>
-            <p className="text-sm text-gray-500 mb-6">Pemantauan siswa yang belum menyelesaikan administrasi SPP.</p>
+          <div className="flex flex-col gap-6 animate-fadeIn font-sans">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div>
+                <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Monitoring Tunggakan SPP</h1>
+                <p className="text-sm text-gray-500 mt-1">Identifikasi siswa yang belum melunasi kewajiban pembayaran dan kirim tagihan ke Orang Tua.</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <select 
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value)}
+                    className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
+                  >
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                  </select>
+                  <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
+                    <IconChevronDown />
+                  </span>
+                </div>
+                <button
+                  onClick={() => triggerToast("Mengirim notifikasi tagihan massal...")}
+                  className="flex items-center gap-1.5 bg-[#EF4444] hover:bg-[#DC2626] text-white border-none rounded-xl px-4 sm:px-5 py-2.5 text-xs sm:text-[13px] font-bold cursor-pointer transition-all active:scale-95 shadow-sm"
+                >
+                  <IconPlus /> Kirim Notifikasi Massal
+                </button>
+              </div>
+            </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-gray-50 text-gray-400 font-bold text-[10px] tracking-wider border-b border-gray-100">
-                    <th className="py-3 px-4">SISWA</th>
-                    <th className="py-3 px-4">KELAS</th>
-                    <th className="py-3 px-4">JUMLAH BULAN TUNGGAKAN</th>
-                    <th className="py-3 px-4">TOTAL TUNGGAKAN</th>
-                    <th className="py-3 px-4">TINDAKAN TERAKHIR</th>
-                    <th className="py-3 px-4">TINDAKAN</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50 text-xs">
-                  {[
-                    { id: 1, name: "Budi Wijaya", class: "Kelas 7C", months: "2 Bulan (Apr, Mei)", total: "Rp 550.000", alert: "Belum Dihubungi" },
-                    { id: 2, name: "Rian Hidayat", class: "Kelas 8C", months: "3 Bulan (Mar, Apr, Mei)", total: "Rp 750.000", alert: "Terkirim WhatsApp 3 hari lalu" }
-                  ].map((row) => (
-                    <tr key={row.id}>
-                      <td className="py-4 px-4 font-bold text-gray-800">{row.name}</td>
-                      <td className="py-4 px-4 text-gray-500">{row.class}</td>
-                      <td className="py-4 px-4 font-bold text-red-500">{row.months}</td>
-                      <td className="py-4 px-4 font-bold text-red-600">{row.total}</td>
-                      <td className="py-4 px-4 text-gray-400">{row.alert}</td>
-                      <td className="py-4 px-4">
-                        <button 
-                          onClick={() => triggerToast(`Pengingat peringatan keras terkirim ke wali murid ${row.name}!`)}
-                          className="bg-red-500 hover:bg-red-600 text-white font-bold text-[11px] px-3 py-1.5 rounded-lg cursor-pointer border-none flex items-center gap-1"
-                        >
-                          <IconSend /> Kirim Somasi WA
-                        </button>
-                      </td>
+            {/* Stat Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+              {[
+                { 
+                  title: "Total Siswa Menunggak", 
+                  value: "6", 
+                  desc: "Mei 2026",
+                  color: "border-l-4 border-l-[#EF4444]" 
+                },
+                { 
+                  title: "Total Nominal Tunggakan", 
+                  value: "Rp 2.7 Jt", 
+                  desc: "Akumulasi",
+                  color: "border-l-4 border-l-[#EF4444]" 
+                },
+                { 
+                  title: "Sudah Ditagih", 
+                  value: "0/6", 
+                  desc: "Notifikasi terkirim",
+                  color: "border-l-4 border-l-[#10B981]" 
+                },
+                { 
+                  title: "Rata-rata Keterlambatan", 
+                  value: "1,5 Bln", 
+                  desc: "Per siswa",
+                  color: "border-l-4 border-l-[#F59E0B]" 
+                }
+              ].map((card, idx) => (
+                <div key={idx} className={`bg-white rounded-2xl border border-gray-100 p-5 shadow-sm ${card.color}`}>
+                  <div className="text-[11px] font-bold text-gray-400 mb-2">{card.title}</div>
+                  <div className="text-2xl sm:text-3xl font-black text-gray-800 mb-1">{card.value}</div>
+                  <div className="text-xs text-gray-400 font-medium">{card.desc}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Main Content Area */}
+            <div className="bg-white rounded-[24px] border border-gray-100 p-5 sm:p-6 shadow-sm">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                  <div className="relative w-full sm:w-[280px]">
+                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                      <IconSearch />
+                    </div>
+                    <input 
+                      type="text" 
+                      placeholder="Cari nama atau kelas..."
+                      className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-xs sm:text-[13px] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all"
+                    />
+                  </div>
+                  <div className="flex bg-gray-50 border border-gray-100 p-1 rounded-xl w-full sm:w-auto overflow-x-auto">
+                    {["Semua", "Kritikal", "Menengah", "Ringan"].map((tab, idx) => (
+                      <button
+                        key={tab}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border-none whitespace-nowrap ${
+                          idx === 0
+                            ? "bg-[#1A3D63] text-white shadow-sm"
+                            : "text-gray-500 hover:text-gray-900 bg-transparent"
+                        }`}
+                      >
+                        {tab}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                <button
+                  onClick={() => triggerToast("Mengekspor data tunggakan...")}
+                  className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all w-full sm:w-auto"
+                >
+                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                  Export Data
+                </button>
+              </div>
+
+              <div className="overflow-x-auto rounded-xl border border-gray-100">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50/50 text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
+                      <th className="p-4 pl-5">NAMA SISWA</th>
+                      <th className="p-4">KELAS</th>
+                      <th className="p-4">JML BULAN</th>
+                      <th className="p-4">TOTAL TUNGGAKAN</th>
+                      <th className="p-4">STATUS</th>
+                      <th className="p-4 pr-5">AKSI</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 text-xs">
+                    {[
+                      { id: "T-001", name: "Budi Prasetyo", class: "Kelas 8A", months: "2 Bulan", total: "Rp 550.000", status: "Kritikal" },
+                      { id: "T-002", name: "Danu Pratama", class: "Kelas 9A", months: "1 Bulan", total: "Rp 300.000", status: "Menengah" },
+                      { id: "T-003", name: "Rizky Ramadhan", class: "Kelas 7B", months: "3 Bulan", total: "Rp 750.000", status: "Kritikal" },
+                      { id: "T-004", name: "Siti Sarah", class: "Kelas 7A", months: "1 Bulan", total: "Rp 250.000", status: "Ringan" },
+                      { id: "T-005", name: "Gani Wijaya", class: "Kelas 8B", months: "2 Bulan", total: "Rp 550.000", status: "Menengah" },
+                      { id: "T-006", name: "Maya Sari", class: "Kelas 9B", months: "1 Bulan", total: "Rp 300.000", status: "Ringan" }
+                    ].map((row, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="p-4 pl-5">
+                          <div className="font-bold text-gray-800">{row.name}</div>
+                          <div className="text-[10px] text-gray-400 mt-0.5">ID: {row.id}</div>
+                        </td>
+                        <td className="p-4">
+                          <span className="bg-[#EFF6FF] text-[#3B82F6] font-bold px-2.5 py-1 rounded-md text-[10px]">
+                            {row.class}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-1.5 text-gray-600 font-medium">
+                            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-gray-400"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                            {row.months}
+                          </div>
+                        </td>
+                        <td className="p-4 font-bold text-[#EF4444]">{row.total}</td>
+                        <td className="p-4">
+                          <span className={`font-bold px-2.5 py-1 rounded-md text-[10px] inline-block ${
+                            row.status === 'Kritikal' ? 'bg-[#FEE2E2] text-[#EF4444]' :
+                            row.status === 'Menengah' ? 'bg-[#FEF3C7] text-[#D97706]' :
+                            'bg-gray-100 text-gray-500'
+                          }`}>
+                            {row.status}
+                          </span>
+                        </td>
+                        <td className="p-4 pr-5">
+                          <button 
+                            onClick={() => triggerToast(`Mengirim tagihan ke ${row.name}...`)}
+                            className="bg-[#1A3D63] hover:bg-[#122A44] text-white font-bold text-[10px] px-3 py-1.5 rounded-lg cursor-pointer border-none flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
+                          >
+                            <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" /></svg>
+                            Tagih
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         );
 
       case "Komponen Gaji":
         return (
-          <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm animate-fadeIn">
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Manajemen Skema Komponen Gaji</h2>
-            <p className="text-sm text-gray-500 mb-6">Atur regulasi nilai nominal gaji pokok, tunjangan kehadiran, jam mengajar, dan BPJS.</p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Komponen Pemasukan */}
-              <div className="border border-gray-100 rounded-xl p-5 bg-gray-50/50">
-                <h3 className="text-xs font-bold text-green-700 uppercase mb-4 tracking-wider">Tunjangan &amp; Pendapatan</h3>
-                <div className="space-y-4 text-xs">
-                  <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-100">
-                    <span className="font-bold text-gray-700">Tunjangan Wali Kelas</span>
-                    <span className="font-bold text-gray-800">Rp 500.000 / Bulan</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-100">
-                    <span className="font-bold text-gray-700">Tunjangan Transportasi</span>
-                    <span className="font-bold text-gray-800">Rp 300.000 / Bulan</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-100">
-                    <span className="font-bold text-gray-700">Honor Jam Mengajar Utama</span>
-                    <span className="font-bold text-gray-800">Rp 45.000 / Jam</span>
-                  </div>
+          <div className="flex flex-col gap-6 animate-fadeIn font-sans">
+            {/* Header Area */}
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div>
+                <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Kelola Komponen Gaji</h1>
+                <p className="text-sm text-gray-500 mt-1">Konfigurasi pendapatan, tunjangan, dan potongan gaji pegawai.</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <select 
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value)}
+                    className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
+                  >
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                  </select>
+                  <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
+                    <IconChevronDown />
+                  </span>
+                </div>
+                
+                <button 
+                  onClick={() => triggerToast("Membuka form tambah komponen gaji...")}
+                  className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-4 sm:px-5 py-2.5 text-xs sm:text-[13px] font-bold cursor-pointer transition-all shadow-sm active:scale-95"
+                >
+                  <IconPlus /> Tambah Komponen
+                </button>
+              </div>
+            </div>
+
+            {/* Stat Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              {/* Card Pendapatan */}
+              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm border-l-4 border-l-[#10B981] flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-[#E6F4EA] text-[#10B981] flex items-center justify-center font-bold text-xl">
+                  +
+                </div>
+                <div>
+                  <div className="text-[11px] font-bold text-gray-400 mb-1 uppercase tracking-wide">Total Pendapatan</div>
+                  <div className="text-xl sm:text-2xl font-black text-gray-800">12 Komponen</div>
                 </div>
               </div>
 
-              {/* Komponen Potongan */}
-              <div className="border border-gray-100 rounded-xl p-5 bg-gray-50/50">
-                <h3 className="text-xs font-bold text-red-700 uppercase mb-4 tracking-wider">Potongan Wajib</h3>
-                <div className="space-y-4 text-xs">
-                  <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-100">
-                    <span className="font-bold text-gray-700">Iuran BPJS Kesehatan (2%)</span>
-                    <span className="font-bold text-gray-800">Sesuai Gaji Pokok</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-100">
-                    <span className="font-bold text-gray-700">Iuran BPJS Ketenagakerjaan (1%)</span>
-                    <span className="font-bold text-gray-800">Sesuai Gaji Pokok</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-white rounded-lg border border-gray-100">
-                    <span className="font-bold text-gray-700">Potongan Keterlambatan</span>
-                    <span className="font-bold text-red-500">Rp 15.000 / Menit</span>
-                  </div>
+              {/* Card Potongan */}
+              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm border-l-4 border-l-[#EF4444] flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-[#FEE2E2] text-[#EF4444] flex items-center justify-center">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-1.624 11.368A2.25 2.25 0 0 1 15.648 21H8.352a2.25 2.25 0 0 1-2.228-1.382L4.5 8.25M14.25 12v4.5m-4.5-4.5v4.5M10.5 4.5h3m-6 0a2.25 2.25 0 0 1 2.25-2.25h1.5A2.25 2.25 0 0 1 13.5 4.5m-6 0h9" /></svg>
                 </div>
+                <div>
+                  <div className="text-[11px] font-bold text-gray-400 mb-1 uppercase tracking-wide">Total Potongan</div>
+                  <div className="text-xl sm:text-2xl font-black text-gray-800">5 Komponen</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Main Content Area */}
+            <div className="bg-white rounded-[24px] border border-gray-100 p-5 sm:p-6 shadow-sm">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div className="relative w-full sm:w-[320px]">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                    <IconSearch />
+                  </div>
+                  <input 
+                    type="text" 
+                    placeholder="Cari nama komponen..."
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-xs sm:text-[13px] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all"
+                  />
+                </div>
+                
+                <button
+                  onClick={() => triggerToast("Membuka pengaturan rumus gaji...")}
+                  className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all w-full sm:w-auto"
+                >
+                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.99l1.005.828c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+                  Rumus Gaji
+                </button>
+              </div>
+
+              <div className="overflow-x-auto rounded-xl border border-gray-100">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50/50 text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
+                      <th className="p-4 pl-5">NAMA KOMPONEN</th>
+                      <th className="p-4">KATEGORI</th>
+                      <th className="p-4">TIPE</th>
+                      <th className="p-4">NOMINAL STANDAR</th>
+                      <th className="p-4">STATUS</th>
+                      <th className="p-4 pr-5 text-right">AKSI</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 text-xs">
+                    {[
+                      { name: "Gaji Pokok (Tetap)", category: "Pendapatan", type: "Bulanan", nominal: "Varies", status: "Aktif" },
+                      { name: "Tunjangan Jabatan", category: "Pendapatan", type: "Bulanan", nominal: "Rp 1.500.000", status: "Aktif" },
+                      { name: "Tunjangan Wali Kelas", category: "Pendapatan", type: "Bulanan", nominal: "Rp 500.000", status: "Aktif" },
+                      { name: "BPJS Kesehatan", category: "Potongan", type: "Persentase (1%)", nominal: "Varies", status: "Aktif" },
+                      { name: "Potongan Absensi", category: "Potongan", type: "Harian", nominal: "Rp 50.000", status: "Aktif" },
+                      { name: "Insentif Kehadiran", category: "Pendapatan", type: "Bulanan", nominal: "Rp 300.000", status: "Aktif" }
+                    ].map((row, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="p-4 pl-5 flex items-center gap-3">
+                          <div className="text-gray-400">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" /></svg>
+                          </div>
+                          <span className="font-bold text-gray-800">{row.name}</span>
+                        </td>
+                        <td className="p-4">
+                          <span className={`font-bold px-2.5 py-1 rounded-md text-[10px] inline-block ${
+                            row.category === 'Pendapatan' ? 'bg-[#E6F4EA] text-[#10B981]' : 'bg-[#FEE2E2] text-[#EF4444]'
+                          }`}>
+                            {row.category}
+                          </span>
+                        </td>
+                        <td className="p-4 text-gray-500 font-medium">{row.type}</td>
+                        <td className="p-4 font-bold text-gray-800">{row.nominal}</td>
+                        <td className="p-4">
+                          <span className="text-[#3B82F6] font-bold text-[11px]">{row.status}</span>
+                        </td>
+                        <td className="p-4 pr-5">
+                          <div className="flex items-center justify-end gap-2">
+                            <button 
+                              onClick={() => {
+                                setSelectedKomponen(row);
+                                setEditKomponenForm({ name: row.name, category: row.category, type: row.type, nominal: row.nominal, status: row.status });
+                                setShowEditKomponenModal(true);
+                              }}
+                              className="text-[#3B82F6] hover:bg-blue-50 p-1.5 rounded-lg transition-colors border-none bg-transparent cursor-pointer"
+                              title="Edit Komponen"
+                            >
+                              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" /></svg>
+                            </button>
+                            <button 
+                              onClick={() => {
+                                setSelectedKomponen(row);
+                                setShowDeleteKomponenModal(true);
+                              }}
+                              className="text-[#EF4444] hover:bg-red-50 p-1.5 rounded-lg transition-colors border-none bg-transparent cursor-pointer"
+                              title="Hapus Komponen"
+                            >
+                              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -1715,6 +1913,223 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
             </div>
           </div>
         );
+
+      case "Transaksi Pembayaran":
+        return (
+          <div className="flex flex-col gap-6 animate-fadeIn font-sans">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div>
+                <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Transaksi Pembayaran</h1>
+                <p className="text-sm text-gray-500 mt-1">Rekap seluruh pemasukan (SPP) dan pengeluaran (gaji & operasional) sekolah.</p>
+              </div>
+              <div className="flex items-center">
+                <button
+                  onClick={() => setShowTransactionModal(true)}
+                  className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-4 sm:px-5 py-2.5 text-xs sm:text-[13px] font-bold cursor-pointer transition-all active:scale-95 shadow-[0_10px_20px_-10px_rgba(26,61,99,0.3)]"
+                >
+                  <IconPlus /> Catatan Pengeluaran & Pemasukan
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              <span className="text-xs font-bold text-gray-500 mr-2">Periode:</span>
+              {["Mei 2026", "April 2026", "Maret 2026", "Februari 2026"].map((period, idx) => (
+                <button
+                  key={period}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all whitespace-nowrap ${
+                    idx === 0 
+                      ? "bg-[#1A3D63] text-white border-[#1A3D63] shadow-sm" 
+                      : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-gray-900"
+                  }`}
+                >
+                  {period}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+                <div className="flex justify-between items-center mb-4">
+                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Total Pemasukan</div>
+                  <div className="w-8 h-8 rounded-lg bg-green-50 text-green-500 flex items-center justify-center">
+                    <IconTrendUp />
+                  </div>
+                </div>
+                <div className="text-2xl sm:text-[28px] font-black text-[#10B981] mb-4">Rp 1.61 Jt</div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-gray-400 font-medium">SPP Terkumpul</span>
+                  <span className="font-bold text-gray-800">Rp 1.612.500</span>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+                <div className="flex justify-between items-center mb-4">
+                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Total Pengeluaran</div>
+                  <div className="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center">
+                    <IconTrendDown />
+                  </div>
+                </div>
+                <div className="text-2xl sm:text-[28px] font-black text-[#EF4444] mb-4">Rp 33.24 Jt</div>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-gray-400 font-medium">Gaji Guru & Staf</span>
+                    <span className="font-bold text-gray-800">Rp 24.500.000</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-gray-400 font-medium">Operasional</span>
+                    <span className="font-bold text-gray-800">Rp 8.742.792</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+                <div className="flex justify-between items-center mb-4">
+                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Defisit</div>
+                  <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center font-bold">
+                    $
+                  </div>
+                </div>
+                <div className="text-2xl sm:text-[28px] font-black text-[#F59E0B] mb-4">−Rp 31.63 Jt</div>
+                <div className="text-xs text-gray-400 font-medium">Pemasukan − Pengeluaran − Mei 2026</div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-[24px] border border-gray-100 p-5 sm:p-6 shadow-sm">
+              <h3 className="text-sm font-bold text-gray-800 mb-6">Distribusi Pengeluaran</h3>
+              
+              <div className="space-y-5">
+                <div>
+                  <div className="flex justify-between text-xs mb-2">
+                    <span className="font-medium text-gray-500">Gaji Guru & Staf</span>
+                    <span className="font-bold text-gray-800">Rp 24.500.000 <span className="text-gray-400 font-normal">(74%)</span></span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2.5">
+                    <div className="bg-[#3B82F6] h-2.5 rounded-full" style={{ width: '74%' }}></div>
+                  </div>
+                </div>
+                
+                <div>
+                  <div className="flex justify-between text-xs mb-2">
+                    <span className="font-medium text-gray-500">Operasional Sekolah</span>
+                    <span className="font-bold text-gray-800">Rp 8.742.792 <span className="text-gray-400 font-normal">(26%)</span></span>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2.5">
+                    <div className="bg-[#F59E0B] h-2.5 rounded-full" style={{ width: '26%' }}></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm">
+              <div className="flex border-b border-gray-100 mb-5 gap-6">
+                {[
+                  { label: "Semua Transaksi", count: "19", active: true },
+                  { label: "Pemasukan", count: "9", active: false },
+                  { label: "Pengeluaran", count: "10", active: false }
+                ].map((tab, i) => (
+                  <button
+                    key={i}
+                    className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-colors border-none bg-transparent cursor-pointer ${
+                      tab.active 
+                        ? "border-[#3B82F6] text-[#3B82F6]" 
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
+                  >
+                    {tab.label}
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] ${
+                      tab.active ? "bg-blue-50 text-blue-600" : "bg-gray-100 text-gray-500"
+                    }`}>
+                      {tab.count}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                <div className="relative flex-1 max-w-md">
+                  <input 
+                    type="text" 
+                    placeholder="Cari nama, keterangan, atau ID..." 
+                    className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-[#1A3D63] font-medium bg-gray-50/50"
+                  />
+                  <span className="absolute left-3.5 top-3.5 text-gray-400">
+                    <IconSearch />
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="flex bg-gray-50 border border-gray-100 p-1 rounded-xl">
+                    {["Semua", "SPP", "Gaji", "Operasional"].map((filter, i) => (
+                      <button
+                        key={filter}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border-none ${
+                          i === 0 
+                            ? "bg-[#1A3D63] text-white shadow-sm" 
+                            : "text-gray-500 hover:text-gray-900 bg-transparent"
+                        }`}
+                      >
+                        {filter}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  <button 
+                    onClick={() => triggerToast("Mengekspor data transaksi ke file Excel...")}
+                    className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all border-solid"
+                  >
+                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    Export
+                  </button>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      <th className="pb-3 px-3">ID</th>
+                      <th className="pb-3 px-3">TANGGAL</th>
+                      <th className="pb-3 px-3">NAMA / PENERIMA</th>
+                      <th className="pb-3 px-3">KETERANGAN</th>
+                      <th className="pb-3 px-3">KATEGORI</th>
+                      <th className="pb-3 px-3">NOMINAL</th>
+                      <th className="pb-3 px-3">STATUS</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 text-xs">
+                    <tr className="hover:bg-gray-50/50 transition-colors">
+                      <td className="py-4 px-3 text-gray-400 font-mono font-medium">TX-019</td>
+                      <td className="py-4 px-3 text-gray-500 font-medium">25 Mei 2026</td>
+                      <td className="py-4 px-3 font-bold text-gray-800">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded bg-red-50 text-red-500 flex items-center justify-center flex-shrink-0">
+                            <IconTrendDown />
+                          </div>
+                          sjlasjla
+                        </div>
+                      </td>
+                      <td className="py-4 px-3 text-gray-500">jdiajidj</td>
+                      <td className="py-4 px-3">
+                        <span className="bg-[#FEF3C7] text-[#D97706] font-semibold px-2.5 py-0.5 rounded-md text-[10px]">
+                          Operasional
+                        </span>
+                      </td>
+                      <td className="py-4 px-3 font-bold text-[#EF4444]">−Rp 7.492.792</td>
+                      <td className="py-4 px-3">
+                        <span className="bg-[#E8FDF5] text-[#059669] font-bold px-2.5 py-1 rounded-md text-[10px]">
+                          Selesai
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        );
     }
   };
 
@@ -1974,6 +2389,310 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
               >
                 <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                 Tambah Program
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Transaction Modal Dialog */}
+      {showTransactionModal && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowTransactionModal(false)}
+          />
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl relative animate-scaleIn z-10 flex flex-col font-sans">
+            {/* Header */}
+            <div className="p-6 pb-4 border-b border-gray-100 flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold text-gray-800 tracking-tight">Catatan Transaksi</h2>
+                <p className="text-[13px] text-gray-400 mt-1">Tambah catatan pengeluaran atau pemasukan</p>
+              </div>
+              <button 
+                onClick={() => setShowTransactionModal(false)}
+                className="text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer p-1 transition-colors rounded-full hover:bg-gray-50"
+              >
+                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            
+            {/* Body */}
+            <div className="p-6 flex-1 overflow-y-auto">
+              {/* Tabs */}
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                <button
+                  onClick={() => { setTransactionTab("Pemasukan"); setTransactionCategory("SPP"); }}
+                  className={`py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all border cursor-pointer ${
+                    transactionTab === "Pemasukan"
+                      ? "bg-[#E6F4EA] border-[#10B981] text-[#10B981]"
+                      : "bg-white border-gray-200 text-gray-400 hover:bg-gray-50"
+                  }`}
+                >
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" /></svg>
+                  Pemasukan
+                </button>
+                <button
+                  onClick={() => { setTransactionTab("Pengeluaran"); setTransactionCategory("Operasional"); }}
+                  className={`py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all border cursor-pointer ${
+                    transactionTab === "Pengeluaran"
+                      ? "bg-[#FEE2E2] border-[#EF4444] text-[#EF4444]"
+                      : "bg-white border-gray-200 text-gray-400 hover:bg-gray-50"
+                  }`}
+                >
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 4.5l-15 15m0 0h11.25m-11.25 0V8.25" /></svg>
+                  Pengeluaran
+                </button>
+              </div>
+
+              {/* Form */}
+              <div className="space-y-4">
+                {/* Kategori */}
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 mb-2">Kategori</label>
+                  <div className="flex gap-2">
+                    {transactionTab === "Pemasukan" ? (
+                      <button className="bg-[#1A3D63] text-white px-4 py-2 rounded-lg text-[13px] font-bold border-none">SPP</button>
+                    ) : (
+                      <>
+                        <button 
+                          onClick={() => setTransactionCategory("Gaji")}
+                          className={`px-4 py-2 rounded-lg text-[13px] font-bold border ${
+                            transactionCategory === "Gaji" ? "bg-[#1A3D63] text-white border-[#1A3D63]" : "bg-white text-gray-600 border-gray-200"
+                          }`}
+                        >
+                          Gaji
+                        </button>
+                        <button 
+                          onClick={() => setTransactionCategory("Operasional")}
+                          className={`px-4 py-2 rounded-lg text-[13px] font-bold border ${
+                            transactionCategory === "Operasional" ? "bg-[#1A3D63] text-white border-[#1A3D63]" : "bg-white text-gray-600 border-gray-200"
+                          }`}
+                        >
+                          Operasional
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Nama */}
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5">{transactionTab === "Pemasukan" ? "Nama Pembayar" : "Nama / Penerima"}</label>
+                  <input 
+                    type="text" 
+                    placeholder={transactionTab === "Pemasukan" ? "Nama siswa atau sumber pemasukan" : "Nama penerima atau keterangan"}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all placeholder:text-gray-300"
+                  />
+                </div>
+
+                {/* Keterangan */}
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5">Keterangan</label>
+                  <input 
+                    type="text" 
+                    placeholder="Contoh: SPP Kelas 8A - Mei 2026"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all placeholder:text-gray-300"
+                  />
+                </div>
+
+                {/* Nominal */}
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5">Nominal (Rp)</label>
+                  <input 
+                    type="text" 
+                    placeholder="Contoh: 275.000"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all placeholder:text-gray-300 font-medium"
+                  />
+                </div>
+
+                {/* Tanggal */}
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5">Tanggal</label>
+                  <input 
+                    type="text" 
+                    defaultValue="25 Mei 2026"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 border-t border-gray-50 flex gap-3">
+              <button 
+                onClick={() => setShowTransactionModal(false)}
+                className="flex-1 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 py-3.5 rounded-xl text-[13px] font-bold cursor-pointer transition-colors"
+              >
+                Batal
+              </button>
+              <button 
+                onClick={() => {
+                  setShowTransactionModal(false);
+                  triggerToast("Catatan transaksi berhasil disimpan!");
+                }}
+                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-400 py-3.5 rounded-xl text-[13px] font-bold cursor-pointer border-none flex items-center justify-center gap-2 transition-colors"
+              >
+                <IconPlus /> Simpan Catatan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Komponen Gaji Modal */}
+      {showEditKomponenModal && selectedKomponen && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowEditKomponenModal(false)} />
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl relative z-10 font-sans">
+            <div className="p-6 pb-4 border-b border-gray-100 flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold text-gray-800 tracking-tight">Edit Komponen Gaji</h2>
+                <p className="text-[13px] text-gray-400 mt-0.5">Perbarui detail komponen gaji pegawai</p>
+              </div>
+              <button onClick={() => setShowEditKomponenModal(false)} className="text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer p-1 rounded-full hover:bg-gray-50 transition-colors">
+                <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Nama Komponen</label>
+                <input
+                  type="text"
+                  value={editKomponenForm.name}
+                  onChange={(e) => setEditKomponenForm({ ...editKomponenForm, name: e.target.value })}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Kategori</label>
+                  <select
+                    value={editKomponenForm.category}
+                    onChange={(e) => setEditKomponenForm({ ...editKomponenForm, category: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-700 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all appearance-none"
+                  >
+                    <option value="Pendapatan">Pendapatan</option>
+                    <option value="Potongan">Potongan</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Status</label>
+                  <select
+                    value={editKomponenForm.status}
+                    onChange={(e) => setEditKomponenForm({ ...editKomponenForm, status: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-700 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all appearance-none"
+                  >
+                    <option value="Aktif">Aktif</option>
+                    <option value="Nonaktif">Nonaktif</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Tipe Perhitungan</label>
+                <select
+                  value={editKomponenForm.type}
+                  onChange={(e) => setEditKomponenForm({ ...editKomponenForm, type: e.target.value })}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-700 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all appearance-none"
+                >
+                  <option value="Bulanan">Bulanan</option>
+                  <option value="Harian">Harian</option>
+                  <option value="Persentase (1%)">Persentase (1%)</option>
+                  <option value="Per Jam">Per Jam</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Nominal Standar (Rp)</label>
+                <input
+                  type="text"
+                  value={editKomponenForm.nominal}
+                  onChange={(e) => setEditKomponenForm({ ...editKomponenForm, nominal: e.target.value })}
+                  placeholder="Contoh: 500.000 atau Varies"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all placeholder:text-gray-300"
+                />
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-50 flex gap-3">
+              <button
+                onClick={() => setShowEditKomponenModal(false)}
+                className="flex-1 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 py-3 rounded-xl text-[13px] font-bold cursor-pointer transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                onClick={() => {
+                  setShowEditKomponenModal(false);
+                  triggerToast(`Komponen "${editKomponenForm.name}" berhasil diperbarui!`);
+                }}
+                className="flex-1 bg-[#1A3D63] hover:bg-[#122A44] text-white py-3 rounded-xl text-[13px] font-bold cursor-pointer border-none transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm"
+              >
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                Simpan Perubahan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Komponen Gaji Confirmation Modal */}
+      {showDeleteKomponenModal && selectedKomponen && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDeleteKomponenModal(false)} />
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl relative z-10 font-sans">
+            <div className="p-6 pb-4 border-b border-gray-100 flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold text-gray-800 tracking-tight">Hapus Komponen Gaji</h2>
+                <p className="text-[13px] text-gray-400 mt-0.5">Tindakan ini tidak dapat dibatalkan</p>
+              </div>
+              <button onClick={() => setShowDeleteKomponenModal(false)} className="text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer p-1 rounded-full hover:bg-gray-50 transition-colors">
+                <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="flex items-start gap-4 p-4 bg-red-50 rounded-2xl border border-red-100 mb-5">
+                <div className="w-10 h-10 rounded-xl bg-red-100 text-red-500 flex items-center justify-center flex-shrink-0">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+                </div>
+                <div>
+                  <div className="font-bold text-red-700 text-sm mb-1">Konfirmasi Penghapusan</div>
+                  <p className="text-red-600 text-xs leading-relaxed">
+                    Anda akan menghapus komponen <span className="font-bold">"{selectedKomponen.name}"</span>. Data ini akan dihapus permanen dan tidak dapat dipulihkan kembali.
+                  </p>
+                </div>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-4 space-y-2.5 text-xs">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-500 font-medium">Nama Komponen</span>
+                  <span className="font-bold text-gray-800">{selectedKomponen.name}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-500 font-medium">Kategori</span>
+                  <span className={`font-bold px-2 py-0.5 rounded text-[10px] ${
+                    selectedKomponen.category === 'Pendapatan' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'
+                  }`}>{selectedKomponen.category}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-500 font-medium">Nominal Standar</span>
+                  <span className="font-bold text-gray-800">{selectedKomponen.nominal}</span>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-50 flex gap-3">
+              <button
+                onClick={() => setShowDeleteKomponenModal(false)}
+                className="flex-1 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 py-3 rounded-xl text-[13px] font-bold cursor-pointer transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                onClick={() => {
+                  setShowDeleteKomponenModal(false);
+                  triggerToast(`Komponen "${selectedKomponen.name}" berhasil dihapus!`);
+                }}
+                className="flex-1 bg-[#EF4444] hover:bg-[#DC2626] text-white py-3 rounded-xl text-[13px] font-bold cursor-pointer border-none transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm"
+              >
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                Ya, Hapus Komponen
               </button>
             </div>
           </div>
