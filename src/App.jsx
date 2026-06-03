@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import api from "./api/axios";
 import Sidebar from "./components/Sidebar";
 import TopBar from "./components/TopBar";
 import Login from "./pages/Login";
@@ -41,12 +42,47 @@ const App = () => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [user]);
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch (err) {
+      console.error("Logout error", err);
+    }
     localStorage.removeItem("siakad_user");
     setUser(null);
     setCollapsed(true);
     setActiveMenu("Dashboard");
   };
+
+  // Check saved session on mount
+  useEffect(() => {
+    const validateSession = async () => {
+      const savedUser = localStorage.getItem("siakad_user");
+      if (savedUser) {
+        try {
+          // Tetap pasang user dari cache biar UI cepat render
+          setUser(JSON.parse(savedUser));
+          
+          // Verifikasi ke backend apakah session/cookie masih valid
+          const res = await api.get('/auth/me');
+          if (res.data.success) {
+            // Update dengan data terbaru dari server (termasuk role)
+            const freshUser = res.data.data;
+            if (freshUser.role === "Admin TU") freshUser.role = "Admin";
+            setUser(freshUser);
+            localStorage.setItem("siakad_user", JSON.stringify(freshUser));
+          }
+        } catch (e) {
+          // Jika 401 (Unauthorized) atau token hilang, paksa logout
+          console.warn("Sesi tidak valid / Token expired. Memaksa logout...");
+          localStorage.removeItem("siakad_user");
+          setUser(null);
+        }
+      }
+    };
+    validateSession();
+  }, []);
+
   const handleLogin = (authenticatedUser) => {
     localStorage.setItem("siakad_user", JSON.stringify(authenticatedUser));
     setUser(authenticatedUser);

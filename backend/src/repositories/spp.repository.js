@@ -1,0 +1,70 @@
+'use strict';
+
+const { query } = require('../config/db');
+const { whereBuilder, buildOrderBy } = require('../utils/queryBuilder');
+
+const SppRepository = {
+  findAllTagihan: async ({ limit, offset, search, sort, siswaId, bulan, tahun, status }) => {
+    const wb = whereBuilder();
+    wb.addLike(search, ['s.nama', 's.nis']);
+    wb.addExact(siswaId, 't.siswa_id');
+    wb.addExact(bulan, 't.bulan');
+    wb.addExact(tahun, 't.tahun');
+    wb.addExact(status, 't.status');
+    
+    const { where, values, nextIdx } = wb.build();
+    const orderBy = buildOrderBy(sort, { jatuh_tempo: 't.jatuh_tempo' }, 't.tahun DESC, t.bulan DESC, s.nama ASC');
+
+    const sql = `
+      SELECT t.*, s.nama AS siswa_nama, s.nis, k.nama_kelas
+      FROM finance.tagihan_spp t
+      INNER JOIN academic.siswa s ON t.siswa_id = s.id
+      LEFT JOIN academic.kelas k ON s.kelas_id = k.id
+      ${where}
+      ${orderBy}
+      LIMIT $${nextIdx} OFFSET $${nextIdx + 1}
+    `;
+    const countSql = `
+      SELECT COUNT(*) FROM finance.tagihan_spp t
+      INNER JOIN academic.siswa s ON t.siswa_id = s.id
+      ${where}
+    `;
+    
+    const [data, count] = await Promise.all([
+      query(sql, [...values, limit, offset]),
+      query(countSql, values),
+    ]);
+    return { rows: data.rows, total: parseInt(count.rows[0].count, 10) };
+  },
+
+  createTagihan: async (data, userId) => {
+    const { siswaId, komponenSppId, bulan, tahun, nominal, beasiswaId, potongan, jatuhTempo } = data;
+    const nominalAkhir = nominal - (potongan || 0);
+    const sql = `
+      INSERT INTO finance.tagihan_spp (
+        siswa_id, komponen_spp_id, bulan, tahun, nominal, beasiswa_id, potongan, nominal_akhir, 
+        status, jatuh_tempo, created_at, updated_at, updated_by
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'Belum Dibayar', $9, NOW(), NOW(), $10)
+      RETURNING *
+    `;
+    const res = await query(sql, [
+      siswaId, komponenSppId, bulan, tahun, nominal, beasiswaId || null, potongan || 0, nominalAkhir, jatuhTempo, userId
+    ]);
+    return res.rows[0];
+  },
+
+  updateStatusMenunggakOtomatis: async () => {
+    // Dipanggil berkala (cron) atau manual untuk mengubah status yang lewat jatuh tempo
+    const sql = `
+      UPDATE finance.tagihan_spp
+      SET status = 'Menunggak'
+      WHERE status = 'Belum Dibayar' AND jatuh_tempo < CURRENT_DATE
+      RETURNING id
+    `;
+    const res = await query(sql);
+    return res.rows.length;
+  }
+};
+
+module.exports = SppRepository;

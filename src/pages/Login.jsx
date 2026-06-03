@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MOCK_USERS } from "../data/users";
+import api from "../api/axios";
 const EyeIcon = ({ show }) => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-gray-400 hover:text-gray-600 transition-colors">
     {show ? <>
         <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
@@ -35,15 +35,36 @@ const Login = ({ onLogin, onForgotPassword }) => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
-  const handleLogin = () => {
-    const user = MOCK_USERS.find((u) => u.username === username && u.password === password);
-    if (user) {
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    try {
+      setLoading(true);
       setError(null);
-      onLogin(user);
-    } else {
-      setError("Username atau password salah!");
+      
+      const response = await api.post('/auth/login', {
+        email: username, // API menggunakan email
+        password: password
+      });
+
+      if (response.data.success) {
+        const user = response.data.data.user;
+        // Tangani "Admin TU" -> "Admin"
+        if (user.role === "Admin TU") user.role = "Admin";
+        
+        onLogin(user);
+      }
+    } catch (err) {
+      if (!err.response) {
+        setError("Tidak dapat terhubung ke server. Pastikan backend Node.js sedang berjalan!");
+      } else {
+        setError(err.response?.data?.message || "Username atau password salah!");
+      }
+    } finally {
+      setLoading(false);
     }
   };
+
   return <div className="flex flex-col-reverse lg:flex-row min-h-screen w-full bg-white font-sans relative overflow-x-hidden overflow-y-auto">
       {
     /* Left Side (Login Form) */
@@ -114,10 +135,11 @@ const Login = ({ onLogin, onForgotPassword }) => {
 
             <button
     onClick={handleLogin}
-    className="w-full bg-[#1A3D63] hover:bg-[#122A44] text-white font-bold py-4 rounded-[20px] transition-all shadow-[0_15px_40px_-10px_rgba(255,100,100,0.15)] active:scale-[0.98] mt-4 flex items-center justify-center gap-2 text-[15px]"
+    disabled={loading}
+    className={`w-full bg-[#1A3D63] hover:bg-[#122A44] text-white font-bold py-4 rounded-[20px] transition-all shadow-[0_15px_40px_-10px_rgba(255,100,100,0.15)] active:scale-[0.98] mt-4 flex items-center justify-center gap-2 text-[15px] ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
   >
-              <span>Login</span>
-              <span className="font-bold">→</span>
+              <span>{loading ? "Loading..." : "Login"}</span>
+              {!loading && <span className="font-bold">→</span>}
             </button>
           </div>
         </div>

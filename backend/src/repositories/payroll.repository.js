@@ -1,0 +1,413 @@
+'use strict';
+
+const { query, getClient } = require('../config/db');
+const { whereBuilder, buildOrderBy } = require('../utils/queryBuilder');
+
+// ─── Formula Engine ───────────────────────────────────────────────────────────
+/**
+ * Hitung nominal komponen berdasarkan formula_tipe & nilai_satuan
+ * @param {object} kom  - Row dari finance.komponen_gaji
+ * @param {object} vars - { gajiPokok, hariHadir, jumlahAlpha, jamLembur }
+ * @returns {number}
+ */
+function hitungNominal(kom, { gajiPokok, hariHadir, jumlahAlpha, jamLembur }) {
+  const satuan       = parseFloat(kom.nilai_satuan)   || 0;
+  const nominalDef   = parseFloat(kom.nominal_default) || 0;
+
+  switch (kom.formula_tipe) {
+    case 'flat':
+      return nominalDef;
+
+    case 'per_hari_hadir':
+      return hariHadir * satuan;
+
+    case 'per_alpha':
+      return jumlahAlpha * satuan;
+
+    case 'per_jam':
+      return jamLembur * satuan;
+
+    case 'persen_gaji_pokok':
+      // nilai_satuan dianggap persen, misal 5 = 5%
+      return (gajiPokok * satuan) / 100;
+
+    default:
+      return nominalDef;
+  }
+}
+
+// ─── Repository ───────────────────────────────────────────────────────────────
+const PayrollRepository = {
+
+  // ── LIST / SEARCH ──────────────────────────────────────────────────────────
+  findAllSlips: async ({ limit, offset, search, sort, userId, bulan, tahun, status }) => {
+    const wb = whereBuilder();
+    wb.addLike(search, ['u.nama', 'u.email']);
+    wb.addExact(userId,  's.user_id');
+    wb.addExact(bulan,   's.bulan');
+    wb.addExact(tahun,   's.tahun');
+    wb.addExact(status,  's.status');
+
+    const { where, values, nextIdx } = wb.build();
+    const orderBy = buildOrderBy(
+      sort,
+      { nama: 'u.nama', bulan: 's.bulan', tahun: 's.tahun', status: 's.status', gaji_bersih: 's.gaji_bersih' },
+      's.tahun DESC, s.bulan DESC'
+    );
+
+    const sql = `
+      SELECT
+        s.id, s.user_id, s.bulan, s.tahun,
+        s.gaji_pokok, s.total_tunjangan, s.total_potongan, s.gaji_bersih,
+        s.status, s.dibuat_at,
+        u.nama   AS user_nama,
+        u.email  AS user_email
+      FROM finance.slip_gaji s
+      INNER JOIN shared.users u ON s.user_id = u.id
+      ${where}
+      ${orderBy}
+      LIMIT $${nextIdx} OFFSET $${nextIdx + 1}
+    `;
+    const countSql = `
+      SELECT COUNT(*) FROM finance.slip_gaji s
+      INNER JOIN shared.users u ON s.user_id = u.id
+      ${where}
+    `;
+
+    const [data, count] = await Promise.all([
+      query(sql, [...values, limit, offset]),
+      query(countSql, values),
+    ]);
+    return { rows: data.rows, total: parseInt(count.rows[0].count, 10) };
+  },
+
+  // ── DETAIL BY ID (dengan detail komponen & transfer) ───────────────────────
+  findSlipById: async (id) => {
+    const sqlSlip = `
+      SELECT
+        s.*,
+        u.nama  AS user_nama,
+        u.email AS user_email
+      FROM finance.slip_gaji s
+      INNER JOIN shared.users u ON s.user_id = u.id
+      WHERE s.id = $1
+    `;
+    const resSlip = await query(sqlSlip, [id]);
+    if (resSlip.rows.length === 0) return null;
+
+    const slip = resSlip.rows[0];
+
+    // Detail komponen (tunjangan + potongan)
+    const sqlDetail = `
+      SELECT
+        d.id, d.nominal, d.keterangan,
+        k.id           AS komponen_id,
+        k.nama         AS komponen_nama,
+        k.tipe         AS komponen_tipe,
+        k.kategori     AS komponen_kategori,
+        k.formula_tipe,
+        k.nilai_satuan
+      FROM finance.detail_slip_gaji d
+      INNER JOIN finance.komponen_gaji k ON d.komponen_gaji_id = k.id
+      WHERE d.slip_gaji_id = $1
+      ORDER BY k.tipe, k.nama
+    `;
+    const resDetail = await query(sqlDetail, [id]);
+    slip.tunjangan = resDetail.rows.filter(r => r.komponen_tipe === 'Tunjangan');
+    slip.potongan  = resDetail.rows.filter(r => r.komponen_tipe === 'Potongan');
+    slip.details   = resDetail.rows;
+
+    // Info transfer jika ada
+    const sqlTransfer = `
+      SELECT t.*, r.no_rekening, r.nama_bank
+      FROM finance.transfer_gaji t
+      LEFT JOIN finance.rekening_user r ON t.rekening_id = r.id
+      WHERE t.slip_gaji_id = $1
+    `;
+    const resTransfer = await query(sqlTransfer, [id]);
+    slip.transfer = resTransfer.rows[0] || null;
+
+    return slip;
+  },
+
+  // ── GENERATE SLIP GAJI (PostgreSQL Transaction) ────────────────────────────
+  generateSlip: async (data) => {
+    const client = await getClient();
+    try {
+      await client.query('BEGIN');
+
+      const {
+        userId,
+        bulan,
+        tahun,
+        gajiPokok,
+        hariHadir   = 0,
+        jumlahAlpha = 0,
+        jamLembur   = 0,
+      } = data;
+
+      // 1. Validasi user exists
+      const userCheck = await client.query(
+        `SELECT id FROM shared.users WHERE id = $1`,
+        [userId]
+      );
+      if (userCheck.rows.length === 0) {
+        const err = new Error('User tidak ditemukan');
+        err.statusCode = 404;
+        throw err;
+      }
+
+      // 2. Cek slip periode yang sudah ada
+      const checkSql = `
+        SELECT id, status FROM finance.slip_gaji
+        WHERE user_id = $1 AND bulan = $2 AND tahun = $3
+        FOR UPDATE
+      `;
+      const checkRes = await client.query(checkSql, [userId, bulan, tahun]);
+
+      if (checkRes.rows.length > 0) {
+        const existing = checkRes.rows[0];
+        if (existing.status !== 'Draft') {
+          const err = new Error(
+            `Slip gaji periode ${bulan}/${tahun} sudah berstatus '${existing.status}' dan tidak dapat di-generate ulang.`
+          );
+          err.statusCode = 409;
+          throw err;
+        }
+        // Hapus draft lama agar bisa generate ulang
+        await client.query(
+          'DELETE FROM finance.detail_slip_gaji WHERE slip_gaji_id = $1',
+          [existing.id]
+        );
+        await client.query('DELETE FROM finance.slip_gaji WHERE id = $1', [existing.id]);
+      }
+
+      // 3. Ambil semua komponen gaji aktif
+      const compRes = await client.query(
+        `SELECT * FROM finance.komponen_gaji WHERE is_aktif = true ORDER BY tipe, nama`
+      );
+      const komponenList = compRes.rows;
+
+      if (komponenList.length === 0) {
+        const err = new Error('Tidak ada komponen gaji aktif yang terdaftar di sistem.');
+        err.statusCode = 422;
+        throw err;
+      }
+
+      // 4. Hitung setiap komponen sesuai formula_tipe
+      let totalTunjangan = 0;
+      let totalPotongan  = 0;
+      const detailToInsert = [];
+
+      const vars = { gajiPokok, hariHadir, jumlahAlpha, jamLembur };
+
+      for (const kom of komponenList) {
+        const nominal = hitungNominal(kom, vars);
+
+        // Hanya masukkan jika nominal > 0
+        if (nominal > 0) {
+          if (kom.tipe === 'Tunjangan')       totalTunjangan += nominal;
+          else if (kom.tipe === 'Potongan')   totalPotongan  += nominal;
+
+          detailToInsert.push({
+            komponenGajiId: kom.id,
+            nominal,
+            keterangan: _buildKeterangan(kom, vars, nominal),
+          });
+        }
+      }
+
+      // 5. Hitung gaji bersih
+      const gajiBersih = parseFloat((gajiPokok + totalTunjangan - totalPotongan).toFixed(2));
+
+      // 6. Insert slip gaji
+      const insertSlip = `
+        INSERT INTO finance.slip_gaji
+          (user_id, bulan, tahun, gaji_pokok, total_tunjangan, total_potongan, gaji_bersih, status, dibuat_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, 'Draft', NOW())
+        RETURNING *
+      `;
+      const slipRes = await client.query(insertSlip, [
+        userId, bulan, tahun,
+        gajiPokok, totalTunjangan, totalPotongan, gajiBersih,
+      ]);
+      const slip   = slipRes.rows[0];
+      const slipId = slip.id;
+
+      // 7. Insert detail komponen (batch)
+      for (const det of detailToInsert) {
+        await client.query(
+          `INSERT INTO finance.detail_slip_gaji (slip_gaji_id, komponen_gaji_id, nominal, keterangan)
+           VALUES ($1, $2, $3, $4)`,
+          [slipId, det.komponenGajiId, det.nominal, det.keterangan]
+        );
+      }
+
+      await client.query('COMMIT');
+
+      return {
+        ...slip,
+        total_tunjangan:  totalTunjangan,
+        total_potongan:   totalPotongan,
+        gaji_bersih:      gajiBersih,
+        jumlah_komponen:  detailToInsert.length,
+      };
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  },
+
+  // ── APPROVE SLIP (Draft → Approved) ────────────────────────────────────────
+  approveSlip: async (slipGajiId) => {
+    const client = await getClient();
+    try {
+      await client.query('BEGIN');
+
+      const checkRes = await client.query(
+        `SELECT id, status FROM finance.slip_gaji WHERE id = $1 FOR UPDATE`,
+        [slipGajiId]
+      );
+      if (checkRes.rows.length === 0) {
+        const err = new Error('Slip gaji tidak ditemukan'); err.statusCode = 404; throw err;
+      }
+      if (checkRes.rows[0].status !== 'Draft') {
+        const err = new Error(
+          `Slip gaji tidak dapat di-approve. Status saat ini: '${checkRes.rows[0].status}' (hanya Draft yang bisa di-approve).`
+        );
+        err.statusCode = 409;
+        throw err;
+      }
+
+      const res = await client.query(
+        `UPDATE finance.slip_gaji SET status = 'Approved' WHERE id = $1 RETURNING *`,
+        [slipGajiId]
+      );
+
+      await client.query('COMMIT');
+      return res.rows[0];
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  },
+
+  // ── TRANSFER GAJI (Approved → Transferred) ─────────────────────────────────
+  transferGaji: async (data) => {
+    const client = await getClient();
+    try {
+      await client.query('BEGIN');
+
+      const { slipGajiId, noReferensi, rekeningId } = data;
+
+      // Lock slip gaji row
+      const slipRes = await client.query(
+        `SELECT id, status, gaji_bersih, user_id, bulan, tahun
+         FROM finance.slip_gaji WHERE id = $1 FOR UPDATE`,
+        [slipGajiId]
+      );
+
+      if (slipRes.rows.length === 0) {
+        const err = new Error('Slip gaji tidak ditemukan'); err.statusCode = 404; throw err;
+      }
+
+      const slip = slipRes.rows[0];
+      if (slip.status === 'Transferred') {
+        const err = new Error('Gaji untuk periode ini sudah ditransfer sebelumnya.'); err.statusCode = 409; throw err;
+      }
+      if (slip.status !== 'Approved') {
+        const err = new Error(
+          `Slip gaji belum di-approve. Status saat ini: '${slip.status}'.`
+        );
+        err.statusCode = 422;
+        throw err;
+      }
+
+      // Cek no_referensi duplicate
+      const dupRef = await client.query(
+        `SELECT id FROM finance.transfer_gaji WHERE no_referensi = $1`,
+        [noReferensi]
+      );
+      if (dupRef.rows.length > 0) {
+        const err = new Error(`No referensi '${noReferensi}' sudah digunakan.`); err.statusCode = 409; throw err;
+      }
+
+      // Insert transfer record
+      const inSql = `
+        INSERT INTO finance.transfer_gaji
+          (slip_gaji_id, jumlah, status, tanggal_transfer, no_referensi, rekening_id)
+        VALUES ($1, $2, 'Sukses', NOW(), $3, $4)
+        RETURNING *
+      `;
+      const transRes = await client.query(inSql, [
+        slipGajiId,
+        slip.gaji_bersih,
+        noReferensi,
+        rekeningId || null,
+      ]);
+
+      // Update status slip → Transferred
+      await client.query(
+        `UPDATE finance.slip_gaji SET status = 'Transferred' WHERE id = $1`,
+        [slipGajiId]
+      );
+
+      await client.query('COMMIT');
+
+      return {
+        ...transRes.rows[0],
+        slip_info: {
+          bulan:      slip.bulan,
+          tahun:      slip.tahun,
+          gaji_bersih: slip.gaji_bersih,
+        },
+      };
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  },
+
+  // ── RIWAYAT GAJI per user ──────────────────────────────────────────────────
+  findRiwayatByUser: async (userId) => {
+    const sql = `
+      SELECT
+        s.id, s.bulan, s.tahun, s.gaji_pokok,
+        s.total_tunjangan, s.total_potongan, s.gaji_bersih,
+        s.status, s.dibuat_at,
+        t.tanggal_transfer, t.no_referensi, t.status AS transfer_status
+      FROM finance.slip_gaji s
+      LEFT JOIN finance.transfer_gaji t ON t.slip_gaji_id = s.id
+      WHERE s.user_id = $1
+      ORDER BY s.tahun DESC, s.bulan DESC
+    `;
+    const res = await query(sql, [userId]);
+    return res.rows;
+  },
+};
+
+// ─── Helper: bangun keterangan detail ────────────────────────────────────────
+function _buildKeterangan(kom, { hariHadir, jumlahAlpha, jamLembur, gajiPokok }, nominal) {
+  switch (kom.formula_tipe) {
+    case 'flat':
+      return `Nominal tetap: Rp ${nominal.toLocaleString('id-ID')}`;
+    case 'per_hari_hadir':
+      return `${hariHadir} hari hadir × Rp ${parseFloat(kom.nilai_satuan).toLocaleString('id-ID')}`;
+    case 'per_alpha':
+      return `${jumlahAlpha} hari alpha × Rp ${parseFloat(kom.nilai_satuan).toLocaleString('id-ID')}`;
+    case 'per_jam':
+      return `${jamLembur} jam lembur × Rp ${parseFloat(kom.nilai_satuan).toLocaleString('id-ID')}`;
+    case 'persen_gaji_pokok':
+      return `${parseFloat(kom.nilai_satuan)}% × gaji pokok Rp ${parseFloat(gajiPokok).toLocaleString('id-ID')}`;
+    default:
+      return `Sistem: formula ${kom.formula_tipe}`;
+  }
+}
+
+module.exports = PayrollRepository;
