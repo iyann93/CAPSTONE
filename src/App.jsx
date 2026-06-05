@@ -21,6 +21,43 @@ const App = () => {
     }
     window.scrollTo(0, 0);
   }, [activeMenu, user]);
+
+  // Inactivity / Idle Timeout Logic
+  useEffect(() => {
+    let timeoutId;
+
+    const resetTimer = () => {
+      clearTimeout(timeoutId);
+      // Set timeout for 15 minutes (900000 milliseconds)
+      timeoutId = setTimeout(() => {
+        if (user) {
+          console.log("Tidak ada aktivitas selama 15 menit. Auto-logout...");
+          alert("Sesi Anda telah berakhir karena tidak ada aktivitas selama 15 menit. Silakan login kembali.");
+          handleLogout();
+        }
+      }, 900000); // 15 menit
+    };
+
+    if (user) {
+      // Listen for user activity
+      const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+      
+      events.forEach(event => {
+        window.addEventListener(event, resetTimer, { passive: true });
+      });
+
+      // Initialize the timer
+      resetTimer();
+
+      // Cleanup on unmount or when user logs out
+      return () => {
+        clearTimeout(timeoutId);
+        events.forEach(event => {
+          window.removeEventListener(event, resetTimer);
+        });
+      };
+    }
+  }, [user]);
   React.useEffect(() => {
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.getRegistrations().then((registrations) => {

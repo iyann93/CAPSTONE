@@ -91,13 +91,66 @@ const AuthRepository = {
   /**
    * Revoke all active refresh tokens for a user (for full logout)
    */
-  revokeAllUserTokens: async (userId) => {
+  revokeAllUserTokens: async (userId, client = null) => {
     const sql = `
       UPDATE shared.refresh_tokens
       SET is_revoked = true, revoked_at = NOW()
       WHERE user_id = $1 AND is_revoked = false
     `;
-    return query(sql, [userId]);
+    const dbClient = client || query;
+    return dbClient.query ? dbClient.query(sql, [userId]) : dbClient(sql, [userId]);
+  },
+
+  /**
+   * Update user password
+   */
+  updateUserPassword: async (userId, newPasswordHash, client = null) => {
+    const sql = `
+      UPDATE shared.users
+      SET password_hash = $1, password_changed_at = NOW(), updated_at = NOW()
+      WHERE id = $2
+    `;
+    const dbClient = client || query;
+    return dbClient.query ? dbClient.query(sql, [newPasswordHash, userId]) : dbClient(sql, [newPasswordHash, userId]);
+  },
+
+  /**
+   * Save password reset token
+   */
+  savePasswordResetToken: async ({ userId, tokenHash, expiresAt, ipAddress }) => {
+    const sql = `
+      INSERT INTO shared.password_reset_tokens
+        (user_id, token_hash, created_at, expires_at, is_used, ip_address)
+      VALUES ($1, $2, NOW(), $3, false, $4)
+    `;
+    return query(sql, [userId, tokenHash, expiresAt, ipAddress]);
+  },
+
+  /**
+   * Find a valid password reset token by its hash
+   */
+  findPasswordResetTokenByHash: async (tokenHash) => {
+    const sql = `
+      SELECT id, user_id, token_hash, created_at, expires_at, is_used, used_at, ip_address
+      FROM shared.password_reset_tokens
+      WHERE token_hash = $1 AND is_used = false AND expires_at > NOW()
+      LIMIT 1
+    `;
+    const result = await query(sql, [tokenHash]);
+    return result.rows[0] || null;
+  },
+
+  /**
+   * Mark a password reset token as used
+   */
+  markPasswordResetTokenAsUsed: async (tokenId, client = null) => {
+    const sql = `
+      UPDATE shared.password_reset_tokens
+      SET is_used = true, used_at = NOW()
+      WHERE id = $1
+    `;
+    const dbClient = client || query;
+    return dbClient.query ? dbClient.query(sql, [tokenId]) : dbClient(sql, [tokenId]);
   },
 };
 

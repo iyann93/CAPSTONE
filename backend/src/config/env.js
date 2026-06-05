@@ -24,6 +24,15 @@ const env = {
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
   },
+
+  email: {
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT, 10) || 587,
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+
+  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
 };
 
 module.exports = env;

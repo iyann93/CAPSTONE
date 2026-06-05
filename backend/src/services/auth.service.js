@@ -1,9 +1,12 @@
 'use strict';
 
+const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const AuthRepository = require('../repositories/auth.repository');
 const { signAccessToken, signRefreshToken, verifyRefreshToken } = require('../utils/jwt');
 const env = require('../config/env');
+const { sendResetPasswordEmail } = require('./email.service');
+const { getClient } = require('../config/db');
 
 const SALT_ROUNDS = 10;
 
@@ -144,6 +147,121 @@ const AuthService = {
       throw err;
     }
     return user;
+  },
+
+  /**
+   * Change Password
+   */
+  changePassword: async (userId, currentPassword, newPassword) => {
+    const user = await AuthRepository.findUserById(userId);
+    if (!user) {
+      const err = new Error('User tidak ditemukan');
+      err.statusCode = 404;
+      throw err;
+    }
+
+    const fullUser = await AuthRepository.findUserByEmail(user.email);
+    const isMatch = await bcrypt.compare(currentPassword, fullUser.password_hash);
+    if (!isMatch) {
+      const err = new Error('Password lama tidak sesuai');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const newPasswordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+    
+    const client = await getClient();
+    try {
+      await client.query('BEGIN');
+      
+      await AuthRepository.updateUserPassword(userId, newPasswordHash, client);
+      await AuthRepository.revokeAllUserTokens(userId, client);
+      
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  },
+
+  /**
+   * Forgot Password
+   */
+  forgotPassword: async (email, ipAddress) => {
+    const user = await AuthRepository.findUserByEmail(email);
+    // If not found, return successfully to prevent email enumeration
+    if (!user || !user.is_active) {
+      return;
+    }
+
+    // Generate secure random token
+    const token = crypto.randomBytes(32).toString('hex');
+    // Use SHA-256 for reset token hash so we can search it directly in DB
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    
+    // Expires in 1 hour
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    await AuthRepository.savePasswordResetToken({
+      userId: user.id,
+      tokenHash,
+      expiresAt,
+      ipAddress,
+    });
+
+    await sendResetPasswordEmail(user.email, user.nama, token);
+  },
+
+  /**
+   * Validate Reset Token
+   */
+  validateResetToken: async (token) => {
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const resetToken = await AuthRepository.findPasswordResetTokenByHash(tokenHash);
+    
+    if (!resetToken) {
+      return false;
+    }
+    return true;
+  },
+
+  /**
+   * Reset Password
+   */
+  resetPassword: async (token, newPassword) => {
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const resetToken = await AuthRepository.findPasswordResetTokenByHash(tokenHash);
+    
+    if (!resetToken) {
+      const err = new Error('Token tidak valid atau sudah kedaluwarsa');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const newPasswordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+    
+    const client = await getClient();
+    try {
+      await client.query('BEGIN');
+      
+      // Update password
+      await AuthRepository.updateUserPassword(resetToken.user_id, newPasswordHash, client);
+      
+      // Mark token as used
+      await AuthRepository.markPasswordResetTokenAsUsed(resetToken.id, client);
+      
+      // Revoke all refresh tokens
+      await AuthRepository.revokeAllUserTokens(resetToken.user_id, client);
+      
+      await client.query('COMMIT');
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   },
 };
 

@@ -67,6 +67,84 @@ const AuthController = {
       next(err);
     }
   },
+
+  changePassword: async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return next(Object.assign(new Error('Validation failed'), { type: 'validation', errors: errors.array() }));
+      }
+      
+      const { currentPassword, newPassword } = req.body;
+      const userId = req.user.userId;
+
+      await AuthService.changePassword(userId, currentPassword, newPassword);
+      
+      // Since refresh tokens are revoked, we should also clear the cookie
+      res.clearCookie(COOKIE_NAME);
+      
+      return response.success(res, 200, 'Password berhasil diubah. Silakan login kembali.');
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  forgotPassword: async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return next(Object.assign(new Error('Validation failed'), { type: 'validation', errors: errors.array() }));
+      }
+
+      const { email } = req.body;
+      const ipAddress = req.ip || null;
+
+      await AuthService.forgotPassword(email, ipAddress);
+      
+      // Always return success even if email not found
+      return response.success(res, 200, 'Jika email terdaftar, instruksi reset password telah dikirim ke email Anda.');
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  validateResetToken: async (req, res, next) => {
+    try {
+      const { token } = req.query;
+      if (!token) {
+        return response.error(res, 400, 'Token tidak valid');
+      }
+
+      const isValid = await AuthService.validateResetToken(token);
+      if (!isValid) {
+        return response.error(res, 400, 'Token tidak valid atau sudah kedaluwarsa');
+      }
+
+      return response.success(res, 200, 'Token valid');
+    } catch (err) {
+      next(err);
+    }
+  },
+
+  resetPassword: async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return next(Object.assign(new Error('Validation failed'), { type: 'validation', errors: errors.array() }));
+      }
+
+      const { token, newPassword } = req.body;
+
+      await AuthService.resetPassword(token, newPassword);
+      
+      // Clear cookie in case they had an old session
+      res.clearCookie(COOKIE_NAME);
+
+      return response.success(res, 200, 'Password berhasil diatur ulang. Silakan login dengan password baru.');
+    } catch (err) {
+      next(err);
+    }
+  },
 };
 
 module.exports = AuthController;
