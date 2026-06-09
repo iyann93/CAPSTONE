@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import {
   BarChart,
   Bar,
@@ -131,7 +131,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const [showGenerateMonthModal, setShowGenerateMonthModal] = useState(false);
 
   const [studentsBill, setStudentsBill] = useState([
-<<<<<<< HEAD
     { nis: "2024001", name: "Ahmad Fauzi", class: "Kelas VIIA", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "08 Mei 2026" },
     { nis: "2024002", name: "Aulia Rahma", class: "Kelas VIIB", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "07 Mei 2026" },
     { nis: "2024003", name: "Budi Prasetyo", class: "Kelas VIIIA", amount: "Rp 275.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Belum Bayar", payDate: "—" },
@@ -142,18 +141,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     { nis: "2024008", name: "Gita Maharani", class: "Kelas VIIIC", amount: "Rp 275.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Belum Bayar", payDate: "—" },
     { nis: "2024009", name: "Hendra Kusuma", class: "Kelas IXB", amount: "Rp 300.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "03 Mei 2026" },
     { nis: "2024010", name: "Indah Permata", class: "Kelas VIIA", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Cicilan", payDate: "10 Mei 2026" }
-=======
-    { nis: "2024001", name: "Ahmad Fauzi", class: "VII A", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "08 Mei 2026" },
-    { nis: "2024002", name: "Aulia Rahma", class: "VII B", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "07 Mei 2026" },
-    { nis: "2024003", name: "Budi Prasetyo", class: "VIII A", amount: "Rp 275.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Belum Bayar", payDate: "—" },
-    { nis: "2024004", name: "Citra Dewi", class: "VIII B", amount: "Rp 275.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Belum Bayar", payDate: "—" },
-    { nis: "2024005", name: "Danu Pratama", class: "IX A", amount: "Rp 300.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Belum Bayar", payDate: "—" },
-    { nis: "2024006", name: "Eka Putri", class: "IX A", amount: "Rp 300.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "05 Mei 2026" },
-    { nis: "2024007", name: "Fajar Ramadhan", class: "VII C", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "09 Mei 2026" },
-    { nis: "2024008", name: "Gita Maharani", class: "VIII C", amount: "Rp 275.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Belum Bayar", payDate: "—" },
-    { nis: "2024009", name: "Hendra Kusuma", class: "IX B", amount: "Rp 300.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "03 Mei 2026" },
-    { nis: "2024010", name: "Indah Permata", class: "VII A", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "10 Mei 2026" }
->>>>>>> 01fd538065a915980d3ce2f03295427f33b79da5
   ]);
   const [billSearchQuery, setBillSearchQuery] = useState("");
   const [billClassFilter, setBillClassFilter] = useState("Semua");
@@ -161,11 +148,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
   // Form states for manually recording payments
   const [inputStudent, setInputStudent] = useState("");
-<<<<<<< HEAD
   const [inputClass, setInputClass] = useState("Kelas VIIA");
-=======
-  const [inputClass, setInputClass] = useState("VII A");
->>>>>>> 01fd538065a915980d3ce2f03295427f33b79da5
   const [inputAmount, setInputAmount] = useState("Rp 250.000");
   const [inputPeriod, setInputPeriod] = useState("Mei 2026");
   const [inputStatus, setInputStatus] = useState("Lunas");
@@ -182,15 +165,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   // Pengaturan SPP states
   const [sppSettingTab, setSppSettingTab] = useState("nominal");
   const [sppList, setSppList] = useState([
-<<<<<<< HEAD
     { id: 1, grade: "Kelas VII SMP", ta: "2025/2026", amount: "Rp 250.000", amountNum: 250000, denda: 15000, jatuhTempo: 10, catatan: "Berlaku mulai Juli 2025" },
     { id: 2, grade: "Kelas VIII SMP", ta: "2025/2026", amount: "Rp 275.000", amountNum: 275000, denda: 15000, jatuhTempo: 10, catatan: "Berlaku mulai Juli 2025" },
     { id: 3, grade: "Kelas IX SMP", ta: "2025/2026", amount: "Rp 300.000", amountNum: 300000, denda: 15000, jatuhTempo: 10, catatan: "Berlaku mulai Juli 2025" }
-=======
-    { id: 1, grade: "VII", ta: "2024/2025", amount: "Rp 250.000", amountNum: 250000, denda: 15000, jatuhTempo: 10, catatan: "Berlaku mulai Juli 2024" },
-    { id: 2, grade: "VIII", ta: "2024/2025", amount: "Rp 275.000", amountNum: 275000, denda: 15000, jatuhTempo: 10, catatan: "Berlaku mulai Juli 2024" },
-    { id: 3, grade: "IX", ta: "2024/2025", amount: "Rp 300.000", amountNum: 300000, denda: 15000, jatuhTempo: 10, catatan: "Berlaku mulai Juli 2024" }
->>>>>>> 01fd538065a915980d3ce2f03295427f33b79da5
   ]);
   const [editingSppId, setEditingSppId] = useState(null);
   const [editSppAmount, setEditSppAmount] = useState("");
@@ -534,13 +511,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     onChange={(e) => setSelectedYear(e.target.value)}
                     className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
                   >
-<<<<<<< HEAD
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
                     
-=======
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option><option value="2025/2026">Tahun Ajaran: 2025/2026</option>
->>>>>>> 01fd538065a915980d3ce2f03295427f33b79da5
                   </select>
                   <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
                     <IconChevronDown />
@@ -719,11 +691,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div>
                 <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Pengaturan SPP</h1>
-<<<<<<< HEAD
                 <p className="text-sm text-gray-500 mt-1">Atur nominal SPP, diskon, dan jadwal pembayaran per kelas (Kelas VII, VIII, IX SMP).</p>
-=======
-                <p className="text-sm text-gray-500 mt-1">Atur nominal SPP, diskon, dan jadwal pembayaran per kelas (Kelas VII, VIII, IX).</p>
->>>>>>> 01fd538065a915980d3ce2f03295427f33b79da5
               </div>
               <div className="flex gap-2 sm:gap-3 items-center flex-wrap">
                 <div className="relative">
@@ -732,13 +700,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     onChange={(e) => setSelectedYear(e.target.value)}
                     className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
                   >
-<<<<<<< HEAD
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
                     
-=======
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option><option value="2025/2026">Tahun Ajaran: 2025/2026</option>
->>>>>>> 01fd538065a915980d3ce2f03295427f33b79da5
                   </select>
                   <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
                     <IconChevronDown />
@@ -1355,13 +1318,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     onChange={(e) => setSelectedYear(e.target.value)}
                     className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
                   >
-<<<<<<< HEAD
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
                     
-=======
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option><option value="2025/2026">Tahun Ajaran: 2025/2026</option>
->>>>>>> 01fd538065a915980d3ce2f03295427f33b79da5
                   </select>
                   <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
                     <IconChevronDown />
@@ -3136,5 +3094,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 };
 
 export default BendaharaDashboard;
+
+
 
 
