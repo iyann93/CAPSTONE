@@ -389,16 +389,16 @@ const ActivationModule = () => {
   const pendingUsers = [
     { name: "Bambang Supriyadi", email: "bambang.sup@gmail.com", id: "USR-1201", user: "ortu.andi", role: "Orang Tua", date: "Hari ini, 09:12", status: "Pending", initials: "BA" },
     { name: "Citra Kirana", email: "citra.k@siswa.sch.id", id: "USR-1202", user: "citra.k", role: "Siswa", date: "Kemarin, 14:30", status: "Pending", initials: "CI" },
-    { name: "Ahmad Ridwan", email: "ahmad.ridwan@sch.id", id: "USR-0754", user: "ahmad.ridwan", role: "Wakil Kepala", date: "12 Okt 2023", status: "Nonaktif", initials: "Ae" },
-    { name: "Dedi Kurniawan", email: "dedi.k@guru.sch.id", id: "USR-0622", user: "dedi.k", role: "Guru Mapel", date: "05 Okt 2023", status: "Nonaktif", initials: "ME" },
+    { name: "Ahmad Ridwan", email: "ahmad.ridwan@sch.id", id: "USR-0754", user: "ahmad.ridwan", role: "Wakil Kepala", date: "12 Okt 2026", status: "Nonaktif", initials: "Ae" },
+    { name: "Dedi Kurniawan", email: "dedi.k@guru.sch.id", id: "USR-0622", user: "dedi.k", role: "Guru Mapel", date: "05 Okt 2026", status: "Nonaktif", initials: "ME" },
   ];
 
   const nonaktifUsers = [
-    { name: "Ahmad Ridwan", email: "ahmad.ridwan@sch.id", id: "USR-0754", user: "ahmad.ridwan", role: "Wakil Kepala", date: "12 Okt 2023", status: "Nonaktif", initials: "AH" },
-    { name: "Dedi Kurniawan", email: "dedi.k@guru.sch.id", id: "USR-0622", user: "dedi.k", role: "Guru Mapel", date: "05 Okt 2023", status: "Nonaktif", initials: "DE" },
-    { name: "Siti Aminah", email: "siti.a@siswa.sch.id", id: "USR-0511", user: "siti.a", role: "Siswa", date: "28 Sep 2023", status: "Nonaktif", initials: "SI" },
-    { name: "Budi Santoso", email: "budi.s@gmail.com", id: "USR-0405", user: "budi.s", role: "Orang Tua", date: "15 Sep 2023", status: "Nonaktif", initials: "BU" },
-    { name: "Fajar Hidayat", email: "fajar.h@siswa.sch.id", id: "USR-0399", user: "fajar.h", role: "Siswa", date: "10 Sep 2023", status: "Nonaktif", initials: "FA" },
+    { name: "Ahmad Ridwan", email: "ahmad.ridwan@sch.id", id: "USR-0754", user: "ahmad.ridwan", role: "Wakil Kepala", date: "12 Okt 2026", status: "Nonaktif", initials: "AH" },
+    { name: "Dedi Kurniawan", email: "dedi.k@guru.sch.id", id: "USR-0622", user: "dedi.k", role: "Guru Mapel", date: "05 Okt 2026", status: "Nonaktif", initials: "DE" },
+    { name: "Siti Aminah", email: "siti.a@siswa.sch.id", id: "USR-0511", user: "siti.a", role: "Siswa", date: "28 Sep 2026", status: "Nonaktif", initials: "SI" },
+    { name: "Budi Santoso", email: "budi.s@gmail.com", id: "USR-0405", user: "budi.s", role: "Orang Tua", date: "15 Sep 2026", status: "Nonaktif", initials: "BU" },
+    { name: "Fajar Hidayat", email: "fajar.h@siswa.sch.id", id: "USR-0399", user: "fajar.h", role: "Siswa", date: "10 Sep 2026", status: "Nonaktif", initials: "FA" },
   ];
 
   const filteredUsers = activeTab === "Pending" ? pendingUsers : nonaktifUsers;
@@ -1556,13 +1556,13 @@ const AksesSeluruhDataModule = () => {
       { name: "Jadwal Pelajaran", records: "320", size: "1.5 MB", updated: "3 hari yang lalu" },
       { name: "Nilai Ujian (Semester Genap)", records: "14,800", size: "12.8 MB", updated: "Hari ini, 10:05" },
       { name: "Presensi Harian Siswa", records: "45,200", size: "38.4 MB", updated: "Hari ini, 07:15" },
-      { name: "Data Ekstrakurikuler", records: "24", size: "85 KB", updated: "12 Okt 2023" }
+      { name: "Data Ekstrakurikuler", records: "24", size: "85 KB", updated: "12 Okt 2026" }
     ],
     Kesiswaan: [
       { name: "Pendaftaran Siswa Baru", records: "250", size: "850 KB", updated: "Hari ini, 09:00" },
       { name: "Pelanggaran & Pembinaan", records: "32", size: "64 KB", updated: "Kemarin, 10:30" },
       { name: "Prestasi Siswa", records: "115", size: "320 KB", updated: "5 hari yang lalu" },
-      { name: "Organisasi Siswa (OSIS)", records: "4", size: "28 KB", updated: "10 Okt 2023" }
+      { name: "Organisasi Siswa (OSIS)", records: "4", size: "28 KB", updated: "10 Okt 2026" }
     ],
     Kepegawaian: [
       { name: "Data Guru", records: "82", size: "1.1 MB", updated: "Hari ini, 08:00" },
@@ -1572,7 +1572,7 @@ const AksesSeluruhDataModule = () => {
     Keuangan: [
       { name: "Transaksi Pembayaran SPP", records: "8,650", size: "7.8 MB", updated: "Hari ini, 09:45" },
       { name: "Gaji & Honor Guru", records: "984", size: "1.2 MB", updated: "2 hari yang lalu" },
-      { name: "Anggaran Operasional", records: "156", size: "340 KB", updated: "15 Okt 2023" }
+      { name: "Anggaran Operasional", records: "156", size: "340 KB", updated: "15 Okt 2026" }
     ],
     Inventaris: [
       { name: "Aset & Inventaris Sekolah", records: "1,240", size: "3.5 MB", updated: "Hari ini, 08:30" },
@@ -2611,11 +2611,11 @@ const BackupMaintenanceModule = () => {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {[
-                  { time: "24 Okt 2023, 02:00", name: "Full_Backup_System_v2", id: "BKP-20231024-0200", size: "1.2 GB", type: "Otomatis", status: "Berhasil" },
-                  { time: "23 Okt 2023, 02:00", name: "Full_Backup_System_v2", id: "BKP-20231023-0200", size: "1.2 GB", type: "Otomatis", status: "Berhasil" },
-                  { time: "22 Okt 2023, 14:30", name: "Manual_Pre_Update_v2.1", id: "BKP-20231022-1430", size: "1.15 GB", type: "Manual", status: "Berhasil" },
-                  { time: "22 Okt 2023, 02:00", name: "Full_Backup_System_v2", id: "BKP-20231022-0200", size: "1.15 GB", type: "Otomatis", status: "Berhasil" },
-                  { time: "21 Okt 2023, 02:00", name: "Full_Backup_System_v2", id: "BKP-20231021-0200", size: "1.12 GB", type: "Otomatis", status: "Gagal" },
+                  { time: "24 Okt 2026, 02:00", name: "Full_Backup_System_v2", id: "BKP-20261024-0200", size: "1.2 GB", type: "Otomatis", status: "Berhasil" },
+                  { time: "23 Okt 2026, 02:00", name: "Full_Backup_System_v2", id: "BKP-20261023-0200", size: "1.2 GB", type: "Otomatis", status: "Berhasil" },
+                  { time: "22 Okt 2026, 14:30", name: "Manual_Pre_Update_v2.1", id: "BKP-20261022-1430", size: "1.15 GB", type: "Manual", status: "Berhasil" },
+                  { time: "22 Okt 2026, 02:00", name: "Full_Backup_System_v2", id: "BKP-20261022-0200", size: "1.15 GB", type: "Otomatis", status: "Berhasil" },
+                  { time: "21 Okt 2026, 02:00", name: "Full_Backup_System_v2", id: "BKP-20261021-0200", size: "1.12 GB", type: "Otomatis", status: "Gagal" },
                 ].map((row, i) => (
                   <tr key={i} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4">
@@ -2761,7 +2761,7 @@ const BackupMaintenanceModule = () => {
               {/* Nama Backup */}
               <div>
                 <label className="block text-sm font-bold text-gray-800 mb-2">Nama Backup</label>
-                <input type="text" defaultValue="Manual_Backup_20231024" className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63] transition-all" />
+                <input type="text" defaultValue="Manual_Backup_20261024" className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63] transition-all" />
                 <p className="text-xs text-gray-500 mt-2 font-medium">Gunakan nama yang deskriptif untuk memudahkan identifikasi (misal: Manual_Pre_Update_v3).</p>
               </div>
 
@@ -2859,7 +2859,7 @@ const BackupMaintenanceModule = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-bold text-gray-800 mb-2">Tanggal Mulai</label>
-                  <input type="text" defaultValue="11/01/2023" className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-[#d97706] focus:ring-1 focus:ring-[#d97706] transition-all" />
+                  <input type="text" defaultValue="11/01/2026" className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-[#d97706] focus:ring-1 focus:ring-[#d97706] transition-all" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-800 mb-2">Waktu Mulai (WIB)</label>

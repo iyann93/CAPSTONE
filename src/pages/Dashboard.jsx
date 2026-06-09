@@ -58,7 +58,7 @@ const Dashboard = ({ user }) => {
         <div className="flex flex-wrap items-center gap-2 md:gap-3">
           <button className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 md:px-4 py-2 md:py-2.5 text-xs md:text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 transition-all">
             <CalendarIcon />
-            <span>2023/2024</span>
+            <span>2026/2027</span>
           </button>
           {["Admin", "Wakil Kepsek"].includes(user.role) && <button className="flex items-center gap-2 bg-primary-500 hover:bg-primary-600 text-white text-xs md:text-sm font-bold px-4 md:px-5 py-2 md:py-2.5 rounded-xl shadow-lg shadow-primary-500/30 transition-all transform hover:scale-[1.02] active:scale-[0.98]">
               <span className="text-lg leading-none">+</span>

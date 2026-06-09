@@ -109,11 +109,11 @@ const sppDonutData = [
 
 // Tables Mock Data
 const initialPayments = [
-  { id: 1, name: "Ahmad Fauzi", class: "Kelas 7A", amount: "Rp 250.000", period: "Mei 2026", status: "Lunas" },
-  { id: 2, name: "Aulia Rahma", class: "Kelas 7B", amount: "Rp 250.000", period: "Mei 2026", status: "Lunas" },
-  { id: 3, name: "Budi Wijaya", class: "Kelas 7C", amount: "Rp 275.000", period: "Mei 2026", status: "Belum Bayar" },
-  { id: 4, name: "Sinta Bella", class: "Kelas 8A", amount: "Rp 250.000", period: "Mei 2026", status: "Lunas" },
-  { id: 5, name: "Deni Pratama", class: "Kelas 8B", amount: "Rp 250.000", period: "Mei 2026", status: "Cicilan" }
+  { id: 1, name: "Ahmad Fauzi", class: "Kelas VIIA", amount: "Rp 250.000", period: "Mei 2026", status: "Lunas" },
+  { id: 2, name: "Aulia Rahma", class: "Kelas VIIB", amount: "Rp 250.000", period: "Mei 2026", status: "Lunas" },
+  { id: 3, name: "Budi Wijaya", class: "Kelas VIIC", amount: "Rp 275.000", period: "Mei 2026", status: "Belum Bayar" },
+  { id: 4, name: "Sinta Bella", class: "Kelas VIIIA", amount: "Rp 250.000", period: "Mei 2026", status: "Lunas" },
+  { id: 5, name: "Deni Pratama", class: "Kelas VIIIB", amount: "Rp 250.000", period: "Mei 2026", status: "Cicilan" }
 ];
 
 const payrollMockData = [
@@ -127,28 +127,28 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
   const [sppPayments, setSppPayments] = useState(initialPayments);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
-  const [selectedYear, setSelectedYear] = useState("2023/2024");
+  const [selectedYear, setSelectedYear] = useState("2025/2026");
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [showGenerateMonthModal, setShowGenerateMonthModal] = useState(false);
 
   const [studentsBill, setStudentsBill] = useState([
-    { nis: "2024001", name: "Ahmad Fauzi", class: "Kelas 7A", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "08 Mei 2026" },
-    { nis: "2024002", name: "Aulia Rahma", class: "Kelas 7B", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "07 Mei 2026" },
-    { nis: "2024003", name: "Budi Prasetyo", class: "Kelas 8A", amount: "Rp 275.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Belum Bayar", payDate: "—" },
-    { nis: "2024004", name: "Citra Dewi", class: "Kelas 8B", amount: "Rp 275.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Cicilan", payDate: "11 Mei 2026" },
-    { nis: "2024005", name: "Danu Pratama", class: "Kelas 9A", amount: "Rp 300.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Belum Bayar", payDate: "—" },
-    { nis: "2024006", name: "Eka Putri", class: "Kelas 9A", amount: "Rp 300.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "05 Mei 2026" },
-    { nis: "2024007", name: "Fajar Ramadhan", class: "Kelas 7C", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "09 Mei 2026" },
-    { nis: "2024008", name: "Gita Maharani", class: "Kelas 8C", amount: "Rp 275.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Belum Bayar", payDate: "—" },
-    { nis: "2024009", name: "Hendra Kusuma", class: "Kelas 9B", amount: "Rp 300.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "03 Mei 2026" },
-    { nis: "2024010", name: "Indah Permata", class: "Kelas 7A", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Cicilan", payDate: "10 Mei 2026" }
+    { nis: "2024001", name: "Ahmad Fauzi", class: "Kelas VIIA", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "08 Mei 2026" },
+    { nis: "2024002", name: "Aulia Rahma", class: "Kelas VIIB", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "07 Mei 2026" },
+    { nis: "2024003", name: "Budi Prasetyo", class: "Kelas VIIIA", amount: "Rp 275.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Belum Bayar", payDate: "—" },
+    { nis: "2024004", name: "Citra Dewi", class: "Kelas VIIIB", amount: "Rp 275.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Cicilan", payDate: "11 Mei 2026" },
+    { nis: "2024005", name: "Danu Pratama", class: "Kelas IXA", amount: "Rp 300.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Belum Bayar", payDate: "—" },
+    { nis: "2024006", name: "Eka Putri", class: "Kelas IXA", amount: "Rp 300.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "05 Mei 2026" },
+    { nis: "2024007", name: "Fajar Ramadhan", class: "Kelas VIIC", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "09 Mei 2026" },
+    { nis: "2024008", name: "Gita Maharani", class: "Kelas VIIIC", amount: "Rp 275.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Belum Bayar", payDate: "—" },
+    { nis: "2024009", name: "Hendra Kusuma", class: "Kelas IXB", amount: "Rp 300.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "03 Mei 2026" },
+    { nis: "2024010", name: "Indah Permata", class: "Kelas VIIA", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Cicilan", payDate: "10 Mei 2026" }
   ]);
   const [billSearchQuery, setBillSearchQuery] = useState("");
   const [billClassFilter, setBillClassFilter] = useState("Semua");
 
   // Form states for manually recording payments
   const [inputStudent, setInputStudent] = useState("");
-  const [inputClass, setInputClass] = useState("Kelas 7A");
+  const [inputClass, setInputClass] = useState("Kelas VIIA");
   const [inputAmount, setInputAmount] = useState("Rp 250.000");
   const [inputPeriod, setInputPeriod] = useState("Mei 2026");
   const [inputStatus, setInputStatus] = useState("Lunas");
@@ -165,9 +165,9 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
   // Pengaturan SPP states
   const [sppSettingTab, setSppSettingTab] = useState("nominal");
   const [sppList, setSppList] = useState([
-    { id: 1, grade: "Kelas 7 SMP", ta: "2024/2025", amount: "Rp 250.000", amountNum: 250000, denda: 15000, jatuhTempo: 10, catatan: "Berlaku mulai Juli 2024" },
-    { id: 2, grade: "Kelas 8 SMP", ta: "2024/2025", amount: "Rp 275.000", amountNum: 275000, denda: 15000, jatuhTempo: 10, catatan: "Berlaku mulai Juli 2024" },
-    { id: 3, grade: "Kelas 9 SMP", ta: "2024/2025", amount: "Rp 300.000", amountNum: 300000, denda: 15000, jatuhTempo: 10, catatan: "Berlaku mulai Juli 2024" }
+    { id: 1, grade: "Kelas VII SMP", ta: "2025/2026", amount: "Rp 250.000", amountNum: 250000, denda: 15000, jatuhTempo: 10, catatan: "Berlaku mulai Juli 2025" },
+    { id: 2, grade: "Kelas VIII SMP", ta: "2025/2026", amount: "Rp 275.000", amountNum: 275000, denda: 15000, jatuhTempo: 10, catatan: "Berlaku mulai Juli 2025" },
+    { id: 3, grade: "Kelas IX SMP", ta: "2025/2026", amount: "Rp 300.000", amountNum: 300000, denda: 15000, jatuhTempo: 10, catatan: "Berlaku mulai Juli 2025" }
   ]);
   const [editingSppId, setEditingSppId] = useState(null);
   const [editSppAmount, setEditSppAmount] = useState("");
@@ -254,8 +254,8 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                     onChange={(e) => setSelectedYear(e.target.value)}
                     className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
                   >
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                    <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+                    
                   </select>
                   <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
                     <IconChevronDown />
@@ -339,7 +339,7 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                 {/* Tabs Filter and Export */}
                 <div className="flex items-center justify-between md:justify-end gap-3 flex-wrap">
                   <div className="flex bg-gray-50 border border-gray-100 p-1 rounded-xl">
-                    {["Semua", "Kelas 7", "Kelas 8", "Kelas 9"].map((tab) => {
+                    {["Semua", "Kelas VII", "Kelas VIII", "Kelas IX"].map((tab) => {
                       const isActive = billClassFilter === tab;
                       return (
                         <button
@@ -434,7 +434,7 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div>
                 <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Pengaturan SPP</h1>
-                <p className="text-sm text-gray-500 mt-1">Atur nominal SPP, diskon, dan jadwal pembayaran per kelas (Kelas 7, 8, 9 SMP).</p>
+                <p className="text-sm text-gray-500 mt-1">Atur nominal SPP, diskon, dan jadwal pembayaran per kelas (Kelas VII, VIII, IX SMP).</p>
               </div>
               <div className="flex gap-2 sm:gap-3 items-center flex-wrap">
                 <div className="relative">
@@ -443,8 +443,8 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                     onChange={(e) => setSelectedYear(e.target.value)}
                     className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
                   >
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                    <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+                    
                   </select>
                   <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
                     <IconChevronDown />
@@ -454,7 +454,7 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                   onClick={() => triggerToast("Semua pengaturan SPP berhasil disimpan!")}
                   className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-4 sm:px-5 py-2.5 text-xs sm:text-[13px] font-bold cursor-pointer transition-all active:scale-95 shadow-[0_10px_20px_-10px_rgba(26,61,99,0.3)]"
                 >
-                  <IconPlus /> Simpan Semua Pengaturan
+                  Simpan Semua Pengaturan
                 </button>
               </div>
             </div>
@@ -463,7 +463,6 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
             <div className="bg-white rounded-2xl border border-gray-100 p-1 flex gap-1 shadow-sm">
               {[
                 { key: "nominal", icon: "$", label: "Nominal SPP per Kelas" },
-                { key: "diskon", icon: "≡", label: "Kategori Diskon / Potongan" },
                 { key: "kalender", icon: "📅", label: "Kalender Pembayaran" }
               ].map((tab) => (
                 <button
@@ -498,13 +497,7 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                 {/* Daftar Pengaturan SPP */}
                 <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
                   <div className="flex items-center justify-between mb-5">
-                    <h3 className="text-sm font-bold text-gray-800">Daftar Pengaturan SPP ({sppList.length} angkatan)</h3>
-                    <button
-                      onClick={() => triggerToast("Membuka form tambah angkatan SPP baru...")}
-                      className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-4 py-2 text-xs font-bold cursor-pointer transition-all active:scale-95"
-                    >
-                      <IconPlus /> Tambah Angkatan SPP
-                    </button>
+                    <h3 className="text-sm font-bold text-gray-800">Daftar Pengaturan SPP</h3>
                   </div>
 
                   <div className="flex flex-col gap-3">
@@ -532,7 +525,7 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                             <div className="flex-1">
                               <div className="text-sm font-bold text-gray-800">
                                 {item.grade}
-                                <span className="text-[11px] font-semibold text-gray-400 ml-2">TA {item.ta}</span>
+                                <span className="text-[11px] font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded ml-2">TA {item.ta}</span>
                               </div>
                               {!isEditing && (
                                 <div className="text-[11px] text-gray-400 mt-0.5">
@@ -571,7 +564,7 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                                   className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white border-none px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all active:scale-95"
                                 >
                                   <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z" />
                                   </svg>
                                   Simpan
                                 </button>
@@ -614,16 +607,7 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                           {/* Inline Expand Edit Form */}
                           {isEditing && (
                             <div className="mt-5 pt-5 border-t border-gray-100">
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div>
-                                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Kelas</label>
-                                  <input
-                                    type="text"
-                                    value={editSppGrade}
-                                    onChange={(e) => setEditSppGrade(e.target.value)}
-                                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#1A3D63] transition-colors"
-                                  />
-                                </div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                   <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Tahun Ajaran</label>
                                   <input
@@ -643,22 +627,15 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                                   />
                                 </div>
                                 <div>
-                                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Jatuh Tempo (Tanggal)</label>
-                                  <input
-                                    type="number"
-                                    value={editSppJatuhTempo}
-                                    onChange={(e) => setEditSppJatuhTempo(e.target.value)}
-                                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#1A3D63] transition-colors"
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Denda Keterlambatan (Rp)</label>
-                                  <input
-                                    type="number"
-                                    value={editSppDenda}
-                                    onChange={(e) => setEditSppDenda(e.target.value)}
-                                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#1A3D63] transition-colors"
-                                  />
+                                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Jatuh Tempo</label>
+                                  <div className="relative">
+                                    <input
+                                      type="date"
+                                      value={editSppJatuhTempo}
+                                      onChange={(e) => setEditSppJatuhTempo(e.target.value)}
+                                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#1A3D63] transition-colors"
+                                    />
+                                  </div>
                                 </div>
                                 <div>
                                   <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Catatan</label>
@@ -690,86 +667,28 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
               </div>
             )}
 
-            {/* Tab: Kategori Diskon / Potongan */}
-            {sppSettingTab === "diskon" && (
-              <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                <div className="flex items-center justify-between mb-5">
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-800">Kategori Diskon & Potongan SPP</h3>
-                    <p className="text-[11px] text-gray-400 mt-1">Kelola jenis potongan SPP berdasarkan kategori siswa.</p>
-                  </div>
-                  <button onClick={() => triggerToast("Membuka form kategori diskon baru...")} className="flex items-center gap-1.5 bg-[#1A3D63] text-white border-none rounded-xl px-4 py-2 text-xs font-bold cursor-pointer hover:bg-[#122A44] transition-all">
-                    <IconPlus /> Tambah Kategori
-                  </button>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="bg-gray-50/50 text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
-                        <th className="py-3 px-4 rounded-tl-lg">NAMA KATEGORI</th>
-                        <th className="py-3 px-4">POTONGAN SPP</th>
-                        <th className="py-3 px-4">BERLAKU UNTUK</th>
-                        <th className="py-3 px-4 rounded-tr-lg">AKSI</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50 text-xs">
-                      {[
-                        { name: "Beasiswa Prestasi", cut: "100% Gratis", cutColor: "green", target: "Semua Kelas" },
-                        { name: "Kurang Mampu (KIP)", cut: "100% Gratis", cutColor: "green", target: "Semua Kelas" },
-                        { name: "Anak Guru/Karyawan", cut: "50% Gratis", cutColor: "orange", target: "Semua Kelas" },
-                        { name: "Diskon Saudara Kandung", cut: "25% Gratis", cutColor: "orange", target: "Semua Kelas" }
-                      ].map((row, i) => (
-                        <tr key={i} className="hover:bg-gray-50/30 transition-colors">
-                          <td className="py-4 px-4 font-bold text-gray-700">{row.name}</td>
-                          <td className="py-4 px-4">
-                            <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold inline-block ${
-                              row.cutColor === "green" ? "bg-[#E6F4EA] text-[#137333]" : "bg-[#FEF7E0] text-[#B06000]"
-                            }`}>
-                              {row.cut}
-                            </span>
-                          </td>
-                          <td className="py-4 px-4 text-gray-500 font-medium">{row.target}</td>
-                          <td className="py-4 px-4">
-                            <button 
-                              onClick={() => triggerToast(`Menghapus kategori ${row.name}`)}
-                              className="flex items-center gap-1.5 bg-[#FCE8E6] hover:bg-[#FAD2CF] text-[#C5221F] border border-[#FAD2CF] px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-colors"
-                            >
-                              <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                              </svg>
-                              Hapus
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
             {/* Tab: Kalender Pembayaran */}
             {sppSettingTab === "kalender" && (
               <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
                 <div className="mb-6">
-                  <h3 className="text-sm font-bold text-gray-800">Kalender Tagihan SPP Tahun Ajaran 2024/2025</h3>
-                  <p className="text-[11px] text-gray-400 mt-1">Periode penagihan SPP Juli 2024 — Juni 2025</p>
+                  <h3 className="text-sm font-bold text-gray-800">Kalender Tagihan SPP Tahun Ajaran 2025/2026</h3>
+                  <p className="text-[11px] text-gray-400 mt-1">Periode penagihan SPP Juli 2025 — Juni 2026</p>
                 </div>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                   {[
-                    { month: "Januari 2025", active: false, hasDetails: false },
-                    { month: "Februari 2025", active: false, hasDetails: false },
-                    { month: "Maret 2025", active: false, hasDetails: false },
-                    { month: "April 2025", active: false, hasDetails: false },
-                    { month: "Mei 2025", active: false, hasDetails: false },
-                    { month: "Juni 2025", active: false, hasDetails: false },
-                    { month: "Juli 2024", active: false, hasDetails: true },
-                    { month: "Agustus 2024", active: false, hasDetails: true },
-                    { month: "September 2024", active: false, hasDetails: true },
-                    { month: "Oktober 2024", active: false, hasDetails: true },
-                    { month: "November 2024", active: true, hasDetails: true },
-                    { month: "Desember 2024", active: false, hasDetails: true }
+                    { month: "Juli 2025", active: false, hasDetails: true },
+                    { month: "Agustus 2025", active: false, hasDetails: true },
+                    { month: "September 2025", active: false, hasDetails: true },
+                    { month: "Oktober 2025", active: false, hasDetails: true },
+                    { month: "November 2025", active: false, hasDetails: true },
+                    { month: "Desember 2025", active: false, hasDetails: true },
+                    { month: "Januari 2026", active: false, hasDetails: true },
+                    { month: "Februari 2026", active: false, hasDetails: true },
+                    { month: "Maret 2026", active: false, hasDetails: true },
+                    { month: "April 2026", active: false, hasDetails: true },
+                    { month: "Mei 2026", active: true, hasDetails: true },
+                    { month: "Juni 2026", active: false, hasDetails: false }
                   ].map((item, i) => (
                     <div 
                       key={i} 
@@ -796,7 +715,7 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                       
                       {item.hasDetails && (
                         <div className={`text-[10px] mt-1 ${item.active ? "text-blue-500/80" : "text-gray-400"}`}>
-                          Jatuh tempo tgl 10 · Kelas 7-9
+                          Jatuh tempo tgl 10 · Kelas VII-IX
                         </div>
                       )}
                     </div>
@@ -992,7 +911,7 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
               <div className="flex items-center gap-3">
                 <div className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 flex items-center gap-2 text-sm text-gray-600 shadow-sm">
                   <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>
-                  Tahun Ajaran: 2023/2024
+                  Tahun Ajaran: 2025/2026
                   <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
                 </div>
                 <button 
@@ -1045,11 +964,11 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
             {beasiswaTab === "program" ? (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {[
-                  { title: "Beasiswa Prestasi Akademik", subtitle: "2024/2025", type: "Beasiswa", amount: "100%", status: "Aktif", users: "12 siswa", typeColor: "blue" },
-                  { title: "Beasiswa Yayasan Peduli", subtitle: "2024/2025", type: "Beasiswa", amount: "50%", status: "Aktif", users: "24 siswa", typeColor: "blue" },
+                  { title: "Beasiswa Prestasi Akademik", subtitle: "2025/2026", type: "Beasiswa", amount: "100%", status: "Aktif", users: "12 siswa", typeColor: "blue" },
+                  { title: "Beasiswa Yayasan Peduli", subtitle: "2025/2026", type: "Beasiswa", amount: "50%", status: "Aktif", users: "24 siswa", typeColor: "blue" },
                   { title: "Potongan Anak Guru", subtitle: "Setiap Bulan", type: "Potongan", amount: "Rp 100.000", status: "Aktif", users: "8 siswa", typeColor: "orange" },
                   { title: "Potongan Kakak-Adik", subtitle: "Setiap Bulan", type: "Potongan", amount: "25%", status: "Aktif", users: "16 siswa", typeColor: "orange" },
-                  { title: "Beasiswa Dhuafa", subtitle: "2024/2025", type: "Beasiswa", amount: "75%", status: "Aktif", users: "18 siswa", typeColor: "blue" },
+                  { title: "Beasiswa Dhuafa", subtitle: "2025/2026", type: "Beasiswa", amount: "75%", status: "Aktif", users: "18 siswa", typeColor: "blue" },
                   { title: "Subsidi Bencana Alam", subtitle: "Jan-Mar 2025", type: "Potongan", amount: "Rp 150.000", status: "Non-Aktif", users: "3 siswa", typeColor: "orange" }
                 ].map((item, i) => (
                   <div key={i} className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between gap-4">
@@ -1114,10 +1033,10 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                     </thead>
                     <tbody className="divide-y divide-gray-50 text-xs">
                       {[
-                        { name: "Aulia Rahma", class: "Kelas 9A", program: "Beasiswa Prestasi Akademik", pot: "100%", awal: "Rp 300.000", akhir: "Rp 0" },
-                        { name: "Bima Saputra", class: "Kelas 8B", program: "Beasiswa Yayasan Peduli", pot: "50%", awal: "Rp 275.000", akhir: "Rp 137.500" },
-                        { name: "Citra Dewi", class: "Kelas 7A", program: "Potongan Anak Guru", pot: "Rp 100.000", awal: "Rp 250.000", akhir: "Rp 150.000" },
-                        { name: "Danu Pratama", class: "Kelas 7B", program: "Potongan Kakak-Adik", pot: "25%", awal: "Rp 250.000", akhir: "Rp 187.500" }
+                        { name: "Aulia Rahma", class: "Kelas IXA", program: "Beasiswa Prestasi Akademik", pot: "100%", awal: "Rp 300.000", akhir: "Rp 0" },
+                        { name: "Bima Saputra", class: "Kelas VIIIB", program: "Beasiswa Yayasan Peduli", pot: "50%", awal: "Rp 275.000", akhir: "Rp 137.500" },
+                        { name: "Citra Dewi", class: "Kelas VIIA", program: "Potongan Anak Guru", pot: "Rp 100.000", awal: "Rp 250.000", akhir: "Rp 150.000" },
+                        { name: "Danu Pratama", class: "Kelas VIIB", program: "Potongan Kakak-Adik", pot: "25%", awal: "Rp 250.000", akhir: "Rp 187.500" }
                       ].map((row, idx) => (
                         <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                           <td className="py-4 px-5 font-bold text-gray-800">{row.name}</td>
@@ -1161,8 +1080,8 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                     onChange={(e) => setSelectedYear(e.target.value)}
                     className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
                   >
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                    <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+                    
                   </select>
                   <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
                     <IconChevronDown />
@@ -1266,12 +1185,12 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                   </thead>
                   <tbody className="divide-y divide-gray-50 text-xs">
                     {[
-                      { id: "T-001", name: "Budi Prasetyo", class: "Kelas 8A", months: "2 Bulan", total: "Rp 550.000", status: "Kritikal" },
-                      { id: "T-002", name: "Danu Pratama", class: "Kelas 9A", months: "1 Bulan", total: "Rp 300.000", status: "Menengah" },
-                      { id: "T-003", name: "Rizky Ramadhan", class: "Kelas 7B", months: "3 Bulan", total: "Rp 750.000", status: "Kritikal" },
-                      { id: "T-004", name: "Siti Sarah", class: "Kelas 7A", months: "1 Bulan", total: "Rp 250.000", status: "Ringan" },
-                      { id: "T-005", name: "Gani Wijaya", class: "Kelas 8B", months: "2 Bulan", total: "Rp 550.000", status: "Menengah" },
-                      { id: "T-006", name: "Maya Sari", class: "Kelas 9B", months: "1 Bulan", total: "Rp 300.000", status: "Ringan" }
+                      { id: "T-001", name: "Budi Prasetyo", class: "Kelas VIIIA", months: "2 Bulan", total: "Rp 550.000", status: "Kritikal" },
+                      { id: "T-002", name: "Danu Pratama", class: "Kelas IXA", months: "1 Bulan", total: "Rp 300.000", status: "Menengah" },
+                      { id: "T-003", name: "Rizky Ramadhan", class: "Kelas VIIB", months: "3 Bulan", total: "Rp 750.000", status: "Kritikal" },
+                      { id: "T-004", name: "Siti Sarah", class: "Kelas VIIA", months: "1 Bulan", total: "Rp 250.000", status: "Ringan" },
+                      { id: "T-005", name: "Gani Wijaya", class: "Kelas VIIIB", months: "2 Bulan", total: "Rp 550.000", status: "Menengah" },
+                      { id: "T-006", name: "Maya Sari", class: "Kelas IXB", months: "1 Bulan", total: "Rp 300.000", status: "Ringan" }
                     ].map((row, idx) => (
                       <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                         <td className="p-4 pl-5">
@@ -1333,8 +1252,8 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                     onChange={(e) => setSelectedYear(e.target.value)}
                     className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
                   >
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                    <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+                    
                   </select>
                   <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
                     <IconChevronDown />
@@ -1614,7 +1533,7 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
               <div className="flex flex-col sm:flex-row items-center gap-3">
                 <div className="relative">
                   <select className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-8 py-2.5 text-xs sm:text-[13px] font-bold text-gray-600 cursor-pointer appearance-none focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 shadow-sm transition-all">
-                    <option>Tahun Ajaran: 2023/2024</option>
+                    <option>Tahun Ajaran: 2025/2026</option>
                   </select>
                   <span className="absolute left-3.5 top-2.5 text-gray-400 pointer-events-none">
                     <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
@@ -1829,8 +1748,8 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                     onChange={(e) => setSelectedYear(e.target.value)}
                     className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
                   >
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                    <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+                    
                   </select>
                   <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
                     <IconChevronDown />
@@ -2391,15 +2310,15 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
               <h4 className="text-[11px] font-bold text-gray-400 mb-4 uppercase tracking-wider">Ringkasan Generate</h4>
               <div className="space-y-3.5 text-sm">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Kelas 7 (semua rombel)</span>
+                  <span className="text-gray-600">Kelas VII (semua rombel)</span>
                   <span className="font-bold text-gray-800">4 siswa</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Kelas 8 (semua rombel)</span>
+                  <span className="text-gray-600">Kelas VIII (semua rombel)</span>
                   <span className="font-bold text-gray-800">3 siswa</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Kelas 9 (semua rombel)</span>
+                  <span className="text-gray-600">Kelas IX (semua rombel)</span>
                   <span className="font-bold text-gray-800">3 siswa</span>
                 </div>
               </div>
@@ -2511,7 +2430,7 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Periode</label>
                     <input 
                       type="text" 
-                      placeholder="Contoh: 2024/2025"
+                      placeholder="Contoh: 2025/2026"
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20"
                     />
                   </div>
@@ -2645,7 +2564,7 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                   <label className="block text-[11px] font-bold text-gray-500 mb-1.5">Keterangan</label>
                   <input 
                     type="text" 
-                    placeholder="Contoh: SPP Kelas 8A - Mei 2026"
+                    placeholder="Contoh: SPP Kelas VIIIA - Mei 2026"
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all placeholder:text-gray-300"
                   />
                 </div>
@@ -2949,3 +2868,5 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
 };
 
 export default BendaharaDashboard;
+
+

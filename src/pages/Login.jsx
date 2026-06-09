@@ -43,7 +43,7 @@ const Login = ({ onLogin, onForgotPassword }) => {
       setError(null);
       
       const response = await api.post('/auth/login', {
-        email: username, // API menggunakan email
+        email: username.trim(), // API menggunakan email
         password: password
       });
 
@@ -78,7 +78,7 @@ const Login = ({ onLogin, onForgotPassword }) => {
           <div className="w-9 h-9 bg-[#1A3D63] rounded-md flex items-center justify-center shadow-sm">
             <span className="text-white font-black text-xl leading-none">S</span>
           </div>
-          <span className="text-gray-900 font-bold text-[13px] tracking-wide">SMA NUSANTARA</span>
+          <span className="text-gray-900 font-bold text-[13px] tracking-wide">MBS PRAMBANAN</span>
         </div>
 
         {

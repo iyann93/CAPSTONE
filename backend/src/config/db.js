@@ -16,7 +16,7 @@ const poolConfig = env.db.connectionString
       user: env.db.user,
       host: env.db.host,
       database: env.db.database,
-      password: env.db.password,
+      password: String(env.db.password), // Force to string
       port: env.db.port,
       max: 20,
       idleTimeoutMillis: 30000,

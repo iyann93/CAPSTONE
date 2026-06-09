@@ -12,8 +12,17 @@ const PORT = env.port;
 const start = async () => {
   try {
     // Verify DB connection before starting HTTP server
-    await pool.query('SELECT 1');
-    logger.info('Database connection verified ✓');
+    try {
+      await pool.query('SELECT 1');
+      logger.info('Database connection verified ✓');
+    } catch (dbErr) {
+      if (env.nodeEnv === 'development') {
+        logger.warn('⚠️  Database tidak tersedia — server tetap berjalan dalam mode development.');
+        logger.warn('   Pastikan PostgreSQL sudah diinstall dan berjalan untuk fitur DB.');
+      } else {
+        throw dbErr; // Di production, tetap crash jika DB tidak ada
+      }
+    }
 
     const server = app.listen(PORT, () => {
       logger.info(`Server running on port ${PORT} [${env.nodeEnv}]`);
