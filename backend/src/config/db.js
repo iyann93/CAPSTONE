@@ -3,16 +3,27 @@
 const { Pool } = require('pg');
 const env = require('./env');
 
-const pool = new Pool({
-  user: env.db.user,
-  host: env.db.host,
-  database: env.db.database,
-  password: env.db.password,
-  port: env.db.port,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-});
+const poolConfig = env.db.connectionString 
+  ? {
+      connectionString: env.db.connectionString,
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 2000,
+      // Optional: add SSL config if required by Supabase
+      // ssl: { rejectUnauthorized: false }
+    }
+  : {
+      user: env.db.user,
+      host: env.db.host,
+      database: env.db.database,
+      password: env.db.password,
+      port: env.db.port,
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 2000,
+    };
+
+const pool = new Pool(poolConfig);
 
 pool.on('connect', (client) => {
   // Set search_path per connection — run as a standalone statement

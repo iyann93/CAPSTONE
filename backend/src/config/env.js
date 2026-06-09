@@ -5,6 +5,7 @@ const env = {
   port: parseInt(process.env.PORT, 10) || 5000,
 
   db: {
+    connectionString: process.env.DATABASE_URL,
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     host: process.env.DB_HOST || 'localhost',
