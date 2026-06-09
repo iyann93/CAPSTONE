@@ -98,7 +98,9 @@ const App = () => {
       if (savedUser) {
         try {
           // Tetap pasang user dari cache biar UI cepat render
-          setUser(JSON.parse(savedUser));
+          const parsedUser = JSON.parse(savedUser);
+          if (parsedUser.role === "Bendahara") parsedUser.fullName = "Siti Aminah";
+          setUser(parsedUser);
           
           // Verifikasi ke backend apakah session/cookie masih valid
           const res = await api.get('/auth/me');
@@ -106,6 +108,7 @@ const App = () => {
             // Update dengan data terbaru dari server (termasuk role)
             const freshUser = res.data.data;
             if (freshUser.role === "Admin TU") freshUser.role = "Admin";
+            if (freshUser.role === "Bendahara") freshUser.fullName = "Siti Aminah";
             setUser(freshUser);
             localStorage.setItem("siakad_user", JSON.stringify(freshUser));
           }
@@ -121,6 +124,7 @@ const App = () => {
   }, []);
 
   const handleLogin = (authenticatedUser) => {
+    if (authenticatedUser.role === "Bendahara") authenticatedUser.fullName = "Siti Aminah";
     localStorage.setItem("siakad_user", JSON.stringify(authenticatedUser));
     setUser(authenticatedUser);
     if (window.innerWidth < 1024) {
@@ -140,7 +144,7 @@ const App = () => {
       case "Siswa":
         return <SiswaDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
       case "Bendahara":
-        return <BendaharaDashboard user={user} activeMenu={activeMenu} />;
+        return <BendaharaDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
       default:
         return <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
     }
