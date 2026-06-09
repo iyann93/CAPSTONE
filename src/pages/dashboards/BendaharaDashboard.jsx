@@ -108,19 +108,11 @@ const sppDonutData = [
 
 // Tables Mock Data
 const initialPayments = [
-<<<<<<< HEAD
   { id: 1, name: "Ahmad Fauzi", class: "Kelas VIIA", amount: "Rp 250.000", period: "Mei 2026", status: "Lunas" },
   { id: 2, name: "Aulia Rahma", class: "Kelas VIIB", amount: "Rp 250.000", period: "Mei 2026", status: "Lunas" },
   { id: 3, name: "Budi Wijaya", class: "Kelas VIIC", amount: "Rp 275.000", period: "Mei 2026", status: "Belum Bayar" },
   { id: 4, name: "Sinta Bella", class: "Kelas VIIIA", amount: "Rp 250.000", period: "Mei 2026", status: "Lunas" },
   { id: 5, name: "Deni Pratama", class: "Kelas VIIIB", amount: "Rp 250.000", period: "Mei 2026", status: "Cicilan" }
-=======
-  { id: 1, name: "Ahmad Fauzi", class: "VII A", amount: "Rp 250.000", period: "Mei 2026", status: "Lunas" },
-  { id: 2, name: "Aulia Rahma", class: "VII B", amount: "Rp 250.000", period: "Mei 2026", status: "Lunas" },
-  { id: 3, name: "Budi Wijaya", class: "VII C", amount: "Rp 275.000", period: "Mei 2026", status: "Belum Bayar" },
-  { id: 4, name: "Sinta Bella", class: "VIII A", amount: "Rp 250.000", period: "Mei 2026", status: "Lunas" },
-  { id: 5, name: "Deni Pratama", class: "VIII B", amount: "Rp 250.000", period: "Mei 2026", status: "Belum Bayar" }
->>>>>>> 01fd538065a915980d3ce2f03295427f33b79da5
 ];
 
 const payrollMockData = [
