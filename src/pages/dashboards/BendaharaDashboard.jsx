@@ -165,6 +165,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   ]);
   const [billSearchQuery, setBillSearchQuery] = useState("");
   const [billClassFilter, setBillClassFilter] = useState("Semua");
+  const [catatPembayaranFilter, setCatatPembayaranFilter] = useState("Semua");
 
   // Form states for manually recording payments
   const [inputStudent, setInputStudent] = useState("");
@@ -1052,59 +1053,40 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     />
                   </div>
 
-                  <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-4">Belum Lunas Bulan Ini</h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Belum Lunas Bulan Ini</h3>
+                    <div className="flex gap-2">
+                      {["Semua", "VII", "VIII", "IX"].map(grade => (
+                        <button
+                          key={grade}
+                          onClick={() => setCatatPembayaranFilter(grade)}
+                          className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-colors cursor-pointer ${catatPembayaranFilter === grade ? "bg-[#1A3D63] text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}
+                        >
+                          {grade === "Semua" ? "Semua" : `Kelas ${grade}`}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   
                   <div className="flex flex-col gap-3">
-                    {/* Budi Prasetyo - Selected */}
-                    <div className="flex items-center justify-between p-4 rounded-xl border-2 border-blue-500 bg-white cursor-pointer hover:bg-gray-50/50 transition-colors shadow-sm">
-                      <div>
-                        <div className="text-sm font-bold text-gray-800">Budi Prasetyo</div>
-                        <div className="text-[11px] text-gray-400 mt-1">XII IPA 3 · NIS: 2024/003</div>
-                        <div className="text-[11px] font-medium text-red-500 mt-1">Tunggakan: 1 bulan</div>
+                    {[
+                      { id: 1, name: "Budi Prasetyo", class: "VIII A", nis: "2024/003", arrear: "1 bulan", amount: "Rp 275.000", totalAmount: "Rp 550.000", totalMonths: "2 bln", selected: true },
+                      { id: 2, name: "Citra Dewi", class: "VIII B", nis: "2024/004", arrear: "1 bulan", amount: "Rp 275.000", totalAmount: "Rp 550.000", totalMonths: "2 bln", selected: false },
+                      { id: 3, name: "Danu Pratama", class: "IX A", nis: "2024/005", arrear: "2 bulan", amount: "Rp 300.000", totalAmount: "Rp 900.000", totalMonths: "3 bln", selected: false },
+                      { id: 4, name: "Putri Handayani", class: "IX B", nis: "2024/008", arrear: "3 bulan", amount: "Rp 300.000", totalAmount: "Rp 1.200.000", totalMonths: "4 bln", selected: false }
+                    ].filter(s => catatPembayaranFilter === "Semua" || s.class.startsWith(catatPembayaranFilter + " ")).map(student => (
+                      <div key={student.id} className={`flex items-center justify-between p-4 rounded-xl border-2 ${student.selected ? "border-blue-500 bg-white shadow-sm" : "border-gray-100 bg-white border"} cursor-pointer hover:bg-gray-50/50 transition-colors`}>
+                        <div>
+                          <div className="text-sm font-bold text-gray-800">{student.name}</div>
+                          <div className="text-[11px] text-gray-400 mt-1">{student.class} · NIS: {student.nis}</div>
+                          {student.arrear && <div className="text-[11px] font-medium text-red-500 mt-1">Tunggakan: {student.arrear}</div>}
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-bold text-red-500">{student.totalAmount}</div>
+                          <div className="text-[10px] text-red-400 font-bold mt-1">{student.totalMonths}</div>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-sm font-bold text-red-500">Rp 450.000</div>
-                        <div className="text-[10px] text-red-400 font-bold mt-1">2 bln</div>
-                      </div>
-                    </div>
-
-                    {/* Citra Dewi */}
-                    <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-white cursor-pointer hover:bg-gray-50/50 transition-colors">
-                      <div>
-                        <div className="text-sm font-bold text-gray-800">Citra Dewi</div>
-                        <div className="text-[11px] text-gray-400 mt-1">XI IPS 2 · NIS: 2024/004</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm font-bold text-red-500">Rp 225.000</div>
-                        <div className="text-[10px] text-red-400 font-bold mt-1">1 bln</div>
-                      </div>
-                    </div>
-
-                    {/* Danu Pratama */}
-                    <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-white cursor-pointer hover:bg-gray-50/50 transition-colors">
-                      <div>
-                        <div className="text-sm font-bold text-gray-800">Danu Pratama</div>
-                        <div className="text-[11px] text-gray-400 mt-1">X IPS 1 · NIS: 2024/005</div>
-                        <div className="text-[11px] font-medium text-red-500 mt-1">Tunggakan: 2 bulan</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm font-bold text-red-500">Rp 1.350.000</div>
-                        <div className="text-[10px] text-red-400 font-bold mt-1">3 bln</div>
-                      </div>
-                    </div>
-
-                    {/* Putri Handayani */}
-                    <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-white cursor-pointer hover:bg-gray-50/50 transition-colors">
-                      <div>
-                        <div className="text-sm font-bold text-gray-800">Putri Handayani</div>
-                        <div className="text-[11px] text-gray-400 mt-1">XI IPS 1 · NIS: 2024/008</div>
-                        <div className="text-[11px] font-medium text-red-500 mt-1">Tunggakan: 3 bulan</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm font-bold text-red-500">Rp 1.800.000</div>
-                        <div className="text-[10px] text-red-400 font-bold mt-1">4 bln</div>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
 
@@ -1118,11 +1100,11 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                           <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
                         <div>
-                          <div className="text-sm font-bold text-gray-800">Ahmad Fauzi — X IPA 1</div>
+                          <div className="text-sm font-bold text-gray-800">Ahmad Fauzi — VII A</div>
                           <div className="text-[11px] text-gray-400 mt-1">Mei 2026 · Transfer Bank · 09.14 WIB</div>
                         </div>
                       </div>
-                      <div className="text-sm font-bold text-[#0F9D58]">Rp 450.000</div>
+                      <div className="text-sm font-bold text-[#0F9D58]">Rp 250.000</div>
                     </div>
                     
                     <div className="w-full h-px bg-gray-50"></div>
@@ -1133,11 +1115,11 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                           <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
                         <div>
-                          <div className="text-sm font-bold text-gray-800">Aulia Rahma — XII IPS 1</div>
+                          <div className="text-sm font-bold text-gray-800">Aulia Rahma — VII B</div>
                           <div className="text-[11px] text-gray-400 mt-1">Mei 2026 · Tunai · 09.02 WIB</div>
                         </div>
                       </div>
-                      <div className="text-sm font-bold text-[#0F9D58]">Rp 450.000</div>
+                      <div className="text-sm font-bold text-[#0F9D58]">Rp 250.000</div>
                     </div>
 
                     <div className="w-full h-px bg-gray-50"></div>
@@ -1148,11 +1130,11 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                           <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
                         <div>
-                          <div className="text-sm font-bold text-gray-800">Eka Putri — XI IPA 2</div>
+                          <div className="text-sm font-bold text-gray-800">Eka Putri — IX A</div>
                           <div className="text-[11px] text-gray-400 mt-1">Mei 2026 · Transfer Bank · 08.45 WIB</div>
                         </div>
                       </div>
-                      <div className="text-sm font-bold text-[#0F9D58]">Rp 450.000</div>
+                      <div className="text-sm font-bold text-[#0F9D58]">Rp 300.000</div>
                     </div>
                   </div>
                 </div>
@@ -1165,17 +1147,17 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 
                 <div className="bg-gray-50 rounded-xl p-4 mb-6">
                   <div className="text-sm font-bold text-gray-800">Budi Prasetyo</div>
-                  <div className="text-[11px] text-gray-500 mt-1">XII IPA 3</div>
+                  <div className="text-[11px] text-gray-500 mt-1">VIII A</div>
                 </div>
 
                 <div className="flex flex-col gap-4 mb-6">
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-500">Tagihan Bulan Ini</span>
-                    <span className="font-bold text-gray-800">Rp 450.000</span>
+                    <span className="font-bold text-gray-800">Rp 275.000</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-500">Total Termasuk Tunggakan</span>
-                    <span className="font-bold text-gray-800">Rp 450.000</span>
+                    <span className="font-bold text-gray-800">Rp 550.000</span>
                   </div>
                 </div>
 
