@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import {
   BarChart,
   Bar,
@@ -103,17 +103,24 @@ const sppRecapData = [
 
 const sppDonutData = [
   { name: "Lunas SPP", value: 24, fill: "#22c55e" },
-  { name: "Cicilan", value: 6, fill: "#f59e0b" },
-  { name: "Belum Bayar", value: 4, fill: "#ef4444" }
+  { name: "Belum Bayar", value: 10, fill: "#ef4444" }
 ];
 
 // Tables Mock Data
 const initialPayments = [
+<<<<<<< HEAD
   { id: 1, name: "Ahmad Fauzi", class: "Kelas VIIA", amount: "Rp 250.000", period: "Mei 2026", status: "Lunas" },
   { id: 2, name: "Aulia Rahma", class: "Kelas VIIB", amount: "Rp 250.000", period: "Mei 2026", status: "Lunas" },
   { id: 3, name: "Budi Wijaya", class: "Kelas VIIC", amount: "Rp 275.000", period: "Mei 2026", status: "Belum Bayar" },
   { id: 4, name: "Sinta Bella", class: "Kelas VIIIA", amount: "Rp 250.000", period: "Mei 2026", status: "Lunas" },
   { id: 5, name: "Deni Pratama", class: "Kelas VIIIB", amount: "Rp 250.000", period: "Mei 2026", status: "Cicilan" }
+=======
+  { id: 1, name: "Ahmad Fauzi", class: "VII A", amount: "Rp 250.000", period: "Mei 2026", status: "Lunas" },
+  { id: 2, name: "Aulia Rahma", class: "VII B", amount: "Rp 250.000", period: "Mei 2026", status: "Lunas" },
+  { id: 3, name: "Budi Wijaya", class: "VII C", amount: "Rp 275.000", period: "Mei 2026", status: "Belum Bayar" },
+  { id: 4, name: "Sinta Bella", class: "VIII A", amount: "Rp 250.000", period: "Mei 2026", status: "Lunas" },
+  { id: 5, name: "Deni Pratama", class: "VIII B", amount: "Rp 250.000", period: "Mei 2026", status: "Belum Bayar" }
+>>>>>>> 01fd538065a915980d3ce2f03295427f33b79da5
 ];
 
 const payrollMockData = [
@@ -123,7 +130,7 @@ const payrollMockData = [
   { id: 4, name: "Dra. Sri Wahyuni", role: "Guru IPA", salary: "Rp 4.250.000", status: "Sudah Transfer" }
 ];
 
-const BendaharaDashboard = ({ user, activeMenu }) => {
+const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const [sppPayments, setSppPayments] = useState(initialPayments);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -132,6 +139,7 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
   const [showGenerateMonthModal, setShowGenerateMonthModal] = useState(false);
 
   const [studentsBill, setStudentsBill] = useState([
+<<<<<<< HEAD
     { nis: "2024001", name: "Ahmad Fauzi", class: "Kelas VIIA", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "08 Mei 2026" },
     { nis: "2024002", name: "Aulia Rahma", class: "Kelas VIIB", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "07 Mei 2026" },
     { nis: "2024003", name: "Budi Prasetyo", class: "Kelas VIIIA", amount: "Rp 275.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Belum Bayar", payDate: "—" },
@@ -142,13 +150,29 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
     { nis: "2024008", name: "Gita Maharani", class: "Kelas VIIIC", amount: "Rp 275.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Belum Bayar", payDate: "—" },
     { nis: "2024009", name: "Hendra Kusuma", class: "Kelas IXB", amount: "Rp 300.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "03 Mei 2026" },
     { nis: "2024010", name: "Indah Permata", class: "Kelas VIIA", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Cicilan", payDate: "10 Mei 2026" }
+=======
+    { nis: "2024001", name: "Ahmad Fauzi", class: "VII A", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "08 Mei 2026" },
+    { nis: "2024002", name: "Aulia Rahma", class: "VII B", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "07 Mei 2026" },
+    { nis: "2024003", name: "Budi Prasetyo", class: "VIII A", amount: "Rp 275.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Belum Bayar", payDate: "—" },
+    { nis: "2024004", name: "Citra Dewi", class: "VIII B", amount: "Rp 275.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Belum Bayar", payDate: "—" },
+    { nis: "2024005", name: "Danu Pratama", class: "IX A", amount: "Rp 300.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Belum Bayar", payDate: "—" },
+    { nis: "2024006", name: "Eka Putri", class: "IX A", amount: "Rp 300.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "05 Mei 2026" },
+    { nis: "2024007", name: "Fajar Ramadhan", class: "VII C", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "09 Mei 2026" },
+    { nis: "2024008", name: "Gita Maharani", class: "VIII C", amount: "Rp 275.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Belum Bayar", payDate: "—" },
+    { nis: "2024009", name: "Hendra Kusuma", class: "IX B", amount: "Rp 300.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "03 Mei 2026" },
+    { nis: "2024010", name: "Indah Permata", class: "VII A", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "10 Mei 2026" }
+>>>>>>> 01fd538065a915980d3ce2f03295427f33b79da5
   ]);
   const [billSearchQuery, setBillSearchQuery] = useState("");
   const [billClassFilter, setBillClassFilter] = useState("Semua");
 
   // Form states for manually recording payments
   const [inputStudent, setInputStudent] = useState("");
+<<<<<<< HEAD
   const [inputClass, setInputClass] = useState("Kelas VIIA");
+=======
+  const [inputClass, setInputClass] = useState("VII A");
+>>>>>>> 01fd538065a915980d3ce2f03295427f33b79da5
   const [inputAmount, setInputAmount] = useState("Rp 250.000");
   const [inputPeriod, setInputPeriod] = useState("Mei 2026");
   const [inputStatus, setInputStatus] = useState("Lunas");
@@ -165,9 +189,15 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
   // Pengaturan SPP states
   const [sppSettingTab, setSppSettingTab] = useState("nominal");
   const [sppList, setSppList] = useState([
+<<<<<<< HEAD
     { id: 1, grade: "Kelas VII SMP", ta: "2025/2026", amount: "Rp 250.000", amountNum: 250000, denda: 15000, jatuhTempo: 10, catatan: "Berlaku mulai Juli 2025" },
     { id: 2, grade: "Kelas VIII SMP", ta: "2025/2026", amount: "Rp 275.000", amountNum: 275000, denda: 15000, jatuhTempo: 10, catatan: "Berlaku mulai Juli 2025" },
     { id: 3, grade: "Kelas IX SMP", ta: "2025/2026", amount: "Rp 300.000", amountNum: 300000, denda: 15000, jatuhTempo: 10, catatan: "Berlaku mulai Juli 2025" }
+=======
+    { id: 1, grade: "VII", ta: "2024/2025", amount: "Rp 250.000", amountNum: 250000, denda: 15000, jatuhTempo: 10, catatan: "Berlaku mulai Juli 2024" },
+    { id: 2, grade: "VIII", ta: "2024/2025", amount: "Rp 275.000", amountNum: 275000, denda: 15000, jatuhTempo: 10, catatan: "Berlaku mulai Juli 2024" },
+    { id: 3, grade: "IX", ta: "2024/2025", amount: "Rp 300.000", amountNum: 300000, denda: 15000, jatuhTempo: 10, catatan: "Berlaku mulai Juli 2024" }
+>>>>>>> 01fd538065a915980d3ce2f03295427f33b79da5
   ]);
   const [editingSppId, setEditingSppId] = useState(null);
   const [editSppAmount, setEditSppAmount] = useState("");
@@ -231,13 +261,270 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
     
     if (billClassFilter === "Semua") return matchesSearch;
     const targetGrade = billClassFilter.replace("Kelas ", "");
-    const matchesClass = row.class.includes(`Kelas ${targetGrade}`);
+    const matchesClass = row.class.startsWith(targetGrade);
     return matchesSearch && matchesClass;
   });
 
   // Rendering dashboard based on activeMenu selection
   const renderContent = () => {
     switch (activeMenu) {
+      case "Dashboard":
+      case "Overview":
+        return (
+          <div className="flex flex-col gap-6 animate-fadeIn font-sans">
+            {/* Header Area */}
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div>
+                <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Dashboard Bendahara</h1>
+                <p className="text-sm text-gray-500 mt-1">Monitor keuangan sekolah, SPP siswa, dan penggajian guru & staf.</p>
+              </div>
+              <div className="flex gap-2 sm:gap-3 items-center flex-wrap">
+                <div className="relative">
+                  <select 
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value)}
+                    className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
+                  >
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option><option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+                  </select>
+                  <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
+                    <IconChevronDown />
+                  </span>
+                </div>
+                
+                <button 
+                  onClick={() => setShowGenerateMonthModal(true)}
+                  className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-4 sm:px-5 py-2.5 text-xs sm:text-[13px] font-bold cursor-pointer transition-all active:scale-95 shadow-[0_10px_20px_-10px_rgba(26,61,99,0.3)]"
+                >
+                  Generate Tagihan SPP
+                </button>
+              </div>
+            </div>
+
+            {/* Stat Cards Row */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+              {/* Card 1: Total SPP */}
+              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-[#10B981]" />
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total SPP Terkumpul</div>
+                    <div className="text-2xl font-black text-gray-800">Rp 16,1 Jt</div>
+                    <div className="text-[11px] font-medium text-gray-400 mt-1">Bulan Mei 2026</div>
+                  </div>
+                  <div className="w-10 h-10 bg-[#E8FDF5] rounded-xl flex items-center justify-center text-[#059669]">
+                    <span className="text-lg font-bold">$</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 mt-4 text-[11px] font-bold">
+                  <span className="text-[#059669] flex items-center"><IconTrendUp /> +8.5%</span>
+                  <span className="text-gray-400 font-medium">vs bulan lalu</span>
+                </div>
+              </div>
+
+              {/* Card 2: Siswa Lunas */}
+              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-[#3B82F6]" />
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Siswa Lunas SPP</div>
+                    <div className="text-2xl font-black text-gray-800">24</div>
+                    <div className="text-[11px] font-medium text-gray-400 mt-1">dari 34 siswa aktif</div>
+                  </div>
+                  <div className="w-10 h-10 bg-[#EFF6FF] rounded-xl flex items-center justify-center text-[#2563EB]">
+                    <IconCheckCircle />
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 mt-4 text-[11px] font-bold">
+                  <span className="text-[#059669] flex items-center"><IconTrendUp /> 70.6%</span>
+                  <span className="text-gray-400 font-medium">tingkat pembayaran</span>
+                </div>
+              </div>
+
+              {/* Card 3: Tunggakan */}
+              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-[#EF4444]" />
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tunggakan SPP</div>
+                    <div className="text-2xl font-black text-gray-800">Rp 2,75 Jt</div>
+                    <div className="text-[11px] font-medium text-gray-400 mt-1">10 siswa belum bayar</div>
+                  </div>
+                  <div className="w-10 h-10 bg-[#FEF2F2] rounded-xl flex items-center justify-center text-[#DC2626]">
+                    <IconAlertCircle />
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 mt-4 text-[11px] font-bold">
+                  <span className="text-[#DC2626] flex items-center"><IconTrendDown /> -5.2%</span>
+                  <span className="text-gray-400 font-medium">vs bulan lalu</span>
+                </div>
+              </div>
+
+              {/* Card 4: Penggajian */}
+              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-[#8B5CF6]" />
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Penggajian Bulan Ini</div>
+                    <div className="text-2xl font-black text-gray-800">Rp 13,5 Jt</div>
+                    <div className="text-[11px] font-medium text-gray-400 mt-1">6 guru & staf</div>
+                  </div>
+                  <div className="w-10 h-10 bg-[#F5F3FF] rounded-xl flex items-center justify-center text-[#7C3AED]">
+                    <IconClock />
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 mt-4 text-[11px] font-bold">
+                  <span className="text-[#059669] flex items-center"><IconTrendUp /> 83% sudah transfer</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Charts Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Bar Chart */}
+              <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+                <div className="mb-6">
+                  <h3 className="text-sm font-bold text-gray-800">Rekapitulasi SPP Per Bulan</h3>
+                  <p className="text-[11px] text-gray-400">Jumlah siswa lunas vs belum bayar</p>
+                </div>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={sppRecapData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} dy={10} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                      <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                      <Bar dataKey="Lunas" fill="#22c55e" radius={[4, 4, 0, 0]} barSize={16} />
+                      <Bar dataKey="Belum" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={16} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Donut Chart */}
+              <div className="lg:col-span-1 bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
+                <div className="mb-2">
+                  <h3 className="text-sm font-bold text-gray-800">Status SPP Siswa</h3>
+                  <p className="text-[11px] text-gray-400">Distribusi pembayaran bulan ini</p>
+                </div>
+                <div className="h-[220px] relative flex justify-center items-center">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={sppDonutData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={65}
+                        outerRadius={85}
+                        paddingAngle={3}
+                        dataKey="value"
+                        stroke="none"
+                      >
+                        {sppDonutData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </Pie>
+                      <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                {/* Custom Legend */}
+                <div className="flex justify-center gap-6 mt-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#22c55e]"></div>
+                    <span className="text-[10px] font-bold text-gray-500">Lunas SPP</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#ef4444]"></div>
+                    <span className="text-[10px] font-bold text-gray-500">Belum Bayar</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Tables Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Table 1: SPP Terbaru */}
+              <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm">
+                <div className="flex justify-between items-center mb-5">
+                  <h3 className="text-sm font-bold text-gray-800">Pembayaran SPP Terbaru</h3>
+                  <button onClick={() => onViewChange && onViewChange("Tagihan SPP")} className="text-[#2563EB] text-[11px] font-bold hover:underline bg-transparent border-none cursor-pointer">Lihat Semua →</button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                        <th className="pb-3 px-2">NAMA SISWA</th>
+                        <th className="pb-3 px-2">KELAS</th>
+                        <th className="pb-3 px-2">NOMINAL</th>
+                        <th className="pb-3 px-2">PERIODE</th>
+                        <th className="pb-3 px-2 text-right">STATUS</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50 text-[11px]">
+                      {sppPayments.slice(0, 3).map((row, i) => (
+                        <tr key={i} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="py-4 px-2 font-bold text-gray-800">{row.name}</td>
+                          <td className="py-4 px-2 text-gray-500 font-medium">{row.class}</td>
+                          <td className="py-4 px-2 font-bold text-gray-700">{row.amount}</td>
+                          <td className="py-4 px-2 text-gray-500">{row.period}</td>
+                          <td className="py-4 px-2 text-right">
+                            <span className={`px-2 py-0.5 rounded-md font-bold inline-block text-[9px] ${
+                              row.status === "Lunas" ? "bg-[#E6F4EA] text-[#137333]" :
+                              row.status === "Cicilan" ? "bg-[#FEF7E0] text-[#B06000]" :
+                              "bg-[#FCE8E6] text-[#C5221F]"
+                            }`}>
+                              {row.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Table 2: Status Penggajian */}
+              <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm">
+                <div className="flex justify-between items-center mb-5">
+                  <h3 className="text-sm font-bold text-gray-800">Status Penggajian Guru & Staf</h3>
+                  <button onClick={() => onViewChange && onViewChange("Status Bayar Gaji")} className="text-[#2563EB] text-[11px] font-bold hover:underline bg-transparent border-none cursor-pointer">Lihat Semua →</button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                        <th className="pb-3 px-2">NAMA</th>
+                        <th className="pb-3 px-2">JABATAN</th>
+                        <th className="pb-3 px-2">GAJI BERSIH</th>
+                        <th className="pb-3 px-2 text-right">STATUS</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50 text-[11px]">
+                      {payrollMockData.slice(0, 3).map((row, i) => (
+                        <tr key={i} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="py-4 px-2 font-bold text-gray-800">{row.name}</td>
+                          <td className="py-4 px-2 text-gray-500 font-medium">{row.role}</td>
+                          <td className="py-4 px-2 font-bold text-gray-700">{row.salary}</td>
+                          <td className="py-4 px-2 text-right">
+                            <span className={`px-2 py-0.5 rounded-md font-bold inline-block text-[9px] ${
+                              row.status === "Sudah Transfer" ? "bg-[#E6F4EA] text-[#137333]" :
+                              "bg-[#FEF7E0] text-[#B06000]"
+                            }`}>
+                              {row.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
       case "Tagihan SPP":
         return (
           <div className="flex flex-col gap-6 animate-fadeIn font-sans">
@@ -254,8 +541,13 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                     onChange={(e) => setSelectedYear(e.target.value)}
                     className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
                   >
+<<<<<<< HEAD
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
                     
+=======
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option><option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+>>>>>>> 01fd538065a915980d3ce2f03295427f33b79da5
                   </select>
                   <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
                     <IconChevronDown />
@@ -434,7 +726,11 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div>
                 <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Pengaturan SPP</h1>
+<<<<<<< HEAD
                 <p className="text-sm text-gray-500 mt-1">Atur nominal SPP, diskon, dan jadwal pembayaran per kelas (Kelas VII, VIII, IX SMP).</p>
+=======
+                <p className="text-sm text-gray-500 mt-1">Atur nominal SPP, diskon, dan jadwal pembayaran per kelas (Kelas VII, VIII, IX).</p>
+>>>>>>> 01fd538065a915980d3ce2f03295427f33b79da5
               </div>
               <div className="flex gap-2 sm:gap-3 items-center flex-wrap">
                 <div className="relative">
@@ -443,8 +739,13 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                     onChange={(e) => setSelectedYear(e.target.value)}
                     className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
                   >
+<<<<<<< HEAD
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
                     
+=======
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option><option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+>>>>>>> 01fd538065a915980d3ce2f03295427f33b79da5
                   </select>
                   <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
                     <IconChevronDown />
@@ -1080,8 +1381,13 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                     onChange={(e) => setSelectedYear(e.target.value)}
                     className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
                   >
+<<<<<<< HEAD
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
                     
+=======
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option><option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+>>>>>>> 01fd538065a915980d3ce2f03295427f33b79da5
                   </select>
                   <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
                     <IconChevronDown />
@@ -1253,7 +1559,6 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                     className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-                    
                   </select>
                   <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
                     <IconChevronDown />
@@ -1749,7 +2054,6 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                     className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-                    
                   </select>
                   <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
                     <IconChevronDown />
@@ -2293,22 +2597,15 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setShowGenerateMonthModal(false)}
           />
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-[480px] w-full relative z-10 shadow-2xl animate-scaleUp border border-gray-100 font-sans">
-            <div className="flex items-start gap-4 mb-6">
-              <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 flex-shrink-0">
-                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
-                </svg>
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-800">Generate Tagihan SPP</h3>
-                <p className="text-sm text-gray-500">Bulan: Juni 2026</p>
-              </div>
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-[480px] w-full relative z-10 shadow-2xl animate-scaleUp font-sans">
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-[#1e293b]">Generate Tagihan SPP</h3>
+              <p className="text-[13px] text-gray-400 mt-1">Bulan: Juni 2026</p>
             </div>
             
-            <div className="mb-6">
-              <h4 className="text-[11px] font-bold text-gray-400 mb-4 uppercase tracking-wider">Ringkasan Generate</h4>
-              <div className="space-y-3.5 text-sm">
+            <div className="mb-6 bg-[#F8F9FA] rounded-2xl p-5">
+              <h4 className="text-[11px] font-bold text-gray-500 mb-4 uppercase tracking-wider">Ringkasan Generate</h4>
+              <div className="space-y-4 text-[13px]">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Kelas VII (semua rombel)</span>
                   <span className="font-bold text-gray-800">4 siswa</span>
@@ -2322,20 +2619,20 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                   <span className="font-bold text-gray-800">3 siswa</span>
                 </div>
               </div>
-              <div className="border-t border-gray-100 my-4"></div>
+              <div className="border-t border-gray-200 my-4"></div>
               <div className="flex justify-between items-center">
-                <span className="text-sm font-bold text-gray-700">Total Tagihan</span>
-                <span className="text-lg font-bold text-blue-600">Rp 2.725.000</span>
+                <span className="text-[13px] font-bold text-[#1e293b]">Total Tagihan</span>
+                <span className="text-base font-bold text-[#2563EB]">Rp 5.725.000</span>
               </div>
             </div>
             
-            <div className="bg-[#FFF8E6] border border-[#FDE6B5] rounded-xl p-4 flex gap-3 mb-6">
-              <div className="text-amber-500 mt-0.5 flex-shrink-0">
+            <div className="bg-[#FFFDF5] border border-[#FEF3C7] rounded-xl p-4 flex gap-3 mb-6">
+              <div className="text-[#F59E0B] flex-shrink-0 mt-0.5">
                 <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
               </div>
-              <p className="text-xs text-amber-700 leading-relaxed font-medium">
+              <p className="text-[13px] text-[#B45309] leading-relaxed">
                 Tagihan akan dikirim otomatis ke Orang Tua / Wali masing-masing siswa.
               </p>
             </div>
@@ -2343,7 +2640,7 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
             <div className="flex gap-3">
               <button 
                 onClick={() => setShowGenerateMonthModal(false)}
-                className="flex-1 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 py-3 rounded-xl text-xs font-bold cursor-pointer transition-all"
+                className="flex-1 bg-white border border-gray-200 hover:bg-gray-50 text-gray-500 py-3 rounded-xl text-[13px] font-bold cursor-pointer transition-all"
               >
                 Batal
               </button>
@@ -2352,11 +2649,8 @@ const BendaharaDashboard = ({ user, activeMenu }) => {
                   setShowGenerateMonthModal(false);
                   triggerToast("Tagihan SPP bulan ini berhasil digenerate!");
                 }}
-                className="flex-1 bg-[#1A3D63] hover:bg-[#122A44] text-white py-3 rounded-xl text-xs font-bold cursor-pointer border-none shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                className="flex-1 bg-[#1e293b] hover:bg-[#0f172a] text-white py-3 rounded-xl text-[13px] font-bold cursor-pointer border-none shadow-sm transition-all active:scale-[0.98]"
               >
-                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
-                </svg>
                 Konfirmasi Generate
               </button>
             </div>
