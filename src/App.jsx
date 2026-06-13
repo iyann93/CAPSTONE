@@ -9,6 +9,7 @@ import SiswaDashboard from "./pages/dashboards/SiswaDashboard";
 import SuperAdminDashboard from "./pages/dashboards/SuperAdminDashboard";
 import PlaceholderDashboard from "./pages/dashboards/PlaceholderDashboard";
 import BendaharaDashboard from "./pages/dashboards/BendaharaDashboard";
+import AdminTUDashboard from "./pages/dashboards/AdminTUDashboard";
 const App = () => {
   const [user, setUser] = useState(null);
   const [collapsed, setCollapsed] = useState(true);
@@ -107,7 +108,6 @@ const App = () => {
           if (res.data.success) {
             // Update dengan data terbaru dari server (termasuk role)
             const freshUser = res.data.data;
-            if (freshUser.role === "Admin TU") freshUser.role = "Admin";
             if (freshUser.role === "Bendahara") freshUser.fullName = "Siti Aminah";
             setUser(freshUser);
             localStorage.setItem("siakad_user", JSON.stringify(freshUser));
@@ -137,8 +137,9 @@ const App = () => {
   const renderDashboard = () => {
     if (!user) return null;
     switch (user.role) {
+      case "Admin TU":
       case "Admin":
-        return <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
+        return <AdminTUDashboard user={user} activeMenu={activeMenu} />;
       case "Super Admin":
         return <SuperAdminDashboard user={user} activeMenu={activeMenu} />;
       case "Siswa":

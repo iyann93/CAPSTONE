@@ -50,7 +50,7 @@ const Login = ({ onLogin, onForgotPassword }) => {
       if (response.data.success) {
         const user = response.data.data.user;
         // Tangani "Admin TU" -> "Admin"
-        if (user.role === "Admin TU") user.role = "Admin";
+        // if (user.role === "Admin TU") user.role = "Admin";
         
         onLogin(user);
       }

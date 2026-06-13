@@ -52,13 +52,47 @@ const ServerIcon = () => <svg width="20" height="20" fill="none" stroke="current
 const ActivityIcon = () => <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
   </svg>;
+const ChatIcon = () => <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+  </svg>;
+
 const menuSections = [
   {
     section: "OVERVIEW",
     items: [
       { label: "Dashboard", icon: <BarChartIcon /> }
     ],
-    roles: ["Admin", "Kepala Sekolah", "Wakil Kepsek", "Guru", "Super Admin", "Bendahara"]
+    roles: ["Admin", "Kepala Sekolah", "Wakil Kepsek", "Guru", "Super Admin", "Bendahara", "Admin TU"]
+  },
+  {
+    section: "KELOLA AKADEMIK",
+    items: [
+      { label: "Mata Pelajaran", icon: <BookIcon /> },
+      { label: "Semester", icon: <CalendarIcon /> },
+      { label: "Data Kelas", icon: <GridIcon /> },
+      { label: "Jadwal Pelajaran", icon: <ActivityIcon /> },
+      { label: "Kenaikan Kelas", icon: <BarChartIcon /> },
+      { label: "Data Kelulusan", icon: <GraduationIcon /> }
+    ],
+    roles: ["Admin TU", "Admin"]
+  },
+  {
+    section: "KELOLA SISWA",
+    items: [
+      { label: "Data Siswa", icon: <UsersIcon /> },
+      { label: "Absensi Siswa", icon: <FileChartIcon /> },
+      { label: "Kartu Pelajar", icon: <UserSettingsIcon /> }
+    ],
+    roles: ["Admin TU", "Admin"]
+  },
+  {
+    section: "SEKOLAH",
+    items: [
+      { label: "Generate Rapor", icon: <FileChartIcon /> },
+      { label: "Data Guru", icon: <BriefcaseIcon /> },
+      { label: "Pengumuman Sekolah", icon: <ChatIcon /> }
+    ],
+    roles: ["Admin TU", "Admin"]
   },
   {
     section: "MANAJEMEN PENGGUNA",
@@ -91,7 +125,7 @@ const menuSections = [
       { label: "Data Siswa", icon: <UsersIcon /> },
       { label: "Data Guru & Karyawan", icon: <BriefcaseIcon /> }
     ],
-    roles: ["Admin", "Kepala Sekolah"]
+    roles: ["Kepala Sekolah"]
   },
   {
     section: "MODUL AKADEMIK",
@@ -101,7 +135,7 @@ const menuSections = [
       { label: "Kelas & Penjadwalan", icon: <GridIcon /> },
       { label: "E-Rapor & Input Nilai", icon: <GraduationIcon /> }
     ],
-    roles: ["Admin", "Kepala Sekolah", "Wakil Kepsek", "Guru"]
+    roles: ["Kepala Sekolah", "Wakil Kepsek", "Guru"]
   },
   {
     section: "MODUL KEUANGAN",
@@ -110,7 +144,7 @@ const menuSections = [
       { label: "Beasiswa & Potongan", icon: <AwardIcon /> },
       { label: "Penggajian (Payroll)", icon: <WalletIcon /> }
     ],
-    roles: ["Admin", "Kepala Sekolah", "Wakil Kepsek"]
+    roles: ["Kepala Sekolah", "Wakil Kepsek"]
   },
   {
     section: "SPP SISWA",
@@ -147,7 +181,7 @@ const menuSections = [
       { label: "Laporan Integrasi", icon: <FileChartIcon /> },
       { label: "Pengaturan Sistem", icon: <SettingsIcon /> }
     ],
-    roles: ["Admin", "Kepala Sekolah"]
+    roles: ["Kepala Sekolah"]
   }
 ];
 const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) => {
