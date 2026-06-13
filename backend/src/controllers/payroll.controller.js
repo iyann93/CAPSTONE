@@ -71,6 +71,43 @@ const PayrollController = {
       return response.success(res, 200, 'Gaji berhasil ditransfer', data);
     } catch (err) { next(err); }
   },
+
+  // ── KOMPONEN GAJI (Pengaturan) ───────────────────────────────────────────────
+  getAllKomponen: async (req, res, next) => {
+    try {
+      const data = await PayrollService.getAllKomponen();
+      return response.success(res, 200, 'Data komponen gaji berhasil diambil', data);
+    } catch (err) { next(err); }
+  },
+
+  createKomponen: async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return next(Object.assign(new Error('Validation failed'), { type: 'validation', errors: errors.array() }));
+      }
+      const data = await PayrollService.createKomponen(req.body);
+      return response.success(res, 201, 'Komponen gaji berhasil dibuat', data);
+    } catch (err) { next(err); }
+  },
+
+  updateKomponen: async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return next(Object.assign(new Error('Validation failed'), { type: 'validation', errors: errors.array() }));
+      }
+      const data = await PayrollService.updateKomponen(req.params.id, req.body);
+      return response.success(res, 200, 'Komponen gaji berhasil diperbarui', data);
+    } catch (err) { next(err); }
+  },
+
+  deleteKomponen: async (req, res, next) => {
+    try {
+      await PayrollService.deleteKomponen(req.params.id);
+      return response.success(res, 200, 'Komponen gaji berhasil dihapus');
+    } catch (err) { next(err); }
+  },
 };
 
 module.exports = PayrollController;

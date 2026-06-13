@@ -1,6 +1,7 @@
 'use strict';
 
 const PayrollRepository = require('../repositories/payroll.repository');
+const KomponenGajiRepository = require('../repositories/komponen_gaji.repository');
 const { paginate } = require('../utils/queryBuilder');
 
 const PAGE_SIZE = 20;
@@ -72,6 +73,35 @@ const PayrollService = {
   // ── RIWAYAT per User ─────────────────────────────────────────────────────────
   getRiwayat: async (userId) => {
     return PayrollRepository.findRiwayatByUser(userId);
+  },
+
+  // ── KOMPONEN GAJI (Pengaturan) ───────────────────────────────────────────────
+  getAllKomponen: async () => {
+    return KomponenGajiRepository.findAll();
+  },
+
+  createKomponen: async (data) => {
+    return KomponenGajiRepository.create(data);
+  },
+
+  updateKomponen: async (id, data) => {
+    const existing = await KomponenGajiRepository.findById(id);
+    if (!existing) {
+      const err = new Error('Komponen gaji tidak ditemukan');
+      err.statusCode = 404;
+      throw err;
+    }
+    return KomponenGajiRepository.update(id, data);
+  },
+
+  deleteKomponen: async (id) => {
+    const existing = await KomponenGajiRepository.findById(id);
+    if (!existing) {
+      const err = new Error('Komponen gaji tidak ditemukan');
+      err.statusCode = 404;
+      throw err;
+    }
+    return KomponenGajiRepository.delete(id);
   },
 };
 

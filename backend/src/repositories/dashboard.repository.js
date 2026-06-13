@@ -29,10 +29,10 @@ const DashboardRepository = {
       tagSppRes,
     ] = await Promise.all([
       // Total siswa aktif
-      query(`SELECT COUNT(*) AS total FROM academic.siswa WHERE is_active = true`),
+      query(`SELECT COUNT(*) AS total FROM academic.siswa WHERE status = 'aktif' AND deleted_at IS NULL`),
 
       // Total guru aktif
-      query(`SELECT COUNT(*) AS total FROM academic.guru WHERE is_active = true`),
+      query(`SELECT COUNT(*) AS total FROM academic.guru WHERE status_kepegawaian = 'aktif' AND deleted_at IS NULL`),
 
       // Total karyawan aktif (dari shared.users yang punya role karyawan)
       query(`
@@ -197,7 +197,8 @@ const DashboardRepository = {
           SELECT COUNT(*)
           FROM academic.siswa s2
           WHERE s2.kelas_id = jp.kelas_id
-            AND s2.is_active = true
+            AND s2.status = 'aktif'
+            AND s2.deleted_at IS NULL
         ) AS total_siswa_kelas
       FROM academic.jadwal_pelajaran jp
       INNER JOIN academic.kelas   k  ON jp.kelas_id  = k.id
@@ -258,7 +259,7 @@ const DashboardRepository = {
       INNER JOIN academic.kelas   k  ON jp.kelas_id   = k.id
       INNER JOIN academic.mapel   m  ON jp.mapel_id   = m.id
       INNER JOIN academic.semester sm ON jp.semester_id = sm.id
-      INNER JOIN academic.siswa   s  ON s.kelas_id = jp.kelas_id AND s.is_active = true
+      INNER JOIN academic.siswa   s  ON s.kelas_id = jp.kelas_id AND s.status = 'aktif' AND s.deleted_at IS NULL
       LEFT JOIN academic.nilai    n
         ON n.siswa_id        = s.id
        AND n.mata_pelajaran_id = jp.mapel_id

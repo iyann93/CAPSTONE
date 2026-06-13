@@ -2,19 +2,44 @@
 
 const SppRepository = require('../repositories/spp.repository');
 const PembayaranRepository = require('../repositories/pembayaran.repository');
+const KomponenSppRepository = require('../repositories/komponen_spp.repository');
 const { paginate } = require('../utils/queryBuilder');
 
 const FinanceService = {
+  // === KOMPONEN SPP ===
+  getAllKomponenSpp: async () => {
+    return KomponenSppRepository.findAll();
+  },
+
+  createKomponenSpp: async (body) => {
+    return KomponenSppRepository.create(body);
+  },
+
+  updateKomponenSpp: async (id, body) => {
+    const data = await KomponenSppRepository.update(id, body);
+    if (!data) { const e = new Error('Komponen SPP tidak ditemukan'); e.statusCode = 404; throw e; }
+    return data;
+  },
+
+  deleteKomponenSpp: async (id) => {
+    const data = await KomponenSppRepository.delete(id);
+    if (!data) { const e = new Error('Komponen SPP tidak ditemukan'); e.statusCode = 404; throw e; }
+    return data;
+  },
+
+  generateTagihanBulanan: async (bulan, tahun, userId, kelasId = null) => {
+    return KomponenSppRepository.generateBulanan(bulan, tahun, userId, kelasId);
+  },
+
   // === SPP TAGIHAN ===
   getAllTagihan: async (query) => {
     const { page, limit, offset } = paginate(query);
-    const { search, sort, siswa_id: siswaId, bulan, tahun, status } = query;
-    const { rows, total } = await SppRepository.findAllTagihan({ limit, offset, search, sort, siswaId, bulan, tahun, status });
+    const { search, sort, siswa_id: siswaId, kelas_id: kelasId, bulan, tahun, status } = query;
+    const { rows, total } = await SppRepository.findAllTagihan({ limit, offset, search, sort, siswaId, kelasId, bulan, tahun, status });
     return { data: rows, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   },
   
   createTagihan: async (body, userId) => {
-    // Could accept array for bulk create, but let's stick to standard single first
     return SppRepository.createTagihan(body, userId);
   },
 

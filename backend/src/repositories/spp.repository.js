@@ -4,19 +4,20 @@ const { query } = require('../config/db');
 const { whereBuilder, buildOrderBy } = require('../utils/queryBuilder');
 
 const SppRepository = {
-  findAllTagihan: async ({ limit, offset, search, sort, siswaId, bulan, tahun, status }) => {
+  findAllTagihan: async ({ limit, offset, search, sort, siswaId, kelasId, bulan, tahun, status }) => {
     const wb = whereBuilder();
-    wb.addLike(search, ['s.nama', 's.nis']);
+    wb.addLike(search, ['s.nama_lengkap', 's.nis']);
     wb.addExact(siswaId, 't.siswa_id');
+    wb.addExact(kelasId, 's.kelas_id');
     wb.addExact(bulan, 't.bulan');
     wb.addExact(tahun, 't.tahun');
     wb.addExact(status, 't.status');
     
     const { where, values, nextIdx } = wb.build();
-    const orderBy = buildOrderBy(sort, { jatuh_tempo: 't.jatuh_tempo' }, 't.tahun DESC, t.bulan DESC, s.nama ASC');
+    const orderBy = buildOrderBy(sort, { jatuh_tempo: 't.jatuh_tempo' }, 't.tahun DESC, t.bulan DESC, s.nama_lengkap ASC');
 
     const sql = `
-      SELECT t.*, s.nama AS siswa_nama, s.nis, k.nama_kelas
+      SELECT t.*, s.nama_lengkap AS siswa_nama, s.nis, k.nama_kelas
       FROM finance.tagihan_spp t
       INNER JOIN academic.siswa s ON t.siswa_id = s.id
       LEFT JOIN academic.kelas k ON s.kelas_id = k.id
@@ -42,14 +43,14 @@ const SppRepository = {
     const nominalAkhir = nominal - (potongan || 0);
     const sql = `
       INSERT INTO finance.tagihan_spp (
-        siswa_id, komponen_spp_id, bulan, tahun, nominal, beasiswa_id, potongan, nominal_akhir, 
+        siswa_id, komponen_spp_id, bulan, tahun, nominal, beasiswa_id, potongan,
         status, jatuh_tempo, created_at, updated_at, updated_by
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'Belum Dibayar', $9, NOW(), NOW(), $10)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, 'belum_bayar', $8, NOW(), NOW(), $9)
       RETURNING *
     `;
     const res = await query(sql, [
-      siswaId, komponenSppId, bulan, tahun, nominal, beasiswaId || null, potongan || 0, nominalAkhir, jatuhTempo, userId
+      siswaId, komponenSppId, bulan, tahun, nominal, beasiswaId || null, potongan || 0, jatuhTempo, userId
     ]);
     return res.rows[0];
   },
@@ -58,8 +59,8 @@ const SppRepository = {
     // Dipanggil berkala (cron) atau manual untuk mengubah status yang lewat jatuh tempo
     const sql = `
       UPDATE finance.tagihan_spp
-      SET status = 'Menunggak'
-      WHERE status = 'Belum Dibayar' AND jatuh_tempo < CURRENT_DATE
+      SET status = 'belum_bayar'
+      WHERE status = 'belum_bayar' AND jatuh_tempo < CURRENT_DATE
       RETURNING id
     `;
     const res = await query(sql);

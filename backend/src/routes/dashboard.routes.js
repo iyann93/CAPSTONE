@@ -43,4 +43,12 @@ router.get('/siswa',
   DashboardController.siswaDashboard
 );
 
+// ─── Bendahara Dashboard ──────────────────────────────────────────────────────
+// GET /api/v1/dashboard/bendahara
+router.get('/bendahara',
+  verifyToken,
+  authorize('spp.read'),
+  DashboardController.adminDashboard
+);
+
 module.exports = router;

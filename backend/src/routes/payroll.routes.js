@@ -13,12 +13,44 @@ const {
   listPayrollValidator,
 } = require('../validators/payroll.validator');
 
+// ─── KOMPONEN GAJI (Pengaturan) ───────────────────────────────────────────────
+router.get(
+  '/komponen',
+  verifyToken,
+  authorize('gaji.read'),
+  PayrollController.getAllKomponen
+);
+
+router.post(
+  '/komponen',
+  verifyToken,
+  authorize('gaji.manage'),
+  // Add validation middleware here if needed in the future
+  PayrollController.createKomponen
+);
+
+router.put(
+  '/komponen/:id',
+  verifyToken,
+  authorize('gaji.manage'),
+  idParamValidator,
+  PayrollController.updateKomponen
+);
+
+router.delete(
+  '/komponen/:id',
+  verifyToken,
+  authorize('gaji.manage'),
+  idParamValidator,
+  PayrollController.deleteKomponen
+);
+
 // ─── Action Routes (POST) ─────────────────────────────────────────────────────
 // POST /api/v1/payroll/generate  — Hitung & buat slip gaji
 router.post(
   '/generate',
   verifyToken,
-  authorize('payroll.create'),
+  authorize('gaji.create'),
   generatePayrollValidator,
   PayrollController.generate
 );
@@ -27,7 +59,7 @@ router.post(
 router.post(
   '/approve',
   verifyToken,
-  authorize('payroll.update'),
+  authorize('gaji.approve'),
   approvePayrollValidator,
   PayrollController.approve
 );
@@ -36,7 +68,7 @@ router.post(
 router.post(
   '/transfer',
   verifyToken,
-  authorize('payroll.update'),
+  authorize('gaji.manage'),
   transferPayrollValidator,
   PayrollController.transfer
 );
@@ -46,7 +78,7 @@ router.post(
 router.get(
   '/riwayat/:userId',
   verifyToken,
-  authorize('payroll.read'),
+  authorize('gaji.read'),
   userIdParamValidator,
   PayrollController.getRiwayat
 );
@@ -55,7 +87,7 @@ router.get(
 router.get(
   '/',
   verifyToken,
-  authorize('payroll.read'),
+  authorize('gaji.read'),
   listPayrollValidator,
   PayrollController.getAll
 );
@@ -64,7 +96,7 @@ router.get(
 router.get(
   '/:id',
   verifyToken,
-  authorize('payroll.read'),
+  authorize('gaji.read'),
   idParamValidator,
   PayrollController.getById
 );

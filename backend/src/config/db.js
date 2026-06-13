@@ -26,11 +26,9 @@ const poolConfig = env.db.connectionString
 const pool = new Pool(poolConfig);
 
 pool.on('connect', (client) => {
-  // Set search_path per connection — run as a standalone statement
-  client.query("SET search_path TO shared, academic, finance, public", (err) => {
-    if (err) console.error('[DB] Failed to set search_path:', err.message);
-  });
+  // connection established
 });
+
 
 pool.on('error', (err) => {
   console.error('[DB] Unexpected error on idle client:', err.message);

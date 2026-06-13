@@ -10,20 +10,17 @@ const {
   idParamValidator,
 } = require('../validators/beasiswa.validator');
 
-// Gunakan 'finance.read', 'finance.create', dll.
-// atau bisa menyesuaikan dengan RBAC role (misal 'beasiswa.read')
-
 router.get(
   '/', 
   verifyToken, 
-  authorize('finance.read'), 
+  authorize('beasiswa.read'), 
   BeasiswaController.getAll
 );
 
 router.get(
   '/:id', 
   verifyToken, 
-  authorize('finance.read'), 
+  authorize('beasiswa.read'), 
   idParamValidator, 
   BeasiswaController.getById
 );
@@ -31,7 +28,7 @@ router.get(
 router.post(
   '/', 
   verifyToken, 
-  authorize('finance.create'), 
+  authorize('beasiswa.manage'), 
   createBeasiswaValidator, 
   BeasiswaController.create
 );
@@ -39,7 +36,7 @@ router.post(
 router.put(
   '/:id', 
   verifyToken, 
-  authorize('finance.update'), 
+  authorize('beasiswa.manage'), 
   [...idParamValidator, ...updateBeasiswaValidator], 
   BeasiswaController.update
 );
@@ -47,7 +44,7 @@ router.put(
 router.delete(
   '/:id', 
   verifyToken, 
-  authorize('finance.delete'), 
+  authorize('beasiswa.manage'), 
   idParamValidator, 
   BeasiswaController.delete
 );

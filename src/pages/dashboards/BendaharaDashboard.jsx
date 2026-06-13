@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   BarChart,
   Bar,
@@ -12,6 +12,16 @@ import {
   Cell,
   Legend
 } from "recharts";
+import {
+  approvePayroll,
+  transferPayroll,
+  getKomponenGaji,
+  createKomponenGaji,
+  updateKomponenGaji,
+  deleteKomponenGaji,
+  getTagihan,
+  generateTagihanBulanan,
+} from "../../api/finance";
 
 // Icons Components
 const IconReceipt = () => (
@@ -130,18 +140,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [showGenerateMonthModal, setShowGenerateMonthModal] = useState(false);
 
-  const [studentsBill, setStudentsBill] = useState([
-    { nis: "2024001", name: "Ahmad Fauzi", class: "Kelas VIIA", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "08 Mei 2026" },
-    { nis: "2024002", name: "Aulia Rahma", class: "Kelas VIIB", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "07 Mei 2026" },
-    { nis: "2024003", name: "Budi Prasetyo", class: "Kelas VIIIA", amount: "Rp 275.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Belum Bayar", payDate: "—" },
-    { nis: "2024004", name: "Citra Dewi", class: "Kelas VIIIB", amount: "Rp 275.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Cicilan", payDate: "11 Mei 2026" },
-    { nis: "2024005", name: "Danu Pratama", class: "Kelas IXA", amount: "Rp 300.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Belum Bayar", payDate: "—" },
-    { nis: "2024006", name: "Eka Putri", class: "Kelas IXA", amount: "Rp 300.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "05 Mei 2026" },
-    { nis: "2024007", name: "Fajar Ramadhan", class: "Kelas VIIC", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "09 Mei 2026" },
-    { nis: "2024008", name: "Gita Maharani", class: "Kelas VIIIC", amount: "Rp 275.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Belum Bayar", payDate: "—" },
-    { nis: "2024009", name: "Hendra Kusuma", class: "Kelas IXB", amount: "Rp 300.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Lunas", payDate: "03 Mei 2026" },
-    { nis: "2024010", name: "Indah Permata", class: "Kelas VIIA", amount: "Rp 250.000", month: "Mei 2026", dueDate: "10 Mei 2026", status: "Cicilan", payDate: "10 Mei 2026" }
-  ]);
+  const [studentsBill, setStudentsBill] = useState([]);
   const [billSearchQuery, setBillSearchQuery] = useState("");
   const [billClassFilter, setBillClassFilter] = useState("Semua");
   const [catatPembayaranFilter, setCatatPembayaranFilter] = useState("Semua");
@@ -187,6 +186,88 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const [showDeleteKomponenModal, setShowDeleteKomponenModal] = useState(false);
   const [selectedKomponen, setSelectedKomponen] = useState(null);
   const [editKomponenForm, setEditKomponenForm] = useState({ name: "", category: "Pendapatan", type: "Bulanan", nominal: "", status: "Aktif" });
+  const [komponenGajiList, setKomponenGajiList] = useState([]);
+
+  // Data Loaders
+  const loadKomponenGaji = useCallback(async () => {
+    try {
+      const rows = await getKomponenGaji();
+      setKomponenGajiList(Array.isArray(rows) ? rows : []);
+    } catch (e) {
+      console.error("loadKomponenGaji:", e);
+    }
+  }, []);
+
+  const loadTagihan = useCallback(async (params = {}) => {
+    try {
+      const rows = await getTagihan(params);
+      setStudentsBill(Array.isArray(rows) ? rows : []);
+    } catch (e) {
+      console.error("loadTagihan:", e);
+    }
+  }, []);
+
+  const [generateForm, setGenerateForm] = useState({
+    bulan: String(new Date().getMonth() + 1),
+    tahun: String(new Date().getFullYear()),
+    jatuh_tempo: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2,'0')}-10`
+  });
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  useEffect(() => {
+    loadKomponenGaji();
+    loadTagihan();
+  }, [loadKomponenGaji, loadTagihan]);
+
+  // Handlers
+  const handleSaveKomponen = async () => {
+    if (!editKomponenForm.name || !editKomponenForm.nominal) {
+      triggerToast("Mohon lengkapi form", "error");
+      return;
+    }
+
+    try {
+      const payload = {
+        nama: editKomponenForm.name,
+        kategori: editKomponenForm.category.toLowerCase(), // 'pendapatan' atau 'potongan'
+        formula_tipe: editKomponenForm.type === 'Bulanan' ? 'flat' : 
+                      editKomponenForm.type === 'Harian' ? 'per_hari_hadir' : 
+                      editKomponenForm.type === 'Persentase' ? 'persen_gaji_pokok' : 'flat',
+        nominal_default: editKomponenForm.type === 'Persentase' ? 0 : Number(editKomponenForm.nominal),
+        nilai_satuan: editKomponenForm.type === 'Persentase' ? Number(editKomponenForm.nominal) : 0,
+        is_aktif: editKomponenForm.status === 'Aktif'
+      };
+
+      if (selectedKomponen && selectedKomponen.id) {
+        await updateKomponenGaji(selectedKomponen.id, payload);
+        triggerToast("Komponen gaji berhasil diperbarui!");
+      } else {
+        await createKomponenGaji(payload);
+        triggerToast("Komponen gaji berhasil ditambahkan!");
+      }
+
+      loadKomponenGaji();
+      setShowEditKomponenModal(false);
+      setSelectedKomponen(null);
+    } catch (e) {
+      console.error(e);
+      triggerToast("Gagal menyimpan komponen gaji", "error");
+    }
+  };
+
+  const handleDeleteKomponen = async () => {
+    if (!selectedKomponen || !selectedKomponen.id) return;
+    try {
+      await deleteKomponenGaji(selectedKomponen.id);
+      triggerToast("Komponen gaji berhasil dihapus");
+      loadKomponenGaji();
+      setShowDeleteKomponenModal(false);
+      setSelectedKomponen(null);
+    } catch (e) {
+      console.error(e);
+      triggerToast("Gagal menghapus komponen", "error");
+    }
+  };
 
   // Status Bayar Gaji Modal State
   const [selectedDetailGaji, setSelectedDetailGaji] = useState(null);
@@ -226,14 +307,31 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   };
 
   const filteredBills = studentsBill.filter((row) => {
-    const matchesSearch = row.name.toLowerCase().includes(billSearchQuery.toLowerCase()) || 
-                          row.nis.includes(billSearchQuery);
+    const name = row.siswa_nama || row.name || '';
+    const nis = row.nis || '';
+    const kelas = row.nama_kelas || row.class || '';
+    const matchesSearch = name.toLowerCase().includes(billSearchQuery.toLowerCase()) || 
+                          nis.includes(billSearchQuery);
     
     if (billClassFilter === "Semua") return matchesSearch;
     const targetGrade = billClassFilter.replace("Kelas ", "");
-    const matchesClass = row.class.startsWith(targetGrade);
+    const matchesClass = kelas.startsWith(targetGrade);
     return matchesSearch && matchesClass;
   });
+
+  const formatBulan = (bulan, tahun) => {
+    const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    if (!bulan) return '';
+    return `${months[(parseInt(bulan) - 1) % 12]} ${tahun || ''}`;
+  };
+
+  const formatTanggal = (dateStr) => {
+    if (!dateStr) return '—';
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+    } catch { return dateStr; }
+  };
 
   // Rendering dashboard based on activeMenu selection
   const renderContent = () => {
@@ -642,41 +740,61 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50 text-xs">
-                    {filteredBills.map((row) => (
-                      <tr key={row.nis} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="py-4 px-3 text-gray-400 font-mono font-medium">{row.nis}</td>
-                        <td className="py-4 px-3 font-bold text-gray-800">{row.name}</td>
-                        <td className="py-4 px-3">
-                          <span className="bg-blue-50 text-blue-600 font-semibold px-2.5 py-0.5 rounded-full text-[10px]">
-                            {row.class}
-                          </span>
+                    {filteredBills.length === 0 ? (
+                      <tr>
+                        <td colSpan="8" className="py-10 text-center text-gray-400 font-medium text-xs">
+                          Belum ada tagihan SPP. Klik "Generate Tagihan Bulan Ini" untuk membuat tagihan.
                         </td>
-                        <td className="py-4 px-3 font-bold text-gray-700">{row.amount}</td>
-                        <td className="py-4 px-3 text-gray-400 font-medium">{row.month}</td>
-                        <td className="py-4 px-3 text-gray-500">{row.dueDate}</td>
-                        <td className="py-4 px-3">
-                          {row.status === "Lunas" && (
-                            <span className="bg-[#E8FDF5] text-[#059669] border border-[#A7F3D0] rounded-full px-2.5 py-0.5 flex items-center gap-1 font-bold text-[10px] w-fit border-solid">
-                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-2.5 h-2.5"><polyline points="20 6 9 17 4 12" /></svg>
-                              Lunas
-                            </span>
-                          )}
-                          {row.status === "Cicilan" && (
-                            <span className="bg-[#FEF3C7] text-[#D97706] border border-[#FCD34D] rounded-full px-2.5 py-0.5 flex items-center gap-1 font-bold text-[10px] w-fit border-solid">
-                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-2.5 h-2.5"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-                              Cicilan
-                            </span>
-                          )}
-                          {row.status === "Belum Bayar" && (
-                            <span className="bg-[#FEE2E2] text-[#DC2626] border border-[#FCA5A5] rounded-full px-2.5 py-0.5 flex items-center gap-1 font-bold text-[10px] w-fit border-solid">
-                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-2.5 h-2.5"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
-                              Belum Bayar
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-4 px-3 text-right text-gray-500 font-medium">{row.payDate}</td>
                       </tr>
-                    ))}
+                    ) : filteredBills.map((row, idx) => {
+                      const statusVal = (row.status || '').toLowerCase();
+                      const isLunas = statusVal === 'lunas';
+                      const isCicilan = statusVal === 'cicilan';
+                      const isBelumBayar = statusVal === 'belum_bayar' || statusVal === 'belum bayar';
+                      return (
+                        <tr key={row.id || idx} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="py-4 px-3 text-gray-400 font-mono font-medium">{row.nis}</td>
+                          <td className="py-4 px-3 font-bold text-gray-800">{row.siswa_nama || row.name}</td>
+                          <td className="py-4 px-3">
+                            <span className="bg-blue-50 text-blue-600 font-semibold px-2.5 py-0.5 rounded-full text-[10px]">
+                              {row.nama_kelas || row.class}
+                            </span>
+                          </td>
+                          <td className="py-4 px-3 font-bold text-gray-700">
+                            {row.nominal ? `Rp ${parseInt(row.nominal).toLocaleString('id-ID')}` : (row.amount || '-')}
+                          </td>
+                          <td className="py-4 px-3 text-gray-400 font-medium">
+                            {row.bulan ? formatBulan(row.bulan, row.tahun) : (row.month || '-')}
+                          </td>
+                          <td className="py-4 px-3 text-gray-500">
+                            {row.jatuh_tempo ? formatTanggal(row.jatuh_tempo) : (row.dueDate || '-')}
+                          </td>
+                          <td className="py-4 px-3">
+                            {isLunas && (
+                              <span className="bg-[#E8FDF5] text-[#059669] border border-[#A7F3D0] rounded-full px-2.5 py-0.5 flex items-center gap-1 font-bold text-[10px] w-fit border-solid">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-2.5 h-2.5"><polyline points="20 6 9 17 4 12" /></svg>
+                                Lunas
+                              </span>
+                            )}
+                            {isCicilan && (
+                              <span className="bg-[#FEF3C7] text-[#D97706] border border-[#FCD34D] rounded-full px-2.5 py-0.5 flex items-center gap-1 font-bold text-[10px] w-fit border-solid">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-2.5 h-2.5"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                                Cicilan
+                              </span>
+                            )}
+                            {(isBelumBayar || (!isLunas && !isCicilan)) && (
+                              <span className="bg-[#FEE2E2] text-[#DC2626] border border-[#FCA5A5] rounded-full px-2.5 py-0.5 flex items-center gap-1 font-bold text-[10px] w-fit border-solid">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-2.5 h-2.5"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+                                Belum Bayar
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-4 px-3 text-right text-gray-500 font-medium">
+                            {row.tanggal_bayar ? formatTanggal(row.tanggal_bayar) : (row.payDate || '—')}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -1498,7 +1616,11 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 </div>
                 
                 <button 
-                  onClick={() => triggerToast("Membuka form tambah komponen gaji...")}
+                  onClick={() => {
+                    setSelectedKomponen(null);
+                    setEditKomponenForm({ name: "", category: "Pendapatan", type: "Bulanan", nominal: "", status: "Aktif" });
+                    setShowEditKomponenModal(true);
+                  }}
                   className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-4 sm:px-5 py-2.5 text-xs sm:text-[13px] font-bold cursor-pointer transition-all shadow-sm active:scale-95"
                 >
                   <IconPlus /> Tambah Komponen
@@ -1567,60 +1689,74 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50 text-xs">
-                    {[
-                      { name: "Gaji Pokok (Tetap)", category: "Pendapatan", type: "Bulanan", nominal: "Varies", status: "Aktif" },
-                      { name: "Tunjangan Jabatan", category: "Pendapatan", type: "Bulanan", nominal: "Rp 1.500.000", status: "Aktif" },
-                      { name: "Tunjangan Wali Kelas", category: "Pendapatan", type: "Bulanan", nominal: "Rp 500.000", status: "Aktif" },
-                      { name: "BPJS Kesehatan", category: "Potongan", type: "Persentase (1%)", nominal: "Varies", status: "Aktif" },
-                      { name: "Potongan Absensi", category: "Potongan", type: "Harian", nominal: "Rp 50.000", status: "Aktif" },
-                      { name: "Insentif Kehadiran", category: "Pendapatan", type: "Bulanan", nominal: "Rp 300.000", status: "Aktif" }
-                    ].map((row, idx) => (
-                      <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="p-4 pl-5 flex items-center gap-3">
-                          <div className="text-gray-400">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" /></svg>
-                          </div>
-                          <span className="font-bold text-gray-800">{row.name}</span>
-                        </td>
-                        <td className="p-4">
-                          <span className={`font-bold px-2.5 py-1 rounded-md text-[10px] inline-block ${
-                            row.category === 'Pendapatan' ? 'bg-[#E6F4EA] text-[#10B981]' : 'bg-[#FEE2E2] text-[#EF4444]'
-                          }`}>
-                            {row.category}
-                          </span>
-                        </td>
-                        <td className="p-4 text-gray-500 font-medium">{row.type}</td>
-                        <td className="p-4 font-bold text-gray-800">{row.nominal}</td>
-                        <td className="p-4">
-                          <span className="text-[#3B82F6] font-bold text-[11px]">{row.status}</span>
-                        </td>
-                        <td className="p-4 pr-5">
-                          <div className="flex items-center justify-end gap-2">
-                            <button 
-                              onClick={() => {
-                                setSelectedKomponen(row);
-                                setEditKomponenForm({ name: row.name, category: row.category, type: row.type, nominal: row.nominal, status: row.status });
-                                setShowEditKomponenModal(true);
-                              }}
-                              className="text-[#3B82F6] hover:bg-blue-50 p-1.5 rounded-lg transition-colors border-none bg-transparent cursor-pointer"
-                              title="Edit Komponen"
-                            >
-                              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" /></svg>
-                            </button>
-                            <button 
-                              onClick={() => {
-                                setSelectedKomponen(row);
-                                setShowDeleteKomponenModal(true);
-                              }}
-                              className="text-[#EF4444] hover:bg-red-50 p-1.5 rounded-lg transition-colors border-none bg-transparent cursor-pointer"
-                              title="Hapus Komponen"
-                            >
-                              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
-                            </button>
-                          </div>
-                        </td>
+                    {komponenGajiList.length > 0 ? (
+                      komponenGajiList.map((row, idx) => (
+                        <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="p-4 pl-5 flex items-center gap-3">
+                            <div className="text-gray-400">
+                              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" /></svg>
+                            </div>
+                            <span className="font-bold text-gray-800">{row.nama}</span>
+                          </td>
+                          <td className="p-4">
+                            <span className={`font-bold px-2.5 py-1 rounded-md text-[10px] inline-block ${
+                              row.kategori === 'pendapatan' ? 'bg-[#E6F4EA] text-[#10B981]' : 'bg-[#FEE2E2] text-[#EF4444]'
+                            }`}>
+                              {row.kategori === 'pendapatan' ? 'Pendapatan' : 'Potongan'}
+                            </span>
+                          </td>
+                          <td className="p-4 text-gray-500 font-medium">
+                            {row.formula_tipe === 'flat' ? 'Bulanan' : 
+                             row.formula_tipe === 'per_hari_hadir' ? 'Harian' : 
+                             row.formula_tipe === 'persen_gaji_pokok' ? 'Persentase' : row.formula_tipe}
+                          </td>
+                          <td className="p-4 font-bold text-gray-800">
+                            {row.formula_tipe === 'persen_gaji_pokok' ? `${row.nilai_satuan}%` : 
+                             row.nominal_default > 0 ? `Rp ${parseInt(row.nominal_default).toLocaleString('id-ID')}` : 'Varies'}
+                          </td>
+                          <td className="p-4">
+                            <span className="text-[#3B82F6] font-bold text-[11px]">{row.is_aktif ? "Aktif" : "Non-Aktif"}</span>
+                          </td>
+                          <td className="p-4 pr-5">
+                            <div className="flex items-center justify-end gap-2">
+                              <button 
+                                onClick={() => {
+                                  setSelectedKomponen(row);
+                                  setEditKomponenForm({ 
+                                    name: row.nama, 
+                                    category: row.kategori === 'pendapatan' ? 'Pendapatan' : 'Potongan', 
+                                    type: row.formula_tipe === 'flat' ? 'Bulanan' : 
+                                          row.formula_tipe === 'per_hari_hadir' ? 'Harian' : 
+                                          row.formula_tipe === 'persen_gaji_pokok' ? 'Persentase' : 'Bulanan', 
+                                    nominal: row.formula_tipe === 'persen_gaji_pokok' ? row.nilai_satuan : row.nominal_default, 
+                                    status: row.is_aktif ? "Aktif" : "Non-Aktif" 
+                                  });
+                                  setShowEditKomponenModal(true);
+                                }}
+                                className="text-[#3B82F6] hover:bg-blue-50 p-1.5 rounded-lg transition-colors border-none bg-transparent cursor-pointer"
+                                title="Edit Komponen"
+                              >
+                                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" /></svg>
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  setSelectedKomponen({ ...row, name: row.nama, category: row.kategori === 'pendapatan' ? 'Pendapatan' : 'Potongan', nominal: row.formula_tipe === 'persen_gaji_pokok' ? `${row.nilai_satuan}%` : `Rp ${parseInt(row.nominal_default).toLocaleString('id-ID')}` });
+                                  setShowDeleteKomponenModal(true);
+                                }}
+                                className="text-[#EF4444] hover:bg-red-50 p-1.5 rounded-lg transition-colors border-none bg-transparent cursor-pointer"
+                                title="Hapus Komponen"
+                              >
+                                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="6" className="p-8 text-center text-gray-400 font-medium">Belum ada komponen gaji</td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -2532,32 +2668,43 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-[480px] w-full relative z-10 shadow-2xl animate-scaleUp font-sans">
             <div className="mb-6">
               <h3 className="text-xl font-bold text-[#1e293b]">Generate Tagihan SPP</h3>
-              <p className="text-[13px] text-gray-400 mt-1">Bulan: Juni 2026</p>
+              <p className="text-[13px] text-gray-400 mt-1">Buat tagihan SPP bulanan untuk semua siswa</p>
             </div>
-            
-            <div className="mb-6 bg-[#F8F9FA] rounded-2xl p-5">
-              <h4 className="text-[11px] font-bold text-gray-500 mb-4 uppercase tracking-wider">Ringkasan Generate</h4>
-              <div className="space-y-4 text-[13px]">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Kelas VII (semua rombel)</span>
-                  <span className="font-bold text-gray-800">4 siswa</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Kelas VIII (semua rombel)</span>
-                  <span className="font-bold text-gray-800">3 siswa</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Kelas IX (semua rombel)</span>
-                  <span className="font-bold text-gray-800">3 siswa</span>
-                </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-5">
+              <div>
+                <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Bulan</label>
+                <select
+                  value={generateForm.bulan}
+                  onChange={(e) => setGenerateForm({ ...generateForm, bulan: e.target.value })}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-700 focus:outline-none focus:border-[#1A3D63] appearance-none"
+                >
+                  {['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'].map((m, i) => (
+                    <option key={i+1} value={String(i+1)}>{m}</option>
+                  ))}
+                </select>
               </div>
-              <div className="border-t border-gray-200 my-4"></div>
-              <div className="flex justify-between items-center">
-                <span className="text-[13px] font-bold text-[#1e293b]">Total Tagihan</span>
-                <span className="text-base font-bold text-[#2563EB]">Rp 5.725.000</span>
+              <div>
+                <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Tahun</label>
+                <input
+                  type="number"
+                  value={generateForm.tahun}
+                  onChange={(e) => setGenerateForm({ ...generateForm, tahun: e.target.value })}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63]"
+                />
               </div>
             </div>
-            
+
+            <div className="mb-5">
+              <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Jatuh Tempo</label>
+              <input
+                type="date"
+                value={generateForm.jatuh_tempo}
+                onChange={(e) => setGenerateForm({ ...generateForm, jatuh_tempo: e.target.value })}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63]"
+              />
+            </div>
+
             <div className="bg-[#FFFDF5] border border-[#FEF3C7] rounded-xl p-4 flex gap-3 mb-6">
               <div className="text-[#F59E0B] flex-shrink-0 mt-0.5">
                 <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -2565,25 +2712,51 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 </svg>
               </div>
               <p className="text-[13px] text-[#B45309] leading-relaxed">
-                Tagihan akan dikirim otomatis ke Orang Tua / Wali masing-masing siswa.
+                Sistem akan membuat tagihan untuk <strong>semua siswa aktif</strong>. Tagihan yang sudah ada di bulan yang sama akan dilewati (skip).
               </p>
             </div>
 
             <div className="flex gap-3">
               <button 
                 onClick={() => setShowGenerateMonthModal(false)}
+                disabled={isGenerating}
                 className="flex-1 bg-white border border-gray-200 hover:bg-gray-50 text-gray-500 py-3 rounded-xl text-[13px] font-bold cursor-pointer transition-all"
               >
                 Batal
               </button>
               <button 
-                onClick={() => {
-                  setShowGenerateMonthModal(false);
-                  triggerToast("Tagihan SPP bulan ini berhasil digenerate!");
+                onClick={async () => {
+                  if (!generateForm.bulan || !generateForm.tahun) {
+                    triggerToast('Bulan dan tahun wajib diisi');
+                    return;
+                  }
+                  setIsGenerating(true);
+                  try {
+                    const result = await generateTagihanBulanan({
+                      bulan: parseInt(generateForm.bulan),
+                      tahun: parseInt(generateForm.tahun),
+                      jatuh_tempo: generateForm.jatuh_tempo
+                    });
+                    setShowGenerateMonthModal(false);
+                    triggerToast(`Berhasil generate ${result.generated ?? ''} tagihan SPP!`);
+                    loadTagihan();
+                  } catch (e) {
+                    console.error(e);
+                    const msg = e?.response?.data?.message || 'Gagal generate tagihan';
+                    triggerToast(msg);
+                  } finally {
+                    setIsGenerating(false);
+                  }
                 }}
-                className="flex-1 bg-[#1e293b] hover:bg-[#0f172a] text-white py-3 rounded-xl text-[13px] font-bold cursor-pointer border-none shadow-sm transition-all active:scale-[0.98]"
+                disabled={isGenerating}
+                className="flex-1 bg-[#1e293b] hover:bg-[#0f172a] text-white py-3 rounded-xl text-[13px] font-bold cursor-pointer border-none shadow-sm transition-all active:scale-[0.98] flex items-center justify-center gap-2"
               >
-                Konfirmasi Generate
+                {isGenerating ? (
+                  <>
+                    <svg className="animate-spin" width="16" height="16" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                    Generating...
+                  </>
+                ) : 'Konfirmasi Generate'}
               </button>
             </div>
           </div>
@@ -2919,10 +3092,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 Batal
               </button>
               <button
-                onClick={() => {
-                  setShowEditKomponenModal(false);
-                  triggerToast(`Komponen "${editKomponenForm.name}" berhasil diperbarui!`);
-                }}
+                onClick={handleSaveKomponen}
                 className="flex-1 bg-[#1A3D63] hover:bg-[#122A44] text-white py-3 rounded-xl text-[13px] font-bold cursor-pointer border-none transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm"
               >
                 <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
@@ -2984,10 +3154,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 Batal
               </button>
               <button
-                onClick={() => {
-                  setShowDeleteKomponenModal(false);
-                  triggerToast(`Komponen "${selectedKomponen.name}" berhasil dihapus!`);
-                }}
+                onClick={handleDeleteKomponen}
                 className="flex-1 bg-[#EF4444] hover:bg-[#DC2626] text-white py-3 rounded-xl text-[13px] font-bold cursor-pointer border-none transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm"
               >
                 <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>

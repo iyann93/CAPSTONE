@@ -6,7 +6,7 @@ const { whereBuilder, buildOrderBy } = require('../utils/queryBuilder');
 const PembayaranRepository = {
   findAll: async ({ limit, offset, search, sort, tagihanId, siswaId, metode, tanggalAwal, tanggalAkhir }) => {
     const wb = whereBuilder();
-    wb.addLike(search, ['tp.no_referensi', 's.nama', 's.nis']);
+    wb.addLike(search, ['tp.no_referensi', 's.nama_lengkap', 's.nis']);
     wb.addExact(tagihanId, 'tp.tagihan_id');
     wb.addExact(siswaId, 't.siswa_id');
     wb.addExact(metode, 'tp.metode');
@@ -20,7 +20,7 @@ const PembayaranRepository = {
     const sql = `
       SELECT tp.*, 
              t.bulan, t.tahun, t.nominal_akhir AS tagihan_nominal,
-             s.nama AS siswa_nama, s.nis,
+             s.nama_lengkap AS siswa_nama, s.nis,
              u.nama AS pencatat_nama
       FROM finance.transaksi_pembayaran tp
       INNER JOIN finance.tagihan_spp t ON tp.tagihan_id = t.id
@@ -45,7 +45,7 @@ const PembayaranRepository = {
 
   findById: async (id) => {
     const sql = `
-      SELECT tp.*, t.bulan, t.tahun, t.nominal_akhir, s.nama AS siswa_nama, s.nis
+      SELECT tp.*, t.bulan, t.tahun, t.nominal_akhir, s.nama_lengkap AS siswa_nama, s.nis
       FROM finance.transaksi_pembayaran tp
       INNER JOIN finance.tagihan_spp t ON tp.tagihan_id = t.id
       INNER JOIN academic.siswa s ON t.siswa_id = s.id
@@ -69,7 +69,7 @@ const PembayaranRepository = {
       if (tagihanRes.rows.length === 0) throw new Error('Tagihan tidak ditemukan');
       
       const tagihan = tagihanRes.rows[0];
-      if (tagihan.status === 'Lunas') throw new Error('Tagihan ini sudah lunas');
+      if (tagihan.status === 'lunas') throw new Error('Tagihan ini sudah lunas');
       
       // 2. Hitung total yang sudah dibayar sejauh ini
       const totalRes = await client.query('SELECT COALESCE(SUM(jumlah_bayar), 0) AS total_bayar FROM finance.transaksi_pembayaran WHERE tagihan_id = $1', [tagihanId]);
@@ -89,7 +89,7 @@ const PembayaranRepository = {
       
       // 4. Update status Tagihan
       const sisaTagihan = totalHarusDibayar - (sudahDibayar + parseFloat(jumlahBayar));
-      const newStatus = sisaTagihan === 0 ? 'Lunas' : 'Sebagian';
+      const newStatus = sisaTagihan === 0 ? 'lunas' : 'cicilan';
       
       await client.query(`UPDATE finance.tagihan_spp SET status = $1, updated_at = NOW(), updated_by = $2 WHERE id = $3`, [newStatus, userId, tagihanId]);
 

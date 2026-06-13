@@ -5,7 +5,7 @@ const { query } = require('../config/db');
 const RaporRepository = {
   findById: async (id) => {
     const sql = `
-      SELECT r.*, s.nama AS siswa_nama, s.nis, k.nama_kelas, sm.nama AS semester_nama,
+      SELECT r.*, s.nama_lengkap AS siswa_nama, s.nis, k.nama_kelas, sm.nama AS semester_nama,
              u1.nama AS generated_by_nama, u2.nama AS published_by_nama
       FROM academic.rapor r
       INNER JOIN academic.siswa s ON r.siswa_id = s.id
@@ -34,7 +34,7 @@ const RaporRepository = {
 
   findByKelas: async (kelasId, semesterId) => {
     const sql = `
-      SELECT r.*, s.nama AS siswa_nama, s.nis
+      SELECT r.*, s.nama_lengkap AS siswa_nama, s.nis
       FROM academic.rapor r
       INNER JOIN academic.siswa s ON r.siswa_id = s.id
       WHERE r.kelas_id = $1 AND r.semester_id = $2
@@ -116,7 +116,7 @@ const RaporRepository = {
       await client.query('BEGIN');
       
       // Ambil seluruh siswa aktif di kelas tersebut
-      const sSql = `SELECT id FROM academic.siswa WHERE kelas_id = $1 AND is_active = true`;
+      const sSql = `SELECT id FROM academic.siswa WHERE kelas_id = $1 AND status = 'aktif' AND deleted_at IS NULL`;
       const siswaList = await client.query(sSql, [kelasId]);
       
       if (siswaList.rows.length === 0) throw new Error('Tidak ada siswa di kelas ini');

@@ -23,8 +23,9 @@ const authorize = (permissionCode) => {
       }
 
       // Fetch all permission codes assigned to user via their roles
+      // Computed as modul.aksi since there is no standalone `code` column
       const sql = `
-        SELECT DISTINCT p.code
+        SELECT DISTINCT (p.modul || '.' || p.aksi) AS code
         FROM shared.permissions p
         INNER JOIN shared.role_permissions rp ON rp.permission_id = p.id
         INNER JOIN shared.user_roles ur ON ur.role_id = rp.role_id
