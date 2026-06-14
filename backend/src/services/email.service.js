@@ -28,6 +28,9 @@ if (env.email.host && env.email.user && env.email.pass) {
         pass: account.pass,
       },
     });
+  }).catch((err) => {
+    console.warn('⚠️ Could not create Ethereal test account (no network?):', err.message);
+    // Server continues running; email features will be unavailable
   });
 }
 

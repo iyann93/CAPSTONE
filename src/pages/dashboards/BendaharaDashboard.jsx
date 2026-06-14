@@ -21,7 +21,12 @@ import {
   deleteKomponenGaji,
   getTagihan,
   generateTagihanBulanan,
+  getBeasiswa,
+  createBeasiswa,
+  updateBeasiswa,
+  deleteBeasiswa,
 } from "../../api/finance";
+import { getSiswa } from "../../api/academic";
 
 // Icons Components
 const IconReceipt = () => (
@@ -159,7 +164,21 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   
   // Beasiswa Modal State
   const [showAddProgramModal, setShowAddProgramModal] = useState(false);
-  const [beasiswaTab, setBeasiswaTab] = useState("program");
+  const [showDeleteBeasiswaModal, setShowDeleteBeasiswaModal] = useState(false);
+  const [beasiswaTab, setBeasiswaTab] = useState("penerima"); // Default to penerima
+  
+  const [beasiswaList, setBeasiswaList] = useState([]);
+  const [siswaList, setSiswaList] = useState([]);
+  const [selectedBeasiswa, setSelectedBeasiswa] = useState(null);
+  const [beasiswaForm, setBeasiswaForm] = useState({
+    siswaId: "",
+    namaBeasiswa: "",
+    nominal: "",
+    periode: "2025/2026",
+    status: "Aktif",
+    tanggalMulai: new Date().toISOString().split('T')[0],
+    tanggalSelesai: ""
+  });
 
   // Pengaturan SPP states
   const [sppSettingTab, setSppSettingTab] = useState("nominal");
@@ -207,6 +226,24 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     }
   }, []);
 
+  const loadBeasiswa = useCallback(async () => {
+    try {
+      const rows = await getBeasiswa();
+      setBeasiswaList(Array.isArray(rows) ? rows : []);
+    } catch (e) {
+      console.error("loadBeasiswa:", e);
+    }
+  }, []);
+
+  const loadSiswa = useCallback(async () => {
+    try {
+      const rows = await getSiswa({ limit: 1000 }); // get all siswa
+      setSiswaList(Array.isArray(rows) ? rows : []);
+    } catch (e) {
+      console.error("loadSiswa:", e);
+    }
+  }, []);
+
   const [generateForm, setGenerateForm] = useState({
     bulan: String(new Date().getMonth() + 1),
     tahun: String(new Date().getFullYear()),
@@ -217,7 +254,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   useEffect(() => {
     loadKomponenGaji();
     loadTagihan();
-  }, [loadKomponenGaji, loadTagihan]);
+    loadBeasiswa();
+    loadSiswa();
+  }, [loadKomponenGaji, loadTagihan, loadBeasiswa, loadSiswa]);
 
   // Handlers
   const handleSaveKomponen = async () => {
@@ -229,7 +268,10 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     try {
       const payload = {
         nama: editKomponenForm.name,
-        kategori: editKomponenForm.category.toLowerCase(), // 'pendapatan' atau 'potongan'
+        // tipe must be lowercase 'tunjangan' or 'potongan' based on DB constraint
+        tipe: editKomponenForm.category === 'Pendapatan' ? 'tunjangan' : 'potongan',
+        // kategori must be 'guru', 'staf', or 'umum'. UI doesn't specify, default to 'umum'
+        kategori: 'umum',
         formula_tipe: editKomponenForm.type === 'Bulanan' ? 'flat' : 
                       editKomponenForm.type === 'Harian' ? 'per_hari_hadir' : 
                       editKomponenForm.type === 'Persentase' ? 'persen_gaji_pokok' : 'flat',
@@ -250,8 +292,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
       setShowEditKomponenModal(false);
       setSelectedKomponen(null);
     } catch (e) {
-      console.error(e);
-      triggerToast("Gagal menyimpan komponen gaji", "error");
+      console.error('Save Komponen Error:', e.response?.data || e.message);
+      triggerToast(`Gagal menyimpan komponen: ${e.response?.data?.message || e.message}`, "error");
     }
   };
 
@@ -266,6 +308,52 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     } catch (e) {
       console.error(e);
       triggerToast("Gagal menghapus komponen", "error");
+    }
+  };
+
+  const handleSaveBeasiswa = async () => {
+    if (!beasiswaForm.siswaId || !beasiswaForm.namaBeasiswa || !beasiswaForm.nominal) {
+      triggerToast("Mohon lengkapi form penerima beasiswa", "error");
+      return;
+    }
+    try {
+      const payload = {
+        siswaId: beasiswaForm.siswaId,
+        namaBeasiswa: beasiswaForm.namaBeasiswa,
+        nominal: Number(beasiswaForm.nominal),
+        periode: beasiswaForm.periode,
+        status: beasiswaForm.status,
+        tanggalMulai: beasiswaForm.tanggalMulai,
+        tanggalSelesai: beasiswaForm.tanggalSelesai || null,
+      };
+
+      if (selectedBeasiswa && selectedBeasiswa.id) {
+        await updateBeasiswa(selectedBeasiswa.id, payload);
+        triggerToast("Penerima beasiswa berhasil diperbarui!");
+      } else {
+        await createBeasiswa(payload);
+        triggerToast("Penerima beasiswa berhasil ditambahkan!");
+      }
+      loadBeasiswa();
+      setShowAddProgramModal(false);
+      setSelectedBeasiswa(null);
+    } catch (e) {
+      console.error(e);
+      triggerToast(`Gagal menyimpan beasiswa: ${e.response?.data?.message || e.message}`, "error");
+    }
+  };
+
+  const handleDeleteBeasiswa = async () => {
+    if (!selectedBeasiswa || !selectedBeasiswa.id) return;
+    try {
+      await deleteBeasiswa(selectedBeasiswa.id);
+      triggerToast("Penerima beasiswa berhasil dihapus");
+      loadBeasiswa();
+      setShowDeleteBeasiswaModal(false);
+      setSelectedBeasiswa(null);
+    } catch (e) {
+      console.error(e);
+      triggerToast("Gagal menghapus beasiswa", "error");
     }
   };
 
@@ -1271,11 +1359,23 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
                 </div>
                 <button 
-                  onClick={() => setShowAddProgramModal(true)}
+                  onClick={() => {
+                    setSelectedBeasiswa(null);
+                    setBeasiswaForm({
+                      siswaId: "",
+                      namaBeasiswa: "",
+                      nominal: "",
+                      periode: "2025/2026",
+                      status: "Aktif",
+                      tanggalMulai: new Date().toISOString().split('T')[0],
+                      tanggalSelesai: ""
+                    });
+                    setShowAddProgramModal(true);
+                  }}
                   className="bg-[#1A3D63] text-white font-bold text-sm px-4 py-2.5 rounded-xl cursor-pointer border-none hover:bg-[#122A44] transition-all flex items-center gap-1.5 shadow-sm"
                 >
                   <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                  Tambah Program
+                  Tambah Penerima
                 </button>
               </div>
             </div>
@@ -1383,33 +1483,71 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                         <th className="py-3 px-5">KELAS</th>
                         <th className="py-3 px-5">PROGRAM</th>
                         <th className="py-3 px-5">POTONGAN</th>
-                        <th className="py-3 px-5">SPP AWAL</th>
-                        <th className="py-3 px-5">SPP AKHIR</th>
+                        <th className="py-3 px-5">PERIODE</th>
+                        <th className="py-3 px-5">STATUS</th>
+                        <th className="py-3 px-5 text-right">AKSI</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50 text-xs">
-                      {[
-                        { name: "Aulia Rahma", class: "Kelas IXA", program: "Beasiswa Prestasi Akademik", pot: "100%", awal: "Rp 300.000", akhir: "Rp 0" },
-                        { name: "Bima Saputra", class: "Kelas VIIIB", program: "Beasiswa Yayasan Peduli", pot: "50%", awal: "Rp 275.000", akhir: "Rp 137.500" },
-                        { name: "Citra Dewi", class: "Kelas VIIA", program: "Potongan Anak Guru", pot: "Rp 100.000", awal: "Rp 250.000", akhir: "Rp 150.000" },
-                        { name: "Danu Pratama", class: "Kelas VIIB", program: "Potongan Kakak-Adik", pot: "25%", awal: "Rp 250.000", akhir: "Rp 187.500" }
-                      ].map((row, idx) => (
-                        <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="py-4 px-5 font-bold text-gray-800">{row.name}</td>
-                          <td className="py-4 px-5">
-                            <span className="text-blue-500 bg-blue-50 px-2 py-1 rounded-md text-[10px] font-bold">{row.class}</span>
-                          </td>
-                          <td className="py-4 px-5 text-gray-600">{row.program}</td>
-                          <td className="py-4 px-5">
-                            <span className="text-[#137333] bg-[#E6F4EA] px-2.5 py-1 rounded-md text-[10px] font-bold">{row.pot}</span>
-                          </td>
-                          <td className="py-4 px-5 text-gray-400 font-medium decoration-gray-300 relative">
-                            {row.awal}
-                            <div className="absolute top-1/2 left-5 w-14 h-px bg-gray-300"></div>
-                          </td>
-                          <td className="py-4 px-5 font-bold text-[#0F9D58]">{row.akhir}</td>
+                      {beasiswaList.length > 0 ? (
+                        beasiswaList.map((row, idx) => (
+                          <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                            <td className="py-4 px-5 font-bold text-gray-800">{row.siswa_nama}</td>
+                            <td className="py-4 px-5">
+                              <span className="text-blue-500 bg-blue-50 px-2 py-1 rounded-md text-[10px] font-bold">{row.nama_kelas}</span>
+                            </td>
+                            <td className="py-4 px-5 text-gray-600">{row.nama_beasiswa}</td>
+                            <td className="py-4 px-5">
+                              <span className="text-[#137333] bg-[#E6F4EA] px-2.5 py-1 rounded-md text-[10px] font-bold">
+                                Rp {Number(row.nominal).toLocaleString('id-ID')}
+                              </span>
+                            </td>
+                            <td className="py-4 px-5 text-gray-600 font-medium">
+                              {row.periode}
+                            </td>
+                            <td className="py-4 px-5">
+                              <span className={`px-2 py-1 rounded-md text-[10px] font-bold ${row.status === 'Aktif' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
+                                {row.status}
+                              </span>
+                            </td>
+                            <td className="py-4 px-5 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  onClick={() => {
+                                    setSelectedBeasiswa(row);
+                                    setBeasiswaForm({
+                                      siswaId: row.siswa_id,
+                                      namaBeasiswa: row.nama_beasiswa,
+                                      nominal: row.nominal,
+                                      periode: row.periode || "2025/2026",
+                                      status: row.status,
+                                      tanggalMulai: row.tanggal_mulai ? new Date(row.tanggal_mulai).toISOString().split('T')[0] : "",
+                                      tanggalSelesai: row.tanggal_selesai ? new Date(row.tanggal_selesai).toISOString().split('T')[0] : ""
+                                    });
+                                    setShowAddProgramModal(true);
+                                  }}
+                                  className="w-8 h-8 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center text-blue-500 transition-colors cursor-pointer"
+                                >
+                                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" /></svg>
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setSelectedBeasiswa(row);
+                                    setShowDeleteBeasiswaModal(true);
+                                  }}
+                                  className="w-8 h-8 rounded-lg border border-red-100 bg-red-50 hover:bg-red-100 flex items-center justify-center text-red-500 transition-colors cursor-pointer"
+                                >
+                                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="7" className="py-8 text-center text-gray-500">Belum ada data penerima beasiswa</td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -2770,7 +2908,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
           <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl relative animate-scaleIn z-10">
             {/* Modal Header */}
             <div className="flex justify-between items-center p-6 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-800">Tambah Program Baru</h2>
+              <h2 className="text-lg font-bold text-gray-800">{selectedBeasiswa ? "Edit Penerima Beasiswa" : "Tambah Penerima Beasiswa"}</h2>
               <button 
                 onClick={() => setShowAddProgramModal(false)}
                 className="text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer"
@@ -2783,45 +2921,37 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             <div className="p-6">
               <div className="flex flex-col gap-5">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Nama Program</label>
-                  <input 
-                    type="text" 
-                    placeholder="Contoh: Beasiswa Yatim Piatu"
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20"
-                  />
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Pilih Siswa</label>
+                  <select 
+                    value={beasiswaForm.siswaId}
+                    onChange={(e) => setBeasiswaForm({...beasiswaForm, siswaId: e.target.value})}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700 h-[46px]"
+                  >
+                    <option value="" disabled>-- Pilih Siswa --</option>
+                    {siswaList.map(s => (
+                      <option key={s.id} value={s.id}>{s.nama_lengkap} ({s.nis})</option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Jenis</label>
-                    <select className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700 h-[46px]">
-                      <option value="" disabled selected>Pilih jenis</option>
-                      <option>Beasiswa</option>
-                      <option>Potongan</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Kategori</label>
-                    <select className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700 h-[46px]">
-                      <option value="" disabled selected>Pilih kategori</option>
-                      <option>Akademik</option>
-                      <option>Non-Akademik</option>
-                      <option>Sosial</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Nilai (%)</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Nama Program Beasiswa</label>
                     <input 
                       type="text" 
-                      placeholder="50%"
+                      value={beasiswaForm.namaBeasiswa}
+                      onChange={(e) => setBeasiswaForm({...beasiswaForm, namaBeasiswa: e.target.value})}
+                      placeholder="Contoh: Prestasi Akademik"
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Jumlah Penerima</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Nominal Potongan (Rp)</label>
                     <input 
                       type="number" 
-                      placeholder="0"
+                      value={beasiswaForm.nominal}
+                      onChange={(e) => setBeasiswaForm({...beasiswaForm, nominal: e.target.value})}
+                      placeholder="250000"
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20"
                     />
                   </div>
@@ -2829,16 +2959,40 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Periode</label>
                     <input 
                       type="text" 
+                      value={beasiswaForm.periode}
+                      onChange={(e) => setBeasiswaForm({...beasiswaForm, periode: e.target.value})}
                       placeholder="Contoh: 2025/2026"
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
-                    <select className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700 h-[46px]">
-                      <option>Aktif</option>
-                      <option>Non-Aktif</option>
+                    <select 
+                      value={beasiswaForm.status}
+                      onChange={(e) => setBeasiswaForm({...beasiswaForm, status: e.target.value})}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700 h-[46px]"
+                    >
+                      <option value="Aktif">Aktif</option>
+                      <option value="Non-Aktif">Non-Aktif</option>
                     </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Tanggal Mulai</label>
+                    <input 
+                      type="date" 
+                      value={beasiswaForm.tanggalMulai}
+                      onChange={(e) => setBeasiswaForm({...beasiswaForm, tanggalMulai: e.target.value})}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Tanggal Selesai (Opsional)</label>
+                    <input 
+                      type="date" 
+                      value={beasiswaForm.tanggalSelesai}
+                      onChange={(e) => setBeasiswaForm({...beasiswaForm, tanggalSelesai: e.target.value})}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20"
+                    />
                   </div>
                 </div>
               </div>
@@ -2853,14 +3007,43 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 Batal
               </button>
               <button 
-                onClick={() => {
-                  setShowAddProgramModal(false);
-                  triggerToast("Program baru berhasil ditambahkan!");
-                }}
+                onClick={handleSaveBeasiswa}
                 className="bg-[#1A3D63] hover:bg-[#122A44] text-white py-3 px-8 rounded-xl text-sm font-bold cursor-pointer border-none shadow-md transition-all active:scale-[0.98] flex items-center gap-2"
               >
                 <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                Tambah Program
+                {selectedBeasiswa ? "Simpan Perubahan" : "Tambah Penerima"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Hapus Beasiswa */}
+      {showDeleteBeasiswaModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDeleteBeasiswaModal(false)}></div>
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl relative animate-scaleIn z-10 overflow-hidden">
+            <div className="p-6 pb-0 flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
+                <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              </div>
+              <h2 className="text-xl font-bold text-gray-800 mb-2">Hapus Penerima Beasiswa?</h2>
+              <p className="text-sm text-gray-500 mb-6">
+                Anda yakin ingin menghapus data beasiswa untuk <b>{selectedBeasiswa?.siswa_nama}</b>? Data yang dihapus tidak dapat dikembalikan.
+              </p>
+            </div>
+            <div className="p-6 pt-4 bg-gray-50 flex gap-3">
+              <button 
+                onClick={() => setShowDeleteBeasiswaModal(false)}
+                className="flex-1 bg-white border border-gray-200 text-gray-700 hover:bg-gray-100 py-3 rounded-xl text-sm font-bold cursor-pointer transition-colors"
+              >
+                Batal
+              </button>
+              <button 
+                onClick={handleDeleteBeasiswa}
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl text-sm font-bold cursor-pointer border-none shadow-sm transition-all active:scale-[0.98]"
+              >
+                Ya, Hapus
               </button>
             </div>
           </div>
@@ -3256,6 +3439,168 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
           </div>
         </div>
       )}
+
+      {/* ── Modal: Tambah / Edit Komponen Gaji ──────────────────────────────── */}
+      {showEditKomponenModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+              <div>
+                <h2 className="text-base font-bold text-gray-800">
+                  {selectedKomponen ? 'Edit Komponen Gaji' : 'Tambah Komponen Gaji'}
+                </h2>
+                <p className="text-xs text-gray-400 mt-0.5">Isi data komponen dengan lengkap</p>
+              </div>
+              <button
+                onClick={() => { setShowEditKomponenModal(false); setSelectedKomponen(null); }}
+                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-1.5 transition-colors border-none bg-transparent cursor-pointer"
+              >
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="px-6 py-5 space-y-4">
+              {/* Nama Komponen */}
+              <div>
+                <label className="block text-xs font-bold text-gray-600 mb-1.5">Nama Komponen <span className="text-red-500">*</span></label>
+                <input
+                  type="text"
+                  value={editKomponenForm.name}
+                  onChange={(e) => setEditKomponenForm({ ...editKomponenForm, name: e.target.value })}
+                  placeholder="cth: Tunjangan Makan, Potongan BPJS..."
+                  className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all"
+                />
+              </div>
+
+              {/* Kategori & Tipe */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 mb-1.5">Kategori</label>
+                  <select
+                    value={editKomponenForm.category}
+                    onChange={(e) => setEditKomponenForm({ ...editKomponenForm, category: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all appearance-none bg-white cursor-pointer"
+                  >
+                    <option value="Pendapatan">Pendapatan</option>
+                    <option value="Potongan">Potongan</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 mb-1.5">Formula</label>
+                  <select
+                    value={editKomponenForm.type}
+                    onChange={(e) => setEditKomponenForm({ ...editKomponenForm, type: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all appearance-none bg-white cursor-pointer"
+                  >
+                    <option value="Bulanan">Bulanan (flat)</option>
+                    <option value="Harian">Per Hari Hadir</option>
+                    <option value="Persentase">Persentase Gaji Pokok</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Nominal */}
+              <div>
+                <label className="block text-xs font-bold text-gray-600 mb-1.5">
+                  {editKomponenForm.type === 'Persentase' ? 'Persentase (%)' : 'Nominal (Rp)'} <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-2.5 text-gray-400 text-sm font-medium">
+                    {editKomponenForm.type === 'Persentase' ? '%' : 'Rp'}
+                  </span>
+                  <input
+                    type="number"
+                    value={editKomponenForm.nominal}
+                    onChange={(e) => setEditKomponenForm({ ...editKomponenForm, nominal: e.target.value })}
+                    placeholder={editKomponenForm.type === 'Persentase' ? '5' : '500000'}
+                    className="w-full border border-gray-200 rounded-xl pl-8 pr-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all"
+                  />
+                </div>
+                {editKomponenForm.type === 'Bulanan' && editKomponenForm.nominal && (
+                  <p className="text-[11px] text-gray-400 mt-1">= Rp {Number(editKomponenForm.nominal).toLocaleString('id-ID')}</p>
+                )}
+              </div>
+
+              {/* Status */}
+              <div>
+                <label className="block text-xs font-bold text-gray-600 mb-1.5">Status</label>
+                <div className="flex gap-2">
+                  {['Aktif', 'Non-Aktif'].map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setEditKomponenForm({ ...editKomponenForm, status: s })}
+                      className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                        editKomponenForm.status === s
+                          ? s === 'Aktif'
+                            ? 'bg-[#E6F4EA] text-[#059669] border-[#A7F3D0]'
+                            : 'bg-[#FEE2E2] text-[#DC2626] border-[#FCA5A5]'
+                          : 'bg-white text-gray-400 border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex gap-3 px-6 pb-6">
+              <button
+                onClick={() => { setShowEditKomponenModal(false); setSelectedKomponen(null); }}
+                className="flex-1 py-3 border border-gray-200 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-50 transition-colors cursor-pointer bg-white"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleSaveKomponen}
+                className="flex-1 py-3 bg-[#1A3D63] hover:bg-[#122A44] text-white text-sm font-bold rounded-xl transition-colors cursor-pointer border-none active:scale-95"
+              >
+                {selectedKomponen ? 'Simpan Perubahan' : 'Tambah Komponen'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal: Hapus Komponen Gaji ────────────────────────────────────────── */}
+      {showDeleteKomponenModal && selectedKomponen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden">
+            <div className="p-6 text-center">
+              <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg width="24" height="24" fill="none" stroke="#EF4444" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                </svg>
+              </div>
+              <h3 className="text-base font-bold text-gray-800 mb-1">Hapus Komponen Gaji?</h3>
+              <p className="text-sm text-gray-500 mb-1">
+                <span className="font-bold text-gray-700">{selectedKomponen.nama || selectedKomponen.name}</span>
+              </p>
+              <p className="text-xs text-gray-400 mb-6">Tindakan ini tidak dapat dibatalkan.</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setShowDeleteKomponenModal(false); setSelectedKomponen(null); }}
+                  className="flex-1 py-3 border border-gray-200 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-50 transition-colors cursor-pointer bg-white"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleDeleteKomponen}
+                  className="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white text-sm font-bold rounded-xl transition-colors cursor-pointer border-none active:scale-95"
+                >
+                  Ya, Hapus
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </main>
   );
 };

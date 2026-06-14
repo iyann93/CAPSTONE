@@ -45,7 +45,10 @@ const start = async () => {
 
     process.on('unhandledRejection', (err) => {
       logger.error('Unhandled Rejection:', err.message);
-      server.close(() => process.exit(1));
+      if (env.nodeEnv === 'production') {
+        server.close(() => process.exit(1));
+      }
+      // In development, log but keep server alive
     });
 
   } catch (err) {

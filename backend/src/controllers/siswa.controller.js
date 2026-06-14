@@ -9,7 +9,7 @@ const SiswaController = {
     try {
       const page = parseInt(req.query.page, 10) || 1;
       const limit = parseInt(req.query.limit, 10) || 20;
-      const result = await SiswaService.getAll({ page, limit });
+      const result = await SiswaService.getAll({ ...req.query, page, limit });
       return response.success(res, 200, 'Data siswa berhasil diambil', result.data, result.meta);
     } catch (err) { next(err); }
   },
@@ -25,8 +25,8 @@ const SiswaController = {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) return next(Object.assign(new Error('Validation failed'), { type: 'validation', errors: errors.array() }));
-      const { nis, nama, jenis_kelamin, tanggal_lahir, alamat, no_telepon, email, kelas_id } = req.body;
-      const data = await SiswaService.create({ nis, nama, jenisKelamin: jenis_kelamin, tanggalLahir: tanggal_lahir, alamat, noTelepon: no_telepon, email, kelasId: kelas_id });
+      const { nis, nama_lengkap, jenis_kelamin, tanggal_lahir, alamat, status, kelas_id } = req.body;
+      const data = await SiswaService.create({ nis, nama_lengkap, jenisKelamin: jenis_kelamin, tanggalLahir: tanggal_lahir, alamat, status, kelasId: kelas_id });
       return response.success(res, 201, 'Siswa berhasil ditambahkan', data);
     } catch (err) { next(err); }
   },
@@ -35,8 +35,8 @@ const SiswaController = {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) return next(Object.assign(new Error('Validation failed'), { type: 'validation', errors: errors.array() }));
-      const { nis, nama, jenis_kelamin, tanggal_lahir, alamat, no_telepon, email, kelas_id, is_active } = req.body;
-      const data = await SiswaService.update(req.params.id, { nis, nama, jenisKelamin: jenis_kelamin, tanggalLahir: tanggal_lahir, alamat, noTelepon: no_telepon, email, kelasId: kelas_id, isActive: is_active });
+      const { nis, nama_lengkap, jenis_kelamin, tanggal_lahir, alamat, status, kelas_id } = req.body;
+      const data = await SiswaService.update(req.params.id, { nis, nama_lengkap, jenisKelamin: jenis_kelamin, tanggalLahir: tanggal_lahir, alamat, status, kelasId: kelas_id });
       return response.success(res, 200, 'Data siswa berhasil diperbarui', data);
     } catch (err) { next(err); }
   },

@@ -3,22 +3,22 @@
 const { query } = require('../config/db');
 const { whereBuilder, buildOrderBy } = require('../utils/queryBuilder');
 
-const SORT_MAP = { nama: 's.nama', nis: 's.nis', created_at: 's.created_at', tanggal_lahir: 's.tanggal_lahir' };
+const SORT_MAP = { nama_lengkap: 's.nama_lengkap', nis: 's.nis', created_at: 's.created_at', tanggal_lahir: 's.tanggal_lahir' };
 
 const SiswaRepository = {
-  findAll: async ({ limit, offset, search, sort, kelasId, jenisKelamin, isActive }) => {
+  findAll: async ({ limit, offset, search, sort, kelasId, jenisKelamin, status }) => {
     const wb = whereBuilder();
-    wb.addLike(search, ['s.nama', 's.nis', 's.email']);
+    wb.addLike(search, ['s.nama_lengkap', 's.nis']);
     wb.addExact(kelasId, 's.kelas_id');
     wb.addExact(jenisKelamin, 's.jenis_kelamin');
-    wb.addBool(isActive, 's.is_active');
+    wb.addExact(status, 's.status');
     const { where, values, nextIdx } = wb.build();
-    const orderBy = buildOrderBy(sort, SORT_MAP, 's.nama ASC');
+    const orderBy = buildOrderBy(sort, SORT_MAP, 's.nama_lengkap ASC');
 
     const sql = `
-      SELECT s.id, s.nis, s.nama, s.jenis_kelamin, s.tanggal_lahir,
-             s.alamat, s.no_telepon, s.email, s.is_active,
-             k.nama_kelas, j.nama_jurusan, s.kelas_id, s.created_at
+      SELECT s.id, s.nis, s.nama_lengkap, s.jenis_kelamin, s.tanggal_lahir,
+             s.alamat, s.status,
+             k.nama_kelas, j.nama AS nama_jurusan, s.kelas_id, s.created_at
       FROM academic.siswa s
       LEFT JOIN academic.kelas k ON s.kelas_id = k.id
       LEFT JOIN academic.jurusan j ON k.jurusan_id = j.id
@@ -41,7 +41,7 @@ const SiswaRepository = {
 
   findById: async (id) => {
     const sql = `
-      SELECT s.*, k.nama_kelas, j.nama_jurusan, j.kode_jurusan
+      SELECT s.*, k.nama_kelas, j.nama AS nama_jurusan, j.kode AS kode_jurusan
       FROM academic.siswa s
       LEFT JOIN academic.kelas k ON s.kelas_id = k.id
       LEFT JOIN academic.jurusan j ON k.jurusan_id = j.id
@@ -59,31 +59,29 @@ const SiswaRepository = {
     return result.rows[0] || null;
   },
 
-  create: async ({ nis, nama, jenisKelamin, tanggalLahir, alamat, noTelepon, email, kelasId }) => {
+  create: async ({ nis, nama_lengkap, jenisKelamin, tanggalLahir, alamat, status, kelasId }) => {
     const sql = `
       INSERT INTO academic.siswa
-        (nis, nama, jenis_kelamin, tanggal_lahir, alamat, no_telepon, email, kelas_id, is_active, created_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, NOW()) RETURNING *
+        (nis, nama_lengkap, jenis_kelamin, tanggal_lahir, alamat, kelas_id, status, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6, COALESCE($7, 'Aktif'), NOW()) RETURNING *
     `;
-    const result = await query(sql, [nis, nama, jenisKelamin, tanggalLahir, alamat, noTelepon, email, kelasId]);
+    const result = await query(sql, [nis, nama_lengkap, jenisKelamin, tanggalLahir, alamat, kelasId, status]);
     return result.rows[0];
   },
 
-  update: async (id, { nis, nama, jenisKelamin, tanggalLahir, alamat, noTelepon, email, kelasId, isActive }) => {
+  update: async (id, { nis, nama_lengkap, jenisKelamin, tanggalLahir, alamat, status, kelasId }) => {
     const sql = `
       UPDATE academic.siswa
       SET nis           = COALESCE($1, nis),
-          nama          = COALESCE($2, nama),
+          nama_lengkap  = COALESCE($2, nama_lengkap),
           jenis_kelamin = COALESCE($3, jenis_kelamin),
           tanggal_lahir = COALESCE($4, tanggal_lahir),
           alamat        = COALESCE($5, alamat),
-          no_telepon    = COALESCE($6, no_telepon),
-          email         = COALESCE($7, email),
-          kelas_id      = COALESCE($8, kelas_id),
-          is_active     = COALESCE($9, is_active)
-      WHERE id = $10 RETURNING *
+          kelas_id      = COALESCE($6, kelas_id),
+          status        = COALESCE($7, status)
+      WHERE id = $8 RETURNING *
     `;
-    const result = await query(sql, [nis, nama, jenisKelamin, tanggalLahir, alamat, noTelepon, email, kelasId, isActive, id]);
+    const result = await query(sql, [nis, nama_lengkap, jenisKelamin, tanggalLahir, alamat, kelasId, status, id]);
     return result.rows[0] || null;
   },
 
