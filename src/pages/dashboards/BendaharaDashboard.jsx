@@ -161,12 +161,12 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const [billClass, setBillClass] = useState("Semua Kelas");
   const [billAmount, setBillAmount] = useState("250000");
   const [billDueDate, setBillDueDate] = useState("2026-06-10");
-  
+
   // Beasiswa Modal State
   const [showAddProgramModal, setShowAddProgramModal] = useState(false);
   const [showDeleteBeasiswaModal, setShowDeleteBeasiswaModal] = useState(false);
   const [beasiswaTab, setBeasiswaTab] = useState("penerima"); // Default to penerima
-  
+
   const [beasiswaList, setBeasiswaList] = useState([]);
   const [siswaList, setSiswaList] = useState([]);
   const [selectedBeasiswa, setSelectedBeasiswa] = useState(null);
@@ -183,15 +183,18 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   // Pengaturan SPP states
   const [sppSettingTab, setSppSettingTab] = useState("nominal");
   const [sppList, setSppList] = useState([
-    { id: 1, grade: "Kelas VII SMP", ta: "2025/2026", amount: "Rp 250.000", amountNum: 250000, denda: 15000, jatuhTempo: 10, catatan: "Berlaku mulai Juli 2025" },
-    { id: 2, grade: "Kelas VIII SMP", ta: "2025/2026", amount: "Rp 275.000", amountNum: 275000, denda: 15000, jatuhTempo: 10, catatan: "Berlaku mulai Juli 2025" },
-    { id: 3, grade: "Kelas IX SMP", ta: "2025/2026", amount: "Rp 300.000", amountNum: 300000, denda: 15000, jatuhTempo: 10, catatan: "Berlaku mulai Juli 2025" }
+    { id: 1, grade: "Kelas VII", ta: "2025/2026", amount: "Rp 250.000", amountNum: 250000, denda: 15000 },
+    { id: 2, grade: "Kelas VIII", ta: "2025/2026", amount: "Rp 275.000", amountNum: 275000, denda: 15000 },
+    { id: 3, grade: "Kelas IX", ta: "2025/2026", amount: "Rp 300.000", amountNum: 300000, denda: 15000 }
   ]);
   const [editingSppId, setEditingSppId] = useState(null);
   const [editSppAmount, setEditSppAmount] = useState("");
   const [editSppDenda, setEditSppDenda] = useState("");
-  const [editSppJatuhTempo, setEditSppJatuhTempo] = useState("");
-  const [editSppCatatan, setEditSppCatatan] = useState("");
+  const [globalSppBerlaku, setGlobalSppBerlaku] = useState("2025-07-01");
+  const [globalSppJatuhTempo, setGlobalSppJatuhTempo] = useState("2025-07-10");
+  const [editGlobalSppBerlaku, setEditGlobalSppBerlaku] = useState("2025-07-01");
+  const [editGlobalSppJatuhTempo, setEditGlobalSppJatuhTempo] = useState("2025-07-10");
+  const [isEditingGlobalJadwal, setIsEditingGlobalJadwal] = useState(false);
   const [editSppGrade, setEditSppGrade] = useState("");
   const [editSppTa, setEditSppTa] = useState("");
 
@@ -247,7 +250,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const [generateForm, setGenerateForm] = useState({
     bulan: String(new Date().getMonth() + 1),
     tahun: String(new Date().getFullYear()),
-    jatuh_tempo: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2,'0')}-10`
+    jatuh_tempo: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-10`
   });
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -272,9 +275,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
         tipe: editKomponenForm.category === 'Pendapatan' ? 'tunjangan' : 'potongan',
         // kategori must be 'guru', 'staf', or 'umum'. UI doesn't specify, default to 'umum'
         kategori: 'umum',
-        formula_tipe: editKomponenForm.type === 'Bulanan' ? 'flat' : 
-                      editKomponenForm.type === 'Harian' ? 'per_hari_hadir' : 
-                      editKomponenForm.type === 'Persentase' ? 'persen_gaji_pokok' : 'flat',
+        formula_tipe: editKomponenForm.type === 'Bulanan' ? 'flat' :
+          editKomponenForm.type === 'Harian' ? 'per_hari_hadir' :
+            editKomponenForm.type === 'Persentase' ? 'persen_gaji_pokok' : 'flat',
         nominal_default: editKomponenForm.type === 'Persentase' ? 0 : Number(editKomponenForm.nominal),
         nilai_satuan: editKomponenForm.type === 'Persentase' ? Number(editKomponenForm.nominal) : 0,
         is_aktif: editKomponenForm.status === 'Aktif'
@@ -398,9 +401,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     const name = row.siswa_nama || row.name || '';
     const nis = row.nis || '';
     const kelas = row.nama_kelas || row.class || '';
-    const matchesSearch = name.toLowerCase().includes(billSearchQuery.toLowerCase()) || 
-                          nis.includes(billSearchQuery);
-    
+    const matchesSearch = name.toLowerCase().includes(billSearchQuery.toLowerCase()) ||
+      nis.includes(billSearchQuery);
+
     if (billClassFilter === "Semua") return matchesSearch;
     const targetGrade = billClassFilter.replace("Kelas ", "");
     const matchesClass = kelas.startsWith(targetGrade);
@@ -408,7 +411,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   });
 
   const formatBulan = (bulan, tahun) => {
-    const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
     if (!bulan) return '';
     return `${months[(parseInt(bulan) - 1) % 12]} ${tahun || ''}`;
   };
@@ -436,7 +439,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               </div>
               <div className="flex gap-2 sm:gap-3 items-center flex-wrap">
                 <div className="relative">
-                  <select 
+                  <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}
                     className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
@@ -448,8 +451,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     <IconChevronDown />
                   </span>
                 </div>
-                
-                <button 
+
+                <button
                   onClick={() => setShowGenerateMonthModal(true)}
                   className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-4 sm:px-5 py-2.5 text-xs sm:text-[13px] font-bold cursor-pointer transition-all active:scale-95 shadow-[0_10px_20px_-10px_rgba(26,61,99,0.3)]"
                 >
@@ -626,11 +629,10 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                           <td className="py-4 px-2 font-bold text-gray-700">{row.amount}</td>
                           <td className="py-4 px-2 text-gray-500">{row.period}</td>
                           <td className="py-4 px-2 text-right">
-                            <span className={`px-2 py-0.5 rounded-md font-bold inline-block text-[9px] ${
-                              row.status === "Lunas" ? "bg-[#E6F4EA] text-[#137333]" :
+                            <span className={`px-2 py-0.5 rounded-md font-bold inline-block text-[9px] ${row.status === "Lunas" ? "bg-[#E6F4EA] text-[#137333]" :
                               row.status === "Cicilan" ? "bg-[#FEF7E0] text-[#B06000]" :
-                              "bg-[#FCE8E6] text-[#C5221F]"
-                            }`}>
+                                "bg-[#FCE8E6] text-[#C5221F]"
+                              }`}>
                               {row.status}
                             </span>
                           </td>
@@ -664,10 +666,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                           <td className="py-4 px-2 text-gray-500 font-medium">{row.role}</td>
                           <td className="py-4 px-2 font-bold text-gray-700">{row.salary}</td>
                           <td className="py-4 px-2 text-right">
-                            <span className={`px-2 py-0.5 rounded-md font-bold inline-block text-[9px] ${
-                              row.status === "Sudah Transfer" ? "bg-[#E6F4EA] text-[#137333]" :
+                            <span className={`px-2 py-0.5 rounded-md font-bold inline-block text-[9px] ${row.status === "Sudah Transfer" ? "bg-[#E6F4EA] text-[#137333]" :
                               "bg-[#FEF7E0] text-[#B06000]"
-                            }`}>
+                              }`}>
                               {row.status}
                             </span>
                           </td>
@@ -692,20 +693,20 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               </div>
               <div className="flex gap-2 sm:gap-3 items-center flex-wrap">
                 <div className="relative">
-                  <select 
+                  <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}
                     className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-                    
+
                   </select>
                   <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
                     <IconChevronDown />
                   </span>
                 </div>
-                
-                <button 
+
+                <button
                   onClick={() => setShowGenerateMonthModal(true)}
                   className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-4 sm:px-5 py-2.5 text-xs sm:text-[13px] font-bold cursor-pointer transition-all active:scale-95 shadow-[0_10px_20px_-10px_rgba(26,61,99,0.3)]"
                 >
@@ -767,11 +768,11 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
                 {/* Search Input */}
                 <div className="relative flex-1 max-w-md">
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={billSearchQuery}
                     onChange={(e) => setBillSearchQuery(e.target.value)}
-                    placeholder="Cari nama atau NIS..." 
+                    placeholder="Cari nama atau NIS..."
                     className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-[#1A3D63] font-medium"
                   />
                   <span className="absolute left-3.5 top-3.5 text-gray-400">
@@ -788,19 +789,18 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                         <button
                           key={tab}
                           onClick={() => setBillClassFilter(tab)}
-                          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border-none ${
-                            isActive 
-                              ? "bg-[#1A3D63] text-white shadow-sm" 
-                              : "text-gray-500 hover:text-gray-900 bg-transparent"
-                          }`}
+                          className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border-none ${isActive
+                            ? "bg-[#1A3D63] text-white shadow-sm"
+                            : "text-gray-500 hover:text-gray-900 bg-transparent"
+                            }`}
                         >
                           {tab}
                         </button>
                       );
                     })}
                   </div>
-                  
-                  <button 
+
+                  <button
                     onClick={() => triggerToast("Mengekspor data tagihan SPP ke file Excel...")}
                     className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all border-solid"
                   >
@@ -907,7 +907,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-                    
+
                   </select>
                   <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
                     <IconChevronDown />
@@ -931,11 +931,10 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <button
                   key={tab.key}
                   onClick={() => setSppSettingTab(tab.key)}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-[13px] font-bold transition-all cursor-pointer border-none ${
-                    sppSettingTab === tab.key
-                      ? "bg-[#1A3D63] text-white shadow-sm"
-                      : "text-gray-500 hover:text-gray-800 bg-transparent"
-                  }`}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs sm:text-[13px] font-bold transition-all cursor-pointer border-none ${sppSettingTab === tab.key
+                    ? "bg-[#1A3D63] text-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-800 bg-transparent"
+                    }`}
                 >
                   <span className="text-sm">{tab.icon}</span>
                   {tab.label}
@@ -949,10 +948,12 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 {/* 3 Quick View Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {sppList.map((item) => (
-                    <div key={item.id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-                      <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{item.grade}</div>
-                      <div className="text-3xl font-black text-gray-800 mb-2">{item.amount}</div>
-                      <div className="text-[11px] text-gray-400">Denda: Rp {item.denda.toLocaleString("id-ID")}/bln · Jatuh tempo tgl {item.jatuhTempo}</div>
+                    <div key={item.id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col justify-between">
+                      <div>
+                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{item.grade}</div>
+                        <div className="text-3xl font-black text-gray-800 mb-2">{item.amount}</div>
+                      </div>
+                      <div className="text-[11px] text-gray-400 mt-2">Berlaku: {formatTanggal(globalSppBerlaku)} · Jatuh tempo: {formatTanggal(globalSppJatuhTempo)}</div>
                     </div>
                   ))}
                 </div>
@@ -969,18 +970,16 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                       return (
                         <div
                           key={item.id}
-                          className={`border rounded-xl transition-all duration-200 ${
-                            isEditing
-                              ? "border-[#1A3D63] shadow-[0_0_0_3px_rgba(26,61,99,0.1)] p-5"
-                              : "border-gray-100 hover:bg-gray-50/50 p-4"
-                          }`}
+                          className={`border rounded-xl transition-all duration-200 ${isEditing
+                            ? "border-[#1A3D63] shadow-[0_0_0_3px_rgba(26,61,99,0.1)] p-5"
+                            : "border-gray-100 hover:bg-gray-50/50 p-4"
+                            }`}
                         >
                           {/* Header row (always visible) */}
                           <div className="flex items-center gap-4">
                             {/* Icon */}
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0 ${
-                              isEditing ? "bg-[#1A3D63] text-white" : "bg-blue-50 text-blue-500"
-                            }`}>
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm flex-shrink-0 ${isEditing ? "bg-[#1A3D63] text-white" : "bg-blue-50 text-blue-500"
+                              }`}>
                               $
                             </div>
 
@@ -992,7 +991,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                               </div>
                               {!isEditing && (
                                 <div className="text-[11px] text-gray-400 mt-0.5">
-                                  {item.amount}/bln · Denda Rp {item.denda.toLocaleString("id-ID")} · Jatuh tempo tgl {item.jatuhTempo}
+                                  {item.amount}/bln · Berlaku: {formatTanggal(globalSppBerlaku)} · Jatuh tempo: {formatTanggal(globalSppJatuhTempo)}
                                 </div>
                               )}
                             </div>
@@ -1017,9 +1016,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                       ta: editSppTa,
                                       amount: `Rp ${Number(editSppAmount).toLocaleString("id-ID")}`,
                                       amountNum: Number(editSppAmount),
-                                      denda: Number(editSppDenda),
-                                      jatuhTempo: Number(editSppJatuhTempo),
-                                      catatan: editSppCatatan
+                                      denda: Number(editSppDenda)
                                     } : s));
                                     setEditingSppId(null);
                                     triggerToast(`Nominal ${editSppGrade} berhasil diperbarui!`);
@@ -1039,8 +1036,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                     setEditingSppId(item.id);
                                     setEditSppAmount(String(item.amountNum));
                                     setEditSppDenda(String(item.denda));
-                                    setEditSppJatuhTempo(String(item.jatuhTempo));
-                                    setEditSppCatatan(item.catatan);
                                     setEditSppGrade(item.grade);
                                     setEditSppTa(item.ta);
                                   }}
@@ -1073,41 +1068,33 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                   <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Tahun Ajaran</label>
-                                  <input
-                                    type="text"
-                                    value={editSppTa}
-                                    onChange={(e) => setEditSppTa(e.target.value)}
-                                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#1A3D63] transition-colors"
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Nominal SPP (Rp)</label>
-                                  <input
-                                    type="number"
-                                    value={editSppAmount}
-                                    onChange={(e) => setEditSppAmount(e.target.value)}
-                                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm font-bold text-gray-800 focus:outline-none focus:border-[#1A3D63] transition-colors"
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Jatuh Tempo</label>
                                   <div className="relative">
-                                    <input
-                                      type="date"
-                                      value={editSppJatuhTempo}
-                                      onChange={(e) => setEditSppJatuhTempo(e.target.value)}
-                                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#1A3D63] transition-colors"
-                                    />
+                                    <select
+                                      value={editSppTa}
+                                      onChange={(e) => setEditSppTa(e.target.value)}
+                                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#1A3D63] transition-colors appearance-none bg-white cursor-pointer"
+                                    >
+                                      <option value="2025/2026">2025/2026</option>
+                                    </select>
+                                    <span className="absolute right-3 top-3 text-gray-400 pointer-events-none">
+                                      <IconChevronDown />
+                                    </span>
                                   </div>
                                 </div>
                                 <div>
-                                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Catatan</label>
-                                  <input
-                                    type="text"
-                                    value={editSppCatatan}
-                                    onChange={(e) => setEditSppCatatan(e.target.value)}
-                                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#1A3D63] transition-colors"
-                                  />
+                                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Nominal SPP (Rp)</label>
+                                  <div className="relative">
+                                    <span className="absolute left-3 top-2.5 text-sm font-bold text-gray-500 pointer-events-none select-none">Rp</span>
+                                    <input
+                                      type="text"
+                                      value={editSppAmount ? Number(editSppAmount.toString().replace(/\D/g, '')).toLocaleString('id-ID') : ''}
+                                      onChange={(e) => {
+                                        const rawValue = e.target.value.replace(/\D/g, '');
+                                        setEditSppAmount(rawValue);
+                                      }}
+                                      className="w-full border border-gray-200 rounded-lg pl-9 pr-3 py-2.5 text-sm font-bold text-gray-800 focus:outline-none focus:border-[#1A3D63] transition-colors"
+                                    />
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -1133,11 +1120,107 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             {/* Tab: Kalender Pembayaran */}
             {sppSettingTab === "kalender" && (
               <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                {/* Pengaturan Jadwal SPP */}
+                <div className={`mb-8 rounded-2xl border transition-all ${isEditingGlobalJadwal ? "bg-blue-50/30 border-blue-100 p-5 sm:p-6 shadow-sm" : "bg-transparent border-gray-100 p-5"}`}>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-sm font-bold text-gray-800">Pengaturan Jadwal SPP</h3>
+                      {!isEditingGlobalJadwal && (
+                        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-2">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">Berlaku:</span>
+                            <span className="text-xs font-semibold text-gray-700">{formatTanggal(globalSppBerlaku)}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">Jatuh Tempo:</span>
+                            <span className="text-xs font-semibold text-gray-700">{formatTanggal(globalSppJatuhTempo)}</span>
+                          </div>
+                        </div>
+                      )}
+                      {isEditingGlobalJadwal && (
+                        <p className="text-[11px] text-gray-500 mt-1">Ubah tanggal berlaku dan jatuh tempo bulanan untuk seluruh tagihan kelas.</p>
+                      )}
+                    </div>
+
+                    {!isEditingGlobalJadwal && (
+                      <button
+                        onClick={() => {
+                          setEditGlobalSppBerlaku(globalSppBerlaku);
+                          setEditGlobalSppJatuhTempo(globalSppJatuhTempo);
+                          setIsEditingGlobalJadwal(true);
+                        }}
+                        className="flex items-center gap-1.5 bg-white hover:bg-gray-50 border border-gray-200 text-gray-600 px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all border-solid shadow-sm"
+                      >
+                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
+                        </svg>
+                        Edit Jadwal
+                      </button>
+                    )}
+                  </div>
+
+                  {isEditingGlobalJadwal && (
+                    <div className="mt-5 pt-5 border-t border-blue-100/50">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                        <div>
+                          <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Tanggal Berlaku</label>
+                          <div className="relative">
+                            <input
+                              type="date"
+                              value={editGlobalSppBerlaku}
+                              onChange={(e) => setEditGlobalSppBerlaku(e.target.value)}
+                              className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#1A3D63] transition-colors"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Jatuh Tempo Bulanan</label>
+                          <div className="relative">
+                            <input
+                              type="date"
+                              value={editGlobalSppJatuhTempo}
+                              onChange={(e) => setEditGlobalSppJatuhTempo(e.target.value)}
+                              className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#1A3D63] transition-colors"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex justify-end gap-3 mt-2 pt-5 border-t border-gray-200/60">
+                        <button
+                          onClick={() => {
+                            setEditGlobalSppBerlaku(globalSppBerlaku);
+                            setEditGlobalSppJatuhTempo(globalSppJatuhTempo);
+                            setIsEditingGlobalJadwal(false);
+                            triggerToast("Perubahan dibatalkan.");
+                          }}
+                          className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-600 px-6 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer border-solid shadow-sm"
+                        >
+                          Batal
+                        </button>
+                        <button
+                          onClick={() => {
+                            setGlobalSppBerlaku(editGlobalSppBerlaku);
+                            setGlobalSppJatuhTempo(editGlobalSppJatuhTempo);
+                            setIsEditingGlobalJadwal(false);
+                            triggerToast("Jadwal SPP berhasil disimpan!");
+                          }}
+                          className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 border-none cursor-pointer"
+                        >
+                          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z" />
+                          </svg>
+                          Simpan
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <div className="mb-6">
                   <h3 className="text-sm font-bold text-gray-800">Kalender Tagihan SPP Tahun Ajaran 2025/2026</h3>
                   <p className="text-[11px] text-gray-400 mt-1">Periode penagihan SPP Juli 2025 — Juni 2026</p>
                 </div>
-                
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                   {[
                     { month: "Juli 2025", active: false, hasDetails: true },
@@ -1153,29 +1236,27 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     { month: "Mei 2026", active: true, hasDetails: true },
                     { month: "Juni 2026", active: false, hasDetails: false }
                   ].map((item, i) => (
-                    <div 
-                      key={i} 
-                      className={`p-4 rounded-xl border ${
-                        item.active 
-                          ? "border-blue-500 bg-blue-50/30" 
-                          : "border-gray-100 bg-white"
-                      } h-[84px] flex flex-col justify-center`}
+                    <div
+                      key={i}
+                      className={`p-4 rounded-xl border ${item.active
+                        ? "border-blue-500 bg-blue-50/30"
+                        : "border-gray-100 bg-white"
+                        } h-[84px] flex flex-col justify-center`}
                     >
                       <div className="flex items-center gap-2">
-                        <span className={`text-sm ${
-                          item.active 
-                            ? "font-bold text-blue-700" 
-                            : item.hasDetails 
-                              ? "font-bold text-gray-700" 
-                              : "font-semibold text-gray-400"
-                        }`}>
+                        <span className={`text-sm ${item.active
+                          ? "font-bold text-blue-700"
+                          : item.hasDetails
+                            ? "font-bold text-gray-700"
+                            : "font-semibold text-gray-400"
+                          }`}>
                           {item.month}
                         </span>
                         {item.active && (
                           <span className="bg-blue-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">Aktif</span>
                         )}
                       </div>
-                      
+
                       {item.hasDetails && (
                         <div className={`text-[10px] mt-1 ${item.active ? "text-blue-500/80" : "text-gray-400"}`}>
                           Jatuh tempo tgl 10 · Kelas VII-IX
@@ -1196,19 +1277,19 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               <h2 className="text-xl font-bold text-gray-800">Catat Pembayaran SPP</h2>
               <p className="text-sm text-gray-500 mt-1">Input dan konfirmasi pembayaran SPP siswa secara manual maupun online.</p>
             </div>
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
               {/* Main Content: Cari Siswa & List */}
               <div className="flex flex-col gap-6">
-                
+
                 {/* Search & List */}
                 <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
                   <div className="relative mb-6">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                       <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
                     </div>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       placeholder="Cari nama siswa atau NIS..."
                       className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:bg-white transition-colors"
                     />
@@ -1228,7 +1309,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                       ))}
                     </div>
                   </div>
-                  
+
                   <div className="flex flex-col gap-3">
                     {[
                       { id: 1, name: "Budi Prasetyo", class: "VIII A", nis: "2024/003", arrear: "1 bulan", amount: "Rp 275.000", totalAmount: "Rp 550.000", totalMonths: "2 bln", selected: true },
@@ -1267,7 +1348,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                       </div>
                       <div className="text-sm font-bold text-[#0F9D58]">Rp 250.000</div>
                     </div>
-                    
+
                     <div className="w-full h-px bg-gray-50"></div>
 
                     <div className="flex items-start justify-between">
@@ -1305,7 +1386,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               {/* Sidebar: Form Pembayaran */}
               <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm h-fit sticky top-6">
                 <h3 className="text-sm font-bold text-gray-800 mb-5">Form Pembayaran</h3>
-                
+
                 <div className="bg-gray-50 rounded-xl p-4 mb-6">
                   <div className="text-sm font-bold text-gray-800">Budi Prasetyo</div>
                   <div className="text-[11px] text-gray-500 mt-1">VIII A</div>
@@ -1330,7 +1411,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   </select>
                 </div>
 
-                <button 
+                <button
                   onClick={() => triggerToast('Pembayaran berhasil dikonfirmasi!')}
                   className="w-full flex items-center justify-center gap-2 bg-[#0F9D58] hover:bg-[#0b8043] text-white py-3 rounded-xl text-xs font-bold transition-all active:scale-[0.98] border-none cursor-pointer"
                 >
@@ -1358,7 +1439,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   Tahun Ajaran: 2025/2026
                   <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
                 </div>
-                <button 
+                <button
                   onClick={() => {
                     setSelectedBeasiswa(null);
                     setBeasiswaForm({
@@ -1402,13 +1483,13 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
             {/* Tabs */}
             <div className="flex gap-6 border-b border-gray-200 mb-6">
-              <div 
+              <div
                 className={`text-sm font-bold pb-3 cursor-pointer ${beasiswaTab === "program" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-400 hover:text-gray-600"}`}
                 onClick={() => setBeasiswaTab("program")}
               >
                 Daftar Program (6)
               </div>
-              <div 
+              <div
                 className={`text-sm font-bold pb-3 cursor-pointer ${beasiswaTab === "penerima" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-400 hover:text-gray-600"}`}
                 onClick={() => setBeasiswaTab("penerima")}
               >
@@ -1430,9 +1511,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   <div key={i} className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between gap-4">
                     <div className="flex justify-between items-start gap-4">
                       <div className="flex items-start gap-3">
-                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                          item.typeColor === 'blue' ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'
-                        }`}>
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${item.typeColor === 'blue' ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'
+                          }`}>
                           <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1 0 9.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1 1 14.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
                           </svg>
@@ -1451,20 +1531,18 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                         </button>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-2 flex-wrap mt-2">
-                      <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold ${
-                        item.typeColor === 'blue' ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'
-                      }`}>{item.type}</span>
-                      
+                      <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold ${item.typeColor === 'blue' ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'
+                        }`}>{item.type}</span>
+
                       <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-[#E6F4EA] text-[#137333]">
                         {item.amount}
                       </span>
-                      
-                      <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold ${
-                        item.status === 'Aktif' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'
-                      }`}>{item.status}</span>
-                      
+
+                      <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold ${item.status === 'Aktif' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'
+                        }`}>{item.status}</span>
+
                       <span className="flex items-center gap-1 text-[11px] text-gray-500 font-medium ml-2">
                         <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" /></svg>
                         {item.users}
@@ -1569,13 +1647,13 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               </div>
               <div className="flex items-center gap-3">
                 <div className="relative">
-                  <select 
+                  <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}
                     className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-                    
+
                   </select>
                   <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
                     <IconChevronDown />
@@ -1593,29 +1671,29 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             {/* Stat Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
               {[
-                { 
-                  title: "Total Siswa Menunggak", 
-                  value: "6", 
+                {
+                  title: "Total Siswa Menunggak",
+                  value: "6",
                   desc: "Mei 2026",
-                  color: "border-l-4 border-l-[#EF4444]" 
+                  color: "border-l-4 border-l-[#EF4444]"
                 },
-                { 
-                  title: "Total Nominal Tunggakan", 
-                  value: "Rp 2.7 Jt", 
+                {
+                  title: "Total Nominal Tunggakan",
+                  value: "Rp 2.7 Jt",
                   desc: "Akumulasi",
-                  color: "border-l-4 border-l-[#EF4444]" 
+                  color: "border-l-4 border-l-[#EF4444]"
                 },
-                { 
-                  title: "Sudah Ditagih", 
-                  value: "0/6", 
+                {
+                  title: "Sudah Ditagih",
+                  value: "0/6",
                   desc: "Notifikasi terkirim",
-                  color: "border-l-4 border-l-[#10B981]" 
+                  color: "border-l-4 border-l-[#10B981]"
                 },
-                { 
-                  title: "Rata-rata Keterlambatan", 
-                  value: "1,5 Bln", 
+                {
+                  title: "Rata-rata Keterlambatan",
+                  value: "1,5 Bln",
                   desc: "Per siswa",
-                  color: "border-l-4 border-l-[#F59E0B]" 
+                  color: "border-l-4 border-l-[#F59E0B]"
                 }
               ].map((card, idx) => (
                 <div key={idx} className={`bg-white rounded-2xl border border-gray-100 p-5 shadow-sm ${card.color}`}>
@@ -1634,8 +1712,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
                       <IconSearch />
                     </div>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       placeholder="Cari nama atau kelas..."
                       className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-xs sm:text-[13px] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all"
                     />
@@ -1644,18 +1722,17 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     {["Semua", "Kritikal", "Menengah", "Ringan"].map((tab, idx) => (
                       <button
                         key={tab}
-                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border-none whitespace-nowrap ${
-                          idx === 0
-                            ? "bg-[#1A3D63] text-white shadow-sm"
-                            : "text-gray-500 hover:text-gray-900 bg-transparent"
-                        }`}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border-none whitespace-nowrap ${idx === 0
+                          ? "bg-[#1A3D63] text-white shadow-sm"
+                          : "text-gray-500 hover:text-gray-900 bg-transparent"
+                          }`}
                       >
                         {tab}
                       </button>
                     ))}
                   </div>
                 </div>
-                
+
                 <button
                   onClick={() => triggerToast("Mengekspor data tunggakan...")}
                   className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all w-full sm:w-auto"
@@ -1704,16 +1781,15 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                         </td>
                         <td className="p-4 font-bold text-[#EF4444]">{row.total}</td>
                         <td className="p-4">
-                          <span className={`font-bold px-2.5 py-1 rounded-md text-[10px] inline-block ${
-                            row.status === 'Kritikal' ? 'bg-[#FEE2E2] text-[#EF4444]' :
+                          <span className={`font-bold px-2.5 py-1 rounded-md text-[10px] inline-block ${row.status === 'Kritikal' ? 'bg-[#FEE2E2] text-[#EF4444]' :
                             row.status === 'Menengah' ? 'bg-[#FEF3C7] text-[#D97706]' :
-                            'bg-gray-100 text-gray-500'
-                          }`}>
+                              'bg-gray-100 text-gray-500'
+                            }`}>
                             {row.status}
                           </span>
                         </td>
                         <td className="p-4 pr-5">
-                          <button 
+                          <button
                             onClick={() => triggerToast(`Mengirim tagihan ke ${row.name}...`)}
                             className="bg-[#1A3D63] hover:bg-[#122A44] text-white font-bold text-[10px] px-3 py-1.5 rounded-lg cursor-pointer border-none flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
                           >
@@ -1741,7 +1817,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               </div>
               <div className="flex items-center gap-3">
                 <div className="relative">
-                  <select 
+                  <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}
                     className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
@@ -1752,8 +1828,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     <IconChevronDown />
                   </span>
                 </div>
-                
-                <button 
+
+                <button
                   onClick={() => {
                     setSelectedKomponen(null);
                     setEditKomponenForm({ name: "", category: "Pendapatan", type: "Bulanan", nominal: "", status: "Aktif" });
@@ -1798,13 +1874,13 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
                     <IconSearch />
                   </div>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder="Cari nama komponen..."
                     className="w-full pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-xs sm:text-[13px] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all"
                   />
                 </div>
-                
+
                 <button
                   onClick={() => triggerToast("Membuka pengaturan rumus gaji...")}
                   className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all w-full sm:w-auto"
@@ -1837,37 +1913,36 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                             <span className="font-bold text-gray-800">{row.nama}</span>
                           </td>
                           <td className="p-4">
-                            <span className={`font-bold px-2.5 py-1 rounded-md text-[10px] inline-block ${
-                              row.kategori === 'pendapatan' ? 'bg-[#E6F4EA] text-[#10B981]' : 'bg-[#FEE2E2] text-[#EF4444]'
-                            }`}>
+                            <span className={`font-bold px-2.5 py-1 rounded-md text-[10px] inline-block ${row.kategori === 'pendapatan' ? 'bg-[#E6F4EA] text-[#10B981]' : 'bg-[#FEE2E2] text-[#EF4444]'
+                              }`}>
                               {row.kategori === 'pendapatan' ? 'Pendapatan' : 'Potongan'}
                             </span>
                           </td>
                           <td className="p-4 text-gray-500 font-medium">
-                            {row.formula_tipe === 'flat' ? 'Bulanan' : 
-                             row.formula_tipe === 'per_hari_hadir' ? 'Harian' : 
-                             row.formula_tipe === 'persen_gaji_pokok' ? 'Persentase' : row.formula_tipe}
+                            {row.formula_tipe === 'flat' ? 'Bulanan' :
+                              row.formula_tipe === 'per_hari_hadir' ? 'Harian' :
+                                row.formula_tipe === 'persen_gaji_pokok' ? 'Persentase' : row.formula_tipe}
                           </td>
                           <td className="p-4 font-bold text-gray-800">
-                            {row.formula_tipe === 'persen_gaji_pokok' ? `${row.nilai_satuan}%` : 
-                             row.nominal_default > 0 ? `Rp ${parseInt(row.nominal_default).toLocaleString('id-ID')}` : 'Varies'}
+                            {row.formula_tipe === 'persen_gaji_pokok' ? `${row.nilai_satuan}%` :
+                              row.nominal_default > 0 ? `Rp ${parseInt(row.nominal_default).toLocaleString('id-ID')}` : 'Varies'}
                           </td>
                           <td className="p-4">
                             <span className="text-[#3B82F6] font-bold text-[11px]">{row.is_aktif ? "Aktif" : "Non-Aktif"}</span>
                           </td>
                           <td className="p-4 pr-5">
                             <div className="flex items-center justify-end gap-2">
-                              <button 
+                              <button
                                 onClick={() => {
                                   setSelectedKomponen(row);
-                                  setEditKomponenForm({ 
-                                    name: row.nama, 
-                                    category: row.kategori === 'pendapatan' ? 'Pendapatan' : 'Potongan', 
-                                    type: row.formula_tipe === 'flat' ? 'Bulanan' : 
-                                          row.formula_tipe === 'per_hari_hadir' ? 'Harian' : 
-                                          row.formula_tipe === 'persen_gaji_pokok' ? 'Persentase' : 'Bulanan', 
-                                    nominal: row.formula_tipe === 'persen_gaji_pokok' ? row.nilai_satuan : row.nominal_default, 
-                                    status: row.is_aktif ? "Aktif" : "Non-Aktif" 
+                                  setEditKomponenForm({
+                                    name: row.nama,
+                                    category: row.kategori === 'pendapatan' ? 'Pendapatan' : 'Potongan',
+                                    type: row.formula_tipe === 'flat' ? 'Bulanan' :
+                                      row.formula_tipe === 'per_hari_hadir' ? 'Harian' :
+                                        row.formula_tipe === 'persen_gaji_pokok' ? 'Persentase' : 'Bulanan',
+                                    nominal: row.formula_tipe === 'persen_gaji_pokok' ? row.nilai_satuan : row.nominal_default,
+                                    status: row.is_aktif ? "Aktif" : "Non-Aktif"
                                   });
                                   setShowEditKomponenModal(true);
                                 }}
@@ -1876,7 +1951,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                               >
                                 <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" /></svg>
                               </button>
-                              <button 
+                              <button
                                 onClick={() => {
                                   setSelectedKomponen({ ...row, name: row.nama, category: row.kategori === 'pendapatan' ? 'Pendapatan' : 'Potongan', nominal: row.formula_tipe === 'persen_gaji_pokok' ? `${row.nilai_satuan}%` : `Rp ${parseInt(row.nominal_default).toLocaleString('id-ID')}` });
                                   setShowDeleteKomponenModal(true);
@@ -2087,8 +2162,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
                     <IconSearch />
                   </div>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder="Cari nama pegawai..."
                     className="w-full pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-100 rounded-xl text-xs sm:text-[13px] focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all font-medium"
                   />
@@ -2121,18 +2196,17 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                         <td className="py-4 px-4 text-gray-500 font-medium">{row.role}</td>
                         <td className="py-4 px-4 font-bold text-gray-800">{row.salary}</td>
                         <td className="py-4 px-4">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold inline-block ${
-                            row.status === 'Sudah Dibayar' ? 'bg-[#E6F4EA] text-[#059669]' : 
+                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold inline-block ${row.status === 'Sudah Dibayar' ? 'bg-[#E6F4EA] text-[#059669]' :
                             row.status === 'Proses Transfer' ? 'bg-blue-50 text-blue-600' :
-                            'bg-[#FEE2E2] text-[#EF4444]'
-                          }`}>
+                              'bg-[#FEE2E2] text-[#EF4444]'
+                            }`}>
                             {row.status}
                           </span>
                         </td>
                         <td className="py-4 px-4 text-gray-500 font-medium">{row.date}</td>
                         <td className="py-4 px-4 text-gray-500 font-medium">{row.bank}</td>
                         <td className="py-4 px-4 text-right">
-                                                    <button 
+                          <button
                             onClick={() => {
                               setSelectedDetailGaji(row);
                               setShowDetailGajiModal(true);
@@ -2162,7 +2236,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               <p className="text-xs text-yellow-600 leading-relaxed mb-4">
                 Terdapat <strong>1 staf/guru</strong> yang status gajinya masih "Pending" (belum dikirim) senilai total <strong>Rp 3.150.000</strong>.
               </p>
-              <button 
+              <button
                 onClick={() => triggerToast("Mengirimkan instruksi transfer massal via API H2H Bank...")}
                 className="bg-[#1A3D63] hover:bg-[#122A44] text-white px-5 py-2.5 rounded-lg border-none font-bold text-xs cursor-pointer transition-all shadow-md active:scale-95"
               >
@@ -2224,13 +2298,13 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   </p>
                 </div>
                 <div className="flex gap-3 mt-4">
-                  <button 
+                  <button
                     onClick={() => triggerToast("Mengirimkan file cetak ke printer partner...")}
                     className="flex-1 bg-[#1A3D63] hover:bg-[#122A44] text-white py-2 rounded-lg font-bold text-xs border-none cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <IconPrinter /> Cetak Fisik
                   </button>
-                  <button 
+                  <button
                     onClick={() => triggerToast("Mengunduh ekspor laporan PDF...")}
                     className="flex-1 bg-[#10B981] hover:bg-[#059669] text-white py-2 rounded-lg font-bold text-xs border-none cursor-pointer flex items-center justify-center gap-1.5"
                   >
@@ -2254,7 +2328,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               </div>
               <div className="flex gap-2 sm:gap-3 items-center flex-wrap">
                 <div className="relative">
-                  <select 
+                  <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}
                     className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
@@ -2265,8 +2339,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     <IconChevronDown />
                   </span>
                 </div>
-                
-                <button 
+
+                <button
                   onClick={() => setShowBillingModal(true)}
                   className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-4 sm:px-5 py-2.5 text-xs sm:text-[13px] font-bold cursor-pointer transition-all shadow-[0_10px_20px_-10px_rgba(26,61,99,0.3)] active:scale-95"
                 >
@@ -2278,38 +2352,38 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             {/* Stat Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
               {[
-                { 
-                  title: "Total SPP Terkumpul", 
-                  value: "Rp 16,1 Jt", 
-                  subText: "Bulan Mei 2026", 
-                  trend: "+8.5% vs bulan lalu", 
+                {
+                  title: "Total SPP Terkumpul",
+                  value: "Rp 16,1 Jt",
+                  subText: "Bulan Mei 2026",
+                  trend: "+8.5% vs bulan lalu",
                   trendUp: true,
                   bgIcon: "bg-green-50 text-green-600",
                   icon: <IconDollar />
                 },
-                { 
-                  title: "Siswa Lunas SPP", 
-                  value: "24", 
-                  subText: "dari 34 siswa aktif", 
-                  trend: "70.6% tingkat pembayaran", 
+                {
+                  title: "Siswa Lunas SPP",
+                  value: "24",
+                  subText: "dari 34 siswa aktif",
+                  trend: "70.6% tingkat pembayaran",
                   trendUp: true,
                   bgIcon: "bg-blue-50 text-blue-600",
                   icon: <IconCheckCircle />
                 },
-                { 
-                  title: "Tunggakan SPP", 
-                  value: "Rp 2,75 Jt", 
-                  subText: "10 siswa belum bayar", 
-                  trend: "-5.2% vs bulan lalu", 
+                {
+                  title: "Tunggakan SPP",
+                  value: "Rp 2,75 Jt",
+                  subText: "10 siswa belum bayar",
+                  trend: "-5.2% vs bulan lalu",
                   trendUp: false,
                   bgIcon: "bg-red-50 text-red-600",
                   icon: <IconAlertCircle />
                 },
-                { 
-                  title: "Penggajian Bulan Ini", 
-                  value: "Rp 13,5 Jt", 
-                  subText: "6 guru & staf", 
-                  trend: "83% sudah transfer", 
+                {
+                  title: "Penggajian Bulan Ini",
+                  value: "Rp 13,5 Jt",
+                  subText: "6 guru & staf",
+                  trend: "83% sudah transfer",
                   trendUp: true,
                   bgIcon: "bg-purple-50 text-purple-600",
                   icon: <IconClock />
@@ -2343,7 +2417,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     <h3 className="text-sm font-bold text-gray-800">Rekapitulasi SPP Per Bulan</h3>
                     <p className="text-[11px] text-gray-400">Jumlah siswa lunas vs belum bayar</p>
                   </div>
-                  <button 
+                  <button
                     onClick={() => triggerToast("Mengunduh detil rekapitulasi iuran bulanan...")}
                     className="text-xs font-bold text-[#1A3D63] hover:underline bg-transparent border-none cursor-pointer"
                   >
@@ -2413,7 +2487,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               <div className="bg-white rounded-[24px] border border-gray-50 p-5 shadow-sm">
                 <div className="flex justify-between items-center mb-5">
                   <h3 className="text-sm font-bold text-gray-800">Pembayaran SPP Terbaru</h3>
-                  <button 
+                  <button
                     onClick={() => triggerToast("Membuka riwayat lengkap pembayaran SPP...")}
                     className="text-xs font-bold text-[#1A3D63] hover:underline bg-transparent border-none cursor-pointer flex items-center gap-1"
                   >
@@ -2439,10 +2513,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                           <td className="py-3 font-bold text-gray-700">{row.amount}</td>
                           <td className="py-3 text-gray-400">{row.period}</td>
                           <td className="py-3 text-right">
-                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold inline-block ${
-                              row.status === "Lunas" ? "bg-green-50 text-green-600" :
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold inline-block ${row.status === "Lunas" ? "bg-green-50 text-green-600" :
                               row.status === "Cicilan" ? "bg-amber-50 text-amber-600" : "bg-red-50 text-red-600"
-                            }`}>
+                              }`}>
                               {row.status}
                             </span>
                           </td>
@@ -2457,7 +2530,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               <div className="bg-white rounded-[24px] border border-gray-50 p-5 shadow-sm">
                 <div className="flex justify-between items-center mb-5">
                   <h3 className="text-sm font-bold text-gray-800">Status Penggajian Guru &amp; Staf</h3>
-                  <button 
+                  <button
                     onClick={() => triggerToast("Mengarahkan ke modul Generate Slip Gaji...")}
                     className="text-xs font-bold text-[#1A3D63] hover:underline bg-transparent border-none cursor-pointer flex items-center gap-1"
                   >
@@ -2481,9 +2554,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                           <td className="py-3 text-gray-500">{row.role}</td>
                           <td className="py-3 font-bold text-gray-700">{row.salary}</td>
                           <td className="py-3 text-right">
-                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold inline-block ${
-                              row.status === "Sudah Transfer" ? "bg-green-50 text-green-600" : "bg-yellow-50 text-yellow-600"
-                            }`}>
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold inline-block ${row.status === "Sudah Transfer" ? "bg-green-50 text-green-600" : "bg-yellow-50 text-yellow-600"
+                              }`}>
                               {row.status}
                             </span>
                           </td>
@@ -2520,11 +2592,10 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               {["Mei 2026", "April 2026", "Maret 2026", "Februari 2026"].map((period, idx) => (
                 <button
                   key={period}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all whitespace-nowrap ${
-                    idx === 0 
-                      ? "bg-[#1A3D63] text-white border-[#1A3D63] shadow-sm" 
-                      : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-gray-900"
-                  }`}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all whitespace-nowrap ${idx === 0
+                    ? "bg-[#1A3D63] text-white border-[#1A3D63] shadow-sm"
+                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-gray-900"
+                    }`}
                 >
                   {period}
                 </button>
@@ -2580,7 +2651,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
             <div className="bg-white rounded-[24px] border border-gray-100 p-5 sm:p-6 shadow-sm">
               <h3 className="text-sm font-bold text-gray-800 mb-6">Distribusi Pengeluaran</h3>
-              
+
               <div className="space-y-5">
                 <div>
                   <div className="flex justify-between text-xs mb-2">
@@ -2591,7 +2662,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     <div className="bg-[#3B82F6] h-2.5 rounded-full" style={{ width: '74%' }}></div>
                   </div>
                 </div>
-                
+
                 <div>
                   <div className="flex justify-between text-xs mb-2">
                     <span className="font-medium text-gray-500">Operasional Sekolah</span>
@@ -2613,16 +2684,14 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 ].map((tab, i) => (
                   <button
                     key={i}
-                    className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-colors border-none bg-transparent cursor-pointer ${
-                      tab.active 
-                        ? "border-[#3B82F6] text-[#3B82F6]" 
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                    }`}
+                    className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-colors border-none bg-transparent cursor-pointer ${tab.active
+                      ? "border-[#3B82F6] text-[#3B82F6]"
+                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                      }`}
                   >
                     {tab.label}
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] ${
-                      tab.active ? "bg-blue-50 text-blue-600" : "bg-gray-100 text-gray-500"
-                    }`}>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] ${tab.active ? "bg-blue-50 text-blue-600" : "bg-gray-100 text-gray-500"
+                      }`}>
                       {tab.count}
                     </span>
                   </button>
@@ -2631,9 +2700,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
                 <div className="relative flex-1 max-w-md">
-                  <input 
-                    type="text" 
-                    placeholder="Cari nama, keterangan, atau ID..." 
+                  <input
+                    type="text"
+                    placeholder="Cari nama, keterangan, atau ID..."
                     className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-[#1A3D63] font-medium bg-gray-50/50"
                   />
                   <span className="absolute left-3.5 top-3.5 text-gray-400">
@@ -2646,18 +2715,17 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     {["Semua", "SPP", "Gaji", "Operasional"].map((filter, i) => (
                       <button
                         key={filter}
-                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border-none ${
-                          i === 0 
-                            ? "bg-[#1A3D63] text-white shadow-sm" 
-                            : "text-gray-500 hover:text-gray-900 bg-transparent"
-                        }`}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border-none ${i === 0
+                          ? "bg-[#1A3D63] text-white shadow-sm"
+                          : "text-gray-500 hover:text-gray-900 bg-transparent"
+                          }`}
                       >
                         {filter}
                       </button>
                     ))}
                   </div>
-                  
-                  <button 
+
+                  <button
                     onClick={() => triggerToast("Mengekspor data transaksi ke file Excel...")}
                     className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all border-solid"
                   >
@@ -2733,7 +2801,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
       {showBillingModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
           {/* Backdrop */}
-          <div 
+          <div
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setShowBillingModal(false)}
           />
@@ -2741,11 +2809,11 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full relative z-10 shadow-2xl animate-scaleUp border border-gray-100 font-sans">
             <h3 className="text-lg font-bold text-gray-800 mb-2">Generate Tagihan SPP Massal</h3>
             <p className="text-xs text-gray-400 mb-6">Pilih target kelas dan isikan parameter jatuh tempo tagihan.</p>
-            
+
             <form onSubmit={handleGenerateBilling} className="space-y-4">
               <div>
                 <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase">Sasaran Kelas</label>
-                <select 
+                <select
                   value={billClass}
                   onChange={(e) => setBillClass(e.target.value)}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-xs focus:outline-none"
@@ -2758,8 +2826,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase">Nominal Tagihan (Rupiah)</label>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   value={billAmount}
                   onChange={(e) => setBillAmount(e.target.value)}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-xs focus:outline-none focus:border-[#1A3D63]"
@@ -2767,8 +2835,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               </div>
               <div>
                 <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase">Batas Jatuh Tempo</label>
-                <input 
-                  type="date" 
+                <input
+                  type="date"
                   value={billDueDate}
                   onChange={(e) => setBillDueDate(e.target.value)}
                   className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-xs focus:outline-none focus:border-[#1A3D63]"
@@ -2776,14 +2844,14 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               </div>
 
               <div className="flex gap-3 pt-4">
-                <button 
+                <button
                   type="button"
                   onClick={() => setShowBillingModal(false)}
                   className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl text-xs font-bold cursor-pointer border-none"
                 >
                   Batal
                 </button>
-                <button 
+                <button
                   type="submit"
                   className="flex-1 bg-[#1A3D63] hover:bg-[#122A44] text-white py-3 rounded-xl text-xs font-bold cursor-pointer border-none shadow-md transition-all active:scale-[0.98]"
                 >
@@ -2799,7 +2867,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
       {/* Generate Month Modal Dialog */}
       {showGenerateMonthModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
-          <div 
+          <div
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setShowGenerateMonthModal(false)}
           />
@@ -2817,8 +2885,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   onChange={(e) => setGenerateForm({ ...generateForm, bulan: e.target.value })}
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-700 focus:outline-none focus:border-[#1A3D63] appearance-none"
                 >
-                  {['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'].map((m, i) => (
-                    <option key={i+1} value={String(i+1)}>{m}</option>
+                  {['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'].map((m, i) => (
+                    <option key={i + 1} value={String(i + 1)}>{m}</option>
                   ))}
                 </select>
               </div>
@@ -2855,14 +2923,14 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             </div>
 
             <div className="flex gap-3">
-              <button 
+              <button
                 onClick={() => setShowGenerateMonthModal(false)}
                 disabled={isGenerating}
                 className="flex-1 bg-white border border-gray-200 hover:bg-gray-50 text-gray-500 py-3 rounded-xl text-[13px] font-bold cursor-pointer transition-all"
               >
                 Batal
               </button>
-              <button 
+              <button
                 onClick={async () => {
                   if (!generateForm.bulan || !generateForm.tahun) {
                     triggerToast('Bulan dan tahun wajib diisi');
@@ -2891,7 +2959,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               >
                 {isGenerating ? (
                   <>
-                    <svg className="animate-spin" width="16" height="16" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                    <svg className="animate-spin" width="16" height="16" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>
                     Generating...
                   </>
                 ) : 'Konfirmasi Generate'}
@@ -2909,22 +2977,22 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             {/* Modal Header */}
             <div className="flex justify-between items-center p-6 border-b border-gray-100">
               <h2 className="text-lg font-bold text-gray-800">{selectedBeasiswa ? "Edit Penerima Beasiswa" : "Tambah Penerima Beasiswa"}</h2>
-              <button 
+              <button
                 onClick={() => setShowAddProgramModal(false)}
                 className="text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer"
               >
                 <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            
+
             {/* Form Content */}
             <div className="p-6">
               <div className="flex flex-col gap-5">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Pilih Siswa</label>
-                  <select 
+                  <select
                     value={beasiswaForm.siswaId}
-                    onChange={(e) => setBeasiswaForm({...beasiswaForm, siswaId: e.target.value})}
+                    onChange={(e) => setBeasiswaForm({ ...beasiswaForm, siswaId: e.target.value })}
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700 h-[46px]"
                   >
                     <option value="" disabled>-- Pilih Siswa --</option>
@@ -2933,43 +3001,43 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     ))}
                   </select>
                 </div>
-                
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Nama Program Beasiswa</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={beasiswaForm.namaBeasiswa}
-                      onChange={(e) => setBeasiswaForm({...beasiswaForm, namaBeasiswa: e.target.value})}
+                      onChange={(e) => setBeasiswaForm({ ...beasiswaForm, namaBeasiswa: e.target.value })}
                       placeholder="Contoh: Prestasi Akademik"
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Nominal Potongan (Rp)</label>
-                    <input 
-                      type="number" 
+                    <input
+                      type="number"
                       value={beasiswaForm.nominal}
-                      onChange={(e) => setBeasiswaForm({...beasiswaForm, nominal: e.target.value})}
+                      onChange={(e) => setBeasiswaForm({ ...beasiswaForm, nominal: e.target.value })}
                       placeholder="250000"
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Periode</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={beasiswaForm.periode}
-                      onChange={(e) => setBeasiswaForm({...beasiswaForm, periode: e.target.value})}
+                      onChange={(e) => setBeasiswaForm({ ...beasiswaForm, periode: e.target.value })}
                       placeholder="Contoh: 2025/2026"
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
-                    <select 
+                    <select
                       value={beasiswaForm.status}
-                      onChange={(e) => setBeasiswaForm({...beasiswaForm, status: e.target.value})}
+                      onChange={(e) => setBeasiswaForm({ ...beasiswaForm, status: e.target.value })}
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700 h-[46px]"
                     >
                       <option value="Aktif">Aktif</option>
@@ -2978,19 +3046,19 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Tanggal Mulai</label>
-                    <input 
-                      type="date" 
+                    <input
+                      type="date"
                       value={beasiswaForm.tanggalMulai}
-                      onChange={(e) => setBeasiswaForm({...beasiswaForm, tanggalMulai: e.target.value})}
+                      onChange={(e) => setBeasiswaForm({ ...beasiswaForm, tanggalMulai: e.target.value })}
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Tanggal Selesai (Opsional)</label>
-                    <input 
-                      type="date" 
+                    <input
+                      type="date"
                       value={beasiswaForm.tanggalSelesai}
-                      onChange={(e) => setBeasiswaForm({...beasiswaForm, tanggalSelesai: e.target.value})}
+                      onChange={(e) => setBeasiswaForm({ ...beasiswaForm, tanggalSelesai: e.target.value })}
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20"
                     />
                   </div>
@@ -3000,13 +3068,13 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
             {/* Modal Footer */}
             <div className="p-6 border-t border-gray-100 flex justify-end gap-3 rounded-b-2xl">
-              <button 
+              <button
                 onClick={() => setShowAddProgramModal(false)}
                 className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 py-3 px-8 rounded-xl text-sm font-bold cursor-pointer transition-colors"
               >
                 Batal
               </button>
-              <button 
+              <button
                 onClick={handleSaveBeasiswa}
                 className="bg-[#1A3D63] hover:bg-[#122A44] text-white py-3 px-8 rounded-xl text-sm font-bold cursor-pointer border-none shadow-md transition-all active:scale-[0.98] flex items-center gap-2"
               >
@@ -3033,13 +3101,13 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               </p>
             </div>
             <div className="p-6 pt-4 bg-gray-50 flex gap-3">
-              <button 
+              <button
                 onClick={() => setShowDeleteBeasiswaModal(false)}
                 className="flex-1 bg-white border border-gray-200 text-gray-700 hover:bg-gray-100 py-3 rounded-xl text-sm font-bold cursor-pointer transition-colors"
               >
                 Batal
               </button>
-              <button 
+              <button
                 onClick={handleDeleteBeasiswa}
                 className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 rounded-xl text-sm font-bold cursor-pointer border-none shadow-sm transition-all active:scale-[0.98]"
               >
@@ -3053,7 +3121,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
       {/* Transaction Modal Dialog */}
       {showTransactionModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
-          <div 
+          <div
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setShowTransactionModal(false)}
           />
@@ -3064,36 +3132,34 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <h2 className="text-xl font-bold text-gray-800 tracking-tight">Catatan Transaksi</h2>
                 <p className="text-[13px] text-gray-400 mt-1">Tambah catatan pengeluaran atau pemasukan</p>
               </div>
-              <button 
+              <button
                 onClick={() => setShowTransactionModal(false)}
                 className="text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer p-1 transition-colors rounded-full hover:bg-gray-50"
               >
                 <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            
+
             {/* Body */}
             <div className="p-6 flex-1 overflow-y-auto">
               {/* Tabs */}
               <div className="grid grid-cols-2 gap-3 mb-6">
                 <button
                   onClick={() => { setTransactionTab("Pemasukan"); setTransactionCategory("SPP"); }}
-                  className={`py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all border cursor-pointer ${
-                    transactionTab === "Pemasukan"
-                      ? "bg-[#E6F4EA] border-[#10B981] text-[#10B981]"
-                      : "bg-white border-gray-200 text-gray-400 hover:bg-gray-50"
-                  }`}
+                  className={`py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all border cursor-pointer ${transactionTab === "Pemasukan"
+                    ? "bg-[#E6F4EA] border-[#10B981] text-[#10B981]"
+                    : "bg-white border-gray-200 text-gray-400 hover:bg-gray-50"
+                    }`}
                 >
                   <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" /></svg>
                   Pemasukan
                 </button>
                 <button
                   onClick={() => { setTransactionTab("Pengeluaran"); setTransactionCategory("Operasional"); }}
-                  className={`py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all border cursor-pointer ${
-                    transactionTab === "Pengeluaran"
-                      ? "bg-[#FEE2E2] border-[#EF4444] text-[#EF4444]"
-                      : "bg-white border-gray-200 text-gray-400 hover:bg-gray-50"
-                  }`}
+                  className={`py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all border cursor-pointer ${transactionTab === "Pengeluaran"
+                    ? "bg-[#FEE2E2] border-[#EF4444] text-[#EF4444]"
+                    : "bg-white border-gray-200 text-gray-400 hover:bg-gray-50"
+                    }`}
                 >
                   <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 4.5l-15 15m0 0h11.25m-11.25 0V8.25" /></svg>
                   Pengeluaran
@@ -3110,19 +3176,17 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                       <button className="bg-[#1A3D63] text-white px-4 py-2 rounded-lg text-[13px] font-bold border-none">SPP</button>
                     ) : (
                       <>
-                        <button 
+                        <button
                           onClick={() => setTransactionCategory("Gaji")}
-                          className={`px-4 py-2 rounded-lg text-[13px] font-bold border ${
-                            transactionCategory === "Gaji" ? "bg-[#1A3D63] text-white border-[#1A3D63]" : "bg-white text-gray-600 border-gray-200"
-                          }`}
+                          className={`px-4 py-2 rounded-lg text-[13px] font-bold border ${transactionCategory === "Gaji" ? "bg-[#1A3D63] text-white border-[#1A3D63]" : "bg-white text-gray-600 border-gray-200"
+                            }`}
                         >
                           Gaji
                         </button>
-                        <button 
+                        <button
                           onClick={() => setTransactionCategory("Operasional")}
-                          className={`px-4 py-2 rounded-lg text-[13px] font-bold border ${
-                            transactionCategory === "Operasional" ? "bg-[#1A3D63] text-white border-[#1A3D63]" : "bg-white text-gray-600 border-gray-200"
-                          }`}
+                          className={`px-4 py-2 rounded-lg text-[13px] font-bold border ${transactionCategory === "Operasional" ? "bg-[#1A3D63] text-white border-[#1A3D63]" : "bg-white text-gray-600 border-gray-200"
+                            }`}
                         >
                           Operasional
                         </button>
@@ -3134,8 +3198,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 {/* Nama */}
                 <div>
                   <label className="block text-[11px] font-bold text-gray-500 mb-1.5">{transactionTab === "Pemasukan" ? "Nama Pembayar" : "Nama / Penerima"}</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder={transactionTab === "Pemasukan" ? "Nama siswa atau sumber pemasukan" : "Nama penerima atau keterangan"}
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all placeholder:text-gray-300"
                   />
@@ -3144,8 +3208,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 {/* Keterangan */}
                 <div>
                   <label className="block text-[11px] font-bold text-gray-500 mb-1.5">Keterangan</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder="Contoh: SPP Kelas VIIIA - Mei 2026"
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all placeholder:text-gray-300"
                   />
@@ -3154,8 +3218,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 {/* Nominal */}
                 <div>
                   <label className="block text-[11px] font-bold text-gray-500 mb-1.5">Nominal (Rp)</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     placeholder="Contoh: 275.000"
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all placeholder:text-gray-300 font-medium"
                   />
@@ -3164,8 +3228,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 {/* Tanggal */}
                 <div>
                   <label className="block text-[11px] font-bold text-gray-500 mb-1.5">Tanggal</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     defaultValue="25 Mei 2026"
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all"
                   />
@@ -3175,13 +3239,13 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
             {/* Footer */}
             <div className="p-6 border-t border-gray-50 flex gap-3">
-              <button 
+              <button
                 onClick={() => setShowTransactionModal(false)}
                 className="flex-1 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 py-3.5 rounded-xl text-[13px] font-bold cursor-pointer transition-colors"
               >
                 Batal
               </button>
-              <button 
+              <button
                 onClick={() => {
                   setShowTransactionModal(false);
                   triggerToast("Catatan transaksi berhasil disimpan!");
@@ -3319,9 +3383,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-500 font-medium">Kategori</span>
-                  <span className={`font-bold px-2 py-0.5 rounded text-[10px] ${
-                    selectedKomponen.category === 'Pendapatan' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'
-                  }`}>{selectedKomponen.category}</span>
+                  <span className={`font-bold px-2 py-0.5 rounded text-[10px] ${selectedKomponen.category === 'Pendapatan' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'
+                    }`}>{selectedKomponen.category}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-500 font-medium">Nominal Standar</span>
@@ -3363,16 +3426,15 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            
+
             <div className="p-6 pb-4">
               {/* Status Badge */}
               <div className="flex justify-between items-center mb-6 pb-6 border-b border-gray-100 border-dashed">
                 <span className="text-sm font-medium text-gray-500">Status Pembayaran</span>
-                <span className={`px-3 py-1.5 rounded-full text-[11px] font-bold ${
-                  selectedDetailGaji.status === 'Sudah Dibayar' ? 'bg-[#E6F4EA] text-[#059669]' : 
+                <span className={`px-3 py-1.5 rounded-full text-[11px] font-bold ${selectedDetailGaji.status === 'Sudah Dibayar' ? 'bg-[#E6F4EA] text-[#059669]' :
                   selectedDetailGaji.status === 'Proses Transfer' ? 'bg-blue-50 text-blue-600' :
-                  'bg-[#FEE2E2] text-[#EF4444]'
-                }`}>
+                    'bg-[#FEE2E2] text-[#EF4444]'
+                  }`}>
                   {selectedDetailGaji.status}
                 </span>
               </div>
@@ -3418,16 +3480,16 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     <span className="font-bold text-[#EF4444]">-Rp 394.500</span>
                   </div>
                 </div>
-                
+
                 <div className="border-t border-dashed border-gray-200 my-4"></div>
-                
+
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-gray-800">Gaji Bersih</span>
                   <span className="text-xl font-black text-[#059669]">{selectedDetailGaji.salary}</span>
                 </div>
               </div>
             </div>
-            
+
             <div className="p-6 pt-0">
               <button
                 onClick={() => setShowDetailGajiModal(false)}
@@ -3533,13 +3595,12 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     <button
                       key={s}
                       onClick={() => setEditKomponenForm({ ...editKomponenForm, status: s })}
-                      className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                        editKomponenForm.status === s
-                          ? s === 'Aktif'
-                            ? 'bg-[#E6F4EA] text-[#059669] border-[#A7F3D0]'
-                            : 'bg-[#FEE2E2] text-[#DC2626] border-[#FCA5A5]'
-                          : 'bg-white text-gray-400 border-gray-200 hover:bg-gray-50'
-                      }`}
+                      className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${editKomponenForm.status === s
+                        ? s === 'Aktif'
+                          ? 'bg-[#E6F4EA] text-[#059669] border-[#A7F3D0]'
+                          : 'bg-[#FEE2E2] text-[#DC2626] border-[#FCA5A5]'
+                        : 'bg-white text-gray-400 border-gray-200 hover:bg-gray-50'
+                        }`}
                     >
                       {s}
                     </button>
