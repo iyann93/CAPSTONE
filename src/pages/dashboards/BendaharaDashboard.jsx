@@ -27,6 +27,7 @@ import {
   deleteBeasiswa,
 } from "../../api/finance";
 import { getSiswa } from "../../api/academic";
+import Profile from "../Profile";
 
 // Icons Components
 const IconReceipt = () => (
@@ -427,6 +428,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   // Rendering dashboard based on activeMenu selection
   const renderContent = () => {
     switch (activeMenu) {
+      case "My Profile":
+        return <Profile user={user} />;
       case "Dashboard":
       case "Overview":
         return (
@@ -897,7 +900,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div>
                 <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Pengaturan SPP</h1>
-                <p className="text-sm text-gray-500 mt-1">Atur nominal SPP, diskon, dan jadwal pembayaran per kelas (Kelas VII, VIII, IX SMP).</p>
+                <p className="text-sm text-gray-500 mt-1">Atur nominal SPP, diskon, dan jadwal pembayaran per kelas (Kelas VII, VIII, IX).</p>
               </div>
               <div className="flex gap-2 sm:gap-3 items-center flex-wrap">
                 <div className="relative">
