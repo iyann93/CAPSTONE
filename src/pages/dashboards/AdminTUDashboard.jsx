@@ -1,10 +1,15 @@
 import React from "react";
 import PlaceholderDashboard from "./PlaceholderDashboard";
 import Subjects from "./Subjects";
+import Semester from "./Semester";
 
 const AdminTUDashboard = ({ user, activeMenu }) => {
   if (activeMenu === "Mata Pelajaran") {
     return <Subjects />;
+  }
+
+  if (activeMenu === "Semester") {
+    return <Semester />;
   }
 
   if (activeMenu !== "Dashboard") {

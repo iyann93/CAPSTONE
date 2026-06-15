@@ -7,10 +7,10 @@ const { pool } = require('./src/config/db');
     const roles = await pool.query('SELECT * FROM shared.roles');
     const knownPassword = 'password123';
     const hash = await bcrypt.hash(knownPassword, 10);
-    
+
     console.log('--- DAFTAR AKUN TESTING ---');
     console.log('Password untuk SEMUA akun di bawah ini adalah: ' + knownPassword + '\n');
-    
+
     for (const r of roles.rows) {
       // Find one user for this role
       const userRes = await pool.query(`
@@ -20,7 +20,7 @@ const { pool } = require('./src/config/db');
         WHERE ur.role_id = $1 AND u.is_active = true
         LIMIT 1
       `, [r.id]);
-      
+
       if (userRes.rows.length > 0) {
         const u = userRes.rows[0];
         // Reset password for this user
@@ -28,7 +28,7 @@ const { pool } = require('./src/config/db');
         console.log(`Role: ${r.nama_role.padEnd(20)} | Email (Username): ${u.email.padEnd(25)} | Nama: ${u.nama}`);
       }
     }
-  } catch(e) {
+  } catch (e) {
     console.error(e);
   } finally {
     pool.end();
