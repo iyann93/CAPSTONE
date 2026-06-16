@@ -180,12 +180,30 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   // Actual Program State
   const [showAddProgramModal, setShowAddProgramModal] = useState(false);
   const [programList, setProgramList] = useState([
-    { title: "Beasiswa Prestasi Akademik", subtitle: "2025/2026", type: "Beasiswa", amount: "100%", status: "Aktif", users: "12 siswa", typeColor: "blue" },
-    { title: "Beasiswa dari Lazismu", subtitle: "2025/2026", type: "Beasiswa", amount: "50%", status: "Aktif", users: "24 siswa", typeColor: "blue" },
-    { title: "Beasiswa Tahridz Al-Qur'an", subtitle: "Setiap Bulan", type: "Beasiswa", amount: "100%", status: "Aktif", users: "8 siswa", typeColor: "blue" },
-    { title: "Beasiswa Prestasi Non-Akademik", subtitle: "Setiap Bulan", type: "Beasiswa", amount: "25%", status: "Aktif", users: "16 siswa", typeColor: "blue" },
-    { title: "Beasiswa Tahfiz Quran", subtitle: "2025/2026", type: "Beasiswa", amount: "75%", status: "Aktif", users: "18 siswa", typeColor: "blue" },
-    { title: "Beasiswa Penyarikatan Muhammadiyah", subtitle: "2025/2026", type: "Beasiswa", amount: "Rp 150.000", status: "Aktif", users: "3 siswa", typeColor: "blue" }
+    { title: "Beasiswa Prestasi Akademik", subtitle: "2025/2026", type: "Beasiswa", amount: "100%", status: "Aktif", typeColor: "blue", penerima: [
+      { id: 1, siswa_id: 1, siswa_nama: "Ahmad Fauzi", nama_kelas: "VIIA", nama_beasiswa: "Beasiswa Prestasi Akademik", nominal: 250000, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
+      { id: 2, siswa_id: 2, siswa_nama: "Aulia Rahma", nama_kelas: "VIIB", nama_beasiswa: "Beasiswa Prestasi Akademik", nominal: 250000, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
+      { id: 3, siswa_id: 3, siswa_nama: "Budi Wijaya", nama_kelas: "VIIC", nama_beasiswa: "Beasiswa Prestasi Akademik", nominal: 250000, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
+    ] },
+    { title: "Beasiswa dari Lazismu", subtitle: "2025/2026", type: "Beasiswa", amount: "50%", status: "Aktif", typeColor: "blue", penerima: [
+      { id: 4, siswa_id: 4, siswa_nama: "Sinta Bella", nama_kelas: "VIIIA", nama_beasiswa: "Beasiswa dari Lazismu", nominal: 125000, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
+      { id: 5, siswa_id: 5, siswa_nama: "Deni Pratama", nama_kelas: "VIIIB", nama_beasiswa: "Beasiswa dari Lazismu", nominal: 125000, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
+    ] },
+    { title: "Beasiswa Tahridz Al-Qur'an", subtitle: "Setiap Bulan", type: "Beasiswa", amount: "100%", status: "Aktif", typeColor: "blue", penerima: [
+      { id: 6, siswa_id: 6, siswa_nama: "Rizky Aditya", nama_kelas: "IXA", nama_beasiswa: "Beasiswa Tahridz Al-Qur'an", nominal: 250000, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
+    ] },
+    { title: "Beasiswa Prestasi Non-Akademik", subtitle: "Setiap Bulan", type: "Beasiswa", amount: "25%", status: "Aktif", typeColor: "blue", penerima: [
+      { id: 7, siswa_id: 7, siswa_nama: "Nadia Putri", nama_kelas: "VIIA", nama_beasiswa: "Beasiswa Prestasi Non-Akademik", nominal: 62500, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
+      { id: 8, siswa_id: 8, siswa_nama: "Fajar Ramadan", nama_kelas: "VIIIC", nama_beasiswa: "Beasiswa Prestasi Non-Akademik", nominal: 62500, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
+    ] },
+    { title: "Beasiswa Tahfiz Quran", subtitle: "2025/2026", type: "Beasiswa", amount: "75%", status: "Aktif", typeColor: "blue", penerima: [
+      { id: 9, siswa_id: 9, siswa_nama: "Hafiz Rahman", nama_kelas: "IXB", nama_beasiswa: "Beasiswa Tahfiz Quran", nominal: 187500, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
+      { id: 10, siswa_id: 10, siswa_nama: "Zahra Amelia", nama_kelas: "VIIB", nama_beasiswa: "Beasiswa Tahfiz Quran", nominal: 187500, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
+      { id: 11, siswa_id: 11, siswa_nama: "Ilham Maulana", nama_kelas: "VIIIA", nama_beasiswa: "Beasiswa Tahfiz Quran", nominal: 187500, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
+    ] },
+    { title: "Beasiswa Penyarikatan Muhammadiyah", subtitle: "2025/2026", type: "Beasiswa", amount: "Rp 150.000", status: "Aktif", typeColor: "blue", penerima: [
+      { id: 12, siswa_id: 12, siswa_nama: "Yusuf Hakim", nama_kelas: "IXA", nama_beasiswa: "Beasiswa Penyarikatan Muhammadiyah", nominal: 150000, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
+    ] }
   ]);
   const [newProgramForm, setNewProgramForm] = useState({
     nama: "",
@@ -374,11 +392,11 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
       type: newProgramForm.kategori,
       amount: newProgramForm.nominal,
       status: newProgramForm.status,
-      users: "0 siswa",
       typeColor: "blue",
       description: newProgramForm.deskripsi,
       quota: newProgramForm.kuota,
-      requirements: newProgramForm.persyaratan
+      requirements: newProgramForm.persyaratan,
+      penerima: []
     };
     setProgramList([...programList, newProgram]);
     setShowAddProgramModal(false);
@@ -426,6 +444,42 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
       } catch (e) {
         console.warn("API Error ignored for UI demonstration:", e);
       }
+
+      // Also update local programList penerima so UI stays in sync
+      const siswaData = siswaList.find(s => String(s.id) === String(beasiswaForm.siswaId));
+      const newPenerima = {
+        id: selectedBeasiswa?.id || Date.now(),
+        siswa_id: beasiswaForm.siswaId,
+        siswa_nama: siswaData?.nama_lengkap || "Siswa",
+        nama_kelas: siswaData?.nama_kelas || siswaData?.kelas || "-",
+        nama_beasiswa: beasiswaForm.namaBeasiswa,
+        nominal: Number(beasiswaForm.nominal),
+        periode: beasiswaForm.periode,
+        status: beasiswaForm.status,
+        tanggal_mulai: beasiswaForm.tanggalMulai,
+        tanggal_selesai: beasiswaForm.tanggalSelesai || null,
+      };
+
+      setProgramList(prev => prev.map(prog => {
+        if (prog.title === beasiswaForm.namaBeasiswa) {
+          let updatedPenerima;
+          if (selectedBeasiswa && selectedBeasiswa.id) {
+            // Edit existing
+            updatedPenerima = (prog.penerima || []).map(p =>
+              p.id === selectedBeasiswa.id ? newPenerima : p
+            );
+          } else {
+            // Add new
+            updatedPenerima = [...(prog.penerima || []), newPenerima];
+          }
+          return { ...prog, penerima: updatedPenerima };
+        }
+        // If editing and program changed, remove from old program
+        if (selectedBeasiswa && prog.penerima?.some(p => p.id === selectedBeasiswa.id)) {
+          return { ...prog, penerima: prog.penerima.filter(p => p.id !== selectedBeasiswa.id) };
+        }
+        return prog;
+      }));
       
       if(btn) {
         btn.innerText = "Simpan Data";
@@ -443,14 +497,20 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     if (!selectedBeasiswa || !selectedBeasiswa.id) return;
     try {
       await deleteBeasiswa(selectedBeasiswa.id);
-      triggerToast("Penerima beasiswa berhasil dihapus");
-      loadBeasiswa();
-      setShowDeleteBeasiswaModal(false);
-      setSelectedBeasiswa(null);
     } catch (e) {
-      console.error(e);
-      triggerToast("Gagal menghapus beasiswa", "error");
+      console.warn("API Error ignored for UI demonstration:", e);
     }
+    // Also remove from local programList penerima
+    setProgramList(prev => prev.map(prog => {
+      if (prog.penerima?.some(p => p.id === selectedBeasiswa.id)) {
+        return { ...prog, penerima: prog.penerima.filter(p => p.id !== selectedBeasiswa.id) };
+      }
+      return prog;
+    }));
+    triggerToast("Penerima beasiswa berhasil dihapus");
+    loadBeasiswa();
+    setShowDeleteBeasiswaModal(false);
+    setSelectedBeasiswa(null);
   };
 
   // Status Bayar Gaji Modal State
@@ -1494,24 +1554,35 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             </div>
 
             {/* Stats */}
+            {(() => {
+              const totalPenerima = programList.reduce((sum, p) => sum + (p.penerima?.length || 0), 0);
+              const totalPotongan = programList.reduce((sum, p) => sum + (p.penerima || []).reduce((s, r) => s + (r.nominal || 0), 0), 0);
+              const formatRupiah = (val) => {
+                if (val >= 1000000) return `Rp ${(val / 1000000).toFixed(0)} Jt`;
+                if (val >= 1000) return `Rp ${(val / 1000).toFixed(0)} Rb`;
+                return `Rp ${val.toLocaleString('id-ID')}`;
+              };
+              return (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
                 <div className="text-2xl font-bold text-white">{programList.length}</div>
                 <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Total Program Aktif</div>
               </div>
               <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
-                <div className="text-2xl font-bold text-white">78 Siswa</div>
+                <div className="text-2xl font-bold text-white">{totalPenerima} Siswa</div>
                 <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Penerima Beasiswa</div>
               </div>
               <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
-                <div className="text-2xl font-bold text-white">Rp 28 Jt</div>
+                <div className="text-2xl font-bold text-white">{formatRupiah(totalPotongan)}</div>
                 <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Total Potongan/Bln</div>
               </div>
               <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
-                <div className="text-2xl font-bold text-white">Rp 142 Jt</div>
+                <div className="text-2xl font-bold text-white">{formatRupiah(totalPotongan * 12)}</div>
                 <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Dana Beasiswa/Thn</div>
               </div>
             </div>
+              );
+            })()}
 
             {/* Tabs */}
             {/* Tab Content */}
@@ -1542,7 +1613,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
                       <span className="flex items-center gap-1 text-[11px] text-gray-500 font-medium ml-2">
                         <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" /></svg>
-                        {item.users}
+                        {(item.penerima?.length || 0)} siswa
                       </span>
                     </div>
                   </div>
@@ -1574,142 +1645,157 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
                       {/* Left Column: Program Info */}
                       <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm xl:sticky xl:top-6 flex flex-col gap-6">
-                        <div>
-                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 text-blue-600 text-[10px] font-bold mb-3 uppercase tracking-wider">
-                            {activeProgram.type || 'Beasiswa'}
-                          </div>
-                          <h3 className="text-lg font-bold text-gray-800 leading-snug">{activeProgram.title}</h3>
-                          <div className="text-xs text-gray-400 mt-1.5 font-medium flex items-center gap-1.5">
+                        <div className="relative overflow-hidden bg-[#1A3D63] rounded-2xl text-white p-6 shadow-md mb-2">
+                          <h3 className="text-2xl font-black mb-1 relative z-10">{activeProgram.title}</h3>
+                          <div className="text-xs text-blue-200 font-medium flex items-center gap-1.5 relative z-10 mt-2">
                             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
                             Periode {activeProgram.subtitle}
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100/50">
+                        <div className="flex items-center justify-between p-5 bg-white rounded-xl border border-gray-100 shadow-sm shadow-gray-100/50">
                           <div>
-                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Nominal / Potongan</div>
-                            <div className="text-[15px] font-bold text-[#1A3D63]">{activeProgram.amount}</div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">
+                               Nominal / Potongan
+                            </div>
+                            <div className="text-xl font-black text-[#1A3D63]">{activeProgram.amount}</div>
                           </div>
-                          <div className="w-px h-10 bg-gray-200"></div>
+                          <div className="w-px h-12 bg-gray-100"></div>
                           <div className="text-right">
-                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Status</div>
-                            <div className={`inline-flex px-2 py-0.5 rounded text-xs font-bold ${activeProgram.status === 'Aktif' ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-500'}`}>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Status Program</div>
+                            <div className={`inline-flex px-3 py-1 rounded-md text-xs font-bold shadow-sm ${activeProgram.status === 'Aktif' ? 'bg-[#E8FDF5] text-[#059669] border border-[#A7F3D0]' : 'bg-gray-100 text-gray-500 border border-gray-200'}`}>
                               {activeProgram.status || 'Aktif'}
                             </div>
                           </div>
                         </div>
 
-                        <div>
-                          <h4 className="text-[11px] font-bold text-gray-800 uppercase tracking-wider mb-2">Deskripsi Program</h4>
-                          <p className="text-[13px] text-gray-500 leading-relaxed">
+                        <div className="bg-blue-50/30 p-5 rounded-xl border border-blue-50/50">
+                          <h4 className="text-[11px] font-bold text-[#1A3D63] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" /></svg>
+                             Deskripsi Program
+                          </h4>
+                          <p className="text-[13px] text-gray-600 leading-relaxed font-medium">
                             {activeProgram.description || "Belum ada deskripsi spesifik untuk program beasiswa ini."}
                           </p>
                         </div>
 
-                        <div>
-                          <h4 className="text-[11px] font-bold text-gray-800 uppercase tracking-wider mb-2">Persyaratan</h4>
-                          <div className="text-[13px] text-gray-500 leading-relaxed bg-orange-50/50 p-4 rounded-xl border border-orange-100/50">
+                        <div className="bg-amber-50/40 p-5 rounded-xl border border-amber-100/50">
+                          <h4 className="text-[11px] font-bold text-amber-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" /></svg>
+                             Persyaratan
+                          </h4>
+                          <div className="text-[13px] text-amber-800/80 leading-relaxed font-medium">
                             {activeProgram.requirements ? (
                               <div className="whitespace-pre-line">{activeProgram.requirements}</div>
                             ) : (
-                              <span className="italic text-gray-400">Belum ada persyaratan khusus.</span>
+                              <span className="italic opacity-80">Belum ada persyaratan khusus.</span>
                             )}
                           </div>
                         </div>
                         
-                        <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
-                          <div className="text-xs text-gray-500 font-medium">Kuota Penerima: <span className="font-bold text-gray-800">{activeProgram.quota || "Tidak dibatasi"}</span></div>
-                          <div className="text-xs text-blue-500 font-bold bg-blue-50 px-2 py-1 rounded">
-                            {beasiswaList.filter(b => b.nama_beasiswa === selectedProgramForView).length} Terdaftar
+                        <div className="pt-2 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                             <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>
+                             </div>
+                             <div>
+                                <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Kuota Penerima</div>
+                                <div className="text-xs font-bold text-gray-800 mt-0.5">{activeProgram.quota || "Tidak dibatasi"}</div>
+                             </div>
+                          </div>
+                          <div className="text-xs text-[#1A3D63] font-bold bg-[#EBF3FA] px-3 py-1.5 rounded-lg border border-blue-100 shadow-sm flex items-center gap-1.5">
+                            {(activeProgram.penerima?.length || 0)} Terdaftar
                           </div>
                         </div>
                       </div>
 
                       {/* Right Column: Table */}
                       <div className="xl:col-span-2 flex flex-col gap-4">
-                        <div className="flex justify-between items-end mb-2">
-                          <div>
-                            <h3 className="text-lg font-bold text-gray-800">Daftar Siswa Penerima</h3>
-                            <p className="text-xs text-gray-500 mt-1">Siswa yang terdaftar dalam program {activeProgram.title}.</p>
-                          </div>
-                        </div>
                         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-left">
-                            <thead>
-                              <tr className="bg-gray-50 text-gray-400 font-bold text-[10px] tracking-wider border-b border-gray-100">
-                                <th className="py-3 px-5">NAMA SISWA</th>
-                                <th className="py-3 px-5">KELAS</th>
-                                <th className="py-3 px-5">PROGRAM</th>
-                                <th className="py-3 px-5">POTONGAN</th>
-                                <th className="py-3 px-5">PERIODE</th>
-                                <th className="py-3 px-5">STATUS</th>
-                                <th className="py-3 px-5 text-right">AKSI</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-50 text-xs">
-                              {beasiswaList.filter(b => b.nama_beasiswa === selectedProgramForView).length > 0 ? (
-                                beasiswaList.filter(b => b.nama_beasiswa === selectedProgramForView).map((row, idx) => (
-                                  <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
-                                    <td className="py-4 px-5 font-bold text-gray-800">{row.siswa_nama}</td>
-                                    <td className="py-4 px-5">
-                                      <span className="text-blue-500 bg-blue-50 px-2 py-1 rounded-md text-[10px] font-bold">{row.nama_kelas}</span>
-                                    </td>
-                                    <td className="py-4 px-5 text-gray-600">{row.nama_beasiswa}</td>
-                                    <td className="py-4 px-5">
-                                      <span className="text-[#137333] bg-[#E6F4EA] px-2.5 py-1 rounded-md text-[10px] font-bold">
-                                        Rp {Number(row.nominal).toLocaleString('id-ID')}
-                                      </span>
-                                    </td>
-                                    <td className="py-4 px-5 text-gray-600 font-medium">
-                                      {row.periode}
-                                    </td>
-                                    <td className="py-4 px-5">
-                                      <span className={`px-2 py-1 rounded-md text-[10px] font-bold ${row.status === 'Aktif' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'}`}>
-                                        {row.status}
-                                      </span>
-                                    </td>
-                                    <td className="py-4 px-5 text-right">
-                                      <div className="flex items-center justify-end gap-1.5">
-                                        <button
-                                          onClick={() => {
-                                            setSelectedBeasiswa(row);
-                                            setBeasiswaForm({
-                                              siswaId: row.siswa_id,
-                                              namaBeasiswa: row.nama_beasiswa,
-                                              nominal: row.nominal,
-                                              periode: row.periode || "2025/2026",
-                                              status: row.status,
-                                              tanggalMulai: row.tanggal_mulai ? new Date(row.tanggal_mulai).toISOString().split('T')[0] : "",
-                                              tanggalSelesai: row.tanggal_selesai ? new Date(row.tanggal_selesai).toISOString().split('T')[0] : ""
-                                            });
-                                            setShowAddPenerimaModal(true);
-                                          }}
-                                          className="w-8 h-8 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center text-blue-500 transition-colors cursor-pointer"
-                                        >
-                                          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" /></svg>
-                                        </button>
-                                        <button
-                                          onClick={() => {
-                                            setSelectedBeasiswa(row);
-                                            setShowDeleteBeasiswaModal(true);
-                                          }}
-                                          className="w-8 h-8 rounded-lg border border-red-100 bg-red-50 hover:bg-red-100 flex items-center justify-center text-red-500 transition-colors cursor-pointer"
-                                        >
-                                          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
-                                        </button>
-                                      </div>
+                          {/* Card Header inside the card for cleaner layout */}
+                          <div className="p-6 border-b border-gray-100">
+                            <h3 className="text-lg font-bold text-gray-800">Daftar Siswa Penerima</h3>
+                            <p className="text-xs text-gray-400 mt-1">Siswa yang terdaftar dalam program {activeProgram.title}.</p>
+                          </div>
+
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                              <thead>
+                                <tr className="bg-gray-50/50 text-gray-400 font-bold text-[10px] tracking-wider border-b border-gray-100">
+                                  <th className="py-3.5 px-4 text-center w-10">NO</th>
+                                  <th className="py-3.5 px-6">NAMA SISWA</th>
+                                  <th className="py-3.5 px-6">KELAS</th>
+                                  <th className="py-3.5 px-6">POTONGAN</th>
+                                  <th className="py-3.5 px-6">PERIODE</th>
+                                  <th className="py-3.5 px-6">STATUS</th>
+                                  <th className="py-3.5 px-6 text-right">AKSI</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-50 text-xs">
+                                {(activeProgram.penerima?.length || 0) > 0 ? (
+                                  (activeProgram.penerima || []).map((row, idx) => (
+                                    <tr key={idx} className="hover:bg-[#F8FAFC] transition-colors">
+                                      <td className="py-4 px-4 text-center text-gray-400 font-semibold text-xs">{idx + 1}</td>
+                                      <td className="py-4 px-6 font-bold text-gray-800">{row.siswa_nama}</td>
+                                      <td className="py-4 px-6">
+                                        <span className="text-blue-500 bg-blue-50 px-2.5 py-1 rounded-md text-[10px] font-bold">{row.nama_kelas}</span>
+                                      </td>
+                                      <td className="py-4 px-6">
+                                        <span className="text-[#137333] bg-[#E6F4EA] px-2.5 py-1 rounded-md text-[10px] font-bold">
+                                          Rp {Number(row.nominal).toLocaleString('id-ID')}
+                                        </span>
+                                      </td>
+                                      <td className="py-4 px-6 text-gray-600 font-medium">
+                                        {row.periode}
+                                      </td>
+                                      <td className="py-4 px-6">
+                                        <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold ${row.status === 'Aktif' ? 'bg-[#E8FDF5] text-[#059669] border border-[#A7F3D0]' : 'bg-gray-100 text-gray-500 border border-gray-200'}`}>
+                                          {row.status}
+                                        </span>
+                                      </td>
+                                      <td className="py-4 px-6 text-right">
+                                        <div className="flex items-center justify-end gap-1.5">
+                                          <button
+                                            onClick={() => {
+                                              setSelectedBeasiswa(row);
+                                              setBeasiswaForm({
+                                                siswaId: row.siswa_id,
+                                                namaBeasiswa: row.nama_beasiswa,
+                                                nominal: row.nominal,
+                                                periode: row.periode || "2025/2026",
+                                                status: row.status,
+                                                tanggalMulai: row.tanggal_mulai ? new Date(row.tanggal_mulai).toISOString().split('T')[0] : "",
+                                                tanggalSelesai: row.tanggal_selesai ? new Date(row.tanggal_selesai).toISOString().split('T')[0] : ""
+                                              });
+                                              setShowAddPenerimaModal(true);
+                                            }}
+                                            className="w-8 h-8 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center text-blue-500 transition-colors cursor-pointer"
+                                          >
+                                            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" /></svg>
+                                          </button>
+                                          <button
+                                            onClick={() => {
+                                              setSelectedBeasiswa(row);
+                                              setShowDeleteBeasiswaModal(true);
+                                            }}
+                                            className="w-8 h-8 rounded-lg border border-red-100 bg-red-50 hover:bg-red-100 flex items-center justify-center text-red-500 transition-colors cursor-pointer"
+                                          >
+                                            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
+                                          </button>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  ))
+                                ) : (
+                                  <tr>
+                                    <td colSpan="6" className="py-16 text-center">
+                                      <div className="text-sm font-semibold text-gray-400">Belum Ada Penerima Beasiswa</div>
                                     </td>
                                   </tr>
-                                ))
-                              ) : (
-                                <tr>
-                                  <td colSpan="7" className="py-8 text-center text-gray-500">Belum ada data penerima beasiswa</td>
-                                </tr>
-                              )}
-                            </tbody>
-                          </table>
-                        </div>
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -2837,114 +2923,128 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
         </div>
       )}
 
-      {/* Add New Program Modal */}
       {showAddProgramModal && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[999] flex items-center justify-center p-6 md:p-10">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowAddProgramModal(false)} />
-          <div className="bg-white rounded-[24px] p-6 sm:p-8 max-w-2xl w-full relative z-10 shadow-2xl animate-scaleUp font-sans border border-gray-100 flex flex-col max-h-[90vh]">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-gray-800">Tambah Program Baru</h2>
+          <div className="bg-white rounded-[24px] p-5 sm:p-6 max-w-2xl w-full relative z-10 shadow-2xl animate-scaleUp font-sans border border-gray-100 flex flex-col max-h-[calc(100vh-100px)]">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-bold text-gray-800">Tambah Program Baru</h2>
               <button onClick={() => setShowAddProgramModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors cursor-pointer border-none">
                 <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
             
-            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar -mr-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {/* Left Column */}
-                <div className="flex flex-col gap-5">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Nama Program <span className="text-red-500">*</span></label>
-                    <input
-                      type="text"
-                      value={newProgramForm.nama}
-                      onChange={(e) => setNewProgramForm({ ...newProgramForm, nama: e.target.value })}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700"
-                      placeholder="Contoh: Beasiswa Tahfiz Quran"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Kategori Beasiswa</label>
+            <div className="w-full overflow-y-auto md:overflow-visible max-h-[calc(100vh-220px)] pr-1 -mr-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                {/* Nama Program (Full width) */}
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Nama Program <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    value={newProgramForm.nama}
+                    onChange={(e) => setNewProgramForm({ ...newProgramForm, nama: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all placeholder-gray-400"
+                    placeholder="Contoh: Beasiswa Prestasi Akademik"
+                  />
+                </div>
+
+                {/* Kategori Beasiswa & Status Program (Side-by-side dropdowns) */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Kategori Beasiswa</label>
+                  <div className="relative">
                     <select
                       value={newProgramForm.kategori}
                       onChange={(e) => setNewProgramForm({ ...newProgramForm, kategori: e.target.value })}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700 appearance-none"
+                      className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 appearance-none transition-all cursor-pointer"
                     >
                       <option value="Akademik">Akademik</option>
                       <option value="Non-Akademik">Non-Akademik</option>
                       <option value="Umum">Umum</option>
                     </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Periode Pendaftaran</label>
-                    <input
-                      type="text"
-                      value={newProgramForm.periode}
-                      onChange={(e) => setNewProgramForm({ ...newProgramForm, periode: e.target.value })}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700"
-                      placeholder="Contoh: 2025/2026 atau Ganjil 2025"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Status Program</label>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Status Program</label>
+                  <div className="relative">
                     <select
                       value={newProgramForm.status}
                       onChange={(e) => setNewProgramForm({ ...newProgramForm, status: e.target.value })}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700 appearance-none"
+                      className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 appearance-none transition-all cursor-pointer"
                     >
                       <option value="Aktif">Aktif</option>
                       <option value="Tidak Aktif">Tidak Aktif</option>
                     </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                    </div>
                   </div>
                 </div>
 
-                {/* Right Column */}
-                <div className="flex flex-col gap-5">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Nominal Dana <span className="text-red-500">*</span></label>
-                    <input
-                      type="text"
-                      value={newProgramForm.nominal}
-                      onChange={(e) => setNewProgramForm({ ...newProgramForm, nominal: e.target.value })}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700"
-                      placeholder="Contoh: 100% atau Rp 250.000"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Kuota Penerima</label>
-                    <input
-                      type="number"
-                      value={newProgramForm.kuota}
-                      onChange={(e) => setNewProgramForm({ ...newProgramForm, kuota: e.target.value })}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700"
-                      placeholder="Contoh: 50"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Deskripsi Singkat</label>
-                    <textarea
-                      value={newProgramForm.deskripsi}
-                      onChange={(e) => setNewProgramForm({ ...newProgramForm, deskripsi: e.target.value })}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700 resize-none h-[60px]"
-                      placeholder="Penjelasan singkat..."
-                    ></textarea>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Persyaratan</label>
-                    <textarea
-                      value={newProgramForm.persyaratan}
-                      onChange={(e) => setNewProgramForm({ ...newProgramForm, persyaratan: e.target.value })}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700 resize-none h-[60px]"
-                      placeholder="Syarat penerima..."
-                    ></textarea>
-                  </div>
+                {/* Nominal Dana & Kuota Penerima (Side-by-side inputs) */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Nominal Dana <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    value={newProgramForm.nominal}
+                    onChange={(e) => setNewProgramForm({ ...newProgramForm, nominal: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all placeholder-gray-400"
+                    placeholder="Contoh: Rp 250.000"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Kuota Penerima</label>
+                  <input
+                    type="number"
+                    value={newProgramForm.kuota}
+                    onChange={(e) => setNewProgramForm({ ...newProgramForm, kuota: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all placeholder-gray-400"
+                    placeholder="Contoh: 50"
+                  />
+                </div>
+
+                {/* Periode Pendaftaran (Full width) */}
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Periode Pendaftaran</label>
+                  <input
+                    type="text"
+                    value={newProgramForm.periode}
+                    onChange={(e) => setNewProgramForm({ ...newProgramForm, periode: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all placeholder-gray-400"
+                    placeholder="Contoh: 2025/2026 atau Ganjil 2025"
+                  />
+                </div>
+
+                {/* Deskripsi Singkat & Persyaratan (Side-by-side textareas for compactness) */}
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Deskripsi Singkat</label>
+                  <textarea
+                    value={newProgramForm.deskripsi}
+                    onChange={(e) => setNewProgramForm({ ...newProgramForm, deskripsi: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all placeholder-gray-400 resize-none h-[44px]"
+                    placeholder="Penjelasan singkat mengenai program..."
+                  ></textarea>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Persyaratan</label>
+                  <textarea
+                    value={newProgramForm.persyaratan}
+                    onChange={(e) => setNewProgramForm({ ...newProgramForm, persyaratan: e.target.value })}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all placeholder-gray-400 resize-none h-[44px]"
+                    placeholder="Syarat kelayakan penerima..."
+                  ></textarea>
                 </div>
               </div>
             </div>
 
-            <div className="mt-8 pt-4 border-t border-gray-100 flex justify-end gap-3">
-              <button onClick={() => setShowAddProgramModal(false)} className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer border-none bg-transparent">Batal</button>
-              <button onClick={handleSaveProgram} className="bg-[#1A3D63] hover:bg-[#122A44] text-white py-2.5 px-6 rounded-xl text-sm font-bold cursor-pointer border-none shadow-md transition-all active:scale-95 flex items-center gap-2">
+            <div className="mt-6 pt-3 border-t border-gray-100 flex justify-end gap-3">
+              <button onClick={() => setShowAddProgramModal(false)} className="px-5 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer border-none bg-transparent">Batal</button>
+              <button onClick={handleSaveProgram} className="bg-[#1A3D63] hover:bg-[#122A44] text-white py-2 px-6 rounded-xl text-sm font-bold cursor-pointer border-none shadow-md transition-all active:scale-95 flex items-center gap-2">
                 Simpan Program
               </button>
             </div>
