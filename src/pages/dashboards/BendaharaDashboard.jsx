@@ -1995,9 +1995,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                             <span className="font-bold text-gray-800">{row.nama}</span>
                           </td>
                           <td className="p-4">
-                            <span className={`font-bold px-2.5 py-1 rounded-md text-[10px] inline-block ${row.kategori === 'pendapatan' ? 'bg-[#E6F4EA] text-[#10B981]' : 'bg-[#FEE2E2] text-[#EF4444]'
+                            <span className={`font-bold px-2.5 py-1 rounded-md text-[10px] inline-block ${row.tipe !== 'potongan' ? 'bg-[#E6F4EA] text-[#10B981]' : 'bg-[#FEE2E2] text-[#EF4444]'
                               }`}>
-                              {row.kategori === 'pendapatan' ? 'Pendapatan' : 'Potongan'}
+                              {row.tipe !== 'potongan' ? 'Pendapatan' : 'Potongan'}
                             </span>
                           </td>
                           <td className="p-4 text-gray-500 font-medium">
@@ -2019,7 +2019,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                   setSelectedKomponen(row);
                                   setEditKomponenForm({
                                     name: row.nama,
-                                    category: row.kategori === 'pendapatan' ? 'Pendapatan' : 'Potongan',
+                                    category: row.tipe !== 'potongan' ? 'Pendapatan' : 'Potongan',
                                     type: row.formula_tipe === 'flat' ? 'Bulanan' :
                                       row.formula_tipe === 'per_hari_hadir' ? 'Harian' :
                                         row.formula_tipe === 'persen_gaji_pokok' ? 'Persentase' : 'Bulanan',
@@ -2035,7 +2035,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                               </button>
                               <button
                                 onClick={() => {
-                                  setSelectedKomponen({ ...row, name: row.nama, category: row.kategori === 'pendapatan' ? 'Pendapatan' : 'Potongan', nominal: row.formula_tipe === 'persen_gaji_pokok' ? `${row.nilai_satuan}%` : `Rp ${parseInt(row.nominal_default).toLocaleString('id-ID')}` });
+                                  setSelectedKomponen({ ...row, name: row.nama, category: row.tipe !== 'potongan' ? 'Pendapatan' : 'Potongan', nominal: row.formula_tipe === 'persen_gaji_pokok' ? `${row.nilai_satuan}%` : `Rp ${parseInt(row.nominal_default).toLocaleString('id-ID')}` });
                                   setShowDeleteKomponenModal(true);
                                 }}
                                 className="text-[#EF4444] hover:bg-red-50 p-1.5 rounded-lg transition-colors border-none bg-transparent cursor-pointer"
@@ -3335,97 +3335,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-400 py-3.5 rounded-xl text-[13px] font-bold cursor-pointer border-none flex items-center justify-center gap-2 transition-colors"
               >
                 <IconPlus /> Simpan Catatan
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Komponen Gaji Modal */}
-      {showEditKomponenModal && selectedKomponen && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowEditKomponenModal(false)} />
-          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl relative z-10 font-sans">
-            <div className="p-6 pb-4 border-b border-gray-100 flex justify-between items-center">
-              <div>
-                <h2 className="text-xl font-bold text-gray-800 tracking-tight">Edit Komponen Gaji</h2>
-                <p className="text-[13px] text-gray-400 mt-0.5">Perbarui detail komponen gaji pegawai</p>
-              </div>
-              <button onClick={() => setShowEditKomponenModal(false)} className="text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer p-1 rounded-full hover:bg-gray-50 transition-colors">
-                <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Nama Komponen</label>
-                <input
-                  type="text"
-                  value={editKomponenForm.name}
-                  onChange={(e) => setEditKomponenForm({ ...editKomponenForm, name: e.target.value })}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Kategori</label>
-                  <select
-                    value={editKomponenForm.category}
-                    onChange={(e) => setEditKomponenForm({ ...editKomponenForm, category: e.target.value })}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-700 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all appearance-none"
-                  >
-                    <option value="Pendapatan">Pendapatan</option>
-                    <option value="Potongan">Potongan</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Status</label>
-                  <select
-                    value={editKomponenForm.status}
-                    onChange={(e) => setEditKomponenForm({ ...editKomponenForm, status: e.target.value })}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-700 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all appearance-none"
-                  >
-                    <option value="Aktif">Aktif</option>
-                    <option value="Nonaktif">Nonaktif</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Tipe Perhitungan</label>
-                <select
-                  value={editKomponenForm.type}
-                  onChange={(e) => setEditKomponenForm({ ...editKomponenForm, type: e.target.value })}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-700 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all appearance-none"
-                >
-                  <option value="Bulanan">Bulanan</option>
-                  <option value="Harian">Harian</option>
-                  <option value="Persentase (1%)">Persentase (1%)</option>
-                  <option value="Per Jam">Per Jam</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Nominal Standar (Rp)</label>
-                <input
-                  type="text"
-                  value={editKomponenForm.nominal}
-                  onChange={(e) => setEditKomponenForm({ ...editKomponenForm, nominal: e.target.value })}
-                  placeholder="Contoh: 500.000 atau Varies"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all placeholder:text-gray-300"
-                />
-              </div>
-            </div>
-            <div className="p-6 border-t border-gray-50 flex gap-3">
-              <button
-                onClick={() => setShowEditKomponenModal(false)}
-                className="flex-1 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 py-3 rounded-xl text-[13px] font-bold cursor-pointer transition-colors"
-              >
-                Batal
-              </button>
-              <button
-                onClick={handleSaveKomponen}
-                className="flex-1 bg-[#1A3D63] hover:bg-[#122A44] text-white py-3 rounded-xl text-[13px] font-bold cursor-pointer border-none transition-all active:scale-[0.98] flex items-center justify-center gap-2 shadow-sm"
-              >
-                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                Simpan Perubahan
               </button>
             </div>
           </div>
