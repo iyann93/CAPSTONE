@@ -151,10 +151,9 @@ const menuSections = [
     items: [
       { label: "Tagihan SPP", icon: <ReceiptIcon /> },
       { label: "Pengaturan SPP", icon: <SettingsIcon /> },
-      { label: "Catat Pembayaran", icon: <CalendarIcon /> },
+      { label: "Riwayat Pembayaran", icon: <CalendarIcon /> },
       { label: "Beasiswa & Potongan SPP", icon: <AwardIcon /> },
-      { label: "Transaksi Pembayaran", icon: <FileChartIcon /> },
-      { label: "Monitor Tunggakan", icon: <ActivityIcon /> }
+      { label: "Transaksi Pembayaran", icon: <FileChartIcon /> }
     ],
     roles: ["Bendahara"]
   },
