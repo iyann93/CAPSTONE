@@ -11,7 +11,7 @@ const ToggleSwitch = ({ checked, onChange }) => {
   );
 };
 
-const SubjectForm = ({ mode = "add", initialData = null, onBack }) => {
+const SubjectForm = ({ mode = "add", initialData = null, onBack, onSave, onDelete }) => {
   const [formData, setFormData] = useState({
     kode: initialData?.kode || "",
     nama: initialData?.nama || "",
@@ -324,10 +324,35 @@ const SubjectForm = ({ mode = "add", initialData = null, onBack }) => {
             
             <label className="block text-[13px] font-bold text-gray-700 mb-2">Pilih Guru</label>
             <div className="relative mb-2">
-              <select className="w-full appearance-none px-4 py-2.5 border border-gray-200 rounded-xl text-[14px] font-medium text-gray-800 focus:outline-none focus:border-gray-400 transition-colors">
-                <option>Drs. Hendra, M.Pd.</option>
-                <option>Ibu Nuraini, S.Pd.</option>
-                <option>Mr. Andrian, M.A.</option>
+              <select 
+                value={formData.guru?.name || ""}
+                onChange={(e) => {
+                  const name = e.target.value;
+                  if (!name) {
+                    setFormData(prev => ({ ...prev, guru: null }));
+                    return;
+                  }
+                  const id = name.substring(0, 2).toUpperCase();
+                  setFormData(prev => ({
+                    ...prev,
+                    guru: { id, name, role: "Guru Mapel", status: "Aktif" }
+                  }));
+                }}
+                className="w-full appearance-none px-4 py-2.5 border border-gray-200 rounded-xl text-[14px] font-medium text-gray-800 focus:outline-none focus:border-gray-400 transition-colors bg-white"
+              >
+                <option value="">-- Pilih Guru Pengampu --</option>
+                <option value="Drs. Hendra, M.Pd.">Drs. Hendra, M.Pd.</option>
+                <option value="Ibu Nuraini, S.Pd.">Ibu Nuraini, S.Pd.</option>
+                <option value="Mr. Andrian, M.A.">Mr. Andrian, M.A.</option>
+                <option value="Ibu Sari, S.Pd.">Ibu Sari, S.Pd.</option>
+                <option value="Bpk. Rudi, M.Si.">Bpk. Rudi, M.Si.</option>
+                <option value="Ibu Dewi, S.Pd.">Ibu Dewi, S.Pd.</option>
+                <option value="Ibu Kartika, S.E.">Ibu Kartika, S.E.</option>
+                <option value="Bpk. Suherman, M.Pd.">Bpk. Suherman, M.Pd.</option>
+                <option value="Ibu Ratna, S.Pd.">Ibu Ratna, S.Pd.</option>
+                <option value="Bpk. Wahyu, M.Pd.">Bpk. Wahyu, M.Pd.</option>
+                <option value="Ibu Marlina, S.Pd.">Ibu Marlina, S.Pd.</option>
+                <option value="Bpk. Eko, S.Pd.">Bpk. Eko, S.Pd.</option>
               </select>
               <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -347,7 +372,10 @@ const SubjectForm = ({ mode = "add", initialData = null, onBack }) => {
                     <div className="text-[11px] text-gray-500 font-medium">{formData.guru.role} — {formData.guru.status}</div>
                   </div>
                 </div>
-                <button className="text-gray-400 hover:text-red-500 transition-colors">
+                <button 
+                  onClick={() => setFormData(prev => ({ ...prev, guru: null }))}
+                  className="text-gray-400 hover:text-red-500 transition-colors"
+                >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
               </div>
@@ -415,9 +443,17 @@ const SubjectForm = ({ mode = "add", initialData = null, onBack }) => {
             )}
           </div>
 
-          {/* Action Buttons */}
           <div className="space-y-3">
-            <button className="w-full bg-[#1e293b] hover:bg-[#0f172a] text-white py-3 rounded-xl text-[14px] font-bold shadow-md transition-colors flex items-center justify-center gap-2">
+            <button 
+              onClick={() => {
+                if (!formData.kode || !formData.nama) {
+                  alert("Kode dan Nama Mata Pelajaran harus diisi!");
+                  return;
+                }
+                onSave(formData);
+              }}
+              className="w-full bg-[#1e293b] hover:bg-[#0f172a] text-white py-3 rounded-xl text-[14px] font-bold shadow-md transition-colors flex items-center justify-center gap-2"
+            >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
               {mode === 'add' ? 'Simpan Mata Pelajaran' : 'Simpan Perubahan'}
             </button>
@@ -430,7 +466,10 @@ const SubjectForm = ({ mode = "add", initialData = null, onBack }) => {
             </button>
             
             {mode === 'edit' && (
-              <button className="w-full bg-red-50/50 hover:bg-red-50 text-red-600 py-3 rounded-xl text-[14px] font-bold transition-colors flex items-center justify-center gap-2 mt-4 border border-red-100">
+              <button 
+                onClick={() => onDelete(formData.kode)}
+                className="w-full bg-red-50/50 hover:bg-red-50 text-red-600 py-3 rounded-xl text-[14px] font-bold transition-colors flex items-center justify-center gap-2 mt-4 border border-red-100"
+              >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                 Hapus Mata Pelajaran
               </button>

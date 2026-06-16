@@ -1,26 +1,112 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import SubjectForm from "./SubjectForm";
 import SubjectDetail from "./SubjectDetail";
 
 const Subjects = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedGroup, setSelectedGroup] = useState("Semua Kelompok");
+  const [selectedLevel, setSelectedLevel] = useState("Semua Jenjang");
   const [viewMode, setViewMode] = useState("list");
   const [selectedSubject, setSelectedSubject] = useState(null);
 
-  const mockData = [
-    { code: "MTK", name: "Matematika", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 4, teacher: "Drs. Hendra, M.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-    { code: "BIN", name: "Bahasa Indonesia", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 4, teacher: "Ibu Nuraini, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-    { code: "BIG", name: "Bahasa Inggris", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 3, teacher: "Mr. Andrian, M.A.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-    { code: "FIS", name: "Fisika", group: "IPA", groupColor: "bg-emerald-50 text-emerald-600", levels: "X, XI, XII", hours: 4, teacher: "Ibu Sari, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-    { code: "KIM", name: "Kimia", group: "IPA", groupColor: "bg-emerald-50 text-emerald-600", levels: "X, XI, XII", hours: 4, teacher: "Bpk. Rudi, M.Si.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-    { code: "BIO", name: "Biologi", group: "IPA", groupColor: "bg-emerald-50 text-emerald-600", levels: "X, XI, XII", hours: 4, teacher: "Ibu Dewi, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-    { code: "EKO", name: "Ekonomi", group: "IPS", groupColor: "bg-orange-50 text-orange-500", levels: "X, XI, XII", hours: 4, teacher: "Ibu Kartika, S.E.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-    { code: "SEJ", name: "Sejarah", group: "IPS", groupColor: "bg-orange-50 text-orange-500", levels: "X, XI, XII", hours: 3, teacher: "Bpk. Suherman, M.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-    { code: "SOS", name: "Sosiologi", group: "IPS", groupColor: "bg-orange-50 text-orange-500", levels: "XI, XII", hours: 3, teacher: "Ibu Ratna, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-    { code: "GEO", name: "Geografi", group: "IPS", groupColor: "bg-orange-50 text-orange-500", levels: "X, XI, XII", hours: 3, teacher: "Bpk. Wahyu, M.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-    { code: "PKN", name: "PKn", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 2, teacher: "Ibu Marlina, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-    { code: "PJK", name: "Penjaskes", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 2, teacher: "Bpk. Eko, S.Pd.", status: "Nonaktif", statusColor: "text-gray-400", dotColor: "bg-gray-300" },
-  ];
+  const [subjectsList, setSubjectsList] = useState(() => {
+    const saved = localStorage.getItem("subjects_list");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Failed to parse subjects list from localStorage", e);
+      }
+    }
+    return [
+      { code: "MTK", name: "Matematika", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 4, teacher: "Drs. Hendra, M.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500", deskripsi: "Mata pelajaran matematika wajib yang mencakup aljabar, geometri, statistika, dan kalkulus dasar.", kurikulum: "Kurikulum Merdeka", durasi: "45", kkm: 75, masukRapor: true },
+      { code: "BIN", name: "Bahasa Indonesia", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 4, teacher: "Ibu Nuraini, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500", deskripsi: "Mata pelajaran Bahasa Indonesia yang fokus pada kemampuan berbahasa dan bersastra.", kurikulum: "Kurikulum Merdeka", durasi: "45", kkm: 75, masukRapor: true },
+      { code: "BIG", name: "Bahasa Inggris", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 3, teacher: "Mr. Andrian, M.A.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500", deskripsi: "Mata pelajaran Bahasa Inggris untuk komunikasi global.", kurikulum: "Kurikulum Merdeka", durasi: "45", kkm: 75, masukRapor: true },
+      { code: "FIS", name: "Fisika", group: "IPA", groupColor: "bg-emerald-50 text-emerald-600", levels: "X, XI, XII", hours: 4, teacher: "Ibu Sari, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500", deskripsi: "Studi fisika mencakup mekanika, termodinamika, dan elektromagnetisme.", kurikulum: "Kurikulum Merdeka", durasi: "45", kkm: 75, masukRapor: true },
+      { code: "KIM", name: "Kimia", group: "IPA", groupColor: "bg-emerald-50 text-emerald-600", levels: "X, XI, XII", hours: 4, teacher: "Bpk. Rudi, M.Si.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500", deskripsi: "Kimia struktur, reaksi, dan sifat materi.", kurikulum: "Kurikulum Merdeka", durasi: "45", kkm: 75, masukRapor: true },
+      { code: "BIO", name: "Biologi", group: "IPA", groupColor: "bg-emerald-50 text-emerald-600", levels: "X, XI, XII", hours: 4, teacher: "Ibu Dewi, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500", deskripsi: "Studi makhluk hidup and ekosistem.", kurikulum: "Kurikulum Merdeka", durasi: "45", kkm: 75, masukRapor: true },
+      { code: "EKO", name: "Ekonomi", group: "IPS", groupColor: "bg-orange-50 text-orange-500", levels: "X, XI, XII", hours: 4, teacher: "Ibu Kartika, S.E.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500", deskripsi: "Prinsip-prinsip ekonomi makro dan mikro.", kurikulum: "Kurikulum Merdeka", durasi: "45", kkm: 75, masukRapor: true },
+      { code: "SEJ", name: "Sejarah", group: "IPS", groupColor: "bg-orange-50 text-orange-500", levels: "X, XI, XII", hours: 3, teacher: "Bpk. Suherman, M.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500", deskripsi: "Sejarah Indonesia dan dunia.", kurikulum: "Kurikulum Merdeka", durasi: "45", kkm: 75, masukRapor: true },
+      { code: "SOS", name: "Sosiologi", group: "IPS", groupColor: "bg-orange-50 text-orange-500", levels: "XI, XII", hours: 3, teacher: "Ibu Ratna, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500", deskripsi: "Studi interaksi sosial dan struktur masyarakat.", kurikulum: "Kurikulum Merdeka", durasi: "45", kkm: 75, masukRapor: true },
+      { code: "GEO", name: "Geografi", group: "IPS", groupColor: "bg-orange-50 text-orange-500", levels: "X, XI, XII", hours: 3, teacher: "Bpk. Wahyu, M.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500", deskripsi: "Studi fisik bumi dan interaksi manusia dengan lingkungan.", kurikulum: "Kurikulum Merdeka", durasi: "45", kkm: 75, masukRapor: true },
+      { code: "PKN", name: "PKn", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 2, teacher: "Ibu Marlina, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500", deskripsi: "Pendidikan Pancasila dan Kewarganegaraan.", kurikulum: "Kurikulum Merdeka", durasi: "40", kkm: 75, masukRapor: true },
+      { code: "PJK", name: "Penjaskes", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 2, teacher: "Bpk. Eko, S.Pd.", status: "Nonaktif", statusColor: "text-gray-400", dotColor: "bg-gray-300", deskripsi: "Pendidikan jasmani, olahraga, dan kesehatan.", kurikulum: "Kurikulum Merdeka", durasi: "45", kkm: 75, masukRapor: true },
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem("subjects_list", JSON.stringify(subjectsList));
+  }, [subjectsList]);
+
+  const handleSave = (formData) => {
+    const getGroupColor = (group) => {
+      if (group === "IPA") return "bg-emerald-50 text-emerald-600";
+      if (group === "IPS") return "bg-orange-50 text-orange-500";
+      if (group === "Lintas Minat") return "bg-purple-50 text-purple-600";
+      return "bg-gray-100 text-gray-600";
+    };
+
+    const mappedItem = {
+      code: formData.kode.toUpperCase(),
+      name: formData.nama,
+      group: formData.kelompok,
+      groupColor: getGroupColor(formData.kelompok),
+      levels: formData.jenjang.map(l => l.replace("Kelas ", "")).join(", "),
+      hours: parseInt(formData.jam, 10) || 0,
+      teacher: formData.guru?.name || "-",
+      status: formData.aktif ? "Aktif" : "Nonaktif",
+      statusColor: formData.aktif ? "text-emerald-500" : "text-gray-400",
+      dotColor: formData.aktif ? "bg-emerald-500" : "bg-gray-300",
+      deskripsi: formData.deskripsi,
+      kurikulum: formData.kurikulum,
+      durasi: formData.durasi,
+      kkm: formData.kkm,
+      masukRapor: formData.masukRapor,
+      guru: formData.guru
+    };
+
+    if (viewMode === "edit") {
+      setSubjectsList(prev => prev.map(item => item.code === mappedItem.code ? mappedItem : item));
+    } else {
+      if (subjectsList.some(item => item.code === mappedItem.code)) {
+        alert(`Mata pelajaran dengan kode ${mappedItem.code} sudah ada!`);
+        return;
+      }
+      setSubjectsList(prev => [mappedItem, ...prev]);
+    }
+
+    setViewMode("list");
+    setSelectedSubject(null);
+  };
+
+  const handleDelete = (code) => {
+    if (window.confirm(`Apakah Anda yakin ingin menghapus mata pelajaran dengan kode ${code}?`)) {
+      setSubjectsList(prev => prev.filter(item => item.code !== code));
+      if (viewMode !== "list") {
+        setViewMode("list");
+        setSelectedSubject(null);
+      }
+    }
+  };
+
+  const filteredSubjects = subjectsList.filter(item => {
+    const matchesSearch = 
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.teacher.toLowerCase().includes(searchTerm.toLowerCase());
+      
+    const matchesGroup = 
+      selectedGroup === "Semua Kelompok" || 
+      item.group === selectedGroup;
+      
+    const matchesLevel = 
+      selectedLevel === "Semua Jenjang" || 
+      (selectedLevel === "Kelas X" && item.levels.split(", ").map(s => s.trim()).includes("X")) ||
+      (selectedLevel === "Kelas XI" && item.levels.split(", ").map(s => s.trim()).includes("XI")) ||
+      (selectedLevel === "Kelas XII" && item.levels.split(", ").map(s => s.trim()).includes("XII"));
+      
+    return matchesSearch && matchesGroup && matchesLevel;
+  });
 
   if (viewMode === "add" || viewMode === "edit") {
     return (
@@ -31,7 +117,9 @@ const Subjects = () => {
           onBack={() => {
             setViewMode("list");
             setSelectedSubject(null);
-          }} 
+          }}
+          onSave={handleSave}
+          onDelete={handleDelete}
         />
       </div>
     );
@@ -47,6 +135,7 @@ const Subjects = () => {
             setSelectedSubject(null);
           }}
           onEdit={() => setViewMode("edit")}
+          onDelete={handleDelete}
         />
       </div>
     );
@@ -102,7 +191,7 @@ const Subjects = () => {
           </div>
           <div>
             <div className="text-[12px] font-bold text-gray-400">Total Mata Pelajaran</div>
-            <div className="text-[26px] font-bold text-[#1e293b] leading-tight mt-0.5">48</div>
+            <div className="text-[26px] font-bold text-[#1e293b] leading-tight mt-0.5">{subjectsList.length}</div>
           </div>
         </div>
 
@@ -116,7 +205,9 @@ const Subjects = () => {
           </div>
           <div>
             <div className="text-[12px] font-bold text-gray-400">Sudah Ada Guru</div>
-            <div className="text-[26px] font-bold text-[#1e293b] leading-tight mt-0.5">45</div>
+            <div className="text-[26px] font-bold text-[#1e293b] leading-tight mt-0.5">
+              {subjectsList.filter(item => item.teacher && item.teacher !== "-").length}
+            </div>
           </div>
         </div>
 
@@ -131,7 +222,9 @@ const Subjects = () => {
           </div>
           <div>
             <div className="text-[12px] font-bold text-gray-400">Belum Ada Guru</div>
-            <div className="text-[26px] font-bold text-[#1e293b] leading-tight mt-0.5">3</div>
+            <div className="text-[26px] font-bold text-[#1e293b] leading-tight mt-0.5">
+              {subjectsList.filter(item => !item.teacher || item.teacher === "-").length}
+            </div>
           </div>
         </div>
 
@@ -145,7 +238,9 @@ const Subjects = () => {
           </div>
           <div>
             <div className="text-[12px] font-bold text-gray-400">Total Jam / Minggu</div>
-            <div className="text-[26px] font-bold text-[#1e293b] leading-tight mt-0.5">168</div>
+            <div className="text-[26px] font-bold text-[#1e293b] leading-tight mt-0.5">
+              {subjectsList.reduce((acc, item) => acc + (parseInt(item.hours, 10) || 0), 0)}
+            </div>
           </div>
         </div>
       </div>
@@ -165,14 +260,22 @@ const Subjects = () => {
                 placeholder="Cari mata pelajaran..." 
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm w-full sm:w-[240px] focus:outline-none focus:border-gray-300 transition-colors"
+                className="pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm w-full sm:w-[240px] focus:outline-none focus:border-gray-300 transition-colors bg-white"
               />
             </div>
             
             {/* Dropdown 1 */}
             <div className="relative">
-              <select className="appearance-none pl-4 pr-10 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 focus:outline-none focus:border-gray-300 w-full sm:w-auto">
+              <select 
+                value={selectedGroup}
+                onChange={(e) => setSelectedGroup(e.target.value)}
+                className="appearance-none pl-4 pr-10 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 focus:outline-none focus:border-gray-300 w-full sm:w-auto bg-white"
+              >
                 <option>Semua Kelompok</option>
+                <option>Wajib</option>
+                <option>IPA</option>
+                <option>IPS</option>
+                <option>Lintas Minat</option>
               </select>
               <div className="absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-gray-400">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -181,8 +284,15 @@ const Subjects = () => {
 
             {/* Dropdown 2 */}
             <div className="relative">
-              <select className="appearance-none pl-4 pr-10 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 focus:outline-none focus:border-gray-300 w-full sm:w-auto">
+              <select 
+                value={selectedLevel}
+                onChange={(e) => setSelectedLevel(e.target.value)}
+                className="appearance-none pl-4 pr-10 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 focus:outline-none focus:border-gray-300 w-full sm:w-auto bg-white"
+              >
                 <option>Semua Jenjang</option>
+                <option>Kelas X</option>
+                <option>Kelas XI</option>
+                <option>Kelas XII</option>
               </select>
               <div className="absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-gray-400">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -215,7 +325,7 @@ const Subjects = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {mockData.map((item, idx) => (
+              {filteredSubjects.map((item, idx) => (
                 <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-6 py-4">
                     <span className="text-[13px] font-bold text-gray-800 tracking-wide font-mono">{item.code}</span>
@@ -247,8 +357,13 @@ const Subjects = () => {
                             kelompok: item.group,
                             jenjang: item.levels.split(", ").map(l => "Kelas " + l),
                             jam: item.hours,
-                            guru: { id: item.teacher.substring(0, 2).toUpperCase(), name: item.teacher, role: "Guru Mapel", status: "Aktif" },
+                            guru: item.guru || { id: item.teacher.substring(0, 2).toUpperCase(), name: item.teacher, role: "Guru Mapel", status: "Aktif" },
                             aktif: item.status === "Aktif",
+                            deskripsi: item.deskripsi || "",
+                            kurikulum: item.kurikulum || "Kurikulum Merdeka",
+                            durasi: item.durasi || "45",
+                            kkm: item.kkm || 75,
+                            masukRapor: item.masukRapor !== undefined ? item.masukRapor : true,
                           });
                           setViewMode("detail");
                         }}
@@ -264,8 +379,13 @@ const Subjects = () => {
                             kelompok: item.group,
                             jenjang: item.levels.split(", ").map(l => "Kelas " + l),
                             jam: item.hours,
-                            guru: { id: item.teacher.substring(0, 2).toUpperCase(), name: item.teacher, role: "Guru Mapel", status: "Aktif" },
+                            guru: item.guru || { id: item.teacher.substring(0, 2).toUpperCase(), name: item.teacher, role: "Guru Mapel", status: "Aktif" },
                             aktif: item.status === "Aktif",
+                            deskripsi: item.deskripsi || "",
+                            kurikulum: item.kurikulum || "Kurikulum Merdeka",
+                            durasi: item.durasi || "45",
+                            kkm: item.kkm || 75,
+                            masukRapor: item.masukRapor !== undefined ? item.masukRapor : true,
                           });
                           setViewMode("edit");
                         }}
@@ -273,7 +393,10 @@ const Subjects = () => {
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                       </button>
-                      <button className="text-gray-400 hover:text-red-500 transition-colors">
+                      <button 
+                        onClick={() => handleDelete(item.code)}
+                        className="text-gray-400 hover:text-red-500 transition-colors"
+                      >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                       </button>
                     </div>
@@ -287,7 +410,7 @@ const Subjects = () => {
         {/* Footer Pagination */}
         <div className="p-5 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-[13px] font-medium text-gray-500">
-            Menampilkan 12 dari 48 mata pelajaran
+            Menampilkan {filteredSubjects.length} dari {subjectsList.length} mata pelajaran
           </div>
           <div className="flex items-center gap-1.5">
             <button className="px-3.5 py-2 border border-gray-200 rounded-lg text-[13px] font-bold text-gray-400 hover:text-gray-600 transition-colors bg-white">Sebelumnya</button>

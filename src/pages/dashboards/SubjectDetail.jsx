@@ -1,6 +1,8 @@
 import React from "react";
 
-const SubjectDetail = ({ data, onBack, onEdit }) => {
+const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
+  if (!data) return null;
+
   return (
     <div className="animate-fadeIn space-y-6">
       {/* Header section */}
@@ -10,16 +12,16 @@ const SubjectDetail = ({ data, onBack, onEdit }) => {
             Dashboard <span className="mx-1">&gt;</span> Kelola Akademik <span className="mx-1">&gt;</span> Mata Pelajaran <span className="mx-1">&gt;</span> <span className="text-gray-600 font-bold">Detail</span>
           </div>
           <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-[28px] font-bold text-[#1e293b]">Matematika</h1>
-            <span className="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-md text-[11px] font-bold tracking-wider">MTK</span>
-            <span className="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-md text-[11px] font-bold tracking-wider">Wajib</span>
-            <span className="px-2.5 py-1 bg-emerald-50 text-emerald-600 rounded-md text-[11px] font-bold tracking-wider flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-              Aktif
+            <h1 className="text-[28px] font-bold text-[#1e293b]">{data.nama}</h1>
+            <span className="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-md text-[11px] font-bold tracking-wider">{data.kode}</span>
+            <span className="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-md text-[11px] font-bold tracking-wider">{data.kelompok}</span>
+            <span className={`px-2.5 py-1 ${data.aktif ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-500'} rounded-md text-[11px] font-bold tracking-wider flex items-center gap-1.5`}>
+              <span className={`w-1.5 h-1.5 ${data.aktif ? 'bg-emerald-500' : 'bg-gray-400'} rounded-full`}></span>
+              {data.aktif ? 'Aktif' : 'Nonaktif'}
             </span>
           </div>
           <p className="text-gray-500 text-[14px]">
-            Mata pelajaran matematika wajib yang mencakup aljabar, geometri, statistika, dan kalkulus dasar untuk semua jurusan.
+            {data.deskripsi || "Tidak ada deskripsi."}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -275,8 +277,7 @@ const SubjectDetail = ({ data, onBack, onEdit }) => {
 
         {/* Right Column */}
         <div className="lg:w-[340px] space-y-6">
-          
-          {/* Card 1: Informasi */}
+                  {/* Card 1: Informasi */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <div className="flex items-center gap-2.5 mb-6">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
@@ -286,39 +287,41 @@ const SubjectDetail = ({ data, onBack, onEdit }) => {
             <div className="space-y-4">
               <div className="flex justify-between border-b border-dashed border-gray-100 pb-3">
                 <span className="text-[13px] text-gray-500 font-medium">Kode</span>
-                <span className="text-[13px] font-bold text-gray-800">MTK</span>
+                <span className="text-[13px] font-bold text-gray-800">{data.kode}</span>
               </div>
               <div className="flex justify-between border-b border-dashed border-gray-100 pb-3">
                 <span className="text-[13px] text-gray-500 font-medium">Kelompok</span>
-                <span className="text-[13px] font-bold text-gray-800">Wajib</span>
+                <span className="text-[13px] font-bold text-gray-800">{data.kelompok}</span>
               </div>
               <div className="flex justify-between border-b border-dashed border-gray-100 pb-3">
                 <span className="text-[13px] text-gray-500 font-medium">Kurikulum</span>
-                <span className="text-[13px] font-bold text-gray-800">Kurikulum Merdeka</span>
+                <span className="text-[13px] font-bold text-gray-800">{data.kurikulum || "Kurikulum Merdeka"}</span>
               </div>
               <div className="flex justify-between border-b border-dashed border-gray-100 pb-3">
                 <span className="text-[13px] text-gray-500 font-medium">Jenjang</span>
-                <span className="text-[13px] font-bold text-gray-800">X, XI, XII</span>
+                <span className="text-[13px] font-bold text-gray-800">
+                  {data.jenjang ? data.jenjang.map(l => l.replace("Kelas ", "")).join(", ") : (data.levels || "")}
+                </span>
               </div>
               <div className="flex justify-between border-b border-dashed border-gray-100 pb-3">
                 <span className="text-[13px] text-gray-500 font-medium">Jam / Minggu</span>
-                <span className="text-[13px] font-bold text-gray-800">4 jam</span>
+                <span className="text-[13px] font-bold text-gray-800">{data.jam || data.hours} jam</span>
               </div>
               <div className="flex justify-between border-b border-dashed border-gray-100 pb-3">
                 <span className="text-[13px] text-gray-500 font-medium">Durasi Sesi</span>
-                <span className="text-[13px] font-bold text-gray-800">45 menit</span>
+                <span className="text-[13px] font-bold text-gray-800">{data.durasi || "45"} menit</span>
               </div>
               <div className="flex justify-between border-b border-dashed border-gray-100 pb-3">
                 <span className="text-[13px] text-gray-500 font-medium">KKM</span>
-                <span className="text-[13px] font-bold text-gray-800">75</span>
+                <span className="text-[13px] font-bold text-gray-800">{data.kkm || "75"}</span>
               </div>
               <div className="flex justify-between pt-1">
                 <span className="text-[13px] text-gray-500 font-medium">Masuk Rapor</span>
-                <span className="text-[13px] font-bold text-gray-800">Ya</span>
+                <span className="text-[13px] font-bold text-gray-800">{data.masukRapor ? "Ya" : "Tidak"}</span>
               </div>
             </div>
           </div>
-
+ 
           {/* Card 2: Guru Pengampu */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <div className="flex items-center gap-2.5 mb-5">
@@ -326,21 +329,29 @@ const SubjectDetail = ({ data, onBack, onEdit }) => {
               <h2 className="text-[15px] font-bold text-[#1e293b]">Guru Pengampu</h2>
             </div>
             
-            <div className="border border-gray-200 rounded-xl p-4 flex items-center gap-4">
-              <div className="w-11 h-11 rounded-full bg-[#1e293b] flex items-center justify-center text-white text-[14px] font-bold shadow-sm flex-shrink-0">
-                DH
-              </div>
-              <div className="overflow-hidden">
-                <div className="text-[14px] font-bold text-gray-800 truncate">Drs. Hendra, M.Pd.</div>
-                <div className="text-[12px] text-gray-500 font-medium mb-1">Guru Matematika</div>
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[9px] font-bold tracking-widest uppercase">Aktif</span>
-                  <span className="text-[10px] font-medium text-gray-400">NIP: 197804122005011003</span>
+            {data.guru && data.guru.name && data.guru.name !== "-" ? (
+              <div className="border border-gray-200 rounded-xl p-4 flex items-center gap-4">
+                <div className="w-11 h-11 rounded-full bg-[#1e293b] flex items-center justify-center text-white text-[14px] font-bold shadow-sm flex-shrink-0">
+                  {data.guru.id || data.guru.name.substring(0, 2).toUpperCase()}
+                </div>
+                <div className="overflow-hidden">
+                  <div className="text-[14px] font-bold text-gray-800 truncate">{data.guru.name}</div>
+                  <div className="text-[12px] text-gray-500 font-medium mb-1">{data.guru.role || "Guru Pengampu"}</div>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2 py-0.5 ${data.guru.status === 'Aktif' || data.aktif ? 'bg-emerald-50 text-emerald-600' : 'bg-gray-100 text-gray-500'} rounded text-[9px] font-bold tracking-widest uppercase`}>
+                      {data.guru.status || "Aktif"}
+                    </span>
+                    <span className="text-[10px] font-medium text-gray-400">NIP: 197804122005011003</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="border border-dashed border-gray-200 rounded-xl p-4 text-center text-gray-400 text-xs font-medium">
+                Belum ada guru pengampu
+              </div>
+            )}
           </div>
-
+ 
           {/* Card 3: Aksi Terkait */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <div className="flex items-center gap-2.5 mb-5">
@@ -366,6 +377,15 @@ const SubjectDetail = ({ data, onBack, onEdit }) => {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
                 </div>
                 <span className="text-[13px] font-bold text-gray-700">Rekap Absensi</span>
+              </button>
+              <button 
+                onClick={() => onDelete(data.kode)}
+                className="w-full flex items-center gap-3 border border-red-100 bg-red-50/10 p-3 rounded-xl hover:bg-red-50 transition-colors text-left group"
+              >
+                <div className="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center group-hover:bg-red-100 transition-colors">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </div>
+                <span className="text-[13px] font-bold text-red-600">Hapus Mata Pelajaran</span>
               </button>
             </div>
           </div>
