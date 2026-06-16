@@ -25,6 +25,10 @@ import {
   createBeasiswa,
   updateBeasiswa,
   deleteBeasiswa,
+  getKomponenSpp,
+  createKomponenSpp,
+  updateKomponenSpp,
+  deleteKomponenSpp,
 } from "../../api/finance";
 import { getSiswa } from "../../api/academic";
 import Profile from "../Profile";
@@ -184,11 +188,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
   // Pengaturan SPP states
   const [sppSettingTab, setSppSettingTab] = useState("nominal");
-  const [sppList, setSppList] = useState([
-    { id: 1, grade: "Kelas VII", ta: "2025/2026", amount: "Rp 250.000", amountNum: 250000, denda: 15000 },
-    { id: 2, grade: "Kelas VIII", ta: "2025/2026", amount: "Rp 275.000", amountNum: 275000, denda: 15000 },
-    { id: 3, grade: "Kelas IX", ta: "2025/2026", amount: "Rp 300.000", amountNum: 300000, denda: 15000 }
-  ]);
+  const [sppList, setSppList] = useState([]);
   const [editingSppId, setEditingSppId] = useState(null);
   const [editSppAmount, setEditSppAmount] = useState("");
   const [editSppDenda, setEditSppDenda] = useState("");
@@ -214,6 +214,24 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const [komponenGajiList, setKomponenGajiList] = useState([]);
 
   // Data Loaders
+  const loadKomponenSpp = useCallback(async () => {
+    try {
+      const rows = await getKomponenSpp();
+      if (Array.isArray(rows)) {
+        setSppList(rows.map(r => ({
+          id: r.id,
+          grade: r.nama_kelas || r.nama,
+          ta: "2025/2026",
+          amount: `Rp ${Number(r.nominal).toLocaleString('id-ID')}`,
+          amountNum: Number(r.nominal),
+          denda: Number(r.denda || 0)
+        })));
+      }
+    } catch (e) {
+      console.error("loadKomponenSpp:", e);
+    }
+  }, []);
+
   const loadKomponenGaji = useCallback(async () => {
     try {
       const rows = await getKomponenGaji();
@@ -258,11 +276,12 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
+    loadKomponenSpp();
     loadKomponenGaji();
     loadTagihan();
     loadBeasiswa();
     loadSiswa();
-  }, [loadKomponenGaji, loadTagihan, loadBeasiswa, loadSiswa]);
+  }, [loadKomponenSpp, loadKomponenGaji, loadTagihan, loadBeasiswa, loadSiswa]);
 
   // Handlers
   const handleSaveKomponen = async () => {
@@ -997,17 +1016,24 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                   Batal
                                 </button>
                                 <button
-                                  onClick={() => {
-                                    setSppList(sppList.map(s => s.id === item.id ? {
-                                      ...s,
-                                      grade: editSppGrade,
-                                      ta: editSppTa,
-                                      amount: `Rp ${Number(editSppAmount).toLocaleString("id-ID")}`,
-                                      amountNum: Number(editSppAmount),
-                                      denda: Number(editSppDenda)
-                                    } : s));
-                                    setEditingSppId(null);
-                                    triggerToast(`Nominal ${editSppGrade} berhasil diperbarui!`);
+                                  onClick={async () => {
+                                    if (!editSppAmount) {
+                                      triggerToast("Nominal wajib diisi", "error");
+                                      return;
+                                    }
+                                    try {
+                                      const payload = {
+                                        nominal: Number(editSppAmount),
+                                        denda: Number(editSppDenda)
+                                      };
+                                      await updateKomponenSpp(item.id, payload);
+                                      triggerToast(`Nominal ${editSppGrade} berhasil diperbarui!`);
+                                      setEditingSppId(null);
+                                      loadKomponenSpp();
+                                    } catch (e) {
+                                      triggerToast("Gagal menyimpan pengaturan SPP", "error");
+                                      console.error(e);
+                                    }
                                   }}
                                   className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white border-none px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all active:scale-95"
                                 >

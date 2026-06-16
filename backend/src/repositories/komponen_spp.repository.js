@@ -37,7 +37,21 @@ const KomponenSppRepository = {
   },
 
   update: async (id, data) => {
-    const { nama, nominal, angkatan, kelasId, tahunAjaranId, isAktif, denda, defaultJatuhTempo, catatan } = data;
+    // Partial update by falling back to existing data if undefined
+    const existing = await query(`SELECT * FROM finance.komponen_spp WHERE id = $1`, [id]);
+    if (!existing.rows.length) return null;
+    const old = existing.rows[0];
+
+    const nama = data.nama !== undefined ? data.nama : old.nama;
+    const nominal = data.nominal !== undefined ? data.nominal : old.nominal;
+    const angkatan = data.angkatan !== undefined ? data.angkatan : old.angkatan;
+    const kelasId = data.kelasId !== undefined ? data.kelasId : old.kelas_id;
+    const tahunAjaranId = data.tahunAjaranId !== undefined ? data.tahunAjaranId : old.tahun_ajaran_id;
+    const isAktif = data.isAktif !== undefined ? data.isAktif : old.is_aktif;
+    const denda = data.denda !== undefined ? data.denda : old.denda;
+    const defaultJatuhTempo = data.defaultJatuhTempo !== undefined ? data.defaultJatuhTempo : old.default_jatuh_tempo;
+    const catatan = data.catatan !== undefined ? data.catatan : old.catatan;
+
     const sql = `
       UPDATE finance.komponen_spp
       SET nama = $1, nominal = $2, angkatan = $3, kelas_id = $4, tahun_ajaran_id = $5,
