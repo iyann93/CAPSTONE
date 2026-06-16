@@ -215,7 +215,11 @@ const Subjects = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {mockData.map((item, idx) => (
+              {mockData.filter((item) => 
+                item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                item.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.teacher.toLowerCase().includes(searchTerm.toLowerCase())
+              ).map((item, idx) => (
                 <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-6 py-4">
                     <span className="text-[13px] font-bold text-gray-800 tracking-wide font-mono">{item.code}</span>

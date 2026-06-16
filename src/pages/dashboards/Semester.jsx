@@ -2,6 +2,16 @@ import React, { useState } from 'react';
 
 const Semester = () => {
   const [view, setView] = useState("list");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const mockSemesters = [
+    { name: "Ganjil 2023/2024", id: "SMT-2023-1", year: "2023/2024", start: "17 Jul 2023", end: "22 Des 2023", students: "1,248", classes: "32", status: "Aktif" },
+    { name: "Genap 2022/2023", id: "SMT-2022-2", year: "2022/2023", start: "9 Jan 2023", end: "16 Jun 2023", students: "1,190", classes: "31", status: "Selesai" },
+    { name: "Ganjil 2022/2023", id: "SMT-2022-1", year: "2022/2023", start: "18 Jul 2022", end: "23 Des 2022", students: "1,190", classes: "31", status: "Selesai" },
+    { name: "Genap 2021/2022", id: "SMT-2021-2", year: "2021/2022", start: "10 Jan 2022", end: "17 Jun 2022", students: "1,145", classes: "30", status: "Selesai" },
+    { name: "Ganjil 2021/2022", id: "SMT-2021-1", year: "2021/2022", start: "19 Jul 2021", end: "24 Des 2021", students: "1,145", classes: "30", status: "Selesai" },
+    { name: "Genap 2020/2021", id: "SMT-2020-2", year: "2020/2021", start: "11 Jan 2021", end: "18 Jun 2021", students: "1,102", classes: "29", status: "Selesai" }
+  ];
 
   if (view === "add") {
     return (
@@ -433,7 +443,13 @@ const Semester = () => {
           <h2 className="text-[16px] font-bold text-[#1e293b]">Daftar Semua Semester</h2>
           <div className="flex items-center gap-3">
             <div className="relative">
-              <input type="text" placeholder="Cari semester..." className="pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 w-[200px]" />
+              <input 
+                type="text" 
+                placeholder="Cari semester..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 w-[200px]" 
+              />
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="absolute left-3 top-2.5 text-gray-400"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             </div>
             <div className="relative">
@@ -459,241 +475,63 @@ const Semester = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {/* Row 1 */}
-              <tr className="hover:bg-gray-50/50 transition-colors">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 border border-gray-100 shrink-0">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              {mockSemesters.filter(item => 
+                item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.year.toLowerCase().includes(searchTerm.toLowerCase())
+              ).map((item, idx) => (
+                <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 border border-gray-100 shrink-0">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                      </div>
+                      <div>
+                        <div className="text-[14px] font-bold text-[#1e293b]">{item.name}</div>
+                        <div className="text-[12px] text-gray-400 mt-0.5 font-medium">{item.id}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-[14px] font-bold text-[#1e293b]">Ganjil 2023/2024</div>
-                      <div className="text-[12px] text-gray-400 mt-0.5 font-medium">SMT-2023-1</div>
+                  </td>
+                  <td className="px-6 py-4 text-[14px] text-[#1e293b] font-bold">{item.year}</td>
+                  <td className="px-6 py-4">
+                    <div className="text-[13px] text-[#1e293b] font-semibold">{item.start}</div>
+                    <div className="text-[11px] text-gray-400 mt-0.5">s/d {item.end}</div>
+                  </td>
+                  <td className="px-6 py-4 text-center text-[14px] text-gray-600 font-semibold">{item.students}</td>
+                  <td className="px-6 py-4 text-center text-[14px] text-gray-600 font-semibold">{item.classes}</td>
+                  <td className="px-6 py-4">
+                    {item.status === 'Aktif' ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-[#ECFDF5] text-[#059669]">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#059669]"></span> Aktif
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-[#F1F5F9] text-gray-500">
+                        <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Selesai
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <button onClick={() => setView('detail')} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                      </button>
+                      <button onClick={() => setView('edit')} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                      </button>
+                      {item.status === 'Aktif' ? (
+                        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-orange-200 text-orange-600 hover:bg-orange-50 text-[12px] font-bold transition-colors ml-1">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                          Tutup Semester
+                        </button>
+                      ) : (
+                        <button className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors ml-1">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                      )}
                     </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-[14px] text-[#1e293b] font-bold">2023/2024</td>
-                <td className="px-6 py-4">
-                  <div className="text-[13px] text-[#1e293b] font-semibold">17 Jul 2023</div>
-                  <div className="text-[11px] text-gray-400 mt-0.5">s/d 22 Des 2023</div>
-                </td>
-                <td className="px-6 py-4 text-center text-[14px] text-gray-600 font-semibold">1,248</td>
-                <td className="px-6 py-4 text-center text-[14px] text-gray-600 font-semibold">32</td>
-                <td className="px-6 py-4">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-[#ECFDF5] text-[#059669]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#059669]"></span> Aktif
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <button onClick={() => setView('detail')} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                    </button>
-                    <button onClick={() => setView('edit')} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                    </button>
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-orange-200 text-orange-600 hover:bg-orange-50 text-[12px] font-bold transition-colors ml-1">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                      Tutup Semester
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              {/* Row 2 */}
-              <tr className="hover:bg-gray-50/50 transition-colors">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 border border-gray-100 shrink-0">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                    </div>
-                    <div>
-                      <div className="text-[14px] font-bold text-[#1e293b]">Genap 2022/2023</div>
-                      <div className="text-[12px] text-gray-400 mt-0.5 font-medium">SMT-2022-2</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-[14px] text-[#1e293b] font-bold">2022/2023</td>
-                <td className="px-6 py-4">
-                  <div className="text-[13px] text-[#1e293b] font-semibold">9 Jan 2023</div>
-                  <div className="text-[11px] text-gray-400 mt-0.5">s/d 16 Jun 2023</div>
-                </td>
-                <td className="px-6 py-4 text-center text-[14px] text-gray-600 font-semibold">1,190</td>
-                <td className="px-6 py-4 text-center text-[14px] text-gray-600 font-semibold">31</td>
-                <td className="px-6 py-4">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-[#F1F5F9] text-gray-500">
-                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Selesai
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <button onClick={() => setView('detail')} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                    </button>
-                    <button onClick={() => setView('edit')} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                    </button>
-                    <button className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors ml-1">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              {/* Row 3 */}
-              <tr className="hover:bg-gray-50/50 transition-colors">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 border border-gray-100 shrink-0">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                    </div>
-                    <div>
-                      <div className="text-[14px] font-bold text-[#1e293b]">Ganjil 2022/2023</div>
-                      <div className="text-[12px] text-gray-400 mt-0.5 font-medium">SMT-2022-1</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-[14px] text-[#1e293b] font-bold">2022/2023</td>
-                <td className="px-6 py-4">
-                  <div className="text-[13px] text-[#1e293b] font-semibold">18 Jul 2022</div>
-                  <div className="text-[11px] text-gray-400 mt-0.5">s/d 23 Des 2022</div>
-                </td>
-                <td className="px-6 py-4 text-center text-[14px] text-gray-600 font-semibold">1,190</td>
-                <td className="px-6 py-4 text-center text-[14px] text-gray-600 font-semibold">31</td>
-                <td className="px-6 py-4">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-[#F1F5F9] text-gray-500">
-                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Selesai
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <button onClick={() => setView('detail')} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                    </button>
-                    <button onClick={() => setView('edit')} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                    </button>
-                    <button className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors ml-1">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              {/* Row 4 */}
-              <tr className="hover:bg-gray-50/50 transition-colors">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 border border-gray-100 shrink-0">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                    </div>
-                    <div>
-                      <div className="text-[14px] font-bold text-[#1e293b]">Genap 2021/2022</div>
-                      <div className="text-[12px] text-gray-400 mt-0.5 font-medium">SMT-2021-2</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-[14px] text-[#1e293b] font-bold">2021/2022</td>
-                <td className="px-6 py-4">
-                  <div className="text-[13px] text-[#1e293b] font-semibold">10 Jan 2022</div>
-                  <div className="text-[11px] text-gray-400 mt-0.5">s/d 17 Jun 2022</div>
-                </td>
-                <td className="px-6 py-4 text-center text-[14px] text-gray-600 font-semibold">1,145</td>
-                <td className="px-6 py-4 text-center text-[14px] text-gray-600 font-semibold">30</td>
-                <td className="px-6 py-4">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-[#F1F5F9] text-gray-500">
-                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Selesai
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <button onClick={() => setView('detail')} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                    </button>
-                    <button onClick={() => setView('edit')} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                    </button>
-                    <button className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors ml-1">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              {/* Row 5 */}
-              <tr className="hover:bg-gray-50/50 transition-colors">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 border border-gray-100 shrink-0">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                    </div>
-                    <div>
-                      <div className="text-[14px] font-bold text-[#1e293b]">Ganjil 2021/2022</div>
-                      <div className="text-[12px] text-gray-400 mt-0.5 font-medium">SMT-2021-1</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-[14px] text-[#1e293b] font-bold">2021/2022</td>
-                <td className="px-6 py-4">
-                  <div className="text-[13px] text-[#1e293b] font-semibold">19 Jul 2021</div>
-                  <div className="text-[11px] text-gray-400 mt-0.5">s/d 24 Des 2021</div>
-                </td>
-                <td className="px-6 py-4 text-center text-[14px] text-gray-600 font-semibold">1,145</td>
-                <td className="px-6 py-4 text-center text-[14px] text-gray-600 font-semibold">30</td>
-                <td className="px-6 py-4">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-[#F1F5F9] text-gray-500">
-                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Selesai
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <button onClick={() => setView('detail')} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                    </button>
-                    <button onClick={() => setView('edit')} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                    </button>
-                    <button className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors ml-1">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              {/* Row 6 */}
-              <tr className="hover:bg-gray-50/50 transition-colors">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 border border-gray-100 shrink-0">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                    </div>
-                    <div>
-                      <div className="text-[14px] font-bold text-[#1e293b]">Genap 2020/2021</div>
-                      <div className="text-[12px] text-gray-400 mt-0.5 font-medium">SMT-2020-2</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-[14px] text-[#1e293b] font-bold">2020/2021</td>
-                <td className="px-6 py-4">
-                  <div className="text-[13px] text-[#1e293b] font-semibold">11 Jan 2021</div>
-                  <div className="text-[11px] text-gray-400 mt-0.5">s/d 18 Jun 2021</div>
-                </td>
-                <td className="px-6 py-4 text-center text-[14px] text-gray-600 font-semibold">1,102</td>
-                <td className="px-6 py-4 text-center text-[14px] text-gray-600 font-semibold">29</td>
-                <td className="px-6 py-4">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-[#F1F5F9] text-gray-500">
-                    <span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Selesai
-                  </span>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <button onClick={() => setView('detail')} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                    </button>
-                    <button onClick={() => setView('edit')} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                    </button>
-                    <button className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors ml-1">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
