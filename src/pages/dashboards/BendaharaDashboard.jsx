@@ -612,7 +612,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                       {sppPayments.slice(0, 3).map((row, i) => (
                         <tr key={i} className="hover:bg-gray-50/50 transition-colors">
                           <td className="py-4 px-2 font-bold text-gray-800">{row.name}</td>
-                          <td className="py-4 px-2 text-gray-500 font-medium">{row.class}</td>
+                          <td className="py-4 px-2 text-gray-500 font-medium">{row.class?.replace('Kelas ', '')?.replace('-', ' ')}</td>
                           <td className="py-4 px-2 font-bold text-gray-700">{row.amount}</td>
                           <td className="py-4 px-2 text-gray-500">{row.period}</td>
                           <td className="py-4 px-2 text-right">
@@ -819,7 +819,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                           <td className="py-4 px-3 font-bold text-gray-800">{row.siswa_nama || row.name}</td>
                           <td className="py-4 px-3">
                             <span className="bg-blue-50 text-blue-600 font-semibold px-2.5 py-0.5 rounded-full text-[10px]">
-                              {row.nama_kelas || row.class}
+                              {(row.nama_kelas || row.class)?.replace('Kelas ', '')?.replace('-', ' ')}
                             </span>
                           </td>
                           <td className="py-4 px-3 font-bold text-gray-700">
@@ -943,12 +943,12 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                             {/* Info */}
                             <div className="flex-1">
                               <div className="text-sm font-bold text-gray-800">
-                                {item.grade}
+                                {item.grade.replace('-', ' ')}
                                 <span className="text-[11px] font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded ml-2">TA {item.ta}</span>
                               </div>
                               {!isEditing && (
                                 <div className="text-[11px] text-gray-400 mt-0.5">
-                                  {item.amount}/bln · Berlaku: {formatTanggal(globalSppBerlaku)} · Jatuh tempo: {formatTanggal(globalSppJatuhTempo)}
+                                  Berlaku: {formatTanggal(globalSppBerlaku)} · Jatuh tempo: {formatTanggal(globalSppJatuhTempo)}
                                 </div>
                               )}
                             </div>
@@ -1375,13 +1375,13 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
           </div>
         );
 
-      case "Beasiswa & Potongan SPP":
+      case "Beasiswa":
         return (
           <div className="animate-fadeIn">
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8">
               <div>
-                <h2 className="text-xl font-bold text-gray-800">Beasiswa & Potongan</h2>
+                <h2 className="text-xl font-bold text-gray-800">Beasiswa</h2>
                 <p className="text-sm text-gray-500 mt-1">Kelola program beasiswa dan potongan SPP siswa.</p>
               </div>
               <div className="flex items-center gap-3">
@@ -1453,11 +1453,11 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {[
                   { title: "Beasiswa Prestasi Akademik", subtitle: "2025/2026", type: "Beasiswa", amount: "100%", status: "Aktif", users: "12 siswa", typeColor: "blue" },
-                  { title: "Beasiswa Yayasan Peduli", subtitle: "2025/2026", type: "Beasiswa", amount: "50%", status: "Aktif", users: "24 siswa", typeColor: "blue" },
-                  { title: "Potongan Anak Guru", subtitle: "Setiap Bulan", type: "Potongan", amount: "Rp 100.000", status: "Aktif", users: "8 siswa", typeColor: "orange" },
-                  { title: "Potongan Kakak-Adik", subtitle: "Setiap Bulan", type: "Potongan", amount: "25%", status: "Aktif", users: "16 siswa", typeColor: "orange" },
-                  { title: "Beasiswa Dhuafa", subtitle: "2025/2026", type: "Beasiswa", amount: "75%", status: "Aktif", users: "18 siswa", typeColor: "blue" },
-                  { title: "Subsidi Bencana Alam", subtitle: "Jan-Mar 2025", type: "Potongan", amount: "Rp 150.000", status: "Non-Aktif", users: "3 siswa", typeColor: "orange" }
+                  { title: "Beasiswa dari Lazismu", subtitle: "2025/2026", type: "Beasiswa", amount: "50%", status: "Aktif", users: "24 siswa", typeColor: "blue" },
+                  { title: "Beasiswa Tahridz Al-Qur'an", subtitle: "Setiap Bulan", type: "Beasiswa", amount: "100%", status: "Aktif", users: "8 siswa", typeColor: "blue" },
+                  { title: "Beasiswa Prestasi Non-Akademik", subtitle: "Setiap Bulan", type: "Beasiswa", amount: "25%", status: "Aktif", users: "16 siswa", typeColor: "blue" },
+                  { title: "Beasiswa Tahfiz Quran", subtitle: "2025/2026", type: "Beasiswa", amount: "75%", status: "Aktif", users: "18 siswa", typeColor: "blue" },
+                  { title: "Beasiswa Penyarikatan Muhammadiyah", subtitle: "2025/2026", type: "Beasiswa", amount: "Rp 150.000", status: "Aktif", users: "3 siswa", typeColor: "blue" }
                 ].map((item, i) => (
                   <div key={i} className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between gap-4">
                     <div className="flex justify-between items-start gap-4">
@@ -1721,7 +1721,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                         </td>
                         <td className="p-4">
                           <span className="bg-[#EFF6FF] text-[#3B82F6] font-bold px-2.5 py-1 rounded-md text-[10px]">
-                            {row.class}
+                            {row.class?.replace('Kelas ', '')?.replace('-', ' ')}
                           </span>
                         </td>
                         <td className="p-4">
@@ -2455,7 +2455,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                       {sppPayments.slice(0, 3).map((row) => (
                         <tr key={row.id} className="hover:bg-gray-50/50 transition-colors">
                           <td className="py-3 font-bold text-gray-800">{row.name}</td>
-                          <td className="py-3 text-gray-500">{row.class}</td>
+                          <td className="py-3 text-gray-500">{row.class?.replace('Kelas ', '')?.replace('-', ' ')}</td>
                           <td className="py-3 font-bold text-gray-700">{row.amount}</td>
                           <td className="py-3 text-gray-400">{row.period}</td>
                           <td className="py-3 text-right">
@@ -2514,220 +2514,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             </div>
           </div>
         );
-
-      case "Transaksi Pembayaran":
-        return (
-          <div className="flex flex-col gap-6 animate-fadeIn font-sans">
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-              <div>
-                <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Transaksi Pembayaran</h1>
-                <p className="text-sm text-gray-500 mt-1">Rekap seluruh pemasukan (SPP) dan pengeluaran (gaji & operasional) sekolah.</p>
-              </div>
-              <div className="flex items-center">
-                <button
-                  onClick={() => setShowTransactionModal(true)}
-                  className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-4 sm:px-5 py-2.5 text-xs sm:text-[13px] font-bold cursor-pointer transition-all active:scale-95 shadow-[0_10px_20px_-10px_rgba(26,61,99,0.3)]"
-                >
-                  <IconPlus /> Catatan Pengeluaran & Pemasukan
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-              <span className="text-xs font-bold text-gray-500 mr-2">Periode:</span>
-              {["Mei 2026", "April 2026", "Maret 2026", "Februari 2026"].map((period, idx) => (
-                <button
-                  key={period}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all whitespace-nowrap ${idx === 0
-                    ? "bg-[#1A3D63] text-white border-[#1A3D63] shadow-sm"
-                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:text-gray-900"
-                    }`}
-                >
-                  {period}
-                </button>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-                <div className="flex justify-between items-center mb-4">
-                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Total Pemasukan</div>
-                  <div className="w-8 h-8 rounded-lg bg-green-50 text-green-500 flex items-center justify-center">
-                    <IconTrendUp />
-                  </div>
-                </div>
-                <div className="text-2xl sm:text-[28px] font-black text-[#10B981] mb-4">Rp 1.61 Jt</div>
-                <div className="flex justify-between items-center text-xs">
-                  <span className="text-gray-400 font-medium">SPP Terkumpul</span>
-                  <span className="font-bold text-gray-800">Rp 1.612.500</span>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-                <div className="flex justify-between items-center mb-4">
-                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Total Pengeluaran</div>
-                  <div className="w-8 h-8 rounded-lg bg-red-50 text-red-500 flex items-center justify-center">
-                    <IconTrendDown />
-                  </div>
-                </div>
-                <div className="text-2xl sm:text-[28px] font-black text-[#EF4444] mb-4">Rp 33.24 Jt</div>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-gray-400 font-medium">Gaji Guru & Staf</span>
-                    <span className="font-bold text-gray-800">Rp 24.500.000</span>
-                  </div>
-                  <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-gray-400 font-medium">Operasional</span>
-                    <span className="font-bold text-gray-800">Rp 8.742.792</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-                <div className="flex justify-between items-center mb-4">
-                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Defisit</div>
-                  <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center font-bold">
-                    $
-                  </div>
-                </div>
-                <div className="text-2xl sm:text-[28px] font-black text-[#F59E0B] mb-4">−Rp 31.63 Jt</div>
-                <div className="text-xs text-gray-400 font-medium">Pemasukan − Pengeluaran − Mei 2026</div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-[24px] border border-gray-100 p-5 sm:p-6 shadow-sm">
-              <h3 className="text-sm font-bold text-gray-800 mb-6">Distribusi Pengeluaran</h3>
-
-              <div className="space-y-5">
-                <div>
-                  <div className="flex justify-between text-xs mb-2">
-                    <span className="font-medium text-gray-500">Gaji Guru & Staf</span>
-                    <span className="font-bold text-gray-800">Rp 24.500.000 <span className="text-gray-400 font-normal">(74%)</span></span>
-                  </div>
-                  <div className="w-full bg-gray-100 rounded-full h-2.5">
-                    <div className="bg-[#3B82F6] h-2.5 rounded-full" style={{ width: '74%' }}></div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-xs mb-2">
-                    <span className="font-medium text-gray-500">Operasional Sekolah</span>
-                    <span className="font-bold text-gray-800">Rp 8.742.792 <span className="text-gray-400 font-normal">(26%)</span></span>
-                  </div>
-                  <div className="w-full bg-gray-100 rounded-full h-2.5">
-                    <div className="bg-[#F59E0B] h-2.5 rounded-full" style={{ width: '26%' }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm">
-              <div className="flex border-b border-gray-100 mb-5 gap-6">
-                {[
-                  { label: "Semua Transaksi", count: "19", active: true },
-                  { label: "Pemasukan", count: "9", active: false },
-                  { label: "Pengeluaran", count: "10", active: false }
-                ].map((tab, i) => (
-                  <button
-                    key={i}
-                    className={`pb-3 text-sm font-bold flex items-center gap-2 border-b-2 transition-colors border-none bg-transparent cursor-pointer ${tab.active
-                      ? "border-[#3B82F6] text-[#3B82F6]"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                      }`}
-                  >
-                    {tab.label}
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] ${tab.active ? "bg-blue-50 text-blue-600" : "bg-gray-100 text-gray-500"
-                      }`}>
-                      {tab.count}
-                    </span>
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-                <div className="relative flex-1 max-w-md">
-                  <input
-                    type="text"
-                    placeholder="Cari nama, keterangan, atau ID..."
-                    className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-[#1A3D63] font-medium bg-gray-50/50"
-                  />
-                  <span className="absolute left-3.5 top-3.5 text-gray-400">
-                    <IconSearch />
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <div className="flex bg-gray-50 border border-gray-100 p-1 rounded-xl">
-                    {["Semua", "SPP", "Gaji", "Operasional"].map((filter, i) => (
-                      <button
-                        key={filter}
-                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border-none ${i === 0
-                          ? "bg-[#1A3D63] text-white shadow-sm"
-                          : "text-gray-500 hover:text-gray-900 bg-transparent"
-                          }`}
-                      >
-                        {filter}
-                      </button>
-                    ))}
-                  </div>
-
-                  <button
-                    onClick={() => triggerToast("Mengekspor data transaksi ke file Excel...")}
-                    className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all border-solid"
-                  >
-                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                    </svg>
-                    Export
-                  </button>
-                </div>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                      <th className="pb-3 px-3">ID</th>
-                      <th className="pb-3 px-3">TANGGAL</th>
-                      <th className="pb-3 px-3">NAMA / PENERIMA</th>
-                      <th className="pb-3 px-3">KETERANGAN</th>
-                      <th className="pb-3 px-3">KATEGORI</th>
-                      <th className="pb-3 px-3">NOMINAL</th>
-                      <th className="pb-3 px-3">STATUS</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50 text-xs">
-                    <tr className="hover:bg-gray-50/50 transition-colors">
-                      <td className="py-4 px-3 text-gray-400 font-mono font-medium">TX-019</td>
-                      <td className="py-4 px-3 text-gray-500 font-medium">25 Mei 2026</td>
-                      <td className="py-4 px-3 font-bold text-gray-800">
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded bg-red-50 text-red-500 flex items-center justify-center flex-shrink-0">
-                            <IconTrendDown />
-                          </div>
-                          sjlasjla
-                        </div>
-                      </td>
-                      <td className="py-4 px-3 text-gray-500">jdiajidj</td>
-                      <td className="py-4 px-3">
-                        <span className="bg-[#FEF3C7] text-[#D97706] font-semibold px-2.5 py-0.5 rounded-md text-[10px]">
-                          Operasional
-                        </span>
-                      </td>
-                      <td className="py-4 px-3 font-bold text-[#EF4444]">−Rp 7.492.792</td>
-                      <td className="py-4 px-3">
-                        <span className="bg-[#E8FDF5] text-[#059669] font-bold px-2.5 py-1 rounded-md text-[10px]">
-                          Selesai
-                        </span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        );
-    }
+    }
   };
 
   return (

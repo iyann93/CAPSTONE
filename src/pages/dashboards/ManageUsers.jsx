@@ -223,7 +223,6 @@ const ManageUsers = () => {
                 </div>
               </div>
             </div>
-            </div>
           </div>
 
           {/* Keamanan / Reset Password */}
