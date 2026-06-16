@@ -156,6 +156,10 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const [catatPembayaranFilter, setCatatPembayaranFilter] = useState("Semua");
   const [catatSearchQuery, setCatatSearchQuery] = useState("");
 
+  const [riwayatKelas, setRiwayatKelas] = useState("Semua Kelas");
+  const [riwayatBulan, setRiwayatBulan] = useState("Mei");
+  const [expandedRiwayatId, setExpandedRiwayatId] = useState(null);
+
   // Form states for manually recording payments
   const [inputStudent, setInputStudent] = useState("");
   const [inputClass, setInputClass] = useState("Kelas VIIA");
@@ -468,97 +472,56 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     onChange={(e) => setSelectedYear(e.target.value)}
                     className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
                   >
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option><option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+                    <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
                   </select>
                   <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
                     <IconChevronDown />
                   </span>
                 </div>
 
-                <button
-                  onClick={() => setShowGenerateMonthModal(true)}
-                  className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-4 sm:px-5 py-2.5 text-xs sm:text-[13px] font-bold cursor-pointer transition-all active:scale-95 shadow-[0_10px_20px_-10px_rgba(26,61,99,0.3)]"
-                >
-                  Generate Tagihan SPP
-                </button>
+                
               </div>
             </div>
 
             {/* Stat Cards Row */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
               {/* Card 1: Total SPP */}
-              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm relative overflow-hidden">
+              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm relative overflow-hidden flex flex-col justify-center min-h-[110px]">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-[#10B981]" />
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total SPP Terkumpul</div>
-                    <div className="text-2xl font-black text-gray-800">Rp 16,1 Jt</div>
-                    <div className="text-[11px] font-medium text-gray-400 mt-1">Bulan Mei 2026</div>
-                  </div>
-                  <div className="w-10 h-10 bg-[#E8FDF5] rounded-xl flex items-center justify-center text-[#059669]">
-                    <span className="text-lg font-bold">$</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5 mt-4 text-[11px] font-bold">
-                  <span className="text-[#059669] flex items-center"><IconTrendUp /> +8.5%</span>
-                  <span className="text-gray-400 font-medium">vs bulan lalu</span>
+                <div>
+                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total SPP Terkumpul</div>
+                  <div className="text-2xl font-black text-gray-800">Rp 16,1 Jt</div>
+                  <div className="text-[11px] font-medium text-gray-400 mt-1">Bulan Mei 2026</div>
                 </div>
               </div>
 
               {/* Card 2: Siswa Lunas */}
-              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm relative overflow-hidden">
+              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm relative overflow-hidden flex flex-col justify-center min-h-[110px]">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-[#3B82F6]" />
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Siswa Lunas SPP</div>
-                    <div className="text-2xl font-black text-gray-800">24</div>
-                    <div className="text-[11px] font-medium text-gray-400 mt-1">dari 34 siswa aktif</div>
-                  </div>
-                  <div className="w-10 h-10 bg-[#EFF6FF] rounded-xl flex items-center justify-center text-[#2563EB]">
-                    <IconCheckCircle />
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5 mt-4 text-[11px] font-bold">
-                  <span className="text-[#059669] flex items-center"><IconTrendUp /> 70.6%</span>
-                  <span className="text-gray-400 font-medium">tingkat pembayaran</span>
+                <div>
+                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Siswa Lunas SPP</div>
+                  <div className="text-2xl font-black text-gray-800">24</div>
+                  <div className="text-[11px] font-medium text-gray-400 mt-1">dari 34 siswa aktif</div>
                 </div>
               </div>
 
               {/* Card 3: Tunggakan */}
-              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm relative overflow-hidden">
+              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm relative overflow-hidden flex flex-col justify-center min-h-[110px]">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-[#EF4444]" />
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tunggakan SPP</div>
-                    <div className="text-2xl font-black text-gray-800">Rp 2,75 Jt</div>
-                    <div className="text-[11px] font-medium text-gray-400 mt-1">10 siswa belum bayar</div>
-                  </div>
-                  <div className="w-10 h-10 bg-[#FEF2F2] rounded-xl flex items-center justify-center text-[#DC2626]">
-                    <IconAlertCircle />
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5 mt-4 text-[11px] font-bold">
-                  <span className="text-[#DC2626] flex items-center"><IconTrendDown /> -5.2%</span>
-                  <span className="text-gray-400 font-medium">vs bulan lalu</span>
+                <div>
+                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tunggakan SPP</div>
+                  <div className="text-2xl font-black text-gray-800">Rp 2,75 Jt</div>
+                  <div className="text-[11px] font-medium text-gray-400 mt-1">10 siswa belum bayar</div>
                 </div>
               </div>
 
               {/* Card 4: Penggajian */}
-              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm relative overflow-hidden">
+              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm relative overflow-hidden flex flex-col justify-center min-h-[110px]">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-[#8B5CF6]" />
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Penggajian Bulan Ini</div>
-                    <div className="text-2xl font-black text-gray-800">Rp 13,5 Jt</div>
-                    <div className="text-[11px] font-medium text-gray-400 mt-1">6 guru & staf</div>
-                  </div>
-                  <div className="w-10 h-10 bg-[#F5F3FF] rounded-xl flex items-center justify-center text-[#7C3AED]">
-                    <IconClock />
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5 mt-4 text-[11px] font-bold">
-                  <span className="text-[#059669] flex items-center"><IconTrendUp /> 83% sudah transfer</span>
+                <div>
+                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Penggajian Bulan Ini</div>
+                  <div className="text-2xl font-black text-gray-800">Rp 13,5 Jt</div>
+                  <div className="text-[11px] font-medium text-gray-400 mt-1">6 guru & staf</div>
                 </div>
               </div>
             </div>
@@ -574,12 +537,12 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={sppRecapData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                       <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} dy={10} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} domain={[0, 34]} ticks={[0, 10, 20, 34]} />
                       <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                      <Bar dataKey="Lunas" fill="#22c55e" radius={[4, 4, 0, 0]} barSize={16} />
-                      <Bar dataKey="Belum" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={16} />
+                      <Bar dataKey="Lunas" fill="#22c55e" radius={[4, 4, 0, 0]} barSize={20} />
+                      <Bar dataKey="Belum" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={20} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -730,12 +693,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   </span>
                 </div>
 
-                <button
-                  onClick={() => setShowGenerateMonthModal(true)}
-                  className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-4 sm:px-5 py-2.5 text-xs sm:text-[13px] font-bold cursor-pointer transition-all active:scale-95 shadow-[0_10px_20px_-10px_rgba(26,61,99,0.3)]"
-                >
-                  <IconPlus /> Generate Tagihan Bulan Ini
-                </button>
+                
               </div>
             </div>
 
@@ -824,15 +782,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     })}
                   </div>
 
-                  <button
-                    onClick={() => triggerToast("Mengekspor data tagihan SPP ke file Excel...")}
-                    className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all border-solid"
-                  >
-                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                    </svg>
-                    Export
-                  </button>
+
                 </div>
               </div>
 
@@ -1107,14 +1057,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   </div>
 
                   {/* Warning Banner */}
-                  <div className="mt-5 flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4 border-solid">
-                    <svg width="18" height="18" fill="none" stroke="#D97706" strokeWidth="2" viewBox="0 0 24 24" className="flex-shrink-0 mt-0.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-                    </svg>
-                    <p className="text-xs text-amber-700 leading-relaxed">
-                      <strong>Perhatian:</strong> Perubahan nominal SPP akan diterapkan untuk tagihan bulan berikutnya. Tagihan bulan berjalan tidak akan berubah otomatis.
-                    </p>
-                  </div>
+                  
                 </div>
               </div>
             )}
@@ -1277,257 +1220,157 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
           </div>
         );
 
-      case "Catat Pembayaran":
+      case "Riwayat Pembayaran":
+        const mockRiwayat = [
+          { id: 1, name: "Ahmad Fauzi", kelas: "VII A", date: "09.14 WIB", amount: "Rp 250.000", method: "Transfer Bank", month: "Mei" },
+          { id: 2, name: "Aulia Rahma", kelas: "VII B", date: "09.02 WIB", amount: "Rp 250.000", method: "Transfer Bank", month: "Mei" },
+          { id: 3, name: "Eka Putri", kelas: "IX A", date: "08.45 WIB", amount: "Rp 300.000", method: "Transfer Bank", month: "Mei" },
+          { id: 4, name: "Budi Santoso", kelas: "VIII A", date: "10.00 WIB", amount: "Rp 275.000", method: "Transfer Bank", month: "Januari" },
+          { id: 5, name: "Siti Aminah", kelas: "VIII B", date: "11.30 WIB", amount: "Rp 275.000", method: "Transfer Bank", month: "Januari" },
+          { id: 6, name: "Lina Marlina", kelas: "VII C", date: "08.20 WIB", amount: "Rp 250.000", method: "Transfer Bank", month: "Januari" }
+        ];
+
+        let filteredRiwayat = riwayatBulan === "Semua Bulan" 
+          ? mockRiwayat 
+          : mockRiwayat.filter(r => r.month === riwayatBulan);
+          
+        const classGroups = riwayatKelas === "Semua Kelas" ? ["Kelas VII", "Kelas VIII", "Kelas IX"] : [riwayatKelas];
+
         return (
-          <div className="animate-fadeIn">
-            <div className="mb-6">
-              <h2 className="text-xl font-bold text-gray-800">Catat Pembayaran SPP</h2>
-              <p className="text-sm text-gray-500 mt-1">Input dan konfirmasi pembayaran SPP siswa secara manual maupun online.</p>
+          <div className="animate-fadeIn font-sans">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+              <div>
+                <h2 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Riwayat Pembayaran</h2>
+                <p className="text-sm text-gray-500 mt-1">Daftar transaksi pembayaran SPP siswa yang telah masuk.</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative">
+                  <select
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value)}
+                    className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all hover:bg-gray-50 hover:border-gray-300 shadow-sm"
+                  >
+                    <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+                  </select>
+                  <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none transition-colors">
+                    <IconChevronDown />
+                  </span>
+                </div>
+                
+                <div className="relative">
+                  <select
+                    value={riwayatKelas}
+                    onChange={(e) => setRiwayatKelas(e.target.value)}
+                    className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all hover:bg-gray-50 hover:border-gray-300 shadow-sm"
+                  >
+                    <option value="Semua Kelas">Semua Kelas</option>
+                    <option value="Kelas VII">Kelas VII</option>
+                    <option value="Kelas VIII">Kelas VIII</option>
+                    <option value="Kelas IX">Kelas IX</option>
+                  </select>
+                  <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none transition-colors">
+                    <IconChevronDown />
+                  </span>
+                </div>
+
+                <div className="relative">
+                  <select
+                    value={riwayatBulan}
+                    onChange={(e) => setRiwayatBulan(e.target.value)}
+                    className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all hover:bg-gray-50 hover:border-gray-300 shadow-sm"
+                  >
+                    <option value="Semua Bulan">Semua Bulan</option>
+                    <option value="Januari">Januari</option>
+                    <option value="Februari">Februari</option>
+                    <option value="Maret">Maret</option>
+                    <option value="April">April</option>
+                    <option value="Mei">Mei</option>
+                    <option value="Juni">Juni</option>
+                    <option value="Juli">Juli</option>
+                    <option value="Agustus">Agustus</option>
+                    <option value="September">September</option>
+                    <option value="Oktober">Oktober</option>
+                    <option value="November">November</option>
+                    <option value="Desember">Desember</option>
+                  </select>
+                  <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none transition-colors">
+                    <IconChevronDown />
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6">
-              {/* Main Content: Cari Siswa & List */}
-              <div className="flex flex-col gap-6">
+            <div className={`grid grid-cols-1 ${classGroups.length > 1 ? 'xl:grid-cols-3' : ''} gap-6`}>
+              {classGroups.map(group => {
+                const groupPrefix = group.replace("Kelas ", "");
+                const groupData = filteredRiwayat.filter(r => r.kelas.startsWith(groupPrefix));
 
-                {/* Search & List */}
-                <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                  <div className="relative mb-6">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="Cari nama siswa atau NIS..."
-                      value={catatSearchQuery}
-                      onChange={(e) => setCatatSearchQuery(e.target.value)}
-                      className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:bg-white transition-colors"
-                    />
-                  </div>
+                return (
+                  <div key={group} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col">
+                    <h3 className="text-sm font-bold text-[#1A3D63] mb-4 pb-3 border-b border-gray-100 flex items-center justify-between">
+                      {group}
+                      <span className="bg-[#EBF3FA] text-[#1A3D63] px-2.5 py-0.5 rounded-md text-[10px] font-bold">{groupData.length} Siswa</span>
+                    </h3>
+                    
+                    <div className="flex flex-col gap-4">
+                      {groupData.length > 0 ? groupData.map((item, idx) => {
+                        const isExpanded = expandedRiwayatId === item.id;
+                        return (
+                        <React.Fragment key={item.id}>
+                          <div className={`flex flex-col gap-3 transition-all ${isExpanded ? 'bg-gray-50/50 p-3.5 rounded-xl border border-gray-200' : ''}`}>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="w-6 h-6 rounded-full bg-[#EBF3FA] flex items-center justify-center text-[10px] font-bold text-[#1A3D63] flex-shrink-0 shadow-sm">
+                                  {idx + 1}
+                                </div>
+                                <div>
+                                  <div className="text-[13px] font-bold text-gray-800">{item.name}</div>
+                                  <div className="text-[10px] font-semibold text-gray-400 mt-0.5">{item.kelas} • {item.month}</div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => setExpandedRiwayatId(isExpanded ? null : item.id)}
+                                  className={`bg-white hover:bg-gray-50 border ${isExpanded ? 'border-[#EF4444] text-[#EF4444] hover:bg-red-50' : 'border-gray-200 text-[#1A3D63]'} px-2.5 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition-all shadow-sm active:scale-95`}
+                                >
+                                  {isExpanded ? 'Tutup' : 'Detail'}
+                                </button>
+                              </div>
+                            </div>
 
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Belum Lunas Bulan Ini</h3>
-                    <div className="flex gap-2">
-                      {["Semua", "VII", "VIII", "IX"].map(grade => (
-                        <button
-                          key={grade}
-                          onClick={() => setCatatPembayaranFilter(grade)}
-                          className={`px-3 py-1.5 text-[11px] font-bold rounded-lg transition-colors cursor-pointer ${catatPembayaranFilter === grade ? "bg-[#1A3D63] text-white" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}
-                        >
-                          {grade === "Semua" ? "Semua" : `Kelas ${grade}`}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-3">
-                    {[
-                      { 
-                        id: 1, 
-                        name: "Budi Prasetyo", 
-                        class: "VIII A", 
-                        nis: "2024/003", 
-                        amountNum: 275000, 
-                        totalAmountNum: 550000, 
-                        arrearCount: 1, 
-                        arrearText: "1 Bulan", 
-                        arrearsDetails: [
-                          { month: "April 2026", amount: 275000 }
-                        ] 
-                      },
-                      { 
-                        id: 2, 
-                        name: "Citra Dewi", 
-                        class: "VIII B", 
-                        nis: "2024/004", 
-                        amountNum: 275000, 
-                        totalAmountNum: 550000, 
-                        arrearCount: 1, 
-                        arrearText: "1 Bulan", 
-                        arrearsDetails: [
-                          { month: "April 2026", amount: 275000 }
-                        ] 
-                      },
-                      { 
-                        id: 3, 
-                        name: "Danu Pratama", 
-                        class: "IX A", 
-                        nis: "2024/005", 
-                        amountNum: 300000, 
-                        totalAmountNum: 900000, 
-                        arrearCount: 2, 
-                        arrearText: "2 Bulan", 
-                        arrearsDetails: [
-                          { month: "Maret 2026", amount: 300000 },
-                          { month: "April 2026", amount: 300000 }
-                        ] 
-                      },
-                      { 
-                        id: 4, 
-                        name: "Putri Handayani", 
-                        class: "IX B", 
-                        nis: "2024/008", 
-                        amountNum: 300000, 
-                        totalAmountNum: 1200000, 
-                        arrearCount: 3, 
-                        arrearText: "3 Bulan", 
-                        arrearsDetails: [
-                          { month: "Februari 2026", amount: 300000 },
-                          { month: "Maret 2026", amount: 300000 },
-                          { month: "April 2026", amount: 300000 }
-                        ] 
-                      }
-                    ].filter(s => {
-                      const matchesClass = catatPembayaranFilter === "Semua" || s.class.startsWith(catatPembayaranFilter + " ");
-                      const matchesSearch = s.name.toLowerCase().includes(catatSearchQuery.toLowerCase()) || s.nis.includes(catatSearchQuery);
-                      return matchesClass && matchesSearch;
-                    }).map(student => {
-                      const isSelected = selectedCatatSiswa && selectedCatatSiswa.id === student.id;
-                      return (
-                        <div
-                          key={student.id}
-                          onClick={() => setSelectedCatatSiswa(student)}
-                          className={`flex items-center justify-between p-4 rounded-xl border-2 ${isSelected ? "border-blue-500 bg-white shadow-sm" : "border-gray-100 bg-white border"} cursor-pointer hover:bg-gray-50/50 transition-colors`}
-                        >
-                          <div>
-                            <div className="text-sm font-bold text-gray-800">{student.name}</div>
-                            <div className="text-[11px] text-gray-400 mt-1">{student.class} · NIS: {student.nis}</div>
-                            {student.arrearCount > 0 && <div className="text-[11px] font-medium text-red-500 mt-1">Tunggakan: {student.arrearText}</div>}
+                            {/* Expanded Detail Section */}
+                            {isExpanded && (
+                              <div className="mt-2 pt-3 border-t border-gray-200 animate-fadeIn grid grid-cols-2 gap-3">
+                                <div>
+                                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide">Nominal</div>
+                                  <div className="text-xs font-bold text-[#0F9D58] mt-0.5">{item.amount}</div>
+                                </div>
+                                <div>
+                                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide">Bulan Tagihan</div>
+                                  <div className="text-xs font-semibold text-gray-700 mt-0.5">{item.month} 2026</div>
+                                </div>
+                                <div>
+                                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide">Metode</div>
+                                  <div className="text-xs font-semibold text-gray-700 mt-0.5">{item.method}</div>
+                                </div>
+                                <div>
+                                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide">Waktu Bayar</div>
+                                  <div className="text-xs font-semibold text-gray-700 mt-0.5">{item.date}</div>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                          <div className="text-right">
-                            <div className="text-sm font-bold text-red-500">Rp {student.totalAmountNum.toLocaleString("id-ID")}</div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Riwayat Pembayaran */}
-                <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                  <h3 className="text-sm font-bold text-gray-800 mb-5">Riwayat Pembayaran Hari Ini</h3>
-                  <div className="flex flex-col gap-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex gap-3">
-                        <div className="mt-0.5 text-[#0F9D58]">
-                          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        </div>
-                        <div>
-                          <div className="text-sm font-bold text-gray-800">Ahmad Fauzi — VII A</div>
-                          <div className="text-[11px] text-gray-400 mt-1">Mei 2026 · Transfer Bank · 09.14 WIB</div>
-                        </div>
-                      </div>
-                      <div className="text-sm font-bold text-[#0F9D58]">Rp 250.000</div>
-                    </div>
-
-                    <div className="w-full h-px bg-gray-50"></div>
-
-                    <div className="flex items-start justify-between">
-                      <div className="flex gap-3">
-                        <div className="mt-0.5 text-[#0F9D58]">
-                          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        </div>
-                        <div>
-                          <div className="text-sm font-bold text-gray-800">Aulia Rahma — VII B</div>
-                          <div className="text-[11px] text-gray-400 mt-1">Mei 2026 · Tunai · 09.02 WIB</div>
-                        </div>
-                      </div>
-                      <div className="text-sm font-bold text-[#0F9D58]">Rp 250.000</div>
-                    </div>
-
-                    <div className="w-full h-px bg-gray-50"></div>
-
-                    <div className="flex items-start justify-between">
-                      <div className="flex gap-3">
-                        <div className="mt-0.5 text-[#0F9D58]">
-                          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        </div>
-                        <div>
-                          <div className="text-sm font-bold text-gray-800">Eka Putri — IX A</div>
-                          <div className="text-[11px] text-gray-400 mt-1">Mei 2026 · Transfer Bank · 08.45 WIB</div>
-                        </div>
-                      </div>
-                      <div className="text-sm font-bold text-[#0F9D58]">Rp 300.000</div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-
-              {/* Sidebar: Form Pembayaran */}
-              <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm h-fit sticky top-6">
-                <h3 className="text-sm font-bold text-gray-800 mb-5">Form Pembayaran</h3>
-
-                {!selectedCatatSiswa ? (
-                  <div className="flex flex-col items-center justify-center text-center py-12 px-4 bg-gray-50/50 rounded-xl border border-dashed border-gray-200">
-                    <svg className="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                    </svg>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Belum Ada Siswa Dipilih</p>
-                    <p className="text-[11px] text-gray-400 mt-1">Silakan pilih nama siswa dari daftar di sebelah kiri untuk mencatat pembayaran.</p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="bg-blue-50/50 border border-blue-100/50 rounded-xl p-4 mb-6">
-                      <div className="text-sm font-bold text-gray-800">{selectedCatatSiswa.name}</div>
-                      <div className="text-[11px] text-gray-500 mt-1">{selectedCatatSiswa.class} · NIS: {selectedCatatSiswa.nis}</div>
-                    </div>
-
-                    <div className="flex flex-col gap-3.5 mb-5">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-550 font-medium">Tagihan Bulan Ini</span>
-                        <span className="font-bold text-gray-800">Rp {selectedCatatSiswa.amountNum.toLocaleString("id-ID")}</span>
-                      </div>
-                      {selectedCatatSiswa.arrearCount > 0 && (
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-gray-555 font-medium">Tunggakan ({selectedCatatSiswa.arrearText})</span>
-                          <span className="font-bold text-gray-800">Rp {(selectedCatatSiswa.amountNum * selectedCatatSiswa.arrearCount).toLocaleString("id-ID")}</span>
+                          {idx < groupData.length - 1 && !isExpanded && <div className="w-full h-px bg-gray-50"></div>}
+                        </React.Fragment>
+                      )}) : (
+                        <div className="text-center py-6 text-gray-400 text-[11px] font-medium border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                          Tidak ada data di {group}.
                         </div>
                       )}
                     </div>
-
-                    {selectedCatatSiswa.arrearCount > 0 && (
-                      <div className="mb-6 pt-4 border-t border-gray-100">
-                        <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2.5">Rincian Tunggakan</h4>
-                        <div className="flex flex-col gap-2">
-                          {selectedCatatSiswa.arrearsDetails.map((detail, idx) => (
-                            <div key={idx} className="flex justify-between items-center text-xs">
-                              <span className="text-gray-500 font-medium">{detail.month}</span>
-                              <span className="font-bold text-gray-700">Rp {detail.amount.toLocaleString("id-ID")}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="border-t border-gray-100 my-4 pt-4">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-800 font-semibold">Total Pembayaran</span>
-                        <span className="font-extrabold text-base text-[#1A3D63]">Rp {selectedCatatSiswa.totalAmountNum.toLocaleString("id-ID")}</span>
-                      </div>
-                    </div>
-
-                    <div className="mb-6">
-                      <label className="block text-[11px] font-bold text-gray-500 mb-2">Metode Pembayaran</label>
-                      <select className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-[#0F9D58] cursor-pointer">
-                        <option>Transfer Bank</option>
-                        <option>Tunai</option>
-                      </select>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        triggerToast(`Pembayaran untuk ${selectedCatatSiswa.name} sebesar Rp ${selectedCatatSiswa.totalAmountNum.toLocaleString("id-ID")} berhasil dikonfirmasi!`);
-                        setSelectedCatatSiswa(null); // Clear selection after payment
-                      }}
-                      className="w-full flex items-center justify-center gap-2 bg-[#0F9D58] hover:bg-[#0b8043] text-white py-3 rounded-xl text-xs font-bold transition-all active:scale-[0.98] border-none cursor-pointer"
-                    >
-                      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                      Konfirmasi Pembayaran
-                    </button>
-                  </>
-                )}
-              </div>
-
+                  </div>
+                );
+              })}
             </div>
           </div>
         );
@@ -2448,12 +2291,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   </span>
                 </div>
 
-                <button
-                  onClick={() => setShowBillingModal(true)}
-                  className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-4 sm:px-5 py-2.5 text-xs sm:text-[13px] font-bold cursor-pointer transition-all shadow-[0_10px_20px_-10px_rgba(26,61,99,0.3)] active:scale-95"
-                >
-                  <IconPlus /> Generate Tagihan SPP
-                </button>
+                
               </div>
             </div>
 
@@ -2535,13 +2373,13 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <div className="h-[230px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={sppRecapData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                       <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#9ca3af" }} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#9ca3af" }} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#9ca3af" }} domain={[0, 34]} ticks={[0, 10, 20, 34]} />
                       <Tooltip contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }} />
                       <Legend iconSize={10} iconType="circle" wrapperStyle={{ fontSize: 11, paddingTop: 10 }} />
-                      <Bar dataKey="Lunas" fill="#1A3D63" radius={[4, 4, 0, 0]} barSize={16} />
-                      <Bar dataKey="Belum" fill="#FF8E8D" radius={[4, 4, 0, 0]} barSize={16} />
+                      <Bar dataKey="Lunas" fill="#1A3D63" radius={[4, 4, 0, 0]} barSize={20} />
+                      <Bar dataKey="Belum" fill="#FF8E8D" radius={[4, 4, 0, 0]} barSize={20} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
