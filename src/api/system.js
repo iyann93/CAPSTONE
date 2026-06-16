@@ -22,3 +22,16 @@ export const activateUser = (id) =>
 /** Nonaktifkan satu user */
 export const deactivateUser = (id) =>
   api.put(`/system/users/${id}/deactivate`).then(r => r.data);
+
+// === MANAGE ALL USERS ===
+export const getAllSystemUsers = () =>
+  api.get('/system/users').then(r => r.data.data);
+
+export const createSystemUser = (data) =>
+  api.post('/system/users', data).then(r => r.data.data);
+
+export const updateSystemUser = (id, data) =>
+  api.put(`/system/users/${id}`, data).then(r => r.data.data);
+
+export const deleteSystemUser = (id) =>
+  api.delete(`/system/users/${id}`).then(r => r.data);

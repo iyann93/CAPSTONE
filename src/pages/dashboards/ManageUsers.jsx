@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { getAllSystemUsers, createSystemUser, updateSystemUser, deleteSystemUser, getRoles } from "../../api/system";
 
 const SearchIcon = () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-gray-400"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>;
 const UserPlusIcon = () => <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" className="mr-1.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /><line x1="20" y1="8" x2="20" y2="14" /><line x1="17" y1="11" x2="23" y2="11" /></svg>;
@@ -16,30 +17,97 @@ const ActivityIcon = () => <svg width="18" height="18" fill="none" stroke="curre
 const LockIcon = () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>;
 const SendIcon = () => <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>;
 
-const MOCK_USERS = [
-  { id: 1, email: "andi.s12@siswa.sch.id", name: "Andi Setiawan", role: "Siswa", roleColor: "bg-[#F8FAFC]", roleText: "text-[#374151]", status: "Aktif", lastLogin: "2 jam yang lalu", initials: "AN", user: "andi.s12", nip: "0051234567" },
-  { id: 2, email: "budi.admin@sch.id", name: "Budi Santoso", role: "Admin Global", roleColor: "bg-[#1A3D63]/10", roleText: "text-[#1A3D63]", status: "Aktif", lastLogin: "Saat ini", initials: "BU", user: "budi.admin", nip: "198501012010121001" },
-  { id: 3, email: "sri.wahyuni@guru.sch.id", name: "Dra. Sri Wahyuni", role: "Guru", roleColor: "bg-[#EFF6FF]", roleText: "text-[#1D4ED8]", status: "Aktif", lastLogin: "Kemarin, 08:30", initials: "SR", user: "sri.wahyuni", nip: "197805122005012003" },
-  { id: 4, email: "wahyu@tu.sch.id", name: "Dr. Wahyu", role: "Staff TU", roleColor: "bg-[#F5F3FF]", roleText: "text-[#7C3AED]", status: "Aktif", lastLogin: "Kemarin, 14:15", initials: "WA", user: "dr.wahyu", nip: "198203152008041002" },
-  { id: 5, email: "siti.aminah@keuangan.sch.id", name: "Siti Aminah", role: "Bendahara", roleColor: "bg-[#5EE9B5]/10", roleText: "text-[#2B8B67]", status: "Aktif", lastLogin: "3 hari yang lalu", initials: "SI", user: "siti.aminah", nip: "199005052015052002" },
-  { id: 6, email: "bambang.sup@gmail.com", name: "Bambang Supriyadi", role: "Guru", roleColor: "bg-[#EFF6FF]", roleText: "text-[#1D4ED8]", status: "Aktif", lastLogin: "Belum login", initials: "BA", user: "bambang.sup", nip: "198011222010011005" },
-  { id: 7, email: "ahmad.ridwan@sch.id", name: "Ahmad Ridwan", role: "Wakil Kepala", roleColor: "bg-[#FFFBEB]", roleText: "text-[#D97706]", status: "Nonaktif", lastLogin: "Bulan lalu", initials: "AH", user: "ahmad.ridwan", nip: "197508172002121001" },
-];
+const MOCK_USERS = []; // Removed, now using API
 
 const ManageUsers = () => {
   const [view, setView] = useState("list"); // "list", "add", "edit"
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [users, setUsers] = useState([]);
+  const [roles, setRoles] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [toast, setToast] = useState(null);
   
+  // Form State
+  const [formData, setFormData] = useState({
+    nama: '',
+    email: '',
+    password: '',
+    roleId: '',
+    isActive: true
+  });
+
+  const triggerToast = (msg, type = 'success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const [usersData, rolesData] = await Promise.all([
+        getAllSystemUsers(),
+        getRoles()
+      ]);
+      setUsers(Array.isArray(usersData) ? usersData : []);
+      setRoles(Array.isArray(rolesData) ? rolesData : []);
+    } catch (e) {
+      console.error(e);
+      triggerToast('Gagal memuat data pengguna', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+
   // Reset Password Modal State
   const [showResetModal, setShowResetModal] = useState(false);
   const [userForReset, setUserForReset] = useState(null);
   const [resetMethod, setResetMethod] = useState("email");
 
-  const filteredUsers = MOCK_USERS.filter(u => 
-    u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    u.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = users.filter(u => 
+    (u.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (u.email || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleSaveUser = async () => {
+    if (!formData.nama || !formData.email || (!selectedUser && !formData.password)) {
+      return triggerToast('Harap isi semua field wajib', 'error');
+    }
+    
+    try {
+      if (selectedUser) {
+        await updateSystemUser(selectedUser.id, formData);
+        triggerToast('Pengguna berhasil diperbarui');
+      } else {
+        await createSystemUser(formData);
+        triggerToast('Pengguna berhasil ditambahkan');
+      }
+      setView("list");
+      fetchData();
+    } catch (e) {
+      console.error(e);
+      triggerToast(e.response?.data?.message || 'Gagal menyimpan data pengguna', 'error');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Apakah Anda yakin ingin menghapus pengguna ini?")) return;
+    try {
+      await deleteSystemUser(id);
+      triggerToast("Pengguna berhasil dihapus");
+      fetchData();
+    } catch (e) {
+      console.error(e);
+      triggerToast("Gagal menghapus pengguna", "error");
+    }
+  };
+
+  const getInitials = (name) => {
+    if (!name) return "?";
+    return name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
+  };
 
   const openResetModal = (user) => {
     setUserForReset(user);
@@ -49,7 +117,22 @@ const ManageUsers = () => {
 
   const handleEditClick = (user) => {
     setSelectedUser(user);
+    setFormData({
+      nama: user.name || '',
+      email: user.email || '',
+      password: '', // blank on edit
+      roleId: roles.find(r => r.nama_role === user.role)?.id || '',
+      isActive: user.is_active
+    });
     setView("edit");
+  };
+
+  const handleAddClick = () => {
+    setSelectedUser(null);
+    setFormData({
+      nama: '', email: '', password: '', roleId: '', isActive: true
+    });
+    setView("add");
   };
 
   if (view === "add" || view === "edit") {
@@ -59,6 +142,13 @@ const ManageUsers = () => {
     
     return (
       <div className="animate-fadeIn space-y-6 pb-20 max-w-4xl mx-auto">
+        {/* Toast */}
+        {toast && (
+          <div className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl text-white text-sm font-bold shadow-xl ${
+            toast.type === 'error' ? 'bg-red-500' : 'bg-emerald-500'
+          }`}>{toast.msg}</div>
+        )}
+
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -75,7 +165,7 @@ const ManageUsers = () => {
             >
               Batal
             </button>
-            <button onClick={() => setView("list")} className="flex items-center gap-2 bg-[#1A3D63] hover:bg-[#122A44] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-[#1A3D63]/20 transition-all">
+            <button onClick={handleSaveUser} className="flex items-center gap-2 bg-[#1A3D63] hover:bg-[#122A44] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-[#1A3D63]/20 transition-all">
               <SaveIcon />
               {isAdd ? "Simpan Pengguna" : "Simpan Perubahan"}
             </button>
@@ -94,57 +184,43 @@ const ManageUsers = () => {
               <h3 className="text-base font-bold text-gray-800">Informasi Akun</h3>
             </div>
             <div className="space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="col-span-1 md:col-span-2">
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Nama Lengkap</label>
                 <input
                   type="text"
                   placeholder="Masukkan nama lengkap pengguna..."
-                  defaultValue={!isAdd && selectedUser ? selectedUser.name : ""}
+                  value={formData.nama}
+                  onChange={(e) => setFormData({...formData, nama: e.target.value})}
                   className="w-full px-4 py-3 bg-white border border-gray-200 focus:border-[#1A3D63] rounded-xl text-sm text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:ring-1 focus:ring-[#1A3D63]"
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Username</label>
-                <input
-                  type="text"
-                  placeholder="contoh: budi.santoso"
-                  defaultValue={!isAdd && selectedUser ? selectedUser.user : ""}
-                  className="w-full px-4 py-3 bg-white border border-gray-200 focus:border-[#1A3D63] rounded-xl text-sm font-semibold text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:ring-1 focus:ring-[#1A3D63]"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Email</label>
+                <label className="block text-sm font-bold text-gray-700 mb-2">Email / Username</label>
                 <input
                   type="email"
                   placeholder="contoh: budi@sch.id"
-                  defaultValue={!isAdd && selectedUser ? selectedUser.email : ""}
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
                   className="w-full px-4 py-3 bg-white border border-gray-200 focus:border-[#1A3D63] rounded-xl text-sm font-semibold text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:ring-1 focus:ring-[#1A3D63]"
                 />
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">Pilih Role (Hak Akses)</label>
                 <div className="relative">
-                  <select className="w-full appearance-none px-4 py-3 bg-white border border-gray-200 focus:border-[#1A3D63] rounded-xl text-sm font-semibold text-gray-800 outline-none transition-all cursor-pointer focus:ring-1 focus:ring-[#1A3D63]">
-                    <option value="" disabled selected={isAdd}>Pilih peran/role...</option>
-                    <option selected={!isAdd && selectedUser?.role === "Admin Global"}>Admin Global</option>
-                    <option selected={!isAdd && selectedUser?.role === "Siswa"}>Siswa</option>
-                    <option selected={!isAdd && selectedUser?.role === "Guru"}>Guru</option>
-                    <option selected={!isAdd && selectedUser?.role === "Staff TU"}>Staff TU</option>
+                  <select 
+                    value={formData.roleId}
+                    onChange={(e) => setFormData({...formData, roleId: e.target.value})}
+                    className="w-full appearance-none px-4 py-3 bg-white border border-gray-200 focus:border-[#1A3D63] rounded-xl text-sm font-semibold text-gray-800 outline-none transition-all cursor-pointer focus:ring-1 focus:ring-[#1A3D63]"
+                  >
+                    <option value="" disabled>Pilih peran/role...</option>
+                    {roles.map(r => (
+                      <option key={r.id} value={r.id}>{r.nama_role}</option>
+                    ))}
                   </select>
                   <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
                     <ChevronDownIcon />
                   </div>
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Nomor Identitas (Opsional)</label>
-                <input
-                  type="text"
-                  placeholder="NIP / NISN..."
-                  defaultValue={!isAdd && selectedUser ? selectedUser.nip : ""}
-                  className="w-full px-4 py-3 bg-white border border-gray-200 focus:border-[#1A3D63] rounded-xl text-sm font-semibold text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:ring-1 focus:ring-[#1A3D63]"
-                />
               </div>
             </div>
             </div>
@@ -167,7 +243,9 @@ const ManageUsers = () => {
                   <div className="relative">
                     <input
                       type="password"
-                      defaultValue="12345678"
+                      placeholder="Masukkan password awal"
+                      value={formData.password}
+                      onChange={(e) => setFormData({...formData, password: e.target.value})}
                       className="w-full px-4 py-3 bg-white border border-gray-200 focus:border-[#1A3D63] rounded-xl text-sm font-semibold text-gray-800 outline-none transition-all pr-10 focus:ring-1 focus:ring-[#1A3D63]"
                     />
                     <button className="absolute inset-y-0 right-4 flex items-center text-gray-400 hover:text-gray-600">
@@ -251,11 +329,11 @@ const ManageUsers = () => {
               <h3 className="text-base font-bold text-gray-800">Status Pengguna</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <label className="flex items-start gap-3 p-4 rounded-xl border-2 border-[#1A3D63] bg-blue-50/20 cursor-pointer">
-                <div className="mt-0.5 shrink-0 w-4 h-4 rounded-full border-2 border-[#1A3D63] flex items-center justify-center">
-                  <div className="w-2 h-2 rounded-full bg-[#1A3D63]"></div>
+              <label className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer ${formData.isActive ? "border-[#1A3D63] bg-blue-50/20" : "border-gray-200 bg-white hover:border-gray-300 transition-colors"}`}>
+                <div className={`mt-0.5 shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.isActive ? "border-[#1A3D63]" : "border-gray-300"}`}>
+                  {formData.isActive && <div className="w-2 h-2 rounded-full bg-[#1A3D63]"></div>}
                 </div>
-                <input type="radio" name="status" className="hidden" defaultChecked />
+                <input type="radio" name="status" className="hidden" checked={formData.isActive} onChange={() => setFormData({...formData, isActive: true})} />
                 <div>
                   <p className="text-sm font-bold text-gray-800">{isAdd ? "Aktif (Segera)" : "Aktif"}</p>
                   <p className="text-xs text-gray-500 mt-1 leading-relaxed">
@@ -263,9 +341,11 @@ const ManageUsers = () => {
                   </p>
                 </div>
               </label>
-              <label className="flex items-start gap-3 p-4 rounded-xl border border-gray-200 cursor-pointer bg-white hover:border-gray-300 transition-colors">
-                <div className="mt-0.5 shrink-0 w-4 h-4 rounded-full border-2 border-gray-300"></div>
-                <input type="radio" name="status" className="hidden" />
+              <label className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer ${!formData.isActive ? "border-red-500 bg-red-50/20" : "border-gray-200 bg-white hover:border-gray-300 transition-colors"}`}>
+                <div className={`mt-0.5 shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center ${!formData.isActive ? "border-red-500" : "border-gray-300"}`}>
+                  {!formData.isActive && <div className="w-2 h-2 rounded-full bg-red-500"></div>}
+                </div>
+                <input type="radio" name="status" className="hidden" checked={!formData.isActive} onChange={() => setFormData({...formData, isActive: false})} />
                 <div>
                   <p className="text-sm font-bold text-gray-800">{isAdd ? "Menunggu Verifikasi" : "Nonaktifkan Akun"}</p>
                   <p className="text-xs text-gray-500 mt-1 leading-relaxed">
@@ -283,6 +363,13 @@ const ManageUsers = () => {
 
   return (
     <div className="animate-fadeIn space-y-8">
+      {/* Toast */}
+      {toast && (
+        <div className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl text-white text-sm font-bold shadow-xl ${
+          toast.type === 'error' ? 'bg-red-500' : 'bg-emerald-500'
+        }`}>{toast.msg}</div>
+      )}
+
       {/* Header Area */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
         <div>
@@ -294,7 +381,7 @@ const ManageUsers = () => {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
             Export Data
           </button>
-          <button onClick={() => setView("add")} className="flex items-center gap-2 bg-[#1A3D63] text-white px-6 py-3 rounded-[14px] text-[13px] font-bold shadow-md shadow-[#1A3D63]/20 hover:bg-[#122A44] transition-all active:scale-95">
+          <button onClick={handleAddClick} className="flex items-center gap-2 bg-[#1A3D63] text-white px-6 py-3 rounded-[14px] text-[13px] font-bold shadow-md shadow-[#1A3D63]/20 hover:bg-[#122A44] transition-all active:scale-95">
             <UserPlusIcon />
             Tambah Pengguna
           </button>
@@ -356,27 +443,30 @@ const ManageUsers = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50/80 bg-white">
-              {filteredUsers.map((user) => (
+              {isLoading ? (
+                <tr><td colSpan={5} className="text-center py-10 text-gray-400">Memuat data pengguna...</td></tr>
+              ) : filteredUsers.length === 0 ? (
+                <tr><td colSpan={5} className="text-center py-10 text-gray-400">Tidak ada pengguna yang cocok</td></tr>
+              ) : filteredUsers.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50/50 transition-colors group">
                   <td className="px-8 py-6 text-center"><input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#1A3D63] focus:ring-[#1A3D63]/20" /></td>
                   <td className="px-4 py-6">
                     <div className="flex items-center gap-4">
                        <div className="w-11 h-11 rounded-full bg-gray-50 flex items-center justify-center text-[13px] font-bold text-gray-600">
-                          {user.initials}
+                          {getInitials(user.name)}
                        </div>
                        <div>
                           <div className="text-[14px] font-bold text-gray-800">{user.name}</div>
-                          <div className="text-[12px] text-gray-400 font-medium mt-0.5">{user.user} &bull; {user.role === "Siswa" || user.role === "Guru" ? user.role : "Pegawai"}</div>
+                          <div className="text-[12px] text-gray-400 font-medium mt-0.5">{user.user}</div>
                        </div>
                     </div>
                   </td>
                   <td className="px-4 py-6">
                     <div className="flex items-center justify-between gap-4 max-w-[200px]">
                       <div className="flex items-center gap-3">
-                        <span className="text-[13px] font-medium text-gray-600">{user.user}</span>
-                        <span className="text-[10px] font-bold text-gray-400 uppercase bg-gray-100 px-2.5 py-1 rounded-md">{user.role === "Admin Global" ? "USR-0754" : user.role === "Siswa" ? "SISWA" : "GURU"}</span>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase bg-gray-100 px-2.5 py-1 rounded-md">{user.role || 'Tanpa Role'}</span>
                       </div>
-                      {user.status === "Aktif" ? (
+                      {user.is_active ? (
                         <div className="flex items-center gap-1.5 ml-4">
                           <div className="w-2 h-2 rounded-full bg-green-500"></div>
                           <span className="text-[13px] font-bold text-green-600">Aktif</span>
@@ -390,14 +480,14 @@ const ManageUsers = () => {
                     </div>
                   </td>
                   <td className="px-4 py-6 text-[13px] font-medium text-gray-500">
-                    {user.lastLogin}
+                    {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Belum Login'}
                   </td>
                   <td className="px-8 py-6 text-right">
                     <div className="flex items-center justify-end gap-3 text-gray-300">
                       <button className="hover:text-gray-600 transition-colors p-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
                       <button onClick={() => openResetModal(user)} className="hover:text-orange-500 transition-colors p-1"><KeyIcon /></button>
                       <button onClick={() => handleEditClick(user)} className="hover:text-blue-600 transition-colors p-1"><EditIcon /></button>
-                      <button className="hover:text-red-500 transition-colors p-1"><TrashIcon /></button>
+                      <button onClick={() => handleDelete(user.id)} className="hover:text-red-500 transition-colors p-1"><TrashIcon /></button>
                     </div>
                   </td>
                 </tr>

@@ -20,4 +20,10 @@ router.put('/users/:id/activate', verifyToken, authorize('users.activate'), Syst
 // PUT /api/v1/system/users/:id/deactivate
 router.put('/users/:id/deactivate', verifyToken, authorize('users.activate'), SystemController.deactivateUser);
 
+// === ALL USERS CRUD (Super Admin) ===
+router.get('/users', verifyToken, authorize('users.manage'), SystemController.getAllUsers);
+router.post('/users', verifyToken, authorize('users.manage'), SystemController.createUser);
+router.put('/users/:id', verifyToken, authorize('users.manage'), SystemController.updateUser);
+router.delete('/users/:id', verifyToken, authorize('users.manage'), SystemController.deleteUser);
+
 module.exports = router;

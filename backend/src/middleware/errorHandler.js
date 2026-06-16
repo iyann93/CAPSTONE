@@ -4,7 +4,9 @@ const logger = require('../utils/logger');
 const response = require('../utils/response');
 
 // eslint-disable-next-line no-unused-vars
+const fs = require('fs');
 const errorHandler = (err, req, res, next) => {
+  fs.appendFileSync('error.log', new Date().toISOString() + ' ' + err.stack + '\n');
   logger.error(`${err.message}`, { stack: err.stack, url: req.originalUrl });
 
   // Validation errors from express-validator (passed as array)

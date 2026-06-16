@@ -38,6 +38,34 @@ const SystemController = {
       const user = await SystemService.deactivateUser(req.params.id);
       return response.success(res, 200, 'Berhasil menonaktifkan pengguna', user);
     } catch (err) { next(err); }
+  },
+
+  getAllUsers: async (req, res, next) => {
+    try {
+      const users = await SystemService.getAllUsers();
+      return response.success(res, 200, 'Berhasil mengambil semua pengguna', users);
+    } catch (err) { next(err); }
+  },
+
+  createUser: async (req, res, next) => {
+    try {
+      const user = await SystemService.createUser(req.body);
+      return response.success(res, 201, 'Berhasil membuat pengguna', user);
+    } catch (err) { next(err); }
+  },
+
+  updateUser: async (req, res, next) => {
+    try {
+      const user = await SystemService.updateUser(req.params.id, req.body);
+      return response.success(res, 200, 'Berhasil memperbarui pengguna', user);
+    } catch (err) { next(err); }
+  },
+
+  deleteUser: async (req, res, next) => {
+    try {
+      await SystemService.deleteUser(req.params.id);
+      return response.success(res, 200, 'Berhasil menghapus pengguna');
+    } catch (err) { next(err); }
   }
 };
 
