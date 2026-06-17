@@ -593,17 +593,22 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <p className="text-sm text-gray-500 mt-1">Monitor keuangan sekolah, SPP siswa, dan penggajian guru & staf.</p>
               </div>
               <div className="flex gap-2 sm:gap-3 items-center flex-wrap">
-                <div className="relative">
+                <div className="relative group w-full sm:w-auto">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
+                  </div>
                   <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}
-                    className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
+                    className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
-                  <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
-                  </span>
+                  </div>
                 </div>
 
                 
@@ -806,18 +811,22 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <p className="text-sm text-gray-500 mt-1">Generate dan kelola tagihan SPP bulanan seluruh siswa.</p>
               </div>
               <div className="flex gap-2 sm:gap-3 items-center flex-wrap">
-                <div className="relative">
+                <div className="relative group w-full sm:w-auto">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
+                  </div>
                   <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}
-                    className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
+                    className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
-                  <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
-                  </span>
+                  </div>
                 </div>
 
                 
@@ -1001,17 +1010,22 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <p className="text-sm text-gray-500 mt-1">Atur nominal SPP, diskon, dan jadwal pembayaran per kelas (Kelas VII, VIII, IX).</p>
               </div>
               <div className="flex gap-2 sm:gap-3 items-center flex-wrap sm:ml-auto">
-                <div className="relative">
+                <div className="relative group w-full sm:w-auto">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
+                  </div>
                   <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}
-                    className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
+                    className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
-                  <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
-                  </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1371,17 +1385,22 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <p className="text-sm text-gray-500 mt-1">Daftar transaksi pembayaran SPP siswa yang telah masuk.</p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <div className="relative">
+                <div className="relative group w-full sm:w-auto">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
+                  </div>
                   <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}
-                    className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all hover:bg-gray-50 hover:border-gray-300 shadow-sm"
+                    className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
-                  <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none transition-colors">
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
-                  </span>
+                  </div>
                 </div>
                 
                 <div className="relative">
@@ -1555,30 +1574,56 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
             {/* Stats */}
             {(() => {
-              const totalPenerima = programList.reduce((sum, p) => sum + (p.penerima?.length || 0), 0);
-              const totalPotongan = programList.reduce((sum, p) => sum + (p.penerima || []).reduce((s, r) => s + (r.nominal || 0), 0), 0);
-              const formatRupiah = (val) => {
-                if (val >= 1000000) return `Rp ${(val / 1000000).toFixed(0)} Jt`;
-                if (val >= 1000) return `Rp ${(val / 1000).toFixed(0)} Rb`;
-                return `Rp ${val.toLocaleString('id-ID')}`;
+              let programAktif = 0;
+              let totalPenerimaAktif = 0;
+              let totalAnggaran = 0;
+              let danaTersalurkan = 0;
+
+              programList.forEach(p => {
+                if (p.status === 'Aktif') {
+                  programAktif++;
+                  totalPenerimaAktif += (p.penerima?.length || 0);
+                  
+                  const amountStr = String(p.amount || "0").replace(/[^0-9]/g, '');
+                  const amountNum = parseInt(amountStr, 10) || 0;
+                  const quotaNum = parseInt(p.quota, 10) || 0;
+                  
+                  const disalurkan = (p.penerima || []).reduce((s, r) => {
+                    const rNominal = r.nominal ? parseInt(String(r.nominal).replace(/[^0-9]/g, ''), 10) : amountNum;
+                    return s + (rNominal || 0);
+                  }, 0);
+                  
+                  danaTersalurkan += disalurkan;
+                  
+                  if (quotaNum > 0) {
+                    totalAnggaran += (amountNum * quotaNum);
+                  } else {
+                    totalAnggaran += disalurkan;
+                  }
+                }
+              });
+
+              const formatRupiahPenuh = (val) => {
+                return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
               };
+
               return (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
-                <div className="text-2xl font-bold text-white">{programList.length}</div>
-                <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Total Program Aktif</div>
+                <div className="text-2xl font-bold text-white">{programAktif}</div>
+                <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Program Beasiswa Aktif</div>
               </div>
               <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
-                <div className="text-2xl font-bold text-white">{totalPenerima} Siswa</div>
-                <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Penerima Beasiswa</div>
+                <div className="text-2xl font-bold text-white">{totalPenerimaAktif} Siswa</div>
+                <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Total Penerima Beasiswa</div>
               </div>
               <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
-                <div className="text-2xl font-bold text-white">{formatRupiah(totalPotongan)}</div>
-                <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Total Potongan/Bln</div>
+                <div className="text-xl font-bold text-white">{formatRupiahPenuh(totalAnggaran)}</div>
+                <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Total Anggaran Beasiswa</div>
               </div>
               <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
-                <div className="text-2xl font-bold text-white">{formatRupiah(totalPotongan * 12)}</div>
-                <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Dana Beasiswa/Thn</div>
+                <div className="text-xl font-bold text-white">{formatRupiahPenuh(danaTersalurkan)}</div>
+                <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Dana Tersalurkan</div>
               </div>
             </div>
               );
@@ -1644,70 +1689,87 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
                     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
                       {/* Left Column: Program Info */}
-                      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm xl:sticky xl:top-6 flex flex-col gap-6">
-                        <div className="relative overflow-hidden bg-[#1A3D63] rounded-2xl text-white p-6 shadow-md mb-2">
-                          <h3 className="text-2xl font-black mb-1 relative z-10">{activeProgram.title}</h3>
-                          <div className="text-xs text-blue-200 font-medium flex items-center gap-1.5 relative z-10 mt-2">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
-                            Periode {activeProgram.subtitle}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between p-5 bg-white rounded-xl border border-gray-100 shadow-sm shadow-gray-100/50">
-                          <div>
-                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">
-                               Nominal / Potongan
-                            </div>
-                            <div className="text-xl font-black text-[#1A3D63]">{activeProgram.amount}</div>
-                          </div>
-                          <div className="w-px h-12 bg-gray-100"></div>
-                          <div className="text-right">
-                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Status Program</div>
-                            <div className={`inline-flex px-3 py-1 rounded-md text-xs font-bold shadow-sm ${activeProgram.status === 'Aktif' ? 'bg-[#E8FDF5] text-[#059669] border border-[#A7F3D0]' : 'bg-gray-100 text-gray-500 border border-gray-200'}`}>
-                              {activeProgram.status || 'Aktif'}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="bg-blue-50/30 p-5 rounded-xl border border-blue-50/50">
-                          <h4 className="text-[11px] font-bold text-[#1A3D63] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" /></svg>
-                             Deskripsi Program
-                          </h4>
-                          <p className="text-[13px] text-gray-600 leading-relaxed font-medium">
-                            {activeProgram.description || "Belum ada deskripsi spesifik untuk program beasiswa ini."}
-                          </p>
-                        </div>
-
-                        <div className="bg-amber-50/40 p-5 rounded-xl border border-amber-100/50">
-                          <h4 className="text-[11px] font-bold text-amber-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" /></svg>
-                             Persyaratan
-                          </h4>
-                          <div className="text-[13px] text-amber-800/80 leading-relaxed font-medium">
-                            {activeProgram.requirements ? (
-                              <div className="whitespace-pre-line">{activeProgram.requirements}</div>
-                            ) : (
-                              <span className="italic opacity-80">Belum ada persyaratan khusus.</span>
-                            )}
-                          </div>
-                        </div>
+                      {(() => {
+                        const amtStr = String(activeProgram.amount || "0").replace(/[^0-9]/g, '');
+                        const amtNum = parseInt(amtStr, 10) || 0;
+                        const qNum = parseInt(activeProgram.quota, 10) || 0;
+                        const disalurkan = (activeProgram.penerima || []).reduce((s, r) => {
+                          const rNominal = r.nominal ? parseInt(String(r.nominal).replace(/[^0-9]/g, ''), 10) : amtNum;
+                          return s + (rNominal || 0);
+                        }, 0);
+                        const anggaran = qNum > 0 ? (amtNum * qNum) : disalurkan;
+                        const sisaDana = anggaran - disalurkan;
+                        const formatRupiah = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
                         
-                        <div className="pt-2 flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                             <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>
-                             </div>
-                             <div>
-                                <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Kuota Penerima</div>
-                                <div className="text-xs font-bold text-gray-800 mt-0.5">{activeProgram.quota || "Tidak dibatasi"}</div>
-                             </div>
+                        return (
+                      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm xl:sticky xl:top-6 flex flex-col">
+                        {/* Header Section */}
+                        <div className="p-6 border-b border-gray-100">
+                          <div className="flex justify-between items-start mb-2">
+                            <h3 className="text-xl font-bold text-gray-800 leading-tight pr-4">{activeProgram.title}</h3>
+                            <span className={`inline-flex shrink-0 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${activeProgram.status === 'Aktif' ? 'bg-[#E6F4EA] text-[#059669]' : 'bg-gray-100 text-gray-500'}`}>
+                              {activeProgram.status || 'Aktif'}
+                            </span>
                           </div>
-                          <div className="text-xs text-[#1A3D63] font-bold bg-[#EBF3FA] px-3 py-1.5 rounded-lg border border-blue-100 shadow-sm flex items-center gap-1.5">
-                            {(activeProgram.penerima?.length || 0)} Terdaftar
+                          <p className="text-sm text-gray-500 font-medium">Periode {activeProgram.subtitle}</p>
+                        </div>
+
+                        {/* Details Grid */}
+                        <div className="p-6 grid grid-cols-2 gap-y-6 gap-x-4 border-b border-gray-100">
+                          <div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Nominal Bantuan</div>
+                            <div className="text-sm font-bold text-gray-800">{activeProgram.amount}</div>
+                          </div>
+                          <div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Kategori</div>
+                            <div className="text-sm font-bold text-gray-800">{activeProgram.type}</div>
+                          </div>
+                          <div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Sumber Dana</div>
+                            <div className="text-sm font-bold text-gray-800">{activeProgram.sumberDana || '-'}</div>
+                          </div>
+                          <div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Kuota Tersedia</div>
+                            <div className="text-sm font-bold text-gray-800">
+                              {activeProgram.quota ? `${activeProgram.quota} Siswa` : 'Tidak Dibatasi'}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Total Penerima</div>
+                            <div className="text-sm font-bold text-[#1A3D63]">{(activeProgram.penerima?.length || 0)} Siswa</div>
+                          </div>
+                          <div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Dana Tersalurkan</div>
+                            <div className="text-sm font-bold text-emerald-600">{formatRupiah(disalurkan)}</div>
+                          </div>
+                          <div className="col-span-2 pt-2 border-t border-gray-50">
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Sisa Dana Program</div>
+                            <div className="text-base font-bold text-gray-800">{formatRupiah(sisaDana)}</div>
+                          </div>
+                        </div>
+
+                        {/* Description & Requirements */}
+                        <div className="p-6 flex flex-col gap-6">
+                          <div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">Deskripsi Program</div>
+                            <p className="text-[13px] text-gray-600 leading-relaxed">
+                              {activeProgram.description || "Belum ada deskripsi spesifik untuk program beasiswa ini."}
+                            </p>
+                          </div>
+                          <div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">Persyaratan</div>
+                            <div className="text-[13px] text-gray-600 leading-relaxed">
+                              {activeProgram.requirements ? (
+                                <div className="whitespace-pre-line">{activeProgram.requirements}</div>
+                              ) : (
+                                <span className="italic opacity-80">Belum ada persyaratan khusus.</span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
+                      );
+                    })()}
 
                       {/* Right Column: Table */}
                       <div className="xl:col-span-2 flex flex-col gap-4">
@@ -1818,18 +1880,22 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <p className="text-sm text-gray-500 mt-1">Identifikasi siswa yang belum melunasi kewajiban pembayaran dan kirim tagihan ke Orang Tua.</p>
               </div>
               <div className="flex items-center gap-3">
-                <div className="relative">
+                <div className="relative group w-full sm:w-auto">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
+                  </div>
                   <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}
-                    className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
+                    className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
-                  <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
-                  </span>
+                  </div>
                 </div>
                 <button
                   onClick={() => triggerToast("Mengirim notifikasi tagihan massal...")}
@@ -1988,17 +2054,22 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <p className="text-sm text-gray-500 mt-1">Konfigurasi pendapatan, tunjangan, dan potongan gaji pegawai.</p>
               </div>
               <div className="flex items-center gap-3">
-                <div className="relative">
+                <div className="relative group w-full sm:w-auto">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
+                  </div>
                   <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}
-                    className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
+                    className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
-                  <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
-                  </span>
+                  </div>
                 </div>
 
                 <button
@@ -2289,16 +2360,20 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <p className="text-sm text-gray-500 mt-1">Monitoring status real-time pembayaran gaji guru dan karyawan.</p>
               </div>
               <div className="flex flex-col sm:flex-row items-center gap-3">
-                <div className="relative">
-                  <select className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-8 py-2.5 text-xs sm:text-[13px] font-bold text-gray-600 cursor-pointer appearance-none focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 shadow-sm transition-all">
-                    <option>Tahun Ajaran: 2025/2026</option>
+                <div className="relative group w-full sm:w-auto">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
+                  </div>
+                  <select
+                    className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
+                  >
+                    <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
-                  <span className="absolute left-3.5 top-2.5 text-gray-400 pointer-events-none">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
-                  </span>
-                  <span className="absolute right-3.5 top-3 text-gray-400 pointer-events-none">
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
-                  </span>
+                  </div>
                 </div>
                 <button
                   onClick={() => triggerToast("Review semua pembayaran...")}
@@ -2499,17 +2574,22 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <p className="text-sm text-gray-500 mt-1">Monitor keuangan sekolah, SPP siswa, dan penggajian guru & staf.</p>
               </div>
               <div className="flex gap-2 sm:gap-3 items-center flex-wrap">
-                <div className="relative">
+                <div className="relative group w-full sm:w-auto">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
+                  </div>
                   <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}
-                    className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
+                    className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
-                  <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
-                  </span>
+                  </div>
                 </div>
 
                 
