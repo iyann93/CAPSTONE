@@ -1,480 +1,433 @@
-import { useState } from "react";
-const SearchIcon = () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-gray-400">
-    <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
-  </svg>;
-const ExportIcon = () => <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="mr-1.5">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
-  </svg>;
-const ChevronDownIcon = () => <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" className="text-gray-400">
-    <path d="m6 9 6 6 6-6" />
-  </svg>;
-const EditIcon = () => <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-    <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-  </svg>;
-const TrashIcon = () => <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-    <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-  </svg>;
-const UserIcon = () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="mr-2 text-[#1A3D63]">
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
-  </svg>;
-const UsersIcon = () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="mr-2 text-[#1A3D63]">
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-  </svg>;
-const BookIcon = () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="mr-2 text-[#1A3D63]">
-    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-  </svg>;
-const ActivityIcon = () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="mr-2 text-[#1A3D63]">
-    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-  </svg>;
-const SaveIcon = () => <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="mr-2">
-    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" />
-  </svg>;
-const UploadIcon = () => <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="mr-2">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
-  </svg>;
-const PrintIcon = () => <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="mr-2">
-    <polyline points="6 9 6 2 18 2 18 9" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><rect x="6" y="14" width="12" height="8" />
-  </svg>;
-const MOCK_STUDENTS = [
-  { id: 1, nisn: "0051234567", name: "Ahmad Ridho", class: "X IPA 1", gender: "Laki-laki", status: "Aktif", birthPlace: "Jakarta", birthDate: "2008-05-12", religion: "Islam", email: "ahmad.ridho@siswa.siakad.id" },
-  { id: 2, nisn: "0051234568", name: "Bunga Citra", class: "X IPA 1", gender: "Perempuan", status: "Aktif", birthPlace: "Bandung", birthDate: "2008-07-21", religion: "Islam", email: "bunga.citra@siswa.siakad.id" },
-  { id: 3, nisn: "0051234569", name: "Candra Wijaya", class: "XI IPS 2", gender: "Laki-laki", status: "Aktif", birthPlace: "Surabaya", birthDate: "2007-03-10", religion: "Kristen", email: "candra.wijaya@siswa.siakad.id" },
-  { id: 4, nisn: "0051234570", name: "Diana Putri", class: "XI IPS 2", gender: "Perempuan", status: "Aktif", birthPlace: "Semarang", birthDate: "2007-11-05", religion: "Islam", email: "diana.putri@siswa.siakad.id" },
-  { id: 5, nisn: "0051234571", name: "Eko Prasetyo", class: "XII IPA 3", gender: "Laki-laki", status: "Non-Aktif", birthPlace: "Malang", birthDate: "2006-01-15", religion: "Islam", email: "eko.prasetyo@siswa.siakad.id" },
-  { id: 6, nisn: "0051234572", name: "Fahri Hamzah", class: "XII IPA 3", gender: "Laki-laki", status: "Aktif" },
-  { id: 7, nisn: "0051234573", name: "Gita Savitri", class: "X IPS 1", gender: "Perempuan", status: "Aktif" },
-  { id: 8, nisn: "0051234574", name: "Hadi Kusuma", class: "X IPS 1", gender: "Laki-laki", status: "Aktif" }
+import React, { useState } from "react";
+import StudentForm from "./StudentForm";
+import StudentDetail from "./StudentDetail";
+import StudentEdit from "./StudentEdit";
+
+const initialStudents = [
+  {
+    id: 1,
+    name: "Andi Pratama",
+    email: "andi.pratama@student.sman1.sch.id",
+    nis: "2023001",
+    nisn: "0045678901",
+    kelas: "X IPA 1",
+    tingkat: "Kelas X",
+    jurusan: "IPA",
+    gender: "L",
+    nilaiRataRata: 87.5,
+    kehadiran: 95,
+    status: "Aktif",
+    avatarColor: "bg-[#3B82F6]",
+    initials: "AP"
+  },
+  {
+    id: 2,
+    name: "Dewi Sartika",
+    email: "dewi.sartika@student.sman1.sch.id",
+    nis: "2023002",
+    nisn: "0045678902",
+    kelas: "X IPA 1",
+    tingkat: "Kelas X",
+    jurusan: "IPA",
+    gender: "P",
+    nilaiRataRata: 91.2,
+    kehadiran: 98,
+    status: "Aktif",
+    avatarColor: "bg-[#10B981]",
+    initials: "DS"
+  },
+  {
+    id: 3,
+    name: "Ricky Firmansyah",
+    email: "ricky.f@student.sman1.sch.id",
+    nis: "2023003",
+    nisn: "0045678903",
+    kelas: "X IPA 1",
+    tingkat: "Kelas X",
+    jurusan: "IPA",
+    gender: "L",
+    nilaiRataRata: 78.3,
+    kehadiran: 88,
+    status: "Aktif",
+    avatarColor: "bg-[#F59E0B]",
+    initials: "RF"
+  },
+  {
+    id: 4,
+    name: "Nurul Hidayah",
+    email: "nurul.h@student.sman1.sch.id",
+    nis: "2023004",
+    nisn: "0045678904",
+    kelas: "X IPA 1",
+    tingkat: "Kelas X",
+    jurusan: "IPA",
+    gender: "P",
+    nilaiRataRata: 85.6,
+    kehadiran: 92,
+    status: "Aktif",
+    avatarColor: "bg-[#EF4444]",
+    initials: "NH"
+  },
+  {
+    id: 5,
+    name: "Fajar Setiawan",
+    email: "fajar.s@student.sman1.sch.id",
+    nis: "2023005",
+    nisn: "0045678905",
+    kelas: "X IPA 1",
+    tingkat: "Kelas X",
+    jurusan: "IPA",
+    gender: "L",
+    nilaiRataRata: 82.1,
+    kehadiran: 90,
+    status: "Aktif",
+    avatarColor: "bg-[#8B5CF6]",
+    initials: "FS"
+  },
+  {
+    id: 6,
+    name: "Ayu Lestari",
+    email: "ayu.lestari@student.sman1.sch.id",
+    nis: "2023006",
+    nisn: "0045678906",
+    kelas: "X IPA 1",
+    tingkat: "Kelas X",
+    jurusan: "IPA",
+    gender: "P",
+    nilaiRataRata: 93.7,
+    kehadiran: 99,
+    status: "Aktif",
+    avatarColor: "bg-[#EC4899]",
+    initials: "AL"
+  },
+  {
+    id: 7,
+    name: "Budi Santoso",
+    email: "budi.s@student.sman1.sch.id",
+    nis: "2023007",
+    nisn: "0045678907",
+    kelas: "X IPA 2",
+    tingkat: "Kelas X",
+    jurusan: "IPA",
+    gender: "L",
+    nilaiRataRata: 80.5,
+    kehadiran: 91,
+    status: "Aktif",
+    avatarColor: "bg-[#10B981]",
+    initials: "BS"
+  },
+  {
+    id: 8,
+    name: "Citra Dewi",
+    email: "citra.d@student.sman1.sch.id",
+    nis: "2023008",
+    nisn: "0045678908",
+    kelas: "X IPA 2",
+    tingkat: "Kelas X",
+    jurusan: "IPA",
+    gender: "P",
+    nilaiRataRata: 88.2,
+    kehadiran: 96,
+    status: "Aktif",
+    avatarColor: "bg-[#6366F1]",
+    initials: "CD"
+  },
+  {
+    id: 9,
+    name: "Dian Purnama",
+    email: "dian.p@student.sman1.sch.id",
+    nis: "2023009",
+    nisn: "0045678909",
+    kelas: "X IPS 1",
+    tingkat: "Kelas X",
+    jurusan: "IPS",
+    gender: "P",
+    nilaiRataRata: 84.0,
+    kehadiran: 93,
+    status: "Aktif",
+    avatarColor: "bg-[#3B82F6]",
+    initials: "DP"
+  },
+  {
+    id: 10,
+    name: "Eko Prasetyo",
+    email: "eko.p@student.sman1.sch.id",
+    nis: "2023010",
+    nisn: "0045678910",
+    kelas: "X IPS 1",
+    tingkat: "Kelas X",
+    jurusan: "IPS",
+    gender: "L",
+    nilaiRataRata: 76.8,
+    kehadiran: 85,
+    status: "Aktif",
+    avatarColor: "bg-[#10B981]",
+    initials: "EP"
+  }
 ];
+
 const StudentData = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
+  const [viewMode, setViewMode] = useState("list"); // 'list', 'add', 'edit', 'detail'
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const handleEditClick = (student) => {
-    setSelectedStudent(student);
-    setIsEditing(true);
-  };
+  const [activeTab, setActiveTab] = useState("Semua Kelas");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredStudents = MOCK_STUDENTS.filter(s => 
-    s.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    s.nisn.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  if (isEditing && selectedStudent) {
-    return <div className="animate-fadeIn space-y-6 pb-20">
-        {
-      /* Breadcrumb & Header */
-    }
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 text-[12px] text-gray-400 font-medium">
-              <span className="cursor-pointer hover:text-[#1A3D63]" onClick={() => setIsEditing(false)}>Data Siswa</span>
-              <span>›</span>
-              <span className="text-[#1A3D63]">Edit Siswa</span>
-            </div>
-            <h1 className="text-[28px] font-bold text-[#1F2937] leading-tight">Edit Siswa: {selectedStudent.name}</h1>
-            <p className="text-[14px] text-gray-500">Perbarui informasi pribadi, akademik, dan kontak wali murid.</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-      onClick={() => setIsEditing(false)}
-      className="px-6 py-2.5 rounded-lg border border-gray-200 text-[13px] font-bold text-[#1F2937] bg-white hover:bg-gray-50 shadow-sm transition-all"
-    >
-              × Batal
-            </button>
-            <button className="flex items-center bg-[#1A3D63] hover:bg-[#0A1931] text-white px-6 py-2.5 rounded-lg font-bold text-[13px] shadow-lg shadow-[#1A3D63]/20 transition-all">
-              <SaveIcon />
-              Simpan Perubahan
-            </button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {
-      /* Left Column */
-    }
-          <div className="lg:col-span-8 space-y-6">
-            {
-      /* Informasi Pribadi */
-    }
-            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="flex items-center px-8 py-5 border-b border-gray-100">
-                <h3 className="text-[15px] font-bold text-[#1F2937] flex items-center">
-                  <UserIcon />
-                  Informasi Pribadi
-                </h3>
-              </div>
-
-              <div className="p-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-gray-500 ml-1">Nama Lengkap</label>
-                    <input
-      type="text"
-      defaultValue={selectedStudent.name}
-      className="w-full px-4 py-3 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/5 focus:bg-white transition-all"
-    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-gray-500 ml-1">NISN</label>
-                    <input
-      type="text"
-      defaultValue={selectedStudent.nisn}
-      className="w-full px-4 py-3 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/5 focus:bg-white transition-all"
-    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-gray-500 ml-1">Tempat Lahir</label>
-                    <input
-      type="text"
-      defaultValue={selectedStudent.birthPlace || ""}
-      placeholder="Contoh: Jakarta"
-      className="w-full px-4 py-3 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/5 focus:bg-white transition-all"
-    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-gray-500 ml-1">Tanggal Lahir</label>
-                    <input
-      type="date"
-      defaultValue={selectedStudent.birthDate || ""}
-      className="w-full px-4 py-3 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/5 focus:bg-white transition-all"
-    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-gray-500 ml-1">Jenis Kelamin</label>
-                    <div className="relative">
-                      <select defaultValue={selectedStudent.gender} className="w-full appearance-none px-4 py-3 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/5 transition-all">
-                        <option>Laki-laki</option>
-                        <option>Perempuan</option>
-                      </select>
-                      <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
-                        <ChevronDownIcon />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-gray-500 ml-1">Agama</label>
-                    <div className="relative">
-                      <select defaultValue={selectedStudent.religion || "Islam"} className="w-full appearance-none px-4 py-3 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/5 transition-all">
-                        <option>Islam</option>
-                        <option>Kristen</option>
-                        <option>Katolik</option>
-                        <option>Hindu</option>
-                        <option>Buddha</option>
-                      </select>
-                      <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
-                        <ChevronDownIcon />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-span-1 md:col-span-2 space-y-2">
-                    <label className="text-[11px] font-bold text-gray-500 ml-1">Alamat Lengkap</label>
-                    <textarea
-      rows={3}
-      placeholder="Masukkan alamat domisili saat ini..."
-      defaultValue="Jl. Merdeka Barat No. 45, Kebayoran Baru, Jakarta Selatan"
-      className="w-full px-4 py-3 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/5 focus:bg-white transition-all resize-none"
-    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {
-      /* Informasi Akademik */
-    }
-            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="flex items-center px-8 py-5 border-b border-gray-100">
-                <h3 className="text-[15px] font-bold text-[#1F2937] flex items-center">
-                  <BookIcon />
-                  Informasi Akademik
-                </h3>
-              </div>
-
-              <div className="p-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-gray-500 ml-1">Nomor Induk Siswa (NIS)</label>
-                    <input
-      type="text"
-      defaultValue="21221001"
-      className="w-full px-4 py-3 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/5 focus:bg-white transition-all"
-    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-gray-500 ml-1">Tahun Masuk</label>
-                    <input
-      type="text"
-      defaultValue="2023"
-      className="w-full px-4 py-3 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/5 focus:bg-white transition-all"
-    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-gray-500 ml-1">Kelas Saat Ini</label>
-                    <div className="relative">
-                      <select defaultValue={selectedStudent.class} className="w-full appearance-none px-4 py-3 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/5 transition-all">
-                        <option>X IPA 1</option>
-                        <option>X IPS 1</option>
-                        <option>XI IPS 2</option>
-                        <option>XII IPA 1</option>
-                        <option>XII IPA 3</option>
-                      </select>
-                      <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
-                        <ChevronDownIcon />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[11px] font-bold text-gray-500 ml-1">Jurusan / Peminatan</label>
-                    <div className="relative">
-                      <select defaultValue="Ilmu Pengetahuan Alam (IPA)" className="w-full appearance-none px-4 py-3 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/5 transition-all">
-                        <option>Ilmu Pengetahuan Alam (IPA)</option>
-                        <option>Ilmu Pengetahuan Sosial (IPS)</option>
-                        <option>Bahasa</option>
-                      </select>
-                      <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
-                        <ChevronDownIcon />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {
-      /* Right Column */
-    }
-          <div className="lg:col-span-4 space-y-6">
-            {
-      /* Foto Profil */
-    }
-            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm flex flex-col items-center text-center">
-              <div className="w-28 h-28 rounded-2xl bg-[#D5E3EF] flex items-center justify-center text-[#1A3D63] font-black text-4xl mb-6 shadow-inner">
-                {selectedStudent.name.split(" ").map((n) => n[0]).join("").substring(0, 2)}
-              </div>
-              
-              <div className="flex items-center gap-2 w-full mb-3">
-                <button className="flex-1 flex items-center justify-center bg-[#F3F4F6] hover:bg-gray-200 text-[#1F2937] px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all">
-                  <UploadIcon />
-                  Ganti Foto
-                </button>
-                <button className="px-3.5 py-2.5 bg-blue-50 text-[#4A7FA7] border border-blue-100 rounded-xl hover:bg-blue-100 transition-all">
-                  <TrashIcon />
-                </button>
-              </div>
-              <p className="text-[10px] text-gray-400">Format: JPG/PNG. Maks. 2MB. Resolusi disarankan 1:1.</p>
-            </div>
-
-            {
-      /* Data Orang Tua / Wali */
-    }
-            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="flex items-center px-6 py-5 border-b border-gray-100">
-                <h3 className="text-[15px] font-bold text-[#1F2937] flex items-center">
-                  <UsersIcon />
-                  Data Orang Tua / Wali
-                </h3>
-              </div>
-              
-              <div className="p-6 space-y-5">
-                <div className="space-y-2">
-                  <label className="text-[11px] font-bold text-gray-500 ml-1">Nama Ayah</label>
-                  <input
-      type="text"
-      defaultValue="Bambang Suryo"
-      className="w-full px-4 py-2.5 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none"
-    />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] font-bold text-gray-500 ml-1">Nama Ibu</label>
-                  <input
-      type="text"
-      defaultValue="Siti Mardiyah"
-      className="w-full px-4 py-2.5 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none"
-    />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] font-bold text-gray-500 ml-1">Nomor Telepon Darurat</label>
-                  <input
-      type="text"
-      defaultValue="+62 813 9876 5432"
-      className="w-full px-4 py-2.5 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none"
-    />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] font-bold text-gray-500 ml-1">Pekerjaan Wali</label>
-                  <input
-      type="text"
-      defaultValue="Wiraswasta"
-      className="w-full px-4 py-2.5 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none"
-    />
-                </div>
-              </div>
-            </div>
-
-            {
-      /* Status Siswa */
-    }
-            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="flex items-center px-6 py-5 border-b border-gray-100">
-                <h3 className="text-[15px] font-bold text-[#1F2937] flex items-center">
-                  <ActivityIcon />
-                  Status Siswa
-                </h3>
-              </div>
-
-              <div className="p-6 space-y-6">
-                <div className={`p-4 border rounded-xl ${selectedStudent.status === "Aktif" ? "bg-[#F0FDF4] border-[#DCFCE7]" : "bg-gray-50 border-gray-100"}`}>
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className={`w-2 h-2 rounded-full ${selectedStudent.status === "Aktif" ? "bg-[#16A34A] animate-pulse" : "bg-gray-400"}`} />
-                    <h4 className={`text-[13px] font-bold ${selectedStudent.status === "Aktif" ? "text-[#16A34A]" : "text-gray-600"}`}>Status: {selectedStudent.status}</h4>
-                  </div>
-                  <p className="text-[10px] text-gray-500 ml-4">Siswa berstatus aktif pada tahun ajaran ini</p>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-[11px] font-bold text-gray-500 ml-1">Ubah Status</label>
-                  <div className="relative">
-                    <select defaultValue={selectedStudent.status} className="w-full appearance-none px-4 py-2.5 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[13px] font-semibold text-[#16A34A] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/5 transition-all">
-                      <option className="text-[#16A34A]">Aktif</option>
-                      <option className="text-gray-600">Non-Aktif</option>
-                      <option className="text-blue-600">Lulus</option>
-                      <option className="text-red-600">Pindah</option>
-                    </select>
-                    <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
-                      <ChevronDownIcon />
-                    </div>
-                  </div>
-                </div>
-
-                <button className="w-full flex items-center justify-center px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[13px] font-bold text-[#1F2937] hover:bg-gray-50 transition-all shadow-sm">
-                  <PrintIcon />
-                  Cetak Biodata
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>;
+  if (viewMode === "add") {
+    return <StudentForm onBack={() => setViewMode("list")} />;
   }
-  return <div className="animate-fadeIn space-y-6">
-      {
-    /* Header Area */
+
+  if (viewMode === "edit" && selectedStudent) {
+    return <StudentEdit student={selectedStudent} onBack={() => setViewMode("list")} />;
   }
-      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+
+  if (viewMode === "detail" && selectedStudent) {
+    return <StudentDetail student={selectedStudent} onBack={() => setViewMode("list")} onEdit={(s) => { setSelectedStudent(s); setViewMode("edit"); }} />;
+  }
+
+  const tabs = ["Semua Kelas", "Kelas X", "Kelas XI", "Kelas XII"];
+
+  return (
+    <div className="p-6 md:p-8 animate-fadeIn space-y-6 bg-[#F4F6FA] min-h-full">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
-          <h1 className="text-[28px] font-bold text-[#1F2937] leading-tight">Data Siswa</h1>
-          <p className="text-[14px] text-gray-500 mt-1">Manajemen data induk siswa aktif dan non-aktif.</p>
+          <h1 className="text-[26px] font-bold text-[#1e293b]">Data Siswa</h1>
+          <p className="text-gray-500 text-[15px] mt-1">
+            Kelola data seluruh siswa aktif, informasi pribadi, dan rekap akademik.
+          </p>
         </div>
-        <button className="flex items-center bg-white border border-gray-200 rounded-lg px-4 py-2 text-[13px] font-semibold text-gray-700 shadow-sm hover:bg-gray-50 transition-all">
-          <ExportIcon />
-          <span>Export Data</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-[14px] font-bold hover:bg-gray-50 shadow-sm transition-colors">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Ekspor Data
+          </button>
+          <button 
+            onClick={() => setViewMode("add")}
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl text-[14px] font-bold shadow-sm transition-colors"
+          >
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>
+            Tambah Siswa
+          </button>
+        </div>
       </div>
 
-      {
-    /* Filter Bar */
-  }
-      <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-3.5 flex items-center pointer-events-none">
-              <SearchIcon />
-            </div>
-            <input
-    type="text"
-    placeholder="Cari nama atau NISN..."
-    value={searchTerm}
-    onChange={(e) => setSearchTerm(e.target.value)}
-    className="pl-11 pr-4 py-2.5 bg-[#F9FAFB] border border-gray-200 rounded-lg text-[13px] focus:outline-none transition-all w-full md:w-80"
-  />
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 flex items-center justify-between">
+          <div>
+            <p className="text-gray-500 text-[13px] font-medium mb-1">Total Siswa</p>
+            <h3 className="text-2xl font-bold text-[#1e293b]">20</h3>
+            <p className="text-gray-400 text-[12px] mt-1">Semua angkatan</p>
           </div>
-          <div className="relative">
-            <select className="appearance-none bg-[#F9FAFB] border border-gray-200 rounded-lg pl-4 pr-10 py-2.5 text-[13px] text-gray-600 focus:outline-none w-44">
-              <option>Filter Kelas</option>
-              <option>X IPA 1</option>
-              <option>X IPS 1</option>
-              <option>XI IPS 2</option>
-              <option>XII IPA 3</option>
-            </select>
-            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-              <ChevronDownIcon />
+          <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 flex items-center justify-between">
+          <div>
+            <p className="text-gray-500 text-[13px] font-medium mb-1">Siswa Aktif</p>
+            <h3 className="text-2xl font-bold text-[#1e293b]">20</h3>
+            <p className="text-gray-400 text-[12px] mt-1">Sedang belajar</p>
+          </div>
+          <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/><path strokeLinecap="round" strokeLinejoin="round" d="M19 8l-2 2-2-2"/></svg>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 flex items-center justify-between">
+          <div>
+            <p className="text-gray-500 text-[13px] font-medium mb-1">Siswa Baru</p>
+            <h3 className="text-2xl font-bold text-[#1e293b]">10</h3>
+            <p className="text-gray-400 text-[12px] mt-1">Tahun ajaran 2023</p>
+          </div>
+          <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center text-purple-500">
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 flex items-center justify-between">
+          <div>
+            <p className="text-gray-500 text-[13px] font-medium mb-1">Alumni</p>
+            <h3 className="text-2xl font-bold text-[#1e293b]">0</h3>
+            <p className="text-gray-400 text-[12px] mt-1">Telah lulus</p>
+          </div>
+          <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center text-orange-500">
+            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-hidden flex flex-col">
+        {/* Toolbar */}
+        <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex bg-gray-100 p-1 rounded-xl">
+            {tabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-4 py-2 rounded-lg text-[13px] font-bold transition-colors ${
+                  activeTab === tab
+                    ? "bg-[#3B82F6] text-white shadow-sm"
+                    : "text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-600 text-[14px] font-bold hover:bg-gray-50 transition-colors whitespace-nowrap">
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+              Filter
+            </button>
+            <div className="relative w-full md:w-[280px]">
+              <input
+                type="text"
+                placeholder="Cari nama, NIS, atau kelas..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all bg-gray-50 focus:bg-white"
+              />
+              <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             </div>
           </div>
         </div>
-        <button className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#0A1931] text-white px-5 py-2.5 rounded-lg font-bold text-[13px] shadow-lg shadow-[#1A3D63]/20 transition-all">
-          <span className="text-base leading-none font-medium">+</span>
-          <span>Tambah Siswa</span>
-        </button>
-      </div>
 
-      {
-    /* Table Section */
-  }
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left whitespace-nowrap">
+          <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-[#F9FAFB] border-b border-gray-100">
-                <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">No</th>
-                <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">NISN</th>
-                <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Nama Lengkap</th>
-                <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Kelas</th>
-                <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Jenis Kelamin</th>
-                <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Status</th>
-                <th className="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center">Aksi</th>
+              <tr className="bg-gray-50/50 border-b border-gray-100">
+                <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">No</th>
+                <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Siswa</th>
+                <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">NIS / NISN</th>
+                <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Kelas</th>
+                <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Tingkat</th>
+                <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Jurusan</th>
+                <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap text-center">L/P</th>
+                <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Nilai Rata-rata</th>
+                <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Kehadiran</th>
+                <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Status</th>
+                <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filteredStudents.map((s, idx) => <tr key={s.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-5 text-[13px] text-gray-400">{idx + 1}</td>
-                  <td className="px-6 py-5 text-[13px] font-bold text-[#1F2937] tracking-tight">{s.nisn}</td>
-                  <td className="px-6 py-5 text-[13px] font-medium text-[#1F2937]">{s.name}</td>
-                  <td className="px-6 py-5 text-[13px] text-gray-500 font-medium">{s.class}</td>
-                  <td className="px-6 py-5 text-[13px] text-gray-500">{s.gender}</td>
-                  <td className="px-6 py-5">
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold border ${s.status === "Aktif" ? "bg-[#F0FDF4] text-[#16A34A] border-[#DCFCE7]" : "bg-[#F9FAFB] text-gray-500 border-gray-200"}`}>
-                      <div className={`w-1.5 h-1.5 rounded-full ${s.status === "Aktif" ? "bg-[#16A34A]" : "bg-gray-400"}`} />
-                      {s.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-5">
-                    <div className="flex items-center justify-center gap-2">
-                       <button
-    onClick={() => handleEditClick(s)}
-    className="p-2 text-gray-400 hover:text-[#1A3D63] hover:bg-white rounded-lg transition-all border border-transparent hover:border-gray-100 shadow-sm"
-    aria-label="Edit"
-  >
-                         <EditIcon />
-                       </button>
-                       <button className="p-2 text-gray-400 hover:text-red-500 hover:bg-white rounded-lg transition-all border border-transparent hover:border-gray-100 shadow-sm">
-                         <TrashIcon />
-                       </button>
+            <tbody className="divide-y divide-gray-100">
+              {initialStudents.map((student, index) => (
+                <tr key={student.id} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="py-4 px-6 text-[14px] text-gray-500">{index + 1}</td>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-9 h-9 rounded-full ${student.avatarColor} flex items-center justify-center text-white text-[13px] font-bold flex-shrink-0`}>
+                        {student.initials}
+                      </div>
+                      <div>
+                        <div className="text-[14px] font-bold text-[#1e293b] flex items-center gap-1.5">
+                          {student.name}
+                          {(index === 0 || index === 1 || index === 5) && (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="#F59E0B"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                          )}
+                        </div>
+                        <div className="text-[12px] text-gray-500 mt-0.5">{student.email}</div>
+                      </div>
                     </div>
                   </td>
-                </tr>)}
+                  <td className="py-4 px-6">
+                    <div className="text-[14px] font-medium text-[#1e293b]">{student.nis}</div>
+                    <div className="text-[11px] text-gray-400 mt-0.5 font-mono">{student.nisn}</div>
+                  </td>
+                  <td className="py-4 px-6 text-[14px] font-medium text-[#1e293b] whitespace-nowrap">{student.kelas}</td>
+                  <td className="py-4 px-6">
+                    <span className="inline-flex px-2.5 py-1 rounded-md bg-blue-50 text-blue-600 text-[12px] font-bold whitespace-nowrap">
+                      {student.tingkat}
+                    </span>
+                  </td>
+                  <td className="py-4 px-6">
+                    <span className={`inline-flex px-2.5 py-1 rounded-md text-[12px] font-bold whitespace-nowrap ${student.jurusan === 'IPA' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'}`}>
+                      {student.jurusan}
+                    </span>
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-[12px] font-bold ${student.gender === 'L' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'}`}>
+                      {student.gender}
+                    </span>
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-3 w-[120px]">
+                      <span className={`text-[14px] font-bold ${student.nilaiRataRata >= 85 ? 'text-emerald-600' : student.nilaiRataRata >= 80 ? 'text-blue-600' : 'text-orange-500'}`}>
+                        {student.nilaiRataRata}
+                      </span>
+                      <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full rounded-full ${student.nilaiRataRata >= 85 ? 'bg-emerald-500' : student.nilaiRataRata >= 80 ? 'bg-blue-500' : 'bg-orange-500'}`}
+                          style={{ width: `${student.nilaiRataRata}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-3 w-[100px]">
+                      <span className="text-[14px] font-medium text-gray-700">{student.kehadiran}%</span>
+                      <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full rounded-full ${student.kehadiran >= 95 ? 'bg-emerald-500' : student.kehadiran >= 90 ? 'bg-emerald-400' : 'bg-orange-400'}`}
+                          style={{ width: `${student.kehadiran}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[12px] font-bold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                      Aktif
+                    </span>
+                  </td>
+                  <td className="py-4 px-6 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <button 
+                        onClick={() => { setSelectedStudent(student); setViewMode("detail"); }}
+                        className="p-1.5 text-gray-400 hover:text-[#3B82F6] transition-colors rounded-lg hover:bg-blue-50"
+                      >
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                      </button>
+                      <button 
+                        onClick={() => { setSelectedStudent(student); setViewMode("edit"); }}
+                        className="p-1.5 text-gray-400 hover:text-orange-500 transition-colors rounded-lg hover:bg-orange-50"
+                      >
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                      </button>
+                      <button className="p-1.5 text-gray-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50">
+                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
-        
-        {
-    /* Pagination */
-  }
-        <div className="p-5 bg-white border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <span className="text-[13px] text-gray-500">Menampilkan {filteredStudents.length} dari {MOCK_STUDENTS.length} siswa</span>
+
+        {/* Pagination */}
+        <div className="p-4 border-t border-gray-100 flex items-center justify-between text-[13px]">
+          <div className="text-gray-500">
+            Menampilkan 1-10 dari 20 siswa
+          </div>
           <div className="flex items-center gap-1">
-            <button className="px-3 py-1.5 text-[13px] text-gray-500 hover:bg-gray-50 rounded-lg transition-colors">Prev</button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#1A3D63] text-white text-[13px] font-bold shadow-sm">1</button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 text-[13px] font-bold transition-colors">2</button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 text-[13px] font-bold transition-colors">3</button>
-            <span className="px-1 text-gray-400">...</span>
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-50 text-[13px] font-bold transition-colors">156</button>
-            <button className="px-3 py-1.5 text-[13px] text-[#1A3D63] font-bold hover:bg-gray-50 rounded-lg transition-colors">Next</button>
+            <button className="p-1.5 border border-gray-200 text-gray-400 rounded-lg hover:bg-gray-50 transition-colors">
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <button className="w-8 h-8 flex items-center justify-center bg-[#3B82F6] text-white rounded-lg font-bold">1</button>
+            <button className="w-8 h-8 flex items-center justify-center border border-gray-200 text-gray-600 rounded-lg font-bold hover:bg-gray-50 transition-colors">2</button>
+            <button className="p-1.5 border border-gray-200 text-gray-400 rounded-lg hover:bg-gray-50 transition-colors">
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </button>
           </div>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
-var StudentData_default = StudentData;
-export {
-  StudentData_default as default
-};
+
+export default StudentData;

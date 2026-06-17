@@ -2,6 +2,12 @@ import React from "react";
 import PlaceholderDashboard from "./PlaceholderDashboard";
 import Subjects from "./Subjects";
 import Semester from "./Semester";
+import Classes from "./Classes";
+import Schedules from "./Schedules";
+import GradePromotion from "./GradePromotion";
+import GraduationData from "./GraduationData";
+import StudentData from "./StudentData";
+import StudentAttendance from "./StudentAttendance";
 
 const AdminTUDashboard = ({ user, activeMenu }) => {
   if (activeMenu === "Mata Pelajaran") {
@@ -10,6 +16,30 @@ const AdminTUDashboard = ({ user, activeMenu }) => {
 
   if (activeMenu === "Semester") {
     return <Semester />;
+  }
+
+  if (activeMenu === "Data Kelas") {
+    return <Classes />;
+  }
+
+  if (activeMenu === "Jadwal Pelajaran") {
+    return <Schedules />;
+  }
+
+  if (activeMenu === "Kenaikan Kelas") {
+    return <GradePromotion />;
+  }
+
+  if (activeMenu === "Data Kelulusan") {
+    return <GraduationData />;
+  }
+
+  if (activeMenu === "Data Siswa") {
+    return <StudentData />;
+  }
+
+  if (activeMenu === "Absensi Siswa") {
+    return <StudentAttendance />;
   }
 
   if (activeMenu !== "Dashboard") {

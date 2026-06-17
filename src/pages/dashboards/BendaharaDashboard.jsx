@@ -58,6 +58,12 @@ const IconCheckCircle = () => (
   </svg>
 );
 
+const IconX = () => (
+  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+  </svg>
+);
+
 const IconClock = () => (
   <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -149,6 +155,10 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const [selectedYear, setSelectedYear] = useState("2025/2026");
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [showGenerateMonthModal, setShowGenerateMonthModal] = useState(false);
+  
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [showNotificationConfirm, setShowNotificationConfirm] = useState(false);
+  const [selectedNotificationStudents, setSelectedNotificationStudents] = useState([]);
 
   const [studentsBill, setStudentsBill] = useState([]);
   const [billSearchQuery, setBillSearchQuery] = useState("");
@@ -175,46 +185,32 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   // Beasiswa Modal State
   const [showAddPenerimaModal, setShowAddPenerimaModal] = useState(false);
   const [showDeleteBeasiswaModal, setShowDeleteBeasiswaModal] = useState(false);
+  
   const [selectedProgramForView, setSelectedProgramForView] = useState(null);
+  const [penerimaSearchQuery, setPenerimaSearchQuery] = useState('');
+  const [penerimaStatusFilter, setPenerimaStatusFilter] = useState('Semua');
+
 
   // Actual Program State
   const [showAddProgramModal, setShowAddProgramModal] = useState(false);
-  const [programList, setProgramList] = useState([
-    { title: "Beasiswa Prestasi Akademik", subtitle: "2025/2026", type: "Beasiswa", amount: "100%", status: "Aktif", typeColor: "blue", penerima: [
-      { id: 1, siswa_id: 1, siswa_nama: "Ahmad Fauzi", nama_kelas: "VIIA", nama_beasiswa: "Beasiswa Prestasi Akademik", nominal: 250000, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
-      { id: 2, siswa_id: 2, siswa_nama: "Aulia Rahma", nama_kelas: "VIIB", nama_beasiswa: "Beasiswa Prestasi Akademik", nominal: 250000, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
-      { id: 3, siswa_id: 3, siswa_nama: "Budi Wijaya", nama_kelas: "VIIC", nama_beasiswa: "Beasiswa Prestasi Akademik", nominal: 250000, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
-    ] },
-    { title: "Beasiswa dari Lazismu", subtitle: "2025/2026", type: "Beasiswa", amount: "50%", status: "Aktif", typeColor: "blue", penerima: [
-      { id: 4, siswa_id: 4, siswa_nama: "Sinta Bella", nama_kelas: "VIIIA", nama_beasiswa: "Beasiswa dari Lazismu", nominal: 125000, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
-      { id: 5, siswa_id: 5, siswa_nama: "Deni Pratama", nama_kelas: "VIIIB", nama_beasiswa: "Beasiswa dari Lazismu", nominal: 125000, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
-    ] },
-    { title: "Beasiswa Tahridz Al-Qur'an", subtitle: "Setiap Bulan", type: "Beasiswa", amount: "100%", status: "Aktif", typeColor: "blue", penerima: [
-      { id: 6, siswa_id: 6, siswa_nama: "Rizky Aditya", nama_kelas: "IXA", nama_beasiswa: "Beasiswa Tahridz Al-Qur'an", nominal: 250000, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
-    ] },
-    { title: "Beasiswa Prestasi Non-Akademik", subtitle: "Setiap Bulan", type: "Beasiswa", amount: "25%", status: "Aktif", typeColor: "blue", penerima: [
-      { id: 7, siswa_id: 7, siswa_nama: "Nadia Putri", nama_kelas: "VIIA", nama_beasiswa: "Beasiswa Prestasi Non-Akademik", nominal: 62500, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
-      { id: 8, siswa_id: 8, siswa_nama: "Fajar Ramadan", nama_kelas: "VIIIC", nama_beasiswa: "Beasiswa Prestasi Non-Akademik", nominal: 62500, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
-    ] },
-    { title: "Beasiswa Tahfiz Quran", subtitle: "2025/2026", type: "Beasiswa", amount: "75%", status: "Aktif", typeColor: "blue", penerima: [
-      { id: 9, siswa_id: 9, siswa_nama: "Hafiz Rahman", nama_kelas: "IXB", nama_beasiswa: "Beasiswa Tahfiz Quran", nominal: 187500, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
-      { id: 10, siswa_id: 10, siswa_nama: "Zahra Amelia", nama_kelas: "VIIB", nama_beasiswa: "Beasiswa Tahfiz Quran", nominal: 187500, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
-      { id: 11, siswa_id: 11, siswa_nama: "Ilham Maulana", nama_kelas: "VIIIA", nama_beasiswa: "Beasiswa Tahfiz Quran", nominal: 187500, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
-    ] },
-    { title: "Beasiswa Penyarikatan Muhammadiyah", subtitle: "2025/2026", type: "Beasiswa", amount: "Rp 150.000", status: "Aktif", typeColor: "blue", penerima: [
-      { id: 12, siswa_id: 12, siswa_nama: "Yusuf Hakim", nama_kelas: "IXA", nama_beasiswa: "Beasiswa Penyarikatan Muhammadiyah", nominal: 150000, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
-    ] }
-  ]);
+  const [programList, setProgramList] = useState([]);
   const [newProgramForm, setNewProgramForm] = useState({
     nama: "",
-    deskripsi: "",
-    kategori: "Akademik",
-    periode: "2025/2026",
-    kuota: "",
+    kategori: "",
+    sumberDana: "",
     nominal: "",
+    kuota: "",
+    tahunAjaran: "2025/2026",
+    tanggalMulaiDaftar: "",
+    tanggalSelesaiDaftar: "",
+    deskripsi: "",
     persyaratan: "",
     status: "Aktif"
   });
+  const [isProgramFormDirty, setIsProgramFormDirty] = useState(false);
+  const [showProgramCancelConfirm, setShowProgramCancelConfirm] = useState(false);
+  const [showDeleteProgramConfirmModal, setShowDeleteProgramConfirmModal] = useState(false);
+  const [programToDelete, setProgramToDelete] = useState(null);
 
   const [beasiswaList, setBeasiswaList] = useState([]);
   const [siswaList, setSiswaList] = useState([]);
@@ -228,6 +224,20 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     tanggalMulai: new Date().toISOString().split('T')[0],
     tanggalSelesai: ""
   });
+
+  // Dana Beasiswa States
+  const [danaBeasiswaList, setDanaBeasiswaList] = useState([]);
+  const [showAddDanaModal, setShowAddDanaModal] = useState(false);
+  const [showKelolaDanaModal, setShowKelolaDanaModal] = useState(false);
+  const [newDanaForm, setNewDanaForm] = useState({
+    sumber: "",
+    nominal: "",
+    tanggal: new Date().toISOString().split('T')[0],
+    keterangan: ""
+  });
+  const [isDanaFormDirty, setIsDanaFormDirty] = useState(false);
+  const [showDanaCancelConfirm, setShowDanaCancelConfirm] = useState(false);
+
 
   // Pengaturan SPP states
   const [sppSettingTab, setSppSettingTab] = useState("nominal");
@@ -382,38 +392,91 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   };
 
   const handleSaveProgram = () => {
-    if(!newProgramForm.nama || !newProgramForm.nominal) {
-      triggerToast("Mohon isi Nama Program dan Nominal minimal", "error");
+    if(!newProgramForm.nama || !newProgramForm.kategori || !newProgramForm.sumberDana || !newProgramForm.nominal || !newProgramForm.tahunAjaran || !newProgramForm.tanggalMulaiDaftar || !newProgramForm.tanggalSelesaiDaftar) {
+      triggerToast("Mohon isi seluruh field wajib bertanda *", "error");
       return;
     }
     const newProgram = {
       title: newProgramForm.nama,
-      subtitle: newProgramForm.periode,
+      subtitle: newProgramForm.tahunAjaran,
       type: newProgramForm.kategori,
-      amount: newProgramForm.nominal,
+      sumberDana: newProgramForm.sumberDana,
+      amount: "Rp " + newProgramForm.nominal,
       status: newProgramForm.status,
       typeColor: "blue",
       description: newProgramForm.deskripsi,
       quota: newProgramForm.kuota,
       requirements: newProgramForm.persyaratan,
+      periodePendaftaran: `${newProgramForm.tanggalMulaiDaftar} s/d ${newProgramForm.tanggalSelesaiDaftar}`,
       penerima: []
     };
-    setProgramList([...programList, newProgram]);
+    setProgramList([newProgram, ...programList]);
     setShowAddProgramModal(false);
-    setNewProgramForm({
-      nama: "", deskripsi: "", kategori: "Akademik", periode: "2025/2026", kuota: "", nominal: "", persyaratan: "", status: "Aktif"
-    });
+    setIsProgramFormDirty(false);
     triggerToast("Program berhasil ditambahkan!");
+    setNewProgramForm({
+      nama: "", kategori: "", sumberDana: "", nominal: "", kuota: "", tahunAjaran: "2025/2026", tanggalMulaiDaftar: "", tanggalSelesaiDaftar: "", deskripsi: "", persyaratan: "", status: "Aktif"
+    });
+  };
+
+  const handleCancelProgram = () => {
+    if (isProgramFormDirty) {
+      setShowProgramCancelConfirm(true);
+    } else {
+      setShowAddProgramModal(false);
+    }
+  };
+
+  const handleSaveDana = () => {
+    if (!newDanaForm.nominal) {
+      triggerToast("Mohon isi nominal dana beasiswa", "error");
+      return;
+    }
+    const nominalNum = parseInt(String(newDanaForm.nominal).replace(/[^0-9]/g, ''), 10);
+    const newDana = {
+      id: Date.now(),
+      sumber: newDanaForm.sumber,
+      nominal: nominalNum,
+      tanggal: newDanaForm.tanggal,
+      keterangan: newDanaForm.keterangan
+    };
+    setDanaBeasiswaList([newDana, ...danaBeasiswaList]);
+    setShowAddDanaModal(false);
+    setIsDanaFormDirty(false);
+    triggerToast("Dana Beasiswa berhasil ditambahkan!");
+    setNewDanaForm({
+      sumber: "",
+      nominal: "",
+      tanggal: new Date().toISOString().split('T')[0],
+      keterangan: ""
+    });
+  };
+
+  const handleCancelDana = () => {
+    if (isDanaFormDirty) {
+      setShowDanaCancelConfirm(true);
+    } else {
+      setShowAddDanaModal(false);
+    }
   };
 
   const handleDeleteProgram = (title) => {
-    setProgramList(programList.filter(p => p.title !== title));
-    triggerToast("Program berhasil dihapus!");
+    setProgramToDelete(title);
+    setShowDeleteProgramConfirmModal(true);
+  };
+
+  const executeDeleteProgram = () => {
+    if (programToDelete) {
+      setProgramList(programList.filter(p => p.title !== programToDelete));
+      triggerToast("Program berhasil dihapus!");
+      setProgramToDelete(null);
+      setShowDeleteProgramConfirmModal(false);
+    }
   };
 
   const handleSaveBeasiswa = async () => {
-    if (!beasiswaForm.siswaId || !beasiswaForm.namaBeasiswa || !beasiswaForm.nominal) {
-      triggerToast("Mohon lengkapi form penerima beasiswa", "error");
+    if (!beasiswaForm.siswaId || !beasiswaForm.namaBeasiswa || !beasiswaForm.nominal || !beasiswaForm.periode || !beasiswaForm.tanggalMulai || !beasiswaForm.tanggalSelesai) {
+      triggerToast("Mohon isi seluruh field wajib bertanda *", "error");
       return;
     }
 
@@ -451,6 +514,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
         id: selectedBeasiswa?.id || Date.now(),
         siswa_id: beasiswaForm.siswaId,
         siswa_nama: siswaData?.nama_lengkap || "Siswa",
+        nis: siswaData?.nis || "-",
         nama_kelas: siswaData?.nama_kelas || siswaData?.kelas || "-",
         nama_beasiswa: beasiswaForm.namaBeasiswa,
         nominal: Number(beasiswaForm.nominal),
@@ -543,9 +607,20 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
       class: inputClass,
       amount: inputAmount,
       period: inputPeriod,
-      status: inputStatus
+      status: inputStatus,
+      tanggal_bayar: new Date().toISOString()
     };
     setSppPayments([newPayment, ...sppPayments]);
+
+    // Sinkronisasi otomatis ke daftar tagihan jika Lunas
+    if (inputStatus === "Lunas" || inputStatus?.toLowerCase() === "lunas") {
+      setStudentsBill(prev => prev.map(bill => {
+        if ((bill.siswa_nama || bill.name) === inputStudent) {
+          return { ...bill, status: "Lunas", tanggal_bayar: new Date().toISOString() };
+        }
+        return bill;
+      }));
+    }
     setInputStudent("");
     triggerToast("Sukses mencatat pembayaran siswa baru!");
   };
@@ -554,12 +629,21 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     const name = row.siswa_nama || row.name || '';
     const nis = row.nis || '';
     const kelas = row.nama_kelas || row.class || '';
+    const kelasFormatted = kelas.replace(/^Kelas\s+/i, '').replace(/-/g, ' ').trim();
+    
     const matchesSearch = name.toLowerCase().includes(billSearchQuery.toLowerCase()) ||
       nis.includes(billSearchQuery);
 
     if (billClassFilter === "Semua") return matchesSearch;
-    const targetGrade = billClassFilter.replace("Kelas ", "");
-    const matchesClass = kelas.startsWith(targetGrade);
+    
+    const targetGrade = billClassFilter.replace("Kelas ", "").trim();
+    const getGradePart = (k) => {
+      const match = k.match(/^([IVX]+)/i);
+      return match ? match[1].toUpperCase() : k;
+    };
+    const gradePart = getGradePart(kelasFormatted);
+    const matchesClass = gradePart === targetGrade;
+    
     return matchesSearch && matchesClass;
   });
 
@@ -593,17 +677,22 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <p className="text-sm text-gray-500 mt-1">Monitor keuangan sekolah, SPP siswa, dan penggajian guru & staf.</p>
               </div>
               <div className="flex gap-2 sm:gap-3 items-center flex-wrap">
-                <div className="relative">
+                <div className="relative group w-full sm:w-auto">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
+                  </div>
                   <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}
-                    className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
+                    className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
-                  <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
-                  </span>
+                  </div>
                 </div>
 
                 
@@ -666,7 +755,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     <BarChart data={sppRecapData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                       <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} dy={10} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} domain={[0, 34]} ticks={[0, 10, 20, 34]} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} domain={[0, 34]} ticks={[0, 8, 16, 24, 32, 34]} />
                       <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
                       <Bar dataKey="Lunas" fill="#22c55e" radius={[4, 4, 0, 0]} barSize={20} />
                       <Bar dataKey="Belum" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={20} />
@@ -797,27 +886,37 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
         );
 
       case "Tagihan SPP":
+        const formatKelas = (kelasName) => {
+          if (!kelasName) return "-";
+          return kelasName.replace(/^Kelas\s+/i, '').replace(/-/g, ' ');
+        };
+
         return (
-          <div className="flex flex-col gap-6 animate-fadeIn font-sans">
-            {/* Header Area */}
+          <>
+            <div className="flex flex-col gap-6 animate-fadeIn font-sans">
+              {/* Header Area */}
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div>
                 <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Tagihan SPP Siswa</h1>
                 <p className="text-sm text-gray-500 mt-1">Generate dan kelola tagihan SPP bulanan seluruh siswa.</p>
               </div>
               <div className="flex gap-2 sm:gap-3 items-center flex-wrap">
-                <div className="relative">
+                <div className="relative group w-full sm:w-auto">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
+                  </div>
                   <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}
-                    className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
+                    className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
-                  <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
-                  </span>
+                  </div>
                 </div>
 
                 
@@ -825,52 +924,37 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             </div>
 
             {/* Stat Cards Row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {/* Card 1: Total Tagihan */}
-              <div className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center gap-4 shadow-sm relative overflow-hidden">
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#1A3D63]" />
-                <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-500 flex-shrink-0">
-                  <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                  </svg>
-                </div>
-                <div>
-                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Total Tagihan</div>
-                  <div className="text-2xl font-black text-gray-800">Rp 2.725.000</div>
-                  <div className="text-[11px] font-bold text-gray-400">10 siswa</div>
-                </div>
-              </div>
+            {(() => {
+              const totalSiswa = filteredBills.length;
+              const lunasBills = filteredBills.filter(b => b.status === "Lunas" || b.status?.toLowerCase() === "lunas");
+              const belumLunasBills = filteredBills.filter(b => b.status !== "Lunas" && b.status?.toLowerCase() !== "lunas");
+              
+              const totalTagihanNominal = filteredBills.reduce((acc, b) => acc + Number(b.nominal || 0), 0);
+              const totalLunasNominal = lunasBills.reduce((acc, b) => acc + Number(b.nominal || 0), 0);
+              const totalBelumLunasNominal = belumLunasBills.reduce((acc, b) => acc + Number(b.nominal || 0), 0);
 
-              {/* Card 2: Sudah Terbayar */}
-              <div className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center gap-4 shadow-sm relative overflow-hidden">
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#10B981]" />
-                <div className="w-12 h-12 bg-[#E8FDF5] rounded-2xl flex items-center justify-center text-[#059669] flex-shrink-0">
-                  <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                  </svg>
-                </div>
-                <div>
-                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Sudah Terbayar</div>
-                  <div className="text-2xl font-black text-gray-800">Rp 1.350.000</div>
-                  <div className="text-[11px] font-bold text-gray-400">5 siswa lunas</div>
-                </div>
-              </div>
+              return (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                  {/* Card 1: Total Tagihan */}
+                  <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
+                    <div className="text-2xl font-bold text-white">Rp {totalTagihanNominal.toLocaleString('id-ID')}</div>
+                    <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Total Tagihan ({totalSiswa} Siswa)</div>
+                  </div>
 
-              {/* Card 3: Belum / Cicilan */}
-              <div className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center gap-4 shadow-sm relative overflow-hidden">
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#EF4444]" />
-                <div className="w-12 h-12 bg-[#FEE2E2] rounded-2xl flex items-center justify-center text-[#DC2626] flex-shrink-0">
-                  <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-                  </svg>
+                  {/* Card 2: Sudah Terbayar */}
+                  <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
+                    <div className="text-2xl font-bold text-white">Rp {totalLunasNominal.toLocaleString('id-ID')}</div>
+                    <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Sudah Terbayar ({lunasBills.length} Siswa)</div>
+                  </div>
+
+                  {/* Card 3: Belum Lunas */}
+                  <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
+                    <div className="text-2xl font-bold text-white">Rp {totalBelumLunasNominal.toLocaleString('id-ID')}</div>
+                    <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Belum Lunas ({belumLunasBills.length} Siswa)</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Belum / Cicilan</div>
-                  <div className="text-2xl font-black text-gray-800">Rp 1.375.000</div>
-                  <div className="text-[11px] font-bold text-gray-400">5 perlu tindak lanjut</div>
-                </div>
-              </div>
-            </div>
+              );
+            })()}
 
             {/* Filter and Table Container */}
             <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm">
@@ -909,6 +993,16 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     })}
                   </div>
 
+                  {/* Kirim Notifikasi Button */}
+                  <button
+                    onClick={() => {
+                      setSelectedNotificationStudents([]);
+                      setShowNotificationModal(true);
+                    }}
+                    className="flex items-center justify-center bg-[#1A3D63] hover:bg-blue-900 text-white border-none rounded-xl px-5 py-2 text-xs font-bold cursor-pointer transition-all active:scale-95 shadow-sm"
+                  >
+                    Kirim Notifikasi
+                  </button>
 
                 </div>
               </div>
@@ -918,6 +1012,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      <th className="pb-3 px-3 w-10">NO</th>
                       <th className="pb-3 px-3">NIS</th>
                       <th className="pb-3 px-3">NAMA SISWA</th>
                       <th className="pb-3 px-3">KELAS</th>
@@ -928,67 +1023,204 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                       <th className="pb-3 px-3 text-right">TGL BAYAR</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50 text-xs">
-                    {filteredBills.length === 0 ? (
-                      <tr>
-                        <td colSpan="8" className="py-10 text-center text-gray-400 font-medium text-xs">
-                          Belum ada tagihan SPP. Klik "Generate Tagihan Bulan Ini" untuk membuat tagihan.
-                        </td>
-                      </tr>
-                    ) : filteredBills.map((row, idx) => {
-                      const statusVal = (row.status || '').toLowerCase();
-                      const isLunas = statusVal === 'lunas';
-                      const isCicilan = statusVal === 'cicilan';
-                      const isBelumBayar = statusVal === 'belum_bayar' || statusVal === 'belum bayar';
-                      return (
-                        <tr key={row.id || idx} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="py-4 px-3 text-gray-400 font-mono font-medium">{row.nis}</td>
-                          <td className="py-4 px-3 font-bold text-gray-800">{row.siswa_nama || row.name}</td>
-                          <td className="py-4 px-3">
-                            <span className="bg-blue-50 text-blue-600 font-semibold px-2.5 py-0.5 rounded-full text-[10px]">
-                              {(row.nama_kelas || row.class)?.replace('Kelas ', '')?.replace('-', ' ')}
-                            </span>
-                          </td>
-                          <td className="py-4 px-3 font-bold text-gray-700">
-                            {row.nominal ? `Rp ${parseInt(row.nominal).toLocaleString('id-ID')}` : (row.amount || '-')}
-                          </td>
-                          <td className="py-4 px-3 text-gray-400 font-medium">
-                            {row.bulan ? formatBulan(row.bulan, row.tahun) : (row.month || '-')}
-                          </td>
-                          <td className="py-4 px-3 text-gray-500">
-                            {row.jatuh_tempo ? formatTanggal(row.jatuh_tempo) : (row.dueDate || '-')}
-                          </td>
-                          <td className="py-4 px-3">
-                            {isLunas && (
-                              <span className="bg-[#E8FDF5] text-[#059669] border border-[#A7F3D0] rounded-full px-2.5 py-0.5 flex items-center gap-1 font-bold text-[10px] w-fit border-solid">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-2.5 h-2.5"><polyline points="20 6 9 17 4 12" /></svg>
-                                Lunas
-                              </span>
-                            )}
-                            {isCicilan && (
-                              <span className="bg-[#FEF3C7] text-[#D97706] border border-[#FCD34D] rounded-full px-2.5 py-0.5 flex items-center gap-1 font-bold text-[10px] w-fit border-solid">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-2.5 h-2.5"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-                                Cicilan
-                              </span>
-                            )}
-                            {(isBelumBayar || (!isLunas && !isCicilan)) && (
-                              <span className="bg-[#FEE2E2] text-[#DC2626] border border-[#FCA5A5] rounded-full px-2.5 py-0.5 flex items-center gap-1 font-bold text-[10px] w-fit border-solid">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-2.5 h-2.5"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
-                                Belum Bayar
-                              </span>
-                            )}
-                          </td>
-                          <td className="py-4 px-3 text-right text-gray-500 font-medium">
-                            {row.tanggal_bayar ? formatTanggal(row.tanggal_bayar) : (row.payDate || '—')}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
+                              <tbody className="divide-y divide-gray-50 text-xs">
+                                {filteredBills.length === 0 ? (
+                                  <tr>
+                                    <td colSpan="8" className="py-8 text-center text-gray-400 font-medium">Belum ada data tagihan.</td>
+                                  </tr>
+                                ) : (
+                                  filteredBills.map((row, idx) => (
+                                    <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                                      <td className="py-4 px-3 text-gray-500 font-bold">{idx + 1}.</td>
+                                      <td className="py-4 px-3 text-gray-500 font-medium">{row.nis || "-"}</td>
+                                      <td className="py-4 px-3 font-bold text-gray-800">{row.siswa_nama || row.name || "-"}</td>
+                                      <td className="py-4 px-3 text-gray-500 font-medium">{formatKelas(row.nama_kelas || row.class)}</td>
+                                      <td className="py-4 px-3 font-bold text-emerald-600">
+                                        Rp {Number(row.nominal || 0).toLocaleString('id-ID')}
+                                      </td>
+                                      <td className="py-4 px-3 font-semibold text-gray-700">{formatBulan(row.bulan, row.tahun) || "-"}</td>
+                                      <td className="py-4 px-3 text-gray-500">{formatTanggal(row.jatuh_tempo) || "-"}</td>
+                                      <td className="py-4 px-3">
+                                        <span className={`px-2.5 py-1 rounded-md font-bold inline-block text-[10px] no-underline ${
+                                          (row.status === "Lunas" || row.status?.toLowerCase() === "lunas") ? "bg-emerald-50 text-emerald-600" :
+                                          "bg-red-50 text-red-500"
+                                        }`}>
+                                          {row.status || "Belum Lunas"}
+                                        </span>
+                                      </td>
+                                      <td className="py-4 px-3 text-right text-gray-500 font-medium">
+                                        {(row.status === "Lunas" || row.status?.toLowerCase() === "lunas") 
+                                          ? formatTanggal(row.tanggal_bayar || new Date().toISOString()) 
+                                          : (formatTanggal(row.tanggal_bayar) || "-")}
+                                      </td>
+                                    </tr>
+                                  ))
+                                )}
+                              </tbody>
                 </table>
               </div>
             </div>
           </div>
+
+            {/* MODAL KIRIM NOTIFIKASI */}
+            {showNotificationModal && (() => {
+              const belumLunasList = filteredBills.filter(b => b.status !== "Lunas" && b.status?.toLowerCase() !== "lunas");
+              const allSelected = belumLunasList.length > 0 && selectedNotificationStudents.length === belumLunasList.length;
+
+              const handleSelectAll = () => {
+                if (allSelected) {
+                  setSelectedNotificationStudents([]);
+                } else {
+                  setSelectedNotificationStudents(belumLunasList.map(b => b.id || b.nis || b.siswa_nama || b.name));
+                }
+              };
+
+              const handleSelectStudent = (id) => {
+                if (selectedNotificationStudents.includes(id)) {
+                  setSelectedNotificationStudents(prev => prev.filter(studentId => studentId !== id));
+                } else {
+                  setSelectedNotificationStudents(prev => [...prev, id]);
+                }
+              };
+
+              return (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                  <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
+                    <div className="p-5 sm:p-6 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0 z-10">
+                      <div>
+                        <h2 className="text-lg sm:text-xl font-bold text-gray-800">Kirim Notifikasi Tagihan SPP</h2>
+                        <p className="text-xs sm:text-sm text-gray-500 mt-1">Tahun Ajaran: {selectedYear} | Kelas: {billClassFilter}</p>
+                      </div>
+                      <button onClick={() => { setShowNotificationModal(false); setSelectedNotificationStudents([]); }} className="p-2 hover:bg-gray-100 rounded-full transition-colors border-none bg-transparent cursor-pointer">
+                        <IconX />
+                      </button>
+                    </div>
+                    
+                    <div className="p-5 sm:p-6 flex-1 overflow-y-auto bg-gray-50/50">
+                      {belumLunasList.length === 0 ? (
+                        <div className="text-center py-12">
+                          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-50 text-emerald-500 mb-4">
+                            <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                          </div>
+                          <h3 className="text-lg font-bold text-gray-800">Semua Lunas!</h3>
+                          <p className="text-gray-500 text-sm mt-2">Tidak ada siswa yang menunggak sesuai filter aktif.</p>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-4">
+                          {/* Control Bar */}
+                          <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                            <label className="flex items-center gap-3 cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                checked={allSelected} 
+                                onChange={handleSelectAll}
+                                className="w-5 h-5 rounded border-gray-300 text-[#1A3D63] focus:ring-[#1A3D63] cursor-pointer"
+                              />
+                              <span className="text-sm font-bold text-gray-800">Pilih Semua Siswa</span>
+                            </label>
+                            <span className="text-sm font-bold text-[#1A3D63] bg-blue-50 px-3 py-1 rounded-lg">
+                              {selectedNotificationStudents.length} Siswa Terpilih
+                            </span>
+                          </div>
+
+                          {/* Student List */}
+                          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                            <table className="w-full text-left border-collapse">
+                              <thead className="bg-gray-50/80">
+                                <tr className="border-b border-gray-200 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                                  <th className="py-3 px-4 w-12 text-center">PILIH</th>
+                                  <th className="py-3 px-4">Nama Siswa</th>
+                                  <th className="py-3 px-4">Kelas</th>
+                                  <th className="py-3 px-4">Periode</th>
+                                  <th className="py-3 px-4 text-right">Nominal Tagihan</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-100 text-sm">
+                                {belumLunasList.map((row, idx) => {
+                                  const rowId = row.id || row.nis || row.siswa_nama || row.name;
+                                  const isSelected = selectedNotificationStudents.includes(rowId);
+                                  return (
+                                    <tr key={idx} className={`hover:bg-blue-50/30 transition-colors cursor-pointer ${isSelected ? 'bg-blue-50/50' : ''}`} onClick={() => handleSelectStudent(rowId)}>
+                                      <td className="py-3 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+                                        <input 
+                                          type="checkbox" 
+                                          checked={isSelected}
+                                          onChange={() => handleSelectStudent(rowId)}
+                                          className="w-4 h-4 rounded border-gray-300 text-[#1A3D63] focus:ring-[#1A3D63] cursor-pointer"
+                                        />
+                                      </td>
+                                      <td className="py-3 px-4 font-bold text-gray-800">{row.siswa_nama || row.name || "-"}</td>
+                                      <td className="py-3 px-4 text-gray-600">{formatKelas(row.nama_kelas || row.class)}</td>
+                                      <td className="py-3 px-4 text-gray-600 font-medium">{formatBulan(row.bulan, row.tahun) || "-"}</td>
+                                      <td className="py-3 px-4 text-right font-bold text-emerald-600">Rp {Number(row.nominal || 0).toLocaleString('id-ID')}</td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-5 sm:p-6 border-t border-gray-100 flex items-center justify-end bg-white sticky bottom-0 z-10">
+                      <div className="flex gap-3">
+                        <button 
+                          onClick={() => { setShowNotificationModal(false); setSelectedNotificationStudents([]); }}
+                          className="px-5 py-2.5 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 border-none cursor-pointer transition-colors text-[13px]"
+                        >
+                          Batal
+                        </button>
+                        <button 
+                          disabled={selectedNotificationStudents.length === 0 || belumLunasList.length === 0}
+                          onClick={() => setShowNotificationConfirm(true)}
+                          className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-white bg-[#1A3D63] hover:bg-blue-900 border-none cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#1A3D63] text-[13px] shadow-sm"
+                        >
+                          Kirim Sekarang ({selectedNotificationStudents.length})
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* MODAL KONFIRMASI KIRIM NOTIFIKASI */}
+            {showNotificationConfirm && (
+              <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+                <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 animate-fadeIn">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-16 h-16 rounded-full bg-blue-50 text-[#1A3D63] flex items-center justify-center mb-4">
+                      <IconAlertCircle />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">Konfirmasi Pengiriman</h3>
+                    <p className="text-gray-500 text-sm mb-6">
+                      Apakah Anda yakin ingin mengirim notifikasi tagihan SPP ke <span className="font-bold text-gray-800">{selectedNotificationStudents.length} siswa</span> terpilih? Notifikasi akan dikirimkan ke WhatsApp orang tua/wali siswa.
+                    </p>
+                    <div className="flex gap-3 w-full">
+                      <button 
+                        onClick={() => setShowNotificationConfirm(false)}
+                        className="flex-1 py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 border-none cursor-pointer transition-colors"
+                      >
+                        Batal
+                      </button>
+                      <button 
+                        onClick={() => {
+                          triggerToast(`Berhasil mengirim notifikasi ke ${selectedNotificationStudents.length} siswa!`);
+                          setShowNotificationConfirm(false);
+                          setShowNotificationModal(false);
+                          setSelectedNotificationStudents([]);
+                        }}
+                        className="flex-1 py-3 rounded-xl font-bold text-white bg-[#1A3D63] hover:bg-blue-900 border-none cursor-pointer transition-all shadow-sm"
+                      >
+                        Ya, Kirim
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         );
 
       case "Pengaturan SPP":
@@ -1001,17 +1233,22 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <p className="text-sm text-gray-500 mt-1">Atur nominal SPP, diskon, dan jadwal pembayaran per kelas (Kelas VII, VIII, IX).</p>
               </div>
               <div className="flex gap-2 sm:gap-3 items-center flex-wrap sm:ml-auto">
-                <div className="relative">
+                <div className="relative group w-full sm:w-auto">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
+                  </div>
                   <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}
-                    className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
+                    className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
-                  <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
-                  </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1371,17 +1608,22 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <p className="text-sm text-gray-500 mt-1">Daftar transaksi pembayaran SPP siswa yang telah masuk.</p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <div className="relative">
+                <div className="relative group w-full sm:w-auto">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
+                  </div>
                   <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}
-                    className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all hover:bg-gray-50 hover:border-gray-300 shadow-sm"
+                    className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
-                  <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none transition-colors">
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
-                  </span>
+                  </div>
                 </div>
                 
                 <div className="relative">
@@ -1527,7 +1769,13 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   </span>
                 </div>
                 <button
-                  onClick={() => setShowAddProgramModal(true)}
+                  onClick={() => setShowKelolaDanaModal(true)}
+                  className="bg-[#1A3D63] text-white font-bold text-sm px-4 py-2.5 rounded-xl cursor-pointer border-none hover:bg-[#122A44] transition-all flex items-center shadow-sm"
+                >
+                  Kelola Dana
+                </button>
+                <button
+                  onClick={() => { setIsProgramFormDirty(false); setShowAddProgramModal(true); }}
                   className="bg-[#1A3D63] text-white font-bold text-sm px-4 py-2.5 rounded-xl cursor-pointer border-none hover:bg-[#122A44] transition-all flex items-center shadow-sm"
                 >
                   Tambah Program
@@ -1555,30 +1803,53 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
             {/* Stats */}
             {(() => {
-              const totalPenerima = programList.reduce((sum, p) => sum + (p.penerima?.length || 0), 0);
-              const totalPotongan = programList.reduce((sum, p) => sum + (p.penerima || []).reduce((s, r) => s + (r.nominal || 0), 0), 0);
-              const formatRupiah = (val) => {
-                if (val >= 1000000) return `Rp ${(val / 1000000).toFixed(0)} Jt`;
-                if (val >= 1000) return `Rp ${(val / 1000).toFixed(0)} Rb`;
-                return `Rp ${val.toLocaleString('id-ID')}`;
+              let programAktif = 0;
+              let totalPenerimaAktif = 0;
+              let danaTerpakai = 0;
+
+              // Calculate Total Dana Beasiswa
+              const totalDanaBeasiswa = danaBeasiswaList.reduce((sum, d) => sum + (Number(d.nominal) || 0), 0);
+
+              programList.forEach(p => {
+                if (p.status === 'Aktif') {
+                  programAktif++;
+                  totalPenerimaAktif += (p.penerima?.length || 0);
+                  
+                  const amountStr = String(p.amount || "0").replace(/[^0-9]/g, '');
+                  const amountNum = parseInt(amountStr, 10) || 0;
+                  
+                  const disalurkan = (p.penerima || []).reduce((s, r) => {
+                    const rNominal = r.nominal ? parseInt(String(r.nominal).replace(/[^0-9]/g, ''), 10) : amountNum;
+                    return s + (rNominal || 0);
+                  }, 0);
+                  
+                  danaTerpakai += disalurkan;
+                }
+              });
+
+              const sisaDana = totalDanaBeasiswa - danaTerpakai;
+
+              const formatRupiahPenuh = (val) => {
+                return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
               };
+
               return (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
-                <div className="text-2xl font-bold text-white">{programList.length}</div>
-                <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Total Program Aktif</div>
+                <div className="text-2xl font-bold text-white">{programAktif}</div>
+                <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Program Beasiswa Aktif</div>
               </div>
               <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
-                <div className="text-2xl font-bold text-white">{totalPenerima} Siswa</div>
-                <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Penerima Beasiswa</div>
+                <div className="text-2xl font-bold text-white">{totalPenerimaAktif} Siswa</div>
+                <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Total Penerima Beasiswa</div>
               </div>
               <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
-                <div className="text-2xl font-bold text-white">{formatRupiah(totalPotongan)}</div>
-                <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Total Potongan/Bln</div>
+                <div className="text-xl font-bold text-white">{formatRupiahPenuh(totalDanaBeasiswa)}</div>
+                <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Total Dana Beasiswa</div>
               </div>
               <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
-                <div className="text-2xl font-bold text-white">{formatRupiah(totalPotongan * 12)}</div>
-                <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Dana Beasiswa/Thn</div>
+                <div className="text-xl font-bold text-white">{formatRupiahPenuh(sisaDana)}</div>
+                <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Sisa Dana</div>
               </div>
             </div>
               );
@@ -1644,91 +1915,134 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
                     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
                       {/* Left Column: Program Info */}
-                      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm xl:sticky xl:top-6 flex flex-col gap-6">
-                        <div className="relative overflow-hidden bg-[#1A3D63] rounded-2xl text-white p-6 shadow-md mb-2">
-                          <h3 className="text-2xl font-black mb-1 relative z-10">{activeProgram.title}</h3>
-                          <div className="text-xs text-blue-200 font-medium flex items-center gap-1.5 relative z-10 mt-2">
-                            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
-                            Periode {activeProgram.subtitle}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between p-5 bg-white rounded-xl border border-gray-100 shadow-sm shadow-gray-100/50">
-                          <div>
-                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">
-                               Nominal / Potongan
-                            </div>
-                            <div className="text-xl font-black text-[#1A3D63]">{activeProgram.amount}</div>
-                          </div>
-                          <div className="w-px h-12 bg-gray-100"></div>
-                          <div className="text-right">
-                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Status Program</div>
-                            <div className={`inline-flex px-3 py-1 rounded-md text-xs font-bold shadow-sm ${activeProgram.status === 'Aktif' ? 'bg-[#E8FDF5] text-[#059669] border border-[#A7F3D0]' : 'bg-gray-100 text-gray-500 border border-gray-200'}`}>
-                              {activeProgram.status || 'Aktif'}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="bg-blue-50/30 p-5 rounded-xl border border-blue-50/50">
-                          <h4 className="text-[11px] font-bold text-[#1A3D63] uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" /></svg>
-                             Deskripsi Program
-                          </h4>
-                          <p className="text-[13px] text-gray-600 leading-relaxed font-medium">
-                            {activeProgram.description || "Belum ada deskripsi spesifik untuk program beasiswa ini."}
-                          </p>
-                        </div>
-
-                        <div className="bg-amber-50/40 p-5 rounded-xl border border-amber-100/50">
-                          <h4 className="text-[11px] font-bold text-amber-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" /></svg>
-                             Persyaratan
-                          </h4>
-                          <div className="text-[13px] text-amber-800/80 leading-relaxed font-medium">
-                            {activeProgram.requirements ? (
-                              <div className="whitespace-pre-line">{activeProgram.requirements}</div>
-                            ) : (
-                              <span className="italic opacity-80">Belum ada persyaratan khusus.</span>
-                            )}
-                          </div>
-                        </div>
+                      {(() => {
+                        const amtStr = String(activeProgram.amount || "0").replace(/[^0-9]/g, '');
+                        const amtNum = parseInt(amtStr, 10) || 0;
+                        const qNum = parseInt(activeProgram.quota, 10) || 0;
+                        const disalurkan = (activeProgram.penerima || []).reduce((s, r) => {
+                          const rNominal = r.nominal ? parseInt(String(r.nominal).replace(/[^0-9]/g, ''), 10) : amtNum;
+                          return s + (rNominal || 0);
+                        }, 0);
+                        const anggaran = qNum > 0 ? (amtNum * qNum) : disalurkan;
+                        const sisaDana = anggaran - disalurkan;
+                        const formatRupiah = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
                         
-                        <div className="pt-2 flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                             <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" /></svg>
-                             </div>
-                             <div>
-                                <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Kuota Penerima</div>
-                                <div className="text-xs font-bold text-gray-800 mt-0.5">{activeProgram.quota || "Tidak dibatasi"}</div>
-                             </div>
+                        return (
+                      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm xl:sticky xl:top-6 flex flex-col">
+                        {/* Header Section */}
+                        <div className="p-6 border-b border-gray-100">
+                          <div className="flex justify-between items-start mb-2">
+                            <h3 className="text-xl font-bold text-gray-800 leading-tight pr-4">{activeProgram.title}</h3>
+                            <span className={`inline-flex shrink-0 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${activeProgram.status === 'Aktif' ? 'bg-[#E6F4EA] text-[#059669]' : 'bg-gray-100 text-gray-500'}`}>
+                              {activeProgram.status || 'Aktif'}
+                            </span>
                           </div>
-                          <div className="text-xs text-[#1A3D63] font-bold bg-[#EBF3FA] px-3 py-1.5 rounded-lg border border-blue-100 shadow-sm flex items-center gap-1.5">
-                            {(activeProgram.penerima?.length || 0)} Terdaftar
+                          <p className="text-sm text-gray-500 font-medium">Periode {activeProgram.subtitle}</p>
+                        </div>
+
+                        {/* Details Grid */}
+                        <div className="p-6 grid grid-cols-2 gap-y-6 gap-x-4 border-b border-gray-100">
+                          <div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Nominal Bantuan</div>
+                            <div className="text-sm font-bold text-gray-800">{activeProgram.amount}</div>
+                          </div>
+                          <div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Kategori</div>
+                            <div className="text-sm font-bold text-gray-800">{activeProgram.type}</div>
+                          </div>
+                          <div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Sumber Dana</div>
+                            <div className="text-sm font-bold text-gray-800">{activeProgram.sumberDana || '-'}</div>
+                          </div>
+                          <div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Kuota Tersedia</div>
+                            <div className="text-sm font-bold text-gray-800">
+                              {activeProgram.quota ? `${activeProgram.quota} Siswa` : 'Tidak Dibatasi'}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Total Penerima</div>
+                            <div className="text-sm font-bold text-[#1A3D63]">{(activeProgram.penerima?.length || 0)} Siswa</div>
+                          </div>
+                          <div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Dana Tersalurkan</div>
+                            <div className="text-sm font-bold text-emerald-600">{formatRupiah(disalurkan)}</div>
+                          </div>
+                          <div className="col-span-2 pt-2 border-t border-gray-50">
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Sisa Dana Program</div>
+                            <div className="text-base font-bold text-gray-800">{formatRupiah(sisaDana)}</div>
+                          </div>
+                        </div>
+
+                        {/* Description & Requirements */}
+                        <div className="p-6 flex flex-col gap-6">
+                          <div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">Deskripsi Program</div>
+                            <p className="text-[13px] text-gray-600 leading-relaxed">
+                              {activeProgram.description || "Belum ada deskripsi spesifik untuk program beasiswa ini."}
+                            </p>
+                          </div>
+                          <div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">Persyaratan</div>
+                            <div className="text-[13px] text-gray-600 leading-relaxed">
+                              {activeProgram.requirements ? (
+                                <div className="whitespace-pre-line">{activeProgram.requirements}</div>
+                              ) : (
+                                <span className="italic opacity-80">Belum ada persyaratan khusus.</span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
+                      );
+                    })()}
 
                       {/* Right Column: Table */}
                       <div className="xl:col-span-2 flex flex-col gap-4">
                         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                           {/* Card Header inside the card for cleaner layout */}
-                          <div className="p-6 border-b border-gray-100">
-                            <h3 className="text-lg font-bold text-gray-800">Daftar Siswa Penerima</h3>
-                            <p className="text-xs text-gray-400 mt-1">Siswa yang terdaftar dalam program {activeProgram.title}.</p>
+                          <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div>
+                              <h3 className="text-lg font-bold text-gray-800">Daftar Penerima Beasiswa</h3>
+                              <p className="text-xs text-gray-400 mt-1">Siswa yang terdaftar dalam program {activeProgram.title}.</p>
+                            </div>
+                            <div className="flex items-center gap-3 w-full sm:w-auto">
+                              <div className="relative w-full sm:w-48">
+                                <span className="absolute left-3 top-2.5 text-gray-400">
+                                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.35-4.35" /></svg>
+                                </span>
+                                <input
+                                  type="text"
+                                  value={penerimaSearchQuery}
+                                  onChange={(e) => setPenerimaSearchQuery(e.target.value)}
+                                  placeholder="Cari Nama / NIS..."
+                                  className="w-full border border-gray-200 rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20"
+                                />
+                              </div>
+                              <select
+                                value={penerimaStatusFilter}
+                                onChange={(e) => setPenerimaStatusFilter(e.target.value)}
+                                className="border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#1A3D63] text-gray-600 bg-white"
+                              >
+                                <option value="Semua">Semua Status</option>
+                                <option value="Aktif">Aktif</option>
+                                <option value="Non-Aktif">Non-Aktif</option>
+                              </select>
+                            </div>
                           </div>
 
                           <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                               <thead>
-                                <tr className="bg-gray-50/50 text-gray-400 font-bold text-[10px] tracking-wider border-b border-gray-100">
-                                  <th className="py-3.5 px-4 text-center w-10">NO</th>
-                                  <th className="py-3.5 px-6">NAMA SISWA</th>
-                                  <th className="py-3.5 px-6">KELAS</th>
-                                  <th className="py-3.5 px-6">POTONGAN</th>
-                                  <th className="py-3.5 px-6">PERIODE</th>
-                                  <th className="py-3.5 px-6">STATUS</th>
-                                  <th className="py-3.5 px-6 text-right">AKSI</th>
+                                <tr className="bg-white text-gray-400 font-bold text-[10px] tracking-wider border-b border-gray-100">
+                                  <th className="py-4 px-5">NAMA SISWA</th>
+                                  <th className="py-4 px-4 text-center">NIS</th>
+                                  <th className="py-4 px-4 text-center">KELAS</th>
+                                  <th className="py-4 px-5">PROGRAM BEASISWA</th>
+                                  <th className="py-4 px-5">NOMINAL BANTUAN</th>
+                                  <th className="py-4 px-4 text-center">PERIODE</th>
+                                  <th className="py-4 px-4 text-center">STATUS</th>
+                                  <th className="py-4 px-5 text-right">AKSI</th>
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-gray-50 text-xs">
@@ -1818,25 +2132,23 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <p className="text-sm text-gray-500 mt-1">Identifikasi siswa yang belum melunasi kewajiban pembayaran dan kirim tagihan ke Orang Tua.</p>
               </div>
               <div className="flex items-center gap-3">
-                <div className="relative">
+                <div className="relative group w-full sm:w-auto">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
+                  </div>
                   <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}
-                    className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
+                    className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
-                  <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
-                  </span>
+                  </div>
                 </div>
-                <button
-                  onClick={() => triggerToast("Mengirim notifikasi tagihan massal...")}
-                  className="flex items-center gap-1.5 bg-[#EF4444] hover:bg-[#DC2626] text-white border-none rounded-xl px-4 sm:px-5 py-2.5 text-xs sm:text-[13px] font-bold cursor-pointer transition-all active:scale-95 shadow-sm"
-                >
-                  <IconPlus /> Kirim Notifikasi Massal
-                </button>
               </div>
             </div>
 
@@ -1988,17 +2300,22 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <p className="text-sm text-gray-500 mt-1">Konfigurasi pendapatan, tunjangan, dan potongan gaji pegawai.</p>
               </div>
               <div className="flex items-center gap-3">
-                <div className="relative">
+                <div className="relative group w-full sm:w-auto">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
+                  </div>
                   <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}
-                    className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
+                    className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
-                  <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
-                  </span>
+                  </div>
                 </div>
 
                 <button
@@ -2289,16 +2606,20 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <p className="text-sm text-gray-500 mt-1">Monitoring status real-time pembayaran gaji guru dan karyawan.</p>
               </div>
               <div className="flex flex-col sm:flex-row items-center gap-3">
-                <div className="relative">
-                  <select className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-8 py-2.5 text-xs sm:text-[13px] font-bold text-gray-600 cursor-pointer appearance-none focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 shadow-sm transition-all">
-                    <option>Tahun Ajaran: 2025/2026</option>
+                <div className="relative group w-full sm:w-auto">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
+                  </div>
+                  <select
+                    className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
+                  >
+                    <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
-                  <span className="absolute left-3.5 top-2.5 text-gray-400 pointer-events-none">
-                    <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
-                  </span>
-                  <span className="absolute right-3.5 top-3 text-gray-400 pointer-events-none">
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
-                  </span>
+                  </div>
                 </div>
                 <button
                   onClick={() => triggerToast("Review semua pembayaran...")}
@@ -2499,17 +2820,22 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <p className="text-sm text-gray-500 mt-1">Monitor keuangan sekolah, SPP siswa, dan penggajian guru & staf.</p>
               </div>
               <div className="flex gap-2 sm:gap-3 items-center flex-wrap">
-                <div className="relative">
+                <div className="relative group w-full sm:w-auto">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
+                  </div>
                   <select
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}
-                    className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
+                    className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
-                  <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
-                  </span>
+                  </div>
                 </div>
 
                 
@@ -2925,127 +3251,363 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
       {showAddProgramModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-6 md:p-10">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowAddProgramModal(false)} />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCancelProgram} />
           <div className="bg-white rounded-[24px] p-5 sm:p-6 max-w-2xl w-full relative z-10 shadow-2xl animate-scaleUp font-sans border border-gray-100 flex flex-col max-h-[calc(100vh-100px)]">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center mb-4 shrink-0">
               <h2 className="text-lg font-bold text-gray-800">Tambah Program Baru</h2>
-              <button onClick={() => setShowAddProgramModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors cursor-pointer border-none">
+              <button onClick={handleCancelProgram} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors cursor-pointer border-none">
                 <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            
-            <div className="w-full overflow-y-auto md:overflow-visible max-h-[calc(100vh-220px)] pr-1 -mr-1">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-                {/* Nama Program (Full width) */}
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Nama Program <span className="text-red-500">*</span></label>
-                  <input
-                    type="text"
-                    value={newProgramForm.nama}
-                    onChange={(e) => setNewProgramForm({ ...newProgramForm, nama: e.target.value })}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all placeholder-gray-400"
-                    placeholder="Contoh: Beasiswa Prestasi Akademik"
-                  />
+
+            <div className="overflow-y-auto overflow-x-hidden pr-2 flex-1 scrollbar-hide">
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Nama Program <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      value={newProgramForm.nama}
+                      onChange={(e) => { setIsProgramFormDirty(true); setNewProgramForm({ ...newProgramForm, nama: e.target.value }) }}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all placeholder-gray-400"
+                      placeholder="Contoh: Beasiswa Prestasi"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Kategori Beasiswa <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <select
+                        value={newProgramForm.kategori}
+                        onChange={(e) => { setIsProgramFormDirty(true); setNewProgramForm({ ...newProgramForm, kategori: e.target.value }) }}
+                        className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 appearance-none transition-all cursor-pointer"
+                      >
+                        <option value="" disabled>Pilih Kategori</option>
+                        <option value="Dhuafa/Kurang Mampu">Dhuafa/Kurang Mampu</option>
+                        <option value="Yatim/Piatu">Yatim/Piatu</option>
+                        <option value="Prestasi Akademik">Prestasi Akademik</option>
+                        <option value="Prestasi Non-Akademik">Prestasi Non-Akademik</option>
+                        <option value="Tahfidz">Tahfidz</option>
+                        <option value="Beasiswa Khusus">Beasiswa Khusus</option>
+                      </select>
+                      <span className="absolute right-3 top-2.5 text-gray-400 pointer-events-none"><IconChevronDown /></span>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Kategori Beasiswa & Status Program (Side-by-side dropdowns) */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Kategori Beasiswa</label>
-                  <div className="relative">
-                    <select
-                      value={newProgramForm.kategori}
-                      onChange={(e) => setNewProgramForm({ ...newProgramForm, kategori: e.target.value })}
-                      className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 appearance-none transition-all cursor-pointer"
-                    >
-                      <option value="Akademik">Akademik</option>
-                      <option value="Non-Akademik">Non-Akademik</option>
-                      <option value="Umum">Umum</option>
-                    </select>
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
-                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Sumber Dana <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <select
+                        value={newProgramForm.sumberDana}
+                        onChange={(e) => { setIsProgramFormDirty(true); setNewProgramForm({ ...newProgramForm, sumberDana: e.target.value }) }}
+                        className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 appearance-none transition-all cursor-pointer"
+                      >
+                        <option value="" disabled>Pilih Sumber</option>
+                        <option value="Lazismu">Lazismu</option>
+                        <option value="Sekolah">Sekolah</option>
+                        <option value="Donatur">Donatur</option>
+                        <option value="Alumni">Alumni</option>
+                        <option value="Lainnya">Lainnya</option>
+                      </select>
+                      <span className="absolute right-3 top-2.5 text-gray-400 pointer-events-none"><IconChevronDown /></span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Nominal Bantuan <span className="text-red-500">*</span></label>
+                    <div className="relative flex items-center">
+                      <span className="absolute left-4 text-gray-500 font-bold text-sm pointer-events-none">Rp</span>
+                      <input
+                        type="text"
+                        value={newProgramForm.nominal}
+                        onChange={(e) => { 
+                          setIsProgramFormDirty(true); 
+                          setIsDanaFormDirty(true);
+                        let val = e.target.value.replace(/[^0-9]/g, '');
+                          if (val) val = new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0 }).format(val);
+                          setNewProgramForm({ ...newProgramForm, nominal: val });
+                        }}
+                        className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all placeholder-gray-400"
+                        placeholder="250.000"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Kuota Penerima</label>
+                    <input
+                      type="number"
+                      value={newProgramForm.kuota}
+                      onChange={(e) => { setIsProgramFormDirty(true); setNewProgramForm({ ...newProgramForm, kuota: e.target.value }) }}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all placeholder-gray-400"
+                      placeholder="Contoh: 50"
+                      min="1"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Tahun Ajaran <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <select
+                        value={newProgramForm.tahunAjaran}
+                        onChange={(e) => { setIsProgramFormDirty(true); setNewProgramForm({ ...newProgramForm, tahunAjaran: e.target.value }) }}
+                        className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 appearance-none transition-all cursor-pointer"
+                      >
+                        <option value="2025/2026">2025/2026</option>
+                        <option value="2024/2025">2024/2025</option>
+                      </select>
+                      <span className="absolute right-3 top-2.5 text-gray-400 pointer-events-none"><IconChevronDown /></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Periode Pendaftaran <span className="text-red-500">*</span></label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="date"
+                        value={newProgramForm.tanggalMulaiDaftar}
+                        onChange={(e) => { setIsProgramFormDirty(true); setNewProgramForm({ ...newProgramForm, tanggalMulaiDaftar: e.target.value }) }}
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all"
+                      />
+                      <span className="text-gray-400 text-sm font-bold">-</span>
+                      <input
+                        type="date"
+                        value={newProgramForm.tanggalSelesaiDaftar}
+                        onChange={(e) => { setIsProgramFormDirty(true); setNewProgramForm({ ...newProgramForm, tanggalSelesaiDaftar: e.target.value }) }}
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Status Program</label>
+                    <div className="relative">
+                      <select
+                        value={newProgramForm.status}
+                        onChange={(e) => { setIsProgramFormDirty(true); setNewProgramForm({ ...newProgramForm, status: e.target.value }) }}
+                        className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 appearance-none transition-all cursor-pointer"
+                      >
+                        <option value="Aktif">Aktif</option>
+                        <option value="Nonaktif">Nonaktif</option>
+                      </select>
+                      <span className="absolute right-3 top-2.5 text-gray-400 pointer-events-none"><IconChevronDown /></span>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Status Program</label>
-                  <div className="relative">
-                    <select
-                      value={newProgramForm.status}
-                      onChange={(e) => setNewProgramForm({ ...newProgramForm, status: e.target.value })}
-                      className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 appearance-none transition-all cursor-pointer"
-                    >
-                      <option value="Aktif">Aktif</option>
-                      <option value="Tidak Aktif">Tidak Aktif</option>
-                    </select>
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
-                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Nominal Dana & Kuota Penerima (Side-by-side inputs) */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Nominal Dana <span className="text-red-500">*</span></label>
-                  <input
-                    type="text"
-                    value={newProgramForm.nominal}
-                    onChange={(e) => setNewProgramForm({ ...newProgramForm, nominal: e.target.value })}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all placeholder-gray-400"
-                    placeholder="Contoh: Rp 250.000"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Kuota Penerima</label>
-                  <input
-                    type="number"
-                    value={newProgramForm.kuota}
-                    onChange={(e) => setNewProgramForm({ ...newProgramForm, kuota: e.target.value })}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all placeholder-gray-400"
-                    placeholder="Contoh: 50"
-                  />
-                </div>
-
-                {/* Periode Pendaftaran (Full width) */}
-                <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Periode Pendaftaran</label>
-                  <input
-                    type="text"
-                    value={newProgramForm.periode}
-                    onChange={(e) => setNewProgramForm({ ...newProgramForm, periode: e.target.value })}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all placeholder-gray-400"
-                    placeholder="Contoh: 2025/2026 atau Ganjil 2025"
-                  />
-                </div>
-
-                {/* Deskripsi Singkat & Persyaratan (Side-by-side textareas for compactness) */}
-                <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Deskripsi Singkat</label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Deskripsi Program</label>
                   <textarea
                     value={newProgramForm.deskripsi}
-                    onChange={(e) => setNewProgramForm({ ...newProgramForm, deskripsi: e.target.value })}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all placeholder-gray-400 resize-none h-[44px]"
-                    placeholder="Penjelasan singkat mengenai program..."
+                    onChange={(e) => { setIsProgramFormDirty(true); setNewProgramForm({ ...newProgramForm, deskripsi: e.target.value }) }}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all placeholder-gray-400 resize-none min-h-[80px]"
+                    placeholder="Contoh: Program beasiswa ini ditujukan untuk siswa berprestasi yang berasal dari keluarga kurang mampu guna meringankan biaya pendidikan."
                   ></textarea>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Persyaratan</label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Persyaratan Khusus</label>
                   <textarea
                     value={newProgramForm.persyaratan}
-                    onChange={(e) => setNewProgramForm({ ...newProgramForm, persyaratan: e.target.value })}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all placeholder-gray-400 resize-none h-[44px]"
-                    placeholder="Syarat kelayakan penerima..."
+                    onChange={(e) => { setIsProgramFormDirty(true); setNewProgramForm({ ...newProgramForm, persyaratan: e.target.value }) }}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all placeholder-gray-400 resize-none min-h-[80px]"
+                    placeholder="Contoh: siswa aktif MBS Prambanan, berasal dari keluarga kurang mampu, melampirkan surat keterangan tidak mampu atau dokumen pendukung, tidak memiliki pelanggaran disiplin berat, dan bersedia mengikuti proses verifikasi sekolah."
                   ></textarea>
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 pt-3 border-t border-gray-100 flex justify-end gap-3">
-              <button onClick={() => setShowAddProgramModal(false)} className="px-5 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer border-none bg-transparent">Batal</button>
+            <div className="mt-6 pt-3 border-t border-gray-100 flex justify-end gap-3 shrink-0">
+              <button onClick={handleCancelProgram} className="px-5 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer border-none bg-transparent">Batal</button>
               <button onClick={handleSaveProgram} className="bg-[#1A3D63] hover:bg-[#122A44] text-white py-2 px-6 rounded-xl text-sm font-bold cursor-pointer border-none shadow-md transition-all active:scale-95 flex items-center gap-2">
                 Simpan Program
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      
+      {showDeleteProgramConfirmModal && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDeleteProgramConfirmModal(false)} />
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full relative z-10 shadow-xl animate-scaleUp">
+            <div className="w-12 h-12 rounded-full bg-red-100 text-red-500 flex items-center justify-center mb-4">
+              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            </div>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Hapus Program Beasiswa?</h3>
+            <p className="text-sm text-gray-600 mb-6">Apakah Anda yakin ingin menghapus program beasiswa ini? Tindakan ini tidak dapat dibatalkan.</p>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setShowDeleteProgramConfirmModal(false)} className="px-4 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-100 transition-colors">Batal</button>
+              <button onClick={executeDeleteProgram} className="px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 transition-colors shadow-sm">Ya, Hapus Program</button>
+            </div>
+          </div>
+        </div>
+      )}
+{showProgramCancelConfirm && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowProgramCancelConfirm(false)} />
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full relative z-10 shadow-xl animate-scaleUp">
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Batalkan Perubahan?</h3>
+            <p className="text-sm text-gray-600 mb-6">Data yang sudah Anda isi belum disimpan dan akan hilang. Apakah Anda yakin ingin membatalkan?</p>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setShowProgramCancelConfirm(false)} className="px-4 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-100 transition-colors">Lanjutkan Mengisi</button>
+              <button onClick={() => { setShowProgramCancelConfirm(false); setShowAddProgramModal(false); setIsProgramFormDirty(false); }} className="px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 transition-colors shadow-sm">Ya, Batalkan</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showKelolaDanaModal && (
+        <div className="fixed inset-0 z-[998] flex items-center justify-center p-4 md:p-6 lg:p-10">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowKelolaDanaModal(false)} />
+          <div className="bg-white rounded-[24px] p-0 w-full max-w-4xl relative z-10 shadow-2xl animate-scaleUp font-sans border border-gray-100 flex flex-col overflow-hidden max-h-[90vh]">
+            <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100 shrink-0 bg-white">
+              <div>
+                <h2 className="text-lg font-bold text-gray-800">Kelola Dana Beasiswa</h2>
+                <p className="text-xs text-gray-500 mt-0.5">Riwayat dana beasiswa yang masuk</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => { setIsDanaFormDirty(false); setShowAddDanaModal(true); }}
+                  className="bg-[#1A3D63] text-white font-bold text-xs px-4 py-2 rounded-xl cursor-pointer border-none hover:bg-[#122A44] transition-all flex items-center shadow-sm"
+                >
+                  Tambah Dana Beasiswa
+                </button>
+                <button onClick={() => setShowKelolaDanaModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors cursor-pointer border-none">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto bg-gray-50/30 p-6">
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50/80 border-b border-gray-200 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                        <th className="py-3 px-4 w-[120px]">TANGGAL</th>
+                        <th className="py-3 px-4 w-[130px]">SUMBER</th>
+                        <th className="py-3 px-4">KETERANGAN</th>
+                        <th className="py-3 px-4 text-right w-[140px]">NOMINAL</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 text-[11px]">
+                      {danaBeasiswaList.length === 0 ? (
+                        <tr>
+                          <td colSpan="4" className="py-10 text-center text-gray-400 font-medium">
+                            <div className="flex flex-col items-center justify-center gap-2">
+                              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818.879-.659c1.546-1.16 3.86-1.16 5.405 0l.879.66M8.25 12h7.5m-8.25-2.818.879-.66c1.546-1.159 3.86-1.159 5.405 0l.879.66" /></svg>
+                              Belum ada riwayat dana masuk.
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        danaBeasiswaList.map((dana, idx) => (
+                          <tr key={dana.id || idx} className="hover:bg-gray-50/50 transition-colors">
+                            <td className="py-4 px-4 font-semibold text-gray-600">{formatTanggal(dana.tanggal)}</td>
+                            <td className="py-4 px-4">
+                              <span className="bg-blue-50 text-blue-600 border border-blue-100 px-2 py-1 rounded-md text-[10px] font-bold">
+                                {dana.sumber}
+                              </span>
+                            </td>
+                            <td className="py-4 px-4 text-gray-600 truncate max-w-[200px]" title={dana.keterangan}>
+                              {dana.keterangan || "-"}
+                            </td>
+                            <td className="py-4 px-4 font-bold text-emerald-600 text-right">
+                              Rp {Number(dana.nominal).toLocaleString('id-ID')}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAddDanaModal && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center p-6 md:p-10">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCancelDana} />
+          <div className="bg-white rounded-[24px] p-5 sm:p-6 max-w-lg w-full relative z-10 shadow-2xl animate-scaleUp font-sans border border-gray-100 flex flex-col">
+            <div className="flex justify-between items-center mb-6 shrink-0">
+              <h2 className="text-lg font-bold text-gray-800">Tambah Dana Masuk</h2>
+              <button onClick={handleCancelDana} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors cursor-pointer border-none">
+                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            <div className="overflow-y-auto pr-2 flex-1 scrollbar-hide">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Sumber Dana <span className="text-red-500">*</span></label>
+                  <div className="relative">
+                    <select
+                      value={newDanaForm.sumber}
+                      onChange={(e) => { setIsDanaFormDirty(true); setNewDanaForm({ ...newDanaForm, sumber: e.target.value }) }}
+                      className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-2.5 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 appearance-none transition-all cursor-pointer"
+                    >
+                      <option value="" disabled>Pilih Sumber</option>
+                      <option value="Lazismu">Lazismu</option>
+                      <option value="Sekolah">Sekolah</option>
+                      <option value="Donatur">Donatur</option>
+                      <option value="Alumni">Alumni</option>
+                      <option value="Lainnya">Lainnya</option>
+                    </select>
+                    <span className="absolute right-3 top-3 text-gray-400 pointer-events-none"><IconChevronDown /></span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Nominal Dana <span className="text-red-500">*</span></label>
+                  <div className="relative flex items-center">
+                    <span className="absolute left-4 text-gray-500 font-bold text-sm pointer-events-none">Rp</span>
+                    <input
+                      type="text"
+                      value={newDanaForm.nominal}
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/[^0-9]/g, '');
+                        if (val) val = new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0 }).format(val);
+                        setNewDanaForm({ ...newDanaForm, nominal: val });
+                      }}
+                      className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all placeholder-gray-400"
+                      placeholder="50.000.000"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Tanggal Dana Masuk <span className="text-red-500">*</span></label>
+                  <input
+                    type="date"
+                    value={newDanaForm.tanggal}
+                    onChange={(e) => { setIsDanaFormDirty(true); setNewDanaForm({ ...newDanaForm, tanggal: e.target.value }) }}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Keterangan Tambahan</label>
+                  <textarea
+                    value={newDanaForm.keterangan}
+                    onChange={(e) => { setIsDanaFormDirty(true); setNewDanaForm({ ...newDanaForm, keterangan: e.target.value }) }}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all placeholder-gray-400 resize-none min-h-[80px]"
+                    placeholder="Opsional: Keterangan tentang penggunaan atau peruntukan dana..."
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 pt-5 border-t border-gray-100 flex justify-end items-center gap-4 shrink-0">
+              <button onClick={handleCancelDana} className="text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors cursor-pointer border-none bg-transparent">Batal</button>
+              <button onClick={handleSaveDana} className="bg-[#1A3D63] hover:bg-[#122A44] text-white py-2.5 px-6 rounded-xl text-sm font-bold cursor-pointer border-none shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
+              >
+                Simpan Dana
               </button>
             </div>
           </div>
@@ -3072,7 +3634,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             <div className="p-6">
               <div className="flex flex-col gap-5">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Pilih Siswa</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Pilih Siswa <span className="text-red-500">*</span></label>
                   <div className="relative" onBlur={(e) => {
                     if (!e.currentTarget.contains(e.relatedTarget)) {
                       setTimeout(() => setShowSiswaDropdown(false), 200);
@@ -3128,7 +3690,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Nama Program Beasiswa</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Nama Program Beasiswa <span className="text-red-500">*</span></label>
                     <div className="relative">
                       <select
                         value={beasiswaForm.namaBeasiswa}
@@ -3146,7 +3708,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Nominal Potongan (Rp)</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Nominal Potongan (Rp) <span className="text-red-500">*</span></label>
                     <div className="relative flex items-center">
                       <span className="absolute left-4 text-gray-500 font-semibold text-sm">Rp</span>
                       <input
@@ -3159,7 +3721,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Periode</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Periode <span className="text-red-500">*</span></label>
                     <div className="relative">
                       <select
                         value={beasiswaForm.periode}
@@ -3174,7 +3736,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Status <span className="text-red-500">*</span></label>
                     <select
                       value={beasiswaForm.status}
                       onChange={(e) => setBeasiswaForm({ ...beasiswaForm, status: e.target.value })}
@@ -3185,7 +3747,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Tanggal Mulai</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Tanggal Mulai <span className="text-red-500">*</span></label>
                     <input
                       type="date"
                       value={beasiswaForm.tanggalMulai}
@@ -3194,7 +3756,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Tanggal Selesai</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Tanggal Selesai <span className="text-red-500">*</span></label>
                     <input
                       type="date"
                       value={beasiswaForm.tanggalSelesai}
@@ -3706,6 +4268,20 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   Ya, Hapus
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDanaCancelConfirm && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDanaCancelConfirm(false)} />
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full relative z-10 shadow-xl animate-scaleUp">
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Batalkan Perubahan?</h3>
+            <p className="text-sm text-gray-600 mb-6">Data dana yang sudah Anda isi belum disimpan dan akan hilang. Apakah Anda yakin ingin membatalkan?</p>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setShowDanaCancelConfirm(false)} className="px-4 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer border-none bg-transparent">Lanjutkan Mengisi</button>
+              <button onClick={() => { setShowDanaCancelConfirm(false); setShowAddDanaModal(false); setIsDanaFormDirty(false); }} className="px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 transition-colors shadow-sm cursor-pointer border-none">Ya, Batalkan</button>
             </div>
           </div>
         </div>
