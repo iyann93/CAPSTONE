@@ -1310,15 +1310,31 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               <div className="flex flex-col gap-5">
                 {/* 3 Quick View Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {sppList.map((item) => (
-                    <div key={item.id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col justify-between">
-                      <div>
-                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{item.grade}</div>
-                        <div className="text-3xl font-black text-gray-800 mb-2">{item.amount}</div>
+                  {(() => {
+                    // Sort sppList by class order: VII, VIII, IX
+                    const sortOrder = { 'VII': 1, 'VIII': 2, 'IX': 3 };
+                    const sorted = [...sppList].sort((a, b) => {
+                      const orderA = sortOrder[a.grade.match(/VII|VIII|IX/)?.[0]] || 999;
+                      const orderB = sortOrder[b.grade.match(/VII|VIII|IX/)?.[0]] || 999;
+                      return orderA - orderB;
+                    });
+                    return sorted.map((item) => (
+                      <div key={item.id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col justify-between">
+                        <div>
+                          <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                            {(() => {
+                              let kelas = item.grade || '';
+                              kelas = kelas.replace(/[-\s][A-Z]$/, '');
+                              kelas = kelas.replace('-', ' ');
+                              return kelas;
+                            })()}
+                          </div>
+                          <div className="text-3xl font-black text-gray-800 mb-2">{item.amount}</div>
+                        </div>
+                        <div className="text-[11px] text-gray-400 mt-2">Berlaku: {formatTanggal(globalSppBerlaku)} · Jatuh tempo: {formatTanggal(globalSppJatuhTempo)}</div>
                       </div>
-                      <div className="text-[11px] text-gray-400 mt-2">Berlaku: {formatTanggal(globalSppBerlaku)} · Jatuh tempo: {formatTanggal(globalSppJatuhTempo)}</div>
-                    </div>
-                  ))}
+                    ));
+                  })()}
                 </div>
 
                 {/* Daftar Pengaturan SPP */}
@@ -1328,13 +1344,18 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   </div>
 
                   <div className="flex flex-col gap-3">
-                    {sppList.map((item) => {
+                    {sppList.sort((a, b) => {
+                      const sortOrder = { 'VII': 1, 'VIII': 2, 'IX': 3 };
+                      const orderA = sortOrder[a.grade.match(/VII|VIII|IX/)?.[0]] || 999;
+                      const orderB = sortOrder[b.grade.match(/VII|VIII|IX/)?.[0]] || 999;
+                      return orderA - orderB;
+                    }).map((item) => {
                       const isEditing = editingSppId === item.id;
                       return (
-                        <div
-                          key={item.id}
-                          className={`border rounded-xl transition-all duration-200 ${isEditing ? "border-[#1A3D63] shadow-[0_0_0_3px_rgba(26,61,99,0.1)] p-5" : "border-gray-100 hover:bg-gray-50/50 p-4"}`}
-                        >
+                          <div
+                            key={item.id}
+                            className={`border rounded-xl transition-all duration-200 ${isEditing ? "border-[#1A3D63] shadow-[0_0_0_3px_rgba(26,61,99,0.1)] p-5" : "border-gray-100 hover:bg-gray-50/50 p-4"}`}
+                          >
                           {/* Header row (always visible) */}
                           <div className="flex items-center gap-4">
                             {/* Icon */}
@@ -1343,7 +1364,15 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                             {/* Info */}
                             <div className="flex-1">
                               <div className="text-sm font-bold text-gray-800">
-                                {item.grade.replace('-', ' ')}
+                                {(() => {
+                                  // Format kelas: hapus suffix huruf (A, B, C, etc)
+                                  let kelas = item.grade || '';
+                                  // Hapus suffix huruf setelah angka romawi
+                                  kelas = kelas.replace(/[-\s][A-Z]$/, '');
+                                  // Normalize: ganti dash dengan space
+                                  kelas = kelas.replace('-', ' ');
+                                  return kelas;
+                                })()}
                                 <span className="text-[11px] font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded ml-2">TA {item.ta}</span>
                               </div>
                               {!isEditing && (
@@ -1377,7 +1406,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                         denda: Number(editSppDenda)
                                       };
                                       await updateKomponenSpp(item.id, payload);
-                                      triggerToast(`Nominal ${editSppGrade} berhasil diperbarui!`);
+                                      // Format kelas untuk toast message
+                                      const formattedGrade = editSppGrade.replace(/[-\s][A-Z]$/, '').replace('-', ' ');
+                                      triggerToast(`Nominal ${formattedGrade} berhasil diperbarui!`);
                                       setEditingSppId(null);
                                       loadKomponenSpp();
                                     } catch (e) {
@@ -1792,17 +1823,22 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <p className="text-sm text-gray-500 mt-1">Kelola program beasiswa dan potongan SPP siswa.</p>
               </div>
               <div className="flex items-center gap-3">
-                <div className="relative">
+                <div className="relative group w-full sm:w-auto">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
+                  </div>
                   <select
                     onChange={(e) => setSelectedYear(e.target.value)}
                     value={selectedYear}
-                    className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
+                    className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
-                  <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
-                  </span>
+                  </div>
                 </div>
                 <button
                   onClick={() => setShowKelolaDanaModal(true)}
@@ -2370,24 +2406,24 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             {/* Stat Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               {/* Card Pendapatan */}
-              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm border-l-4 border-l-[#10B981] flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#E6F4EA] text-[#10B981] flex items-center justify-center font-bold text-xl">
+              <div className="bg-[#1A3D63] rounded-2xl border border-[#1A3D63] p-5 shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-[#0F3A5F] text-white flex items-center justify-center font-bold text-xl">
                   +
                 </div>
                 <div>
-                  <div className="text-[11px] font-bold text-gray-400 mb-1 uppercase tracking-wide">Total Pendapatan</div>
-                  <div className="text-xl sm:text-2xl font-black text-gray-800">12 Komponen</div>
+                  <div className="text-[11px] font-bold text-blue-200 mb-1 uppercase tracking-wide">Total Pendapatan</div>
+                  <div className="text-xl sm:text-2xl font-black text-white">12 Komponen</div>
                 </div>
               </div>
 
               {/* Card Potongan */}
-              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm border-l-4 border-l-[#EF4444] flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#FEE2E2] text-[#EF4444] flex items-center justify-center">
+              <div className="bg-[#1A3D63] rounded-2xl border border-[#1A3D63] p-5 shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-[#0F3A5F] text-white flex items-center justify-center">
                   <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-1.624 11.368A2.25 2.25 0 0 1 15.648 21H8.352a2.25 2.25 0 0 1-2.228-1.382L4.5 8.25M14.25 12v4.5m-4.5-4.5v4.5M10.5 4.5h3m-6 0a2.25 2.25 0 0 1 2.25-2.25h1.5A2.25 2.25 0 0 1 13.5 4.5m-6 0h9" /></svg>
                 </div>
                 <div>
-                  <div className="text-[11px] font-bold text-gray-400 mb-1 uppercase tracking-wide">Total Potongan</div>
-                  <div className="text-xl sm:text-2xl font-black text-gray-800">5 Komponen</div>
+                  <div className="text-[11px] font-bold text-blue-200 mb-1 uppercase tracking-wide">Total Potongan</div>
+                  <div className="text-xl sm:text-2xl font-black text-white">5 Komponen</div>
                 </div>
               </div>
             </div>
@@ -3911,15 +3947,20 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Periode <span className="text-red-500">*</span></label>
-                    <div className="relative">
+                    <div className="relative group">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
+                      </div>
                       <select
                         value={beasiswaForm.periode}
                         onChange={(e) => setBeasiswaForm({ ...beasiswaForm, periode: e.target.value })}
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700 appearance-none pr-10"
+                        className="w-full border border-gray-200 rounded-xl pl-10 pr-10 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/20 bg-white text-gray-700 appearance-none hover:bg-gray-50 hover:border-gray-300 transition-all"
                       >
                         <option value="2025/2026">2025/2026</option>
+                        <option value="2024/2025">2024/2025</option>
+                        <option value="2023/2024">2023/2024</option>
                       </select>
-                      <span className="absolute right-4 top-3.5 text-gray-400 pointer-events-none">
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                         <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
                       </span>
                     </div>
