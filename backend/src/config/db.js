@@ -8,9 +8,8 @@ const poolConfig = env.db.connectionString
       connectionString: env.db.connectionString,
       max: 20,
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 2000,
-      // Optional: add SSL config if required by Supabase
-      // ssl: { rejectUnauthorized: false }
+      connectionTimeoutMillis: 5000,
+      ssl: { rejectUnauthorized: false }
     }
   : {
       user: env.db.user,
@@ -20,7 +19,8 @@ const poolConfig = env.db.connectionString
       port: env.db.port,
       max: 20,
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 2000,
+      connectionTimeoutMillis: 5000,
+      ssl: { rejectUnauthorized: false },
     };
 
 const pool = new Pool(poolConfig);

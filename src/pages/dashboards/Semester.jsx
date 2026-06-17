@@ -4,14 +4,54 @@ const Semester = () => {
   const [view, setView] = useState("list");
   const [searchTerm, setSearchTerm] = useState("");
 
-  const mockSemesters = [
-    { name: "Ganjil 2023/2024", id: "SMT-2023-1", year: "2023/2024", start: "17 Jul 2023", end: "22 Des 2023", students: "1,248", classes: "32", status: "Aktif" },
-    { name: "Genap 2022/2023", id: "SMT-2022-2", year: "2022/2023", start: "9 Jan 2023", end: "16 Jun 2023", students: "1,190", classes: "31", status: "Selesai" },
-    { name: "Ganjil 2022/2023", id: "SMT-2022-1", year: "2022/2023", start: "18 Jul 2022", end: "23 Des 2022", students: "1,190", classes: "31", status: "Selesai" },
-    { name: "Genap 2021/2022", id: "SMT-2021-2", year: "2021/2022", start: "10 Jan 2022", end: "17 Jun 2022", students: "1,145", classes: "30", status: "Selesai" },
-    { name: "Ganjil 2021/2022", id: "SMT-2021-1", year: "2021/2022", start: "19 Jul 2021", end: "24 Des 2021", students: "1,145", classes: "30", status: "Selesai" },
-    { name: "Genap 2020/2021", id: "SMT-2020-2", year: "2020/2021", start: "11 Jan 2021", end: "18 Jun 2021", students: "1,102", classes: "29", status: "Selesai" }
-  ];
+  const [semesters, setSemesters] = useState(() => {
+    const saved = localStorage.getItem("semesters_data");
+    if (saved) {
+      try { return JSON.parse(saved); } catch(e){}
+    }
+    return [
+      { name: "Ganjil 2023/2024", id: "SMT-2023-1", year: "2023/2024", start: "17 Jul 2023", end: "22 Des 2023", students: "1,248", classes: "32", status: "Aktif" },
+      { name: "Genap 2022/2023", id: "SMT-2022-2", year: "2022/2023", start: "9 Jan 2023", end: "16 Jun 2023", students: "1,190", classes: "31", status: "Selesai" },
+      { name: "Ganjil 2022/2023", id: "SMT-2022-1", year: "2022/2023", start: "18 Jul 2022", end: "23 Des 2022", students: "1,190", classes: "31", status: "Selesai" },
+      { name: "Genap 2021/2022", id: "SMT-2021-2", year: "2021/2022", start: "10 Jan 2022", end: "17 Jun 2022", students: "1,145", classes: "30", status: "Selesai" },
+      { name: "Ganjil 2021/2022", id: "SMT-2021-1", year: "2021/2022", start: "19 Jul 2021", end: "24 Des 2021", students: "1,145", classes: "30", status: "Selesai" },
+      { name: "Genap 2020/2021", id: "SMT-2020-2", year: "2020/2021", start: "11 Jan 2021", end: "18 Jun 2021", students: "1,102", classes: "29", status: "Selesai" }
+    ];
+  });
+
+  React.useEffect(() => {
+    localStorage.setItem("semesters_data", JSON.stringify(semesters));
+  }, [semesters]);
+
+  const [addForm, setAddForm] = useState({
+    year: "2024/2025",
+    type: "Ganjil",
+    start: "15 Jul 2024",
+    end: "20 Des 2024",
+    status: "Draft"
+  });
+
+  const handleSaveAdd = () => {
+    const newSemester = {
+      name: `${addForm.type} ${addForm.year}`,
+      id: `SMT-${addForm.year.split('/')[0]}-${addForm.type === 'Ganjil' ? '1' : '2'}`,
+      year: addForm.year,
+      start: addForm.start,
+      end: addForm.end,
+      students: "0",
+      classes: "0",
+      status: addForm.status === 'Draft' ? 'Draft' : 'Aktif'
+    };
+    setSemesters([newSemester, ...semesters]);
+    setView("list");
+  };
+
+  const handleDelete = (id) => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus semester ini?")) {
+      setSemesters(prev => prev.filter(s => s.id !== id));
+    }
+  };
+
 
   if (view === "add") {
     return (
@@ -63,8 +103,13 @@ const Semester = () => {
                   <div>
                     <label className="block text-[12px] font-bold text-gray-500 mb-2">Tahun Ajaran <span className="text-red-500">*</span></label>
                     <div className="relative">
-                      <select className="w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 text-[14px] font-bold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20">
-                        <option>2024/2025</option>
+                      <select 
+                        value={addForm.year} 
+                        onChange={(e) => setAddForm({...addForm, year: e.target.value})} 
+                        className="w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 text-[14px] font-bold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20">
+                        <option value="2023/2024">2023/2024</option>
+                        <option value="2024/2025">2024/2025</option>
+                        <option value="2025/2026">2025/2026</option>
                       </select>
                       <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
@@ -75,13 +120,13 @@ const Semester = () => {
                   <div>
                     <label className="block text-[12px] font-bold text-gray-500 mb-2">Tipe Semester <span className="text-red-500">*</span></label>
                     <div className="flex gap-3">
-                      <label className="flex-1 flex items-center gap-3 px-4 py-3 border-2 border-[#1A3D63] rounded-xl cursor-pointer bg-[#F8FAFC]">
-                        <div className="w-4 h-4 rounded-full border-[5px] border-[#1A3D63] bg-white shadow-sm"></div>
-                        <span className="text-[14px] font-bold text-[#1e293b]">Ganjil</span>
+                      <label onClick={() => setAddForm({...addForm, type: 'Ganjil'})} className={`flex-1 flex items-center gap-3 px-4 py-3 border ${addForm.type === 'Ganjil' ? 'border-2 border-[#1A3D63] bg-[#F8FAFC]' : 'border-gray-200'} rounded-xl cursor-pointer`}>
+                        <div className={`w-4 h-4 rounded-full border ${addForm.type === 'Ganjil' ? 'border-[5px] border-[#1A3D63] bg-white shadow-sm' : 'border-gray-300 bg-white'}`}></div>
+                        <span className={`text-[14px] font-bold ${addForm.type === 'Ganjil' ? 'text-[#1e293b]' : 'text-gray-500'}`}>Ganjil</span>
                       </label>
-                      <label className="flex-1 flex items-center gap-3 px-4 py-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors">
-                        <div className="w-4 h-4 rounded-full border border-gray-300 bg-white"></div>
-                        <span className="text-[14px] font-medium text-gray-500">Genap</span>
+                      <label onClick={() => setAddForm({...addForm, type: 'Genap'})} className={`flex-1 flex items-center gap-3 px-4 py-3 border ${addForm.type === 'Genap' ? 'border-2 border-[#1A3D63] bg-[#F8FAFC]' : 'border-gray-200 hover:bg-gray-50 transition-colors'} rounded-xl cursor-pointer`}>
+                        <div className={`w-4 h-4 rounded-full border ${addForm.type === 'Genap' ? 'border-[5px] border-[#1A3D63] bg-white shadow-sm' : 'border-gray-300 bg-white'}`}></div>
+                        <span className={`text-[14px] font-medium ${addForm.type === 'Genap' ? 'text-[#1e293b] font-bold' : 'text-gray-500'}`}>Genap</span>
                       </label>
                     </div>
                   </div>
@@ -90,7 +135,7 @@ const Semester = () => {
                 <div>
                   <label className="block text-[12px] font-bold text-gray-500 mb-2">Nama Semester</label>
                   <div className="relative">
-                    <input type="text" readOnly value="Ganjil 2024/2025" className="w-full bg-[#F9FAFB] border border-gray-200 rounded-xl pl-4 pr-36 py-3 text-[14px] font-semibold text-[#1e293b] focus:outline-none" />
+                    <input type="text" readOnly value={`${addForm.type} ${addForm.year}`} className="w-full bg-[#F9FAFB] border border-gray-200 rounded-xl pl-4 pr-36 py-3 text-[14px] font-semibold text-[#1e293b] focus:outline-none" />
                     <div className="absolute inset-y-0 right-2 flex items-center">
                       <span className="bg-white border border-gray-100 text-gray-400 text-[10px] font-semibold px-2.5 py-1.5 rounded-lg shadow-sm">Digenerate otomatis</span>
                     </div>
@@ -101,7 +146,7 @@ const Semester = () => {
                 <div>
                   <label className="block text-[12px] font-bold text-gray-500 mb-2">ID Semester</label>
                   <div className="relative">
-                    <input type="text" readOnly value="SMT-2024-1" className="w-full bg-[#F9FAFB] border border-gray-200 rounded-xl pl-4 pr-36 py-3 text-[14px] font-semibold text-gray-500 focus:outline-none" />
+                    <input type="text" readOnly value={`SMT-${addForm.year.split('/')[0]}-${addForm.type === 'Ganjil' ? '1' : '2'}`} className="w-full bg-[#F9FAFB] border border-gray-200 rounded-xl pl-4 pr-36 py-3 text-[14px] font-semibold text-gray-500 focus:outline-none" />
                     <div className="absolute inset-y-0 right-2 flex items-center">
                       <span className="bg-white border border-gray-100 text-gray-400 text-[10px] font-semibold px-2.5 py-1.5 rounded-lg shadow-sm">Digenerate otomatis</span>
                     </div>
@@ -121,19 +166,13 @@ const Semester = () => {
                   <div>
                     <label className="block text-[12px] font-bold text-gray-500 mb-2">Tanggal Mulai <span className="text-red-500">*</span></label>
                     <div className="relative">
-                      <input type="text" value="15 Juli 2024" className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-[14px] font-bold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" readOnly />
-                      <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                      </div>
+                      <input type="date" value={addForm.start} onChange={(e) => setAddForm({...addForm, start: e.target.value})} className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-[14px] font-bold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" />
                     </div>
                   </div>
                   <div>
                     <label className="block text-[12px] font-bold text-gray-500 mb-2">Tanggal Selesai <span className="text-red-500">*</span></label>
                     <div className="relative">
-                      <input type="text" value="20 Desember 2024" className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-[14px] font-semibold text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" readOnly />
-                      <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                      </div>
+                      <input type="date" value={addForm.end} onChange={(e) => setAddForm({...addForm, end: e.target.value})} className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-[14px] font-semibold text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" />
                     </div>
                   </div>
                 </div>
@@ -329,7 +368,7 @@ const Semester = () => {
 
             {/* Action Buttons */}
             <div className="space-y-3 pt-2">
-              <button className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#2A4365] hover:bg-[#1A365D] text-white rounded-xl text-[14px] font-bold transition-colors shadow-sm">
+              <button onClick={handleSaveAdd} className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#2A4365] hover:bg-[#1A365D] text-white rounded-xl text-[14px] font-bold transition-colors shadow-sm">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
                 Simpan Semester
               </button>
@@ -475,7 +514,7 @@ const Semester = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {mockSemesters.filter(item =>
+                {semesters.filter(item =>
                   item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                   item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                   item.year.toLowerCase().includes(searchTerm.toLowerCase())
@@ -524,7 +563,7 @@ const Semester = () => {
                             Tutup Semester
                           </button>
                         ) : (
-                          <button className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors ml-1">
+                          <button onClick={() => handleDelete(item.id)} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors ml-1">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                           </button>
                         )}

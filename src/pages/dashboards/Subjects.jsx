@@ -7,20 +7,66 @@ const Subjects = () => {
   const [viewMode, setViewMode] = useState("list");
   const [selectedSubject, setSelectedSubject] = useState(null);
 
-  const mockData = [
-    { code: "MTK", name: "Matematika", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 4, teacher: "Drs. Hendra, M.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-    { code: "BIN", name: "Bahasa Indonesia", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 4, teacher: "Ibu Nuraini, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-    { code: "BIG", name: "Bahasa Inggris", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 3, teacher: "Mr. Andrian, M.A.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-    { code: "FIS", name: "Fisika", group: "IPA", groupColor: "bg-emerald-50 text-emerald-600", levels: "X, XI, XII", hours: 4, teacher: "Ibu Sari, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-    { code: "KIM", name: "Kimia", group: "IPA", groupColor: "bg-emerald-50 text-emerald-600", levels: "X, XI, XII", hours: 4, teacher: "Bpk. Rudi, M.Si.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-    { code: "BIO", name: "Biologi", group: "IPA", groupColor: "bg-emerald-50 text-emerald-600", levels: "X, XI, XII", hours: 4, teacher: "Ibu Dewi, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-    { code: "EKO", name: "Ekonomi", group: "IPS", groupColor: "bg-orange-50 text-orange-500", levels: "X, XI, XII", hours: 4, teacher: "Ibu Kartika, S.E.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-    { code: "SEJ", name: "Sejarah", group: "IPS", groupColor: "bg-orange-50 text-orange-500", levels: "X, XI, XII", hours: 3, teacher: "Bpk. Suherman, M.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-    { code: "SOS", name: "Sosiologi", group: "IPS", groupColor: "bg-orange-50 text-orange-500", levels: "XI, XII", hours: 3, teacher: "Ibu Ratna, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-    { code: "GEO", name: "Geografi", group: "IPS", groupColor: "bg-orange-50 text-orange-500", levels: "X, XI, XII", hours: 3, teacher: "Bpk. Wahyu, M.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-    { code: "PKN", name: "PKn", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 2, teacher: "Ibu Marlina, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-    { code: "PJK", name: "Penjaskes", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 2, teacher: "Bpk. Eko, S.Pd.", status: "Nonaktif", statusColor: "text-gray-400", dotColor: "bg-gray-300" },
-  ];
+  const [subjects, setSubjects] = useState(() => {
+    const saved = localStorage.getItem("subjects_data");
+    if (saved) {
+      try { return JSON.parse(saved); } catch(e){}
+    }
+    return [
+      { code: "MTK", name: "Matematika", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 4, teacher: "Drs. Hendra, M.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
+      { code: "BIN", name: "Bahasa Indonesia", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 4, teacher: "Ibu Nuraini, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
+      { code: "BIG", name: "Bahasa Inggris", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 3, teacher: "Mr. Andrian, M.A.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
+      { code: "FIS", name: "Fisika", group: "IPA", groupColor: "bg-emerald-50 text-emerald-600", levels: "X, XI, XII", hours: 4, teacher: "Ibu Sari, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
+      { code: "KIM", name: "Kimia", group: "IPA", groupColor: "bg-emerald-50 text-emerald-600", levels: "X, XI, XII", hours: 4, teacher: "Bpk. Rudi, M.Si.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
+      { code: "BIO", name: "Biologi", group: "IPA", groupColor: "bg-emerald-50 text-emerald-600", levels: "X, XI, XII", hours: 4, teacher: "Ibu Dewi, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
+      { code: "EKO", name: "Ekonomi", group: "IPS", groupColor: "bg-orange-50 text-orange-500", levels: "X, XI, XII", hours: 4, teacher: "Ibu Kartika, S.E.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
+      { code: "SEJ", name: "Sejarah", group: "IPS", groupColor: "bg-orange-50 text-orange-500", levels: "X, XI, XII", hours: 3, teacher: "Bpk. Suherman, M.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
+      { code: "SOS", name: "Sosiologi", group: "IPS", groupColor: "bg-orange-50 text-orange-500", levels: "XI, XII", hours: 3, teacher: "Ibu Ratna, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
+      { code: "GEO", name: "Geografi", group: "IPS", groupColor: "bg-orange-50 text-orange-500", levels: "X, XI, XII", hours: 3, teacher: "Bpk. Wahyu, M.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
+      { code: "PKN", name: "PKn", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 2, teacher: "Ibu Marlina, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
+      { code: "PJK", name: "Penjaskes", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 2, teacher: "Bpk. Eko, S.Pd.", status: "Nonaktif", statusColor: "text-gray-400", dotColor: "bg-gray-300" },
+    ];
+  });
+
+  React.useEffect(() => {
+    localStorage.setItem("subjects_data", JSON.stringify(subjects));
+  }, [subjects]);
+
+  const handleSaveSubject = (data) => {
+    const groupColors = {
+      "Wajib": "bg-gray-100 text-gray-600",
+      "IPA": "bg-emerald-50 text-emerald-600",
+      "IPS": "bg-orange-50 text-orange-500",
+      "Lintas Minat": "bg-purple-50 text-purple-600",
+    };
+    
+    const newSubject = {
+      code: data.kode,
+      name: data.nama,
+      group: data.kelompok,
+      groupColor: groupColors[data.kelompok] || "bg-gray-100 text-gray-600",
+      levels: data.jenjang.map(l => l.replace("Kelas ", "")).join(", "),
+      hours: data.jam,
+      teacher: data.guru ? data.guru.name : "Belum Ditentukan",
+      status: data.aktif ? "Aktif" : "Nonaktif",
+      statusColor: data.aktif ? "text-emerald-500" : "text-gray-400",
+      dotColor: data.aktif ? "bg-emerald-500" : "bg-gray-300"
+    };
+
+    if (viewMode === "add") {
+      setSubjects(prev => [newSubject, ...prev]);
+    } else {
+      setSubjects(prev => prev.map(s => s.code === initialData.code ? newSubject : s));
+    }
+    setViewMode("list");
+  };
+
+  const handleDeleteSubject = (code) => {
+    if(window.confirm("Apakah Anda yakin ingin menghapus mata pelajaran ini?")) {
+      setSubjects(prev => prev.filter(s => s.code !== code));
+      setViewMode("list");
+    }
+  };
 
   if (viewMode === "add" || viewMode === "edit") {
     return (
@@ -31,7 +77,9 @@ const Subjects = () => {
           onBack={() => {
             setViewMode("list");
             setSelectedSubject(null);
-          }} 
+          }}
+          onSave={handleSaveSubject}
+          onDelete={handleDeleteSubject}
         />
       </div>
     );
@@ -215,7 +263,7 @@ const Subjects = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {mockData.filter((item) => 
+              {subjects.filter((item) => 
                 item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                 item.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 item.teacher.toLowerCase().includes(searchTerm.toLowerCase())
@@ -277,7 +325,7 @@ const Subjects = () => {
                       >
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                       </button>
-                      <button className="text-gray-400 hover:text-red-500 transition-colors">
+                      <button onClick={() => { if(window.confirm('Hapus mata pelajaran ini?')) setSubjects(prev => prev.filter(s => s.code !== item.code)); }} className="text-gray-400 hover:text-red-500 transition-colors">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                       </button>
                     </div>
