@@ -597,9 +597,20 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
       class: inputClass,
       amount: inputAmount,
       period: inputPeriod,
-      status: inputStatus
+      status: inputStatus,
+      tanggal_bayar: new Date().toISOString()
     };
     setSppPayments([newPayment, ...sppPayments]);
+
+    // Sinkronisasi otomatis ke daftar tagihan jika Lunas
+    if (inputStatus === "Lunas" || inputStatus?.toLowerCase() === "lunas") {
+      setStudentsBill(prev => prev.map(bill => {
+        if ((bill.siswa_nama || bill.name) === inputStudent) {
+          return { ...bill, status: "Lunas", tanggal_bayar: new Date().toISOString() };
+        }
+        return bill;
+      }));
+    }
     setInputStudent("");
     triggerToast("Sukses mencatat pembayaran siswa baru!");
   };
@@ -608,12 +619,14 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     const name = row.siswa_nama || row.name || '';
     const nis = row.nis || '';
     const kelas = row.nama_kelas || row.class || '';
+    const kelasFormatted = kelas.replace(/^Kelas\s+/i, '').replace(/-/g, ' ').trim();
+    
     const matchesSearch = name.toLowerCase().includes(billSearchQuery.toLowerCase()) ||
       nis.includes(billSearchQuery);
 
     if (billClassFilter === "Semua") return matchesSearch;
-    const targetGrade = billClassFilter.replace("Kelas ", "");
-    const matchesClass = kelas.startsWith(targetGrade);
+    const targetGrade = billClassFilter.replace("Kelas ", "").trim();
+    const matchesClass = kelasFormatted.startsWith(targetGrade);
     return matchesSearch && matchesClass;
   });
 
@@ -856,6 +869,11 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
         );
 
       case "Tagihan SPP":
+        const formatKelas = (kelasName) => {
+          if (!kelasName) return "-";
+          return kelasName.replace(/^Kelas\s+/i, '').replace(/-/g, ' ');
+        };
+
         return (
           <div className="flex flex-col gap-6 animate-fadeIn font-sans">
             {/* Header Area */}
@@ -888,52 +906,37 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             </div>
 
             {/* Stat Cards Row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {/* Card 1: Total Tagihan */}
-              <div className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center gap-4 shadow-sm relative overflow-hidden">
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#1A3D63]" />
-                <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-500 flex-shrink-0">
-                  <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                  </svg>
-                </div>
-                <div>
-                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Total Tagihan</div>
-                  <div className="text-2xl font-black text-gray-800">Rp 2.725.000</div>
-                  <div className="text-[11px] font-bold text-gray-400">10 siswa</div>
-                </div>
-              </div>
+            {(() => {
+              const totalSiswa = filteredBills.length;
+              const lunasBills = filteredBills.filter(b => b.status === "Lunas" || b.status?.toLowerCase() === "lunas");
+              const belumLunasBills = filteredBills.filter(b => b.status !== "Lunas" && b.status?.toLowerCase() !== "lunas");
+              
+              const totalTagihanNominal = filteredBills.reduce((acc, b) => acc + Number(b.nominal || 0), 0);
+              const totalLunasNominal = lunasBills.reduce((acc, b) => acc + Number(b.nominal || 0), 0);
+              const totalBelumLunasNominal = belumLunasBills.reduce((acc, b) => acc + Number(b.nominal || 0), 0);
 
-              {/* Card 2: Sudah Terbayar */}
-              <div className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center gap-4 shadow-sm relative overflow-hidden">
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#10B981]" />
-                <div className="w-12 h-12 bg-[#E8FDF5] rounded-2xl flex items-center justify-center text-[#059669] flex-shrink-0">
-                  <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                  </svg>
-                </div>
-                <div>
-                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Sudah Terbayar</div>
-                  <div className="text-2xl font-black text-gray-800">Rp 1.350.000</div>
-                  <div className="text-[11px] font-bold text-gray-400">5 siswa lunas</div>
-                </div>
-              </div>
+              return (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                  {/* Card 1: Total Tagihan */}
+                  <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
+                    <div className="text-2xl font-bold text-white">Rp {totalTagihanNominal.toLocaleString('id-ID')}</div>
+                    <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Total Tagihan ({totalSiswa} Siswa)</div>
+                  </div>
 
-              {/* Card 3: Belum / Cicilan */}
-              <div className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center gap-4 shadow-sm relative overflow-hidden">
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#EF4444]" />
-                <div className="w-12 h-12 bg-[#FEE2E2] rounded-2xl flex items-center justify-center text-[#DC2626] flex-shrink-0">
-                  <svg width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-                  </svg>
+                  {/* Card 2: Sudah Terbayar */}
+                  <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
+                    <div className="text-2xl font-bold text-white">Rp {totalLunasNominal.toLocaleString('id-ID')}</div>
+                    <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Sudah Terbayar ({lunasBills.length} Siswa)</div>
+                  </div>
+
+                  {/* Card 3: Belum Lunas */}
+                  <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
+                    <div className="text-2xl font-bold text-white">Rp {totalBelumLunasNominal.toLocaleString('id-ID')}</div>
+                    <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Belum Lunas ({belumLunasBills.length} Siswa)</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Belum / Cicilan</div>
-                  <div className="text-2xl font-black text-gray-800">Rp 1.375.000</div>
-                  <div className="text-[11px] font-bold text-gray-400">5 perlu tindak lanjut</div>
-                </div>
-              </div>
-            </div>
+              );
+            })()}
 
             {/* Filter and Table Container */}
             <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm">
@@ -981,6 +984,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      <th className="pb-3 px-3 w-10">NO</th>
                       <th className="pb-3 px-3">NIS</th>
                       <th className="pb-3 px-3">NAMA SISWA</th>
                       <th className="pb-3 px-3">KELAS</th>
@@ -991,7 +995,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                       <th className="pb-3 px-3 text-right">TGL BAYAR</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-50 text-xs">
+                              <tbody className="divide-y divide-gray-50 text-xs">
                                 {filteredBills.length === 0 ? (
                                   <tr>
                                     <td colSpan="8" className="py-8 text-center text-gray-400 font-medium">Belum ada data tagihan.</td>
@@ -999,25 +1003,27 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                 ) : (
                                   filteredBills.map((row, idx) => (
                                     <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                                      <td className="py-4 px-3 text-gray-500 font-bold">{idx + 1}.</td>
                                       <td className="py-4 px-3 text-gray-500 font-medium">{row.nis || "-"}</td>
                                       <td className="py-4 px-3 font-bold text-gray-800">{row.siswa_nama || row.name || "-"}</td>
-                                      <td className="py-4 px-3 text-gray-500">{row.nama_kelas || row.class || "-"}</td>
-                                      <td className="py-4 px-3 font-bold text-gray-700">
+                                      <td className="py-4 px-3 text-gray-500 font-medium">{formatKelas(row.nama_kelas || row.class)}</td>
+                                      <td className="py-4 px-3 font-bold text-emerald-600">
                                         Rp {Number(row.nominal || 0).toLocaleString('id-ID')}
                                       </td>
                                       <td className="py-4 px-3 font-semibold text-gray-700">{formatBulan(row.bulan, row.tahun) || "-"}</td>
                                       <td className="py-4 px-3 text-gray-500">{formatTanggal(row.jatuh_tempo) || "-"}</td>
                                       <td className="py-4 px-3">
-                                        <span className={`px-2 py-0.5 rounded-md font-bold inline-block text-[10px] ${
-                                          row.status === "Lunas" ? "bg-[#E6F4EA] text-[#137333]" :
-                                          row.status === "Cicilan" ? "bg-[#FEF7E0] text-[#B06000]" :
-                                          "bg-[#FCE8E6] text-[#C5221F]"
+                                        <span className={`px-2.5 py-1 rounded-md font-bold inline-block text-[10px] no-underline ${
+                                          (row.status === "Lunas" || row.status?.toLowerCase() === "lunas") ? "bg-emerald-50 text-emerald-600" :
+                                          "bg-red-50 text-red-500"
                                         }`}>
-                                          {row.status || "Belum Bayar"}
+                                          {row.status || "Belum Lunas"}
                                         </span>
                                       </td>
                                       <td className="py-4 px-3 text-right text-gray-500 font-medium">
-                                        {formatTanggal(row.tanggal_bayar) || "-"}
+                                        {(row.status === "Lunas" || row.status?.toLowerCase() === "lunas") 
+                                          ? formatTanggal(row.tanggal_bayar || new Date().toISOString()) 
+                                          : (formatTanggal(row.tanggal_bayar) || "-")}
                                       </td>
                                     </tr>
                                   ))
