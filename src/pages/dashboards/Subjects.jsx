@@ -56,7 +56,7 @@ const Subjects = () => {
     if (viewMode === "add") {
       setSubjects(prev => [newSubject, ...prev]);
     } else {
-      setSubjects(prev => prev.map(s => s.code === initialData.code ? newSubject : s));
+      setSubjects(prev => prev.map(s => s.code === selectedSubject.kode ? newSubject : s));
     }
     setViewMode("list");
   };
