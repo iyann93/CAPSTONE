@@ -179,32 +179,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
   // Actual Program State
   const [showAddProgramModal, setShowAddProgramModal] = useState(false);
-  const [programList, setProgramList] = useState([
-    { title: "Beasiswa Prestasi Akademik", subtitle: "2025/2026", type: "Beasiswa", amount: "100%", status: "Aktif", typeColor: "blue", penerima: [
-      { id: 1, siswa_id: 1, siswa_nama: "Ahmad Fauzi", nama_kelas: "VIIA", nama_beasiswa: "Beasiswa Prestasi Akademik", nominal: 250000, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
-      { id: 2, siswa_id: 2, siswa_nama: "Aulia Rahma", nama_kelas: "VIIB", nama_beasiswa: "Beasiswa Prestasi Akademik", nominal: 250000, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
-      { id: 3, siswa_id: 3, siswa_nama: "Budi Wijaya", nama_kelas: "VIIC", nama_beasiswa: "Beasiswa Prestasi Akademik", nominal: 250000, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
-    ] },
-    { title: "Beasiswa dari Lazismu", subtitle: "2025/2026", type: "Beasiswa", amount: "50%", status: "Aktif", typeColor: "blue", penerima: [
-      { id: 4, siswa_id: 4, siswa_nama: "Sinta Bella", nama_kelas: "VIIIA", nama_beasiswa: "Beasiswa dari Lazismu", nominal: 125000, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
-      { id: 5, siswa_id: 5, siswa_nama: "Deni Pratama", nama_kelas: "VIIIB", nama_beasiswa: "Beasiswa dari Lazismu", nominal: 125000, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
-    ] },
-    { title: "Beasiswa Tahridz Al-Qur'an", subtitle: "Setiap Bulan", type: "Beasiswa", amount: "100%", status: "Aktif", typeColor: "blue", penerima: [
-      { id: 6, siswa_id: 6, siswa_nama: "Rizky Aditya", nama_kelas: "IXA", nama_beasiswa: "Beasiswa Tahridz Al-Qur'an", nominal: 250000, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
-    ] },
-    { title: "Beasiswa Prestasi Non-Akademik", subtitle: "Setiap Bulan", type: "Beasiswa", amount: "25%", status: "Aktif", typeColor: "blue", penerima: [
-      { id: 7, siswa_id: 7, siswa_nama: "Nadia Putri", nama_kelas: "VIIA", nama_beasiswa: "Beasiswa Prestasi Non-Akademik", nominal: 62500, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
-      { id: 8, siswa_id: 8, siswa_nama: "Fajar Ramadan", nama_kelas: "VIIIC", nama_beasiswa: "Beasiswa Prestasi Non-Akademik", nominal: 62500, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
-    ] },
-    { title: "Beasiswa Tahfiz Quran", subtitle: "2025/2026", type: "Beasiswa", amount: "75%", status: "Aktif", typeColor: "blue", penerima: [
-      { id: 9, siswa_id: 9, siswa_nama: "Hafiz Rahman", nama_kelas: "IXB", nama_beasiswa: "Beasiswa Tahfiz Quran", nominal: 187500, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
-      { id: 10, siswa_id: 10, siswa_nama: "Zahra Amelia", nama_kelas: "VIIB", nama_beasiswa: "Beasiswa Tahfiz Quran", nominal: 187500, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
-      { id: 11, siswa_id: 11, siswa_nama: "Ilham Maulana", nama_kelas: "VIIIA", nama_beasiswa: "Beasiswa Tahfiz Quran", nominal: 187500, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
-    ] },
-    { title: "Beasiswa Penyarikatan Muhammadiyah", subtitle: "2025/2026", type: "Beasiswa", amount: "Rp 150.000", status: "Aktif", typeColor: "blue", penerima: [
-      { id: 12, siswa_id: 12, siswa_nama: "Yusuf Hakim", nama_kelas: "IXA", nama_beasiswa: "Beasiswa Penyarikatan Muhammadiyah", nominal: 150000, periode: "2025/2026", status: "Aktif", tanggal_mulai: "2025-07-01" },
-    ] }
-  ]);
+  const [programList, setProgramList] = useState([]);
   const [newProgramForm, setNewProgramForm] = useState({
     nama: "",
     kategori: "",
@@ -237,10 +212,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   });
 
   // Dana Beasiswa States
-  const [danaBeasiswaList, setDanaBeasiswaList] = useState([
-    { id: 1, sumber: "Lazismu", nominal: 50000000, tanggal: "2025-07-01", keterangan: "Anggaran Beasiswa 2025/2026" },
-    { id: 2, sumber: "Sekolah", nominal: 25000000, tanggal: "2025-07-15", keterangan: "Subsidi Silang SPP" }
-  ]);
+  const [danaBeasiswaList, setDanaBeasiswaList] = useState([]);
   const [showAddDanaModal, setShowAddDanaModal] = useState(false);
   const [newDanaForm, setNewDanaForm] = useState({
     sumber: "",
@@ -488,8 +460,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   };
 
   const handleSaveBeasiswa = async () => {
-    if (!beasiswaForm.siswaId || !beasiswaForm.namaBeasiswa || !beasiswaForm.nominal) {
-      triggerToast("Mohon lengkapi form penerima beasiswa", "error");
+    if (!beasiswaForm.siswaId || !beasiswaForm.namaBeasiswa || !beasiswaForm.nominal || !beasiswaForm.periode || !beasiswaForm.tanggalMulai || !beasiswaForm.tanggalSelesai) {
+      triggerToast("Mohon isi seluruh field wajib bertanda *", "error");
       return;
     }
 
@@ -3396,7 +3368,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             <div className="p-6">
               <div className="flex flex-col gap-5">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Pilih Siswa</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Pilih Siswa <span className="text-red-500">*</span></label>
                   <div className="relative" onBlur={(e) => {
                     if (!e.currentTarget.contains(e.relatedTarget)) {
                       setTimeout(() => setShowSiswaDropdown(false), 200);
@@ -3452,7 +3424,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Nama Program Beasiswa</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Nama Program Beasiswa <span className="text-red-500">*</span></label>
                     <div className="relative">
                       <select
                         value={beasiswaForm.namaBeasiswa}
@@ -3470,7 +3442,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Nominal Potongan (Rp)</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Nominal Potongan (Rp) <span className="text-red-500">*</span></label>
                     <div className="relative flex items-center">
                       <span className="absolute left-4 text-gray-500 font-semibold text-sm">Rp</span>
                       <input
@@ -3483,7 +3455,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Periode</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Periode <span className="text-red-500">*</span></label>
                     <div className="relative">
                       <select
                         value={beasiswaForm.periode}
@@ -3498,7 +3470,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Status <span className="text-red-500">*</span></label>
                     <select
                       value={beasiswaForm.status}
                       onChange={(e) => setBeasiswaForm({ ...beasiswaForm, status: e.target.value })}
@@ -3509,7 +3481,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Tanggal Mulai</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Tanggal Mulai <span className="text-red-500">*</span></label>
                     <input
                       type="date"
                       value={beasiswaForm.tanggalMulai}
@@ -3518,7 +3490,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Tanggal Selesai</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Tanggal Selesai <span className="text-red-500">*</span></label>
                     <input
                       type="date"
                       value={beasiswaForm.tanggalSelesai}
