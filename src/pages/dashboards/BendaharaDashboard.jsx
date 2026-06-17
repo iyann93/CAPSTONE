@@ -175,7 +175,11 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   // Beasiswa Modal State
   const [showAddPenerimaModal, setShowAddPenerimaModal] = useState(false);
   const [showDeleteBeasiswaModal, setShowDeleteBeasiswaModal] = useState(false);
+  
   const [selectedProgramForView, setSelectedProgramForView] = useState(null);
+  const [penerimaSearchQuery, setPenerimaSearchQuery] = useState('');
+  const [penerimaStatusFilter, setPenerimaStatusFilter] = useState('Semua');
+
 
   // Actual Program State
   const [showAddProgramModal, setShowAddProgramModal] = useState(false);
@@ -499,6 +503,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
         id: selectedBeasiswa?.id || Date.now(),
         siswa_id: beasiswaForm.siswaId,
         siswa_nama: siswaData?.nama_lengkap || "Siswa",
+        nis: siswaData?.nis || "-",
         nama_kelas: siswaData?.nama_kelas || siswaData?.kelas || "-",
         nama_beasiswa: beasiswaForm.namaBeasiswa,
         nominal: Number(beasiswaForm.nominal),
@@ -986,62 +991,37 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50 text-xs">
-                    {filteredBills.length === 0 ? (
-                      <tr>
-                        <td colSpan="8" className="py-10 text-center text-gray-400 font-medium text-xs">
-                          Belum ada tagihan SPP. Klik "Generate Tagihan Bulan Ini" untuk membuat tagihan.
-                        </td>
-                      </tr>
-                    ) : filteredBills.map((row, idx) => {
-                      const statusVal = (row.status || '').toLowerCase();
-                      const isLunas = statusVal === 'lunas';
-                      const isCicilan = statusVal === 'cicilan';
-                      const isBelumBayar = statusVal === 'belum_bayar' || statusVal === 'belum bayar';
-                      return (
-                        <tr key={row.id || idx} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="py-4 px-3 text-gray-400 font-mono font-medium">{row.nis}</td>
-                          <td className="py-4 px-3 font-bold text-gray-800">{row.siswa_nama || row.name}</td>
-                          <td className="py-4 px-3">
-                            <span className="bg-blue-50 text-blue-600 font-semibold px-2.5 py-0.5 rounded-full text-[10px]">
-                              {(row.nama_kelas || row.class)?.replace('Kelas ', '')?.replace('-', ' ')}
-                            </span>
-                          </td>
-                          <td className="py-4 px-3 font-bold text-gray-700">
-                            {row.nominal ? `Rp ${parseInt(row.nominal).toLocaleString('id-ID')}` : (row.amount || '-')}
-                          </td>
-                          <td className="py-4 px-3 text-gray-400 font-medium">
-                            {row.bulan ? formatBulan(row.bulan, row.tahun) : (row.month || '-')}
-                          </td>
-                          <td className="py-4 px-3 text-gray-500">
-                            {row.jatuh_tempo ? formatTanggal(row.jatuh_tempo) : (row.dueDate || '-')}
-                          </td>
-                          <td className="py-4 px-3">
-                            {isLunas && (
-                              <span className="bg-[#E8FDF5] text-[#059669] border border-[#A7F3D0] rounded-full px-2.5 py-0.5 flex items-center gap-1 font-bold text-[10px] w-fit border-solid">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-2.5 h-2.5"><polyline points="20 6 9 17 4 12" /></svg>
-                                Lunas
-                              </span>
-                            )}
-                            {isCicilan && (
-                              <span className="bg-[#FEF3C7] text-[#D97706] border border-[#FCD34D] rounded-full px-2.5 py-0.5 flex items-center gap-1 font-bold text-[10px] w-fit border-solid">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-2.5 h-2.5"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-                                Cicilan
-                              </span>
-                            )}
-                            {(isBelumBayar || (!isLunas && !isCicilan)) && (
-                              <span className="bg-[#FEE2E2] text-[#DC2626] border border-[#FCA5A5] rounded-full px-2.5 py-0.5 flex items-center gap-1 font-bold text-[10px] w-fit border-solid">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-2.5 h-2.5"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
-                                Belum Bayar
-                              </span>
-                            )}
-                          </td>
-                          <td className="py-4 px-3 text-right text-gray-500 font-medium">
-                            {row.tanggal_bayar ? formatTanggal(row.tanggal_bayar) : (row.payDate || '—')}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
+                                {filteredBills.length === 0 ? (
+                                  <tr>
+                                    <td colSpan="8" className="py-8 text-center text-gray-400 font-medium">Belum ada data tagihan.</td>
+                                  </tr>
+                                ) : (
+                                  filteredBills.map((row, idx) => (
+                                    <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                                      <td className="py-4 px-3 text-gray-500 font-medium">{row.nis || "-"}</td>
+                                      <td className="py-4 px-3 font-bold text-gray-800">{row.siswa_nama || row.name || "-"}</td>
+                                      <td className="py-4 px-3 text-gray-500">{row.nama_kelas || row.class || "-"}</td>
+                                      <td className="py-4 px-3 font-bold text-gray-700">
+                                        Rp {Number(row.nominal || 0).toLocaleString('id-ID')}
+                                      </td>
+                                      <td className="py-4 px-3 font-semibold text-gray-700">{formatBulan(row.bulan, row.tahun) || "-"}</td>
+                                      <td className="py-4 px-3 text-gray-500">{formatTanggal(row.jatuh_tempo) || "-"}</td>
+                                      <td className="py-4 px-3">
+                                        <span className={`px-2 py-0.5 rounded-md font-bold inline-block text-[10px] ${
+                                          row.status === "Lunas" ? "bg-[#E6F4EA] text-[#137333]" :
+                                          row.status === "Cicilan" ? "bg-[#FEF7E0] text-[#B06000]" :
+                                          "bg-[#FCE8E6] text-[#C5221F]"
+                                        }`}>
+                                          {row.status || "Belum Bayar"}
+                                        </span>
+                                      </td>
+                                      <td className="py-4 px-3 text-right text-gray-500 font-medium">
+                                        {formatTanggal(row.tanggal_bayar) || "-"}
+                                      </td>
+                                    </tr>
+                                  ))
+                                )}
+                              </tbody>
                 </table>
               </div>
             </div>
@@ -1826,22 +1806,48 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                       <div className="xl:col-span-2 flex flex-col gap-4">
                         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                           {/* Card Header inside the card for cleaner layout */}
-                          <div className="p-6 border-b border-gray-100">
-                            <h3 className="text-lg font-bold text-gray-800">Daftar Siswa Penerima</h3>
-                            <p className="text-xs text-gray-400 mt-1">Siswa yang terdaftar dalam program {activeProgram.title}.</p>
+                          <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div>
+                              <h3 className="text-lg font-bold text-gray-800">Daftar Penerima Beasiswa</h3>
+                              <p className="text-xs text-gray-400 mt-1">Siswa yang terdaftar dalam program {activeProgram.title}.</p>
+                            </div>
+                            <div className="flex items-center gap-3 w-full sm:w-auto">
+                              <div className="relative w-full sm:w-48">
+                                <span className="absolute left-3 top-2.5 text-gray-400">
+                                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.35-4.35" /></svg>
+                                </span>
+                                <input
+                                  type="text"
+                                  value={penerimaSearchQuery}
+                                  onChange={(e) => setPenerimaSearchQuery(e.target.value)}
+                                  placeholder="Cari Nama / NIS..."
+                                  className="w-full border border-gray-200 rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20"
+                                />
+                              </div>
+                              <select
+                                value={penerimaStatusFilter}
+                                onChange={(e) => setPenerimaStatusFilter(e.target.value)}
+                                className="border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#1A3D63] text-gray-600 bg-white"
+                              >
+                                <option value="Semua">Semua Status</option>
+                                <option value="Aktif">Aktif</option>
+                                <option value="Non-Aktif">Non-Aktif</option>
+                              </select>
+                            </div>
                           </div>
 
                           <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                               <thead>
-                                <tr className="bg-gray-50/50 text-gray-400 font-bold text-[10px] tracking-wider border-b border-gray-100">
-                                  <th className="py-3.5 px-4 text-center w-10">NO</th>
-                                  <th className="py-3.5 px-6">NAMA SISWA</th>
-                                  <th className="py-3.5 px-6">KELAS</th>
-                                  <th className="py-3.5 px-6">POTONGAN</th>
-                                  <th className="py-3.5 px-6">PERIODE</th>
-                                  <th className="py-3.5 px-6">STATUS</th>
-                                  <th className="py-3.5 px-6 text-right">AKSI</th>
+                                <tr className="bg-white text-gray-400 font-bold text-[10px] tracking-wider border-b border-gray-100">
+                                  <th className="py-4 px-5">NAMA SISWA</th>
+                                  <th className="py-4 px-4 text-center">NIS</th>
+                                  <th className="py-4 px-4 text-center">KELAS</th>
+                                  <th className="py-4 px-5">PROGRAM BEASISWA</th>
+                                  <th className="py-4 px-5">NOMINAL BANTUAN</th>
+                                  <th className="py-4 px-4 text-center">PERIODE</th>
+                                  <th className="py-4 px-4 text-center">STATUS</th>
+                                  <th className="py-4 px-5 text-right">AKSI</th>
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-gray-50 text-xs">
