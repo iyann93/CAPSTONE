@@ -237,6 +237,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   });
   const [isDanaFormDirty, setIsDanaFormDirty] = useState(false);
   const [showDanaCancelConfirm, setShowDanaCancelConfirm] = useState(false);
+  const [showDanaDatePicker, setShowDanaDatePicker] = useState(false);
+  const [calendarBulan, setCalendarBulan] = useState(new Date().getMonth() + 1);
+  const [calendarTahun, setCalendarTahun] = useState(new Date().getFullYear());
 
 
   // Pengaturan SPP states
@@ -267,6 +270,15 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const [komponenGajiList, setKomponenGajiList] = useState([]);
   const [siswaSearchQuery, setSiswaSearchQuery] = useState("");
   const [showSiswaDropdown, setShowSiswaDropdown] = useState(false);
+
+  // Initialize calendar when date picker opens
+  useEffect(() => {
+    if (showDanaDatePicker) {
+      const [tahun, bulan] = (newDanaForm.tanggal || new Date().toISOString().split('T')[0]).split('-').slice(0, 2);
+      setCalendarBulan(parseInt(bulan));
+      setCalendarTahun(parseInt(tahun));
+    }
+  }, [showDanaDatePicker]);
 
   // Data Loaders
   const loadKomponenSpp = useCallback(async () => {
@@ -658,6 +670,30 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     try {
       const d = new Date(dateStr);
       return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+    } catch { return dateStr; }
+  };
+
+  // Helper function: Convert YYYY-MM-DD to DD/MM/YYYY
+  const formatTanggalIndonesia = (dateStr) => {
+    if (!dateStr) return '';
+    try {
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+      return dateStr;
+    } catch { return dateStr; }
+  };
+
+  // Helper function: Convert DD/MM/YYYY to YYYY-MM-DD
+  const parseTanggalIndonesia = (dateStr) => {
+    if (!dateStr) return '';
+    try {
+      const parts = dateStr.split('/');
+      if (parts.length === 3) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+      return dateStr;
     } catch { return dateStr; }
   };
 
@@ -3061,7 +3097,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             </div>
           </div>
         );
-    }
+
+    }
   };
 
   return (
@@ -3583,12 +3620,164 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Tanggal Dana Masuk <span className="text-red-500">*</span></label>
-                  <input
-                    type="date"
-                    value={newDanaForm.tanggal}
-                    onChange={(e) => { setIsDanaFormDirty(true); setNewDanaForm({ ...newDanaForm, tanggal: e.target.value }) }}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all"
-                  />
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowDanaDatePicker(!showDanaDatePicker)}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all flex items-center justify-between hover:border-[#1A3D63]"
+                    >
+                      <span>
+                        {newDanaForm.tanggal 
+                          ? (() => {
+                              const [tahun, bulan, tanggal] = newDanaForm.tanggal.split('-');
+                              const namaBulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'][parseInt(bulan) - 1];
+                              return `${tanggal} ${namaBulan} ${tahun}`;
+                            })()
+                          : 'Pilih tanggal'
+                        }
+                      </span>
+                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-gray-400">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </button>
+
+                    {/* Calendar Popover */}
+                    {showDanaDatePicker && (() => {
+                      const [tahun, bulan, tanggal] = (newDanaForm.tanggal || new Date().toISOString().split('T')[0]).split('-');
+                      
+                      // Generate calendar dates
+                      const firstDay = new Date(calendarTahun, calendarBulan - 1, 1);
+                      const lastDay = new Date(calendarTahun, calendarBulan, 0);
+                      const daysInMonth = lastDay.getDate();
+                      const startingDayOfWeek = firstDay.getDay();
+                      
+                      const namaBulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                      const daysOfWeek = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+                      
+                      const handleSelectDate = (day) => {
+                        const newDate = `${calendarTahun}-${String(calendarBulan).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                        setNewDanaForm({ ...newDanaForm, tanggal: newDate });
+                        setShowDanaDatePicker(false);
+                        setIsDanaFormDirty(true);
+                      };
+                      
+                      const handleToday = () => {
+                        const today = new Date();
+                        const newDate = today.toISOString().split('T')[0];
+                        setNewDanaForm({ ...newDanaForm, tanggal: newDate });
+                        setCalendarBulan(today.getMonth() + 1);
+                        setCalendarTahun(today.getFullYear());
+                        setShowDanaDatePicker(false);
+                        setIsDanaFormDirty(true);
+                      };
+                      
+                      const handleClear = () => {
+                        setNewDanaForm({ ...newDanaForm, tanggal: '' });
+                        setShowDanaDatePicker(false);
+                        setIsDanaFormDirty(true);
+                      };
+                      
+                      const calendarDays = [];
+                      for (let i = 0; i < startingDayOfWeek; i++) {
+                        calendarDays.push(null);
+                      }
+                      for (let i = 1; i <= daysInMonth; i++) {
+                        calendarDays.push(i);
+                      }
+                      
+                      return (
+                        <div className="absolute top-full left-0 mt-2 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-3 w-72">
+                          {/* Month and Year Selectors */}
+                          <div className="flex gap-2 mb-3">
+                            <div className="flex-1">
+                              <label className="text-xs font-semibold text-gray-600 mb-1 block">Bulan</label>
+                              <div className="relative">
+                                <select
+                                  value={calendarBulan}
+                                  onChange={(e) => setCalendarBulan(parseInt(e.target.value))}
+                                  className="w-full border border-gray-300 rounded px-2 py-1.5 text-xs focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 bg-white text-gray-700 appearance-none cursor-pointer pr-6 font-medium"
+                                >
+                                  {namaBulan.map((m, i) => (
+                                    <option key={i} value={i + 1}>{m}</option>
+                                  ))}
+                                </select>
+                                <span className="absolute right-1.5 top-2 text-gray-400 pointer-events-none text-xs"><IconChevronDown /></span>
+                              </div>
+                            </div>
+                            
+                            <div className="flex-1">
+                              <label className="text-xs font-semibold text-gray-600 mb-1 block">Tahun</label>
+                              <div className="relative">
+                                <select
+                                  value={calendarTahun}
+                                  onChange={(e) => setCalendarTahun(parseInt(e.target.value))}
+                                  className="w-full border border-gray-300 rounded px-2 py-1.5 text-xs focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 bg-white text-gray-700 appearance-none cursor-pointer pr-6 font-medium"
+                                >
+                                  {Array.from({length: 10}, (_, i) => new Date().getFullYear() - 5 + i).map(y => (
+                                    <option key={y} value={y}>{y}</option>
+                                  ))}
+                                </select>
+                                <span className="absolute right-1.5 top-2 text-gray-400 pointer-events-none text-xs"><IconChevronDown /></span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Days of week */}
+                          <div className="grid grid-cols-7 gap-1 mb-2">
+                            {daysOfWeek.map(day => (
+                              <div key={day} className="text-center text-xs font-bold text-gray-600 py-1.5 uppercase tracking-tight">
+                                {day}
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Calendar grid */}
+                          <div className="grid grid-cols-7 gap-1 mb-3">
+                            {calendarDays.map((day, idx) => {
+                              const isToday = new Date().toISOString().split('T')[0] === `${calendarTahun}-${String(calendarBulan).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                              const isSelected = parseInt(tanggal) === day && parseInt(bulan) === calendarBulan && parseInt(tahun) === calendarTahun;
+                              
+                              return (
+                                <button
+                                  key={idx}
+                                  type="button"
+                                  onClick={() => day && handleSelectDate(day)}
+                                  disabled={!day}
+                                  className={`
+                                    w-full py-1.5 flex items-center justify-center text-xs font-semibold rounded transition-all
+                                    ${!day ? 'text-gray-200 cursor-default bg-transparent' : 'cursor-pointer hover:bg-gray-100'}
+                                    ${isSelected ? 'bg-[#1A3D63] text-white shadow-sm hover:bg-[#122A44]' : ''}
+                                    ${isToday && !isSelected ? 'border border-[#1A3D63] text-[#1A3D63] bg-blue-50' : ''}
+                                    ${!isSelected && !isToday && day ? 'text-gray-700' : ''}
+                                  `}
+                                >
+                                  {day}
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {/* Footer buttons */}
+                          <div className="border-t border-gray-200 pt-2 flex justify-between gap-2">
+                            <button
+                              type="button"
+                              onClick={handleClear}
+                              className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors bg-transparent border-none cursor-pointer px-2 py-1 rounded hover:bg-blue-50"
+                            >
+                              Clear
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleToday}
+                              className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors bg-transparent border-none cursor-pointer px-2 py-1 rounded hover:bg-blue-50"
+                            >
+                              Today
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
                 </div>
 
                 <div>
