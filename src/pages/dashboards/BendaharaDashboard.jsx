@@ -58,6 +58,12 @@ const IconCheckCircle = () => (
   </svg>
 );
 
+const IconX = () => (
+  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+  </svg>
+);
+
 const IconClock = () => (
   <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
@@ -149,6 +155,10 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const [selectedYear, setSelectedYear] = useState("2025/2026");
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [showGenerateMonthModal, setShowGenerateMonthModal] = useState(false);
+  
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [showNotificationConfirm, setShowNotificationConfirm] = useState(false);
+  const [selectedNotificationStudents, setSelectedNotificationStudents] = useState([]);
 
   const [studentsBill, setStudentsBill] = useState([]);
   const [billSearchQuery, setBillSearchQuery] = useState("");
@@ -625,8 +635,15 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
       nis.includes(billSearchQuery);
 
     if (billClassFilter === "Semua") return matchesSearch;
+    
     const targetGrade = billClassFilter.replace("Kelas ", "").trim();
-    const matchesClass = kelasFormatted.startsWith(targetGrade);
+    const getGradePart = (k) => {
+      const match = k.match(/^([IVX]+)/i);
+      return match ? match[1].toUpperCase() : k;
+    };
+    const gradePart = getGradePart(kelasFormatted);
+    const matchesClass = gradePart === targetGrade;
+    
     return matchesSearch && matchesClass;
   });
 
@@ -875,8 +892,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
         };
 
         return (
-          <div className="flex flex-col gap-6 animate-fadeIn font-sans">
-            {/* Header Area */}
+          <>
+            <div className="flex flex-col gap-6 animate-fadeIn font-sans">
+              {/* Header Area */}
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div>
                 <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Tagihan SPP Siswa</h1>
@@ -975,6 +993,16 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     })}
                   </div>
 
+                  {/* Kirim Notifikasi Button */}
+                  <button
+                    onClick={() => {
+                      setSelectedNotificationStudents([]);
+                      setShowNotificationModal(true);
+                    }}
+                    className="flex items-center justify-center bg-[#1A3D63] hover:bg-blue-900 text-white border-none rounded-xl px-5 py-2 text-xs font-bold cursor-pointer transition-all active:scale-95 shadow-sm"
+                  >
+                    Kirim Notifikasi
+                  </button>
 
                 </div>
               </div>
@@ -1033,6 +1061,166 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               </div>
             </div>
           </div>
+
+            {/* MODAL KIRIM NOTIFIKASI */}
+            {showNotificationModal && (() => {
+              const belumLunasList = filteredBills.filter(b => b.status !== "Lunas" && b.status?.toLowerCase() !== "lunas");
+              const allSelected = belumLunasList.length > 0 && selectedNotificationStudents.length === belumLunasList.length;
+
+              const handleSelectAll = () => {
+                if (allSelected) {
+                  setSelectedNotificationStudents([]);
+                } else {
+                  setSelectedNotificationStudents(belumLunasList.map(b => b.id || b.nis || b.siswa_nama || b.name));
+                }
+              };
+
+              const handleSelectStudent = (id) => {
+                if (selectedNotificationStudents.includes(id)) {
+                  setSelectedNotificationStudents(prev => prev.filter(studentId => studentId !== id));
+                } else {
+                  setSelectedNotificationStudents(prev => [...prev, id]);
+                }
+              };
+
+              return (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                  <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
+                    <div className="p-5 sm:p-6 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0 z-10">
+                      <div>
+                        <h2 className="text-lg sm:text-xl font-bold text-gray-800">Kirim Notifikasi Tagihan SPP</h2>
+                        <p className="text-xs sm:text-sm text-gray-500 mt-1">Tahun Ajaran: {selectedYear} | Kelas: {billClassFilter}</p>
+                      </div>
+                      <button onClick={() => { setShowNotificationModal(false); setSelectedNotificationStudents([]); }} className="p-2 hover:bg-gray-100 rounded-full transition-colors border-none bg-transparent cursor-pointer">
+                        <IconX />
+                      </button>
+                    </div>
+                    
+                    <div className="p-5 sm:p-6 flex-1 overflow-y-auto bg-gray-50/50">
+                      {belumLunasList.length === 0 ? (
+                        <div className="text-center py-12">
+                          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-50 text-emerald-500 mb-4">
+                            <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                          </div>
+                          <h3 className="text-lg font-bold text-gray-800">Semua Lunas!</h3>
+                          <p className="text-gray-500 text-sm mt-2">Tidak ada siswa yang menunggak sesuai filter aktif.</p>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-4">
+                          {/* Control Bar */}
+                          <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                            <label className="flex items-center gap-3 cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                checked={allSelected} 
+                                onChange={handleSelectAll}
+                                className="w-5 h-5 rounded border-gray-300 text-[#1A3D63] focus:ring-[#1A3D63] cursor-pointer"
+                              />
+                              <span className="text-sm font-bold text-gray-800">Pilih Semua Siswa</span>
+                            </label>
+                            <span className="text-sm font-bold text-[#1A3D63] bg-blue-50 px-3 py-1 rounded-lg">
+                              {selectedNotificationStudents.length} Siswa Terpilih
+                            </span>
+                          </div>
+
+                          {/* Student List */}
+                          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                            <table className="w-full text-left border-collapse">
+                              <thead className="bg-gray-50/80">
+                                <tr className="border-b border-gray-200 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                                  <th className="py-3 px-4 w-12 text-center">PILIH</th>
+                                  <th className="py-3 px-4">Nama Siswa</th>
+                                  <th className="py-3 px-4">Kelas</th>
+                                  <th className="py-3 px-4">Periode</th>
+                                  <th className="py-3 px-4 text-right">Nominal Tagihan</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-100 text-sm">
+                                {belumLunasList.map((row, idx) => {
+                                  const rowId = row.id || row.nis || row.siswa_nama || row.name;
+                                  const isSelected = selectedNotificationStudents.includes(rowId);
+                                  return (
+                                    <tr key={idx} className={`hover:bg-blue-50/30 transition-colors cursor-pointer ${isSelected ? 'bg-blue-50/50' : ''}`} onClick={() => handleSelectStudent(rowId)}>
+                                      <td className="py-3 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+                                        <input 
+                                          type="checkbox" 
+                                          checked={isSelected}
+                                          onChange={() => handleSelectStudent(rowId)}
+                                          className="w-4 h-4 rounded border-gray-300 text-[#1A3D63] focus:ring-[#1A3D63] cursor-pointer"
+                                        />
+                                      </td>
+                                      <td className="py-3 px-4 font-bold text-gray-800">{row.siswa_nama || row.name || "-"}</td>
+                                      <td className="py-3 px-4 text-gray-600">{formatKelas(row.nama_kelas || row.class)}</td>
+                                      <td className="py-3 px-4 text-gray-600 font-medium">{formatBulan(row.bulan, row.tahun) || "-"}</td>
+                                      <td className="py-3 px-4 text-right font-bold text-emerald-600">Rp {Number(row.nominal || 0).toLocaleString('id-ID')}</td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-5 sm:p-6 border-t border-gray-100 flex items-center justify-end bg-white sticky bottom-0 z-10">
+                      <div className="flex gap-3">
+                        <button 
+                          onClick={() => { setShowNotificationModal(false); setSelectedNotificationStudents([]); }}
+                          className="px-5 py-2.5 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 border-none cursor-pointer transition-colors text-[13px]"
+                        >
+                          Batal
+                        </button>
+                        <button 
+                          disabled={selectedNotificationStudents.length === 0 || belumLunasList.length === 0}
+                          onClick={() => setShowNotificationConfirm(true)}
+                          className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-white bg-[#1A3D63] hover:bg-blue-900 border-none cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#1A3D63] text-[13px] shadow-sm"
+                        >
+                          Kirim Sekarang ({selectedNotificationStudents.length})
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* MODAL KONFIRMASI KIRIM NOTIFIKASI */}
+            {showNotificationConfirm && (
+              <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+                <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 animate-fadeIn">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="w-16 h-16 rounded-full bg-blue-50 text-[#1A3D63] flex items-center justify-center mb-4">
+                      <IconAlertCircle />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">Konfirmasi Pengiriman</h3>
+                    <p className="text-gray-500 text-sm mb-6">
+                      Apakah Anda yakin ingin mengirim notifikasi tagihan SPP ke <span className="font-bold text-gray-800">{selectedNotificationStudents.length} siswa</span> terpilih? Notifikasi akan dikirimkan ke WhatsApp orang tua/wali siswa.
+                    </p>
+                    <div className="flex gap-3 w-full">
+                      <button 
+                        onClick={() => setShowNotificationConfirm(false)}
+                        className="flex-1 py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 border-none cursor-pointer transition-colors"
+                      >
+                        Batal
+                      </button>
+                      <button 
+                        onClick={() => {
+                          triggerToast(`Berhasil mengirim notifikasi ke ${selectedNotificationStudents.length} siswa!`);
+                          setShowNotificationConfirm(false);
+                          setShowNotificationModal(false);
+                          setSelectedNotificationStudents([]);
+                        }}
+                        className="flex-1 py-3 rounded-xl font-bold text-white bg-[#1A3D63] hover:bg-blue-900 border-none cursor-pointer transition-all shadow-sm"
+                      >
+                        Ya, Kirim
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
         );
 
       case "Pengaturan SPP":
@@ -1961,12 +2149,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     <IconChevronDown />
                   </div>
                 </div>
-                <button
-                  onClick={() => triggerToast("Mengirim notifikasi tagihan massal...")}
-                  className="flex items-center gap-1.5 bg-[#EF4444] hover:bg-[#DC2626] text-white border-none rounded-xl px-4 sm:px-5 py-2.5 text-xs sm:text-[13px] font-bold cursor-pointer transition-all active:scale-95 shadow-sm"
-                >
-                  <IconPlus /> Kirim Notifikasi Massal
-                </button>
               </div>
             </div>
 
