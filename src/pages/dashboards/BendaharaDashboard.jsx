@@ -666,7 +666,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     <BarChart data={sppRecapData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                       <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} dy={10} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} domain={[0, 34]} ticks={[0, 10, 20, 34]} />
+                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} domain={[0, 34]} ticks={[0, 8, 16, 24, 32, 34]} />
                       <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
                       <Bar dataKey="Lunas" fill="#22c55e" radius={[4, 4, 0, 0]} barSize={20} />
                       <Bar dataKey="Belum" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={20} />
