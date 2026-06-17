@@ -31,12 +31,90 @@ const ManageUsers = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   
+  // Users List with LocalStorage
+  const [usersList, setUsersList] = useState(() => {
+    const saved = localStorage.getItem("users_list");
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { console.error(e); }
+    }
+    return MOCK_USERS;
+  });
+
+  useEffect(() => {
+    localStorage.setItem("users_list", JSON.stringify(usersList));
+  }, [usersList]);
+
+  // Form State
+  const [formData, setFormData] = useState({
+    name: "", user: "", email: "", role: "Siswa", nip: "", status: "Aktif"
+  });
+
+  useEffect(() => {
+    if (view === "edit" && selectedUser) {
+      setFormData({
+        name: selectedUser.name || "",
+        user: selectedUser.user || "",
+        email: selectedUser.email || "",
+        role: selectedUser.role || "Siswa",
+        nip: selectedUser.nip || "",
+        status: selectedUser.status || "Aktif"
+      });
+    } else if (view === "add") {
+      setFormData({ name: "", user: "", email: "", role: "Siswa", nip: "", status: "Aktif" });
+    }
+  }, [view, selectedUser]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = () => {
+    if (!formData.name || !formData.email) {
+      alert("Nama dan Email wajib diisi");
+      return;
+    }
+    const roleColors = {
+      "Siswa": { roleColor: "bg-[#F8FAFC]", roleText: "text-[#374151]" },
+      "Admin Global": { roleColor: "bg-[#1A3D63]/10", roleText: "text-[#1A3D63]" },
+      "Guru": { roleColor: "bg-[#EFF6FF]", roleText: "text-[#1D4ED8]" },
+      "Staff TU": { roleColor: "bg-[#F5F3FF]", roleText: "text-[#7C3AED]" },
+      "Bendahara": { roleColor: "bg-[#5EE9B5]/10", roleText: "text-[#2B8B67]" },
+      "Wakil Kepala": { roleColor: "bg-[#FFFBEB]", roleText: "text-[#D97706]" }
+    };
+    const colors = roleColors[formData.role] || { roleColor: "bg-gray-100", roleText: "text-gray-600" };
+    const getInitials = (name) => {
+      const parts = name.split(" ");
+      return (parts[0][0] + (parts[1] ? parts[1][0] : "")).toUpperCase();
+    };
+
+    if (view === "add") {
+      const newUser = {
+        id: Date.now(),
+        ...formData,
+        ...colors,
+        lastLogin: "Belum login",
+        initials: getInitials(formData.name)
+      };
+      setUsersList([newUser, ...usersList]);
+    } else {
+      setUsersList(usersList.map(u => u.id === selectedUser.id ? { ...u, ...formData, ...colors, initials: getInitials(formData.name) } : u));
+    }
+    setView("list");
+  };
+
+  const handleDelete = (id) => {
+    if (window.confirm("Hapus pengguna ini?")) {
+      setUsersList(usersList.filter(u => u.id !== id));
+    }
+  };
+
   // Reset Password Modal State
   const [showResetModal, setShowResetModal] = useState(false);
   const [userForReset, setUserForReset] = useState(null);
   const [resetMethod, setResetMethod] = useState("email");
 
-  const filteredUsers = MOCK_USERS.filter(u => 
+  const filteredUsers = usersList.filter(u => 
     u.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
     u.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -75,7 +153,7 @@ const ManageUsers = () => {
             >
               Batal
             </button>
-            <button onClick={() => setView("list")} className="flex items-center gap-2 bg-[#1A3D63] hover:bg-[#122A44] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-[#1A3D63]/20 transition-all">
+            <button onClick={handleSave} className="flex items-center gap-2 bg-[#1A3D63] hover:bg-[#122A44] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-[#1A3D63]/20 transition-all">
               <SaveIcon />
               {isAdd ? "Simpan Pengguna" : "Simpan Perubahan"}
             </button>
@@ -99,8 +177,10 @@ const ManageUsers = () => {
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Nama Lengkap</label>
                 <input
                   type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
                   placeholder="Masukkan nama lengkap pengguna..."
-                  defaultValue={!isAdd && selectedUser ? selectedUser.name : ""}
                   className="w-full px-4 py-3 bg-white border border-gray-200 focus:border-[#1A3D63] rounded-xl text-sm text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:ring-1 focus:ring-[#1A3D63]"
                 />
               </div>
@@ -108,8 +188,10 @@ const ManageUsers = () => {
                 <label className="block text-sm font-bold text-gray-700 mb-2">Username</label>
                 <input
                   type="text"
+                  name="user"
+                  value={formData.user}
+                  onChange={handleChange}
                   placeholder="contoh: budi.santoso"
-                  defaultValue={!isAdd && selectedUser ? selectedUser.user : ""}
                   className="w-full px-4 py-3 bg-white border border-gray-200 focus:border-[#1A3D63] rounded-xl text-sm font-semibold text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:ring-1 focus:ring-[#1A3D63]"
                 />
               </div>
@@ -117,20 +199,22 @@ const ManageUsers = () => {
                 <label className="block text-sm font-bold text-gray-700 mb-2">Email</label>
                 <input
                   type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
                   placeholder="contoh: budi@sch.id"
-                  defaultValue={!isAdd && selectedUser ? selectedUser.email : ""}
                   className="w-full px-4 py-3 bg-white border border-gray-200 focus:border-[#1A3D63] rounded-xl text-sm font-semibold text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:ring-1 focus:ring-[#1A3D63]"
                 />
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">Pilih Role (Hak Akses)</label>
                 <div className="relative">
-                  <select className="w-full appearance-none px-4 py-3 bg-white border border-gray-200 focus:border-[#1A3D63] rounded-xl text-sm font-semibold text-gray-800 outline-none transition-all cursor-pointer focus:ring-1 focus:ring-[#1A3D63]">
-                    <option value="" disabled selected={isAdd}>Pilih peran/role...</option>
-                    <option selected={!isAdd && selectedUser?.role === "Admin Global"}>Admin Global</option>
-                    <option selected={!isAdd && selectedUser?.role === "Siswa"}>Siswa</option>
-                    <option selected={!isAdd && selectedUser?.role === "Guru"}>Guru</option>
-                    <option selected={!isAdd && selectedUser?.role === "Staff TU"}>Staff TU</option>
+                  <select name="role" value={formData.role} onChange={handleChange} className="w-full appearance-none px-4 py-3 bg-white border border-gray-200 focus:border-[#1A3D63] rounded-xl text-sm font-semibold text-gray-800 outline-none transition-all cursor-pointer focus:ring-1 focus:ring-[#1A3D63]">
+                    <option value="" disabled>Pilih peran/role...</option>
+                    <option value="Admin Global">Admin Global</option>
+                    <option value="Siswa">Siswa</option>
+                    <option value="Guru">Guru</option>
+                    <option value="Staff TU">Staff TU</option>
                   </select>
                   <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
                     <ChevronDownIcon />
@@ -141,8 +225,10 @@ const ManageUsers = () => {
                 <label className="block text-sm font-bold text-gray-700 mb-2">Nomor Identitas (Opsional)</label>
                 <input
                   type="text"
+                  name="nip"
+                  value={formData.nip}
+                  onChange={handleChange}
                   placeholder="NIP / NISN..."
-                  defaultValue={!isAdd && selectedUser ? selectedUser.nip : ""}
                   className="w-full px-4 py-3 bg-white border border-gray-200 focus:border-[#1A3D63] rounded-xl text-sm font-semibold text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:ring-1 focus:ring-[#1A3D63]"
                 />
               </div>
@@ -251,11 +337,11 @@ const ManageUsers = () => {
               <h3 className="text-base font-bold text-gray-800">Status Pengguna</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <label className="flex items-start gap-3 p-4 rounded-xl border-2 border-[#1A3D63] bg-blue-50/20 cursor-pointer">
-                <div className="mt-0.5 shrink-0 w-4 h-4 rounded-full border-2 border-[#1A3D63] flex items-center justify-center">
-                  <div className="w-2 h-2 rounded-full bg-[#1A3D63]"></div>
+              <label className={`flex items-start gap-3 p-4 rounded-xl border ${formData.status === 'Aktif' ? 'border-2 border-[#1A3D63] bg-blue-50/20' : 'border border-gray-200 bg-white hover:border-gray-300'} cursor-pointer transition-colors`}>
+                <div className={`mt-0.5 shrink-0 w-4 h-4 rounded-full border-2 ${formData.status === 'Aktif' ? 'border-[#1A3D63] flex items-center justify-center' : 'border-gray-300'}`}>
+                  {formData.status === 'Aktif' && <div className="w-2 h-2 rounded-full bg-[#1A3D63]"></div>}
                 </div>
-                <input type="radio" name="status" className="hidden" defaultChecked />
+                <input type="radio" name="status" value="Aktif" checked={formData.status === "Aktif"} onChange={handleChange} className="hidden" />
                 <div>
                   <p className="text-sm font-bold text-gray-800">{isAdd ? "Aktif (Segera)" : "Aktif"}</p>
                   <p className="text-xs text-gray-500 mt-1 leading-relaxed">
@@ -263,9 +349,11 @@ const ManageUsers = () => {
                   </p>
                 </div>
               </label>
-              <label className="flex items-start gap-3 p-4 rounded-xl border border-gray-200 cursor-pointer bg-white hover:border-gray-300 transition-colors">
-                <div className="mt-0.5 shrink-0 w-4 h-4 rounded-full border-2 border-gray-300"></div>
-                <input type="radio" name="status" className="hidden" />
+              <label className={`flex items-start gap-3 p-4 rounded-xl border ${formData.status === 'Nonaktif' ? 'border-2 border-[#1A3D63] bg-blue-50/20' : 'border border-gray-200 bg-white hover:border-gray-300'} cursor-pointer transition-colors`}>
+                <div className={`mt-0.5 shrink-0 w-4 h-4 rounded-full border-2 ${formData.status === 'Nonaktif' ? 'border-[#1A3D63] flex items-center justify-center' : 'border-gray-300'}`}>
+                  {formData.status === 'Nonaktif' && <div className="w-2 h-2 rounded-full bg-[#1A3D63]"></div>}
+                </div>
+                <input type="radio" name="status" value="Nonaktif" checked={formData.status === "Nonaktif"} onChange={handleChange} className="hidden" />
                 <div>
                   <p className="text-sm font-bold text-gray-800">{isAdd ? "Menunggu Verifikasi" : "Nonaktifkan Akun"}</p>
                   <p className="text-xs text-gray-500 mt-1 leading-relaxed">
@@ -397,7 +485,7 @@ const ManageUsers = () => {
                       <button className="hover:text-gray-600 transition-colors p-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
                       <button onClick={() => openResetModal(user)} className="hover:text-orange-500 transition-colors p-1"><KeyIcon /></button>
                       <button onClick={() => handleEditClick(user)} className="hover:text-blue-600 transition-colors p-1"><EditIcon /></button>
-                      <button className="hover:text-red-500 transition-colors p-1"><TrashIcon /></button>
+                      <button onClick={() => handleDelete(user.id)} className="hover:text-red-500 transition-colors p-1"><TrashIcon /></button>
                     </div>
                   </td>
                 </tr>

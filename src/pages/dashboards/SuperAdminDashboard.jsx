@@ -235,7 +235,10 @@ const MassActivationModal = ({ onClose }) => {
           </button>
           <button 
             onClick={() => {
-              alert("Aktivasi massal berhasil disetujui!");
+              const msg = sendEmail 
+                ? "Sebanyak 24 akun dengan status Pending berhasil diaktifkan secara massal. Email pemberitahuan telah berhasil dikirimkan ke masing-masing pengguna."
+                : "Sebanyak 24 akun dengan status Pending berhasil diaktifkan secara massal (tanpa pengiriman email pemberitahuan).";
+              alert(msg);
               onClose();
             }}
             className="bg-[#059669] hover:bg-[#047857] text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-md shadow-emerald-600/10 hover:shadow-emerald-600/20 active:scale-[0.98] transition-all flex items-center gap-1.5"
@@ -385,6 +388,7 @@ const ActivationModule = () => {
   const [activeTab, setActiveTab] = useState("Pending");
   const [showMassActivationModal, setShowMassActivationModal] = useState(false);
   const [reactivateUser, setReactivateUser] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const pendingUsers = [
     { name: "Bambang Supriyadi", email: "bambang.sup@gmail.com", id: "USR-1201", user: "ortu.andi", role: "Orang Tua", date: "Hari ini, 09:12", status: "Pending", initials: "BA" },
@@ -574,15 +578,20 @@ const ActivationModule = () => {
             Menampilkan 1-{filteredUsers.length} dari {activeTab === "Pending" ? "24 akun pending" : "156 akun nonaktif"}
           </span>
           <div className="flex items-center gap-2">
-            <button className="px-3 py-1.5 text-xs font-semibold text-gray-400 hover:text-gray-700 transition-colors">
+            <button 
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              className={`px-3 py-1.5 text-xs font-semibold transition-colors ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-gray-700'}`}
+              disabled={currentPage === 1}
+            >
               Sebelumnya
             </button>
             <div className="flex items-center gap-1">
               {[1, 2, 3].map(p => (
                 <button 
                   key={p} 
+                  onClick={() => setCurrentPage(p)}
                   className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                    p === 1 
+                    p === currentPage 
                       ? "bg-[#1A3D63] text-white shadow-sm" 
                       : "text-gray-500 hover:bg-white hover:border-gray-200 border border-transparent"
                   }`}
@@ -592,7 +601,10 @@ const ActivationModule = () => {
               ))}
               <span className="text-gray-300 mx-1">...</span>
             </div>
-            <button className="px-3 py-1.5 text-xs font-semibold text-gray-750 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-all">
+            <button 
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, 3))}
+              className="px-3 py-1.5 text-xs font-semibold text-gray-750 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-all"
+            >
               Selanjutnya
             </button>
           </div>
