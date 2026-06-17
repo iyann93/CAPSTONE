@@ -218,6 +218,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   // Dana Beasiswa States
   const [danaBeasiswaList, setDanaBeasiswaList] = useState([]);
   const [showAddDanaModal, setShowAddDanaModal] = useState(false);
+  const [showKelolaDanaModal, setShowKelolaDanaModal] = useState(false);
   const [newDanaForm, setNewDanaForm] = useState({
     sumber: "",
     nominal: "",
@@ -1574,10 +1575,10 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   </span>
                 </div>
                 <button
-                  onClick={() => { setIsDanaFormDirty(false); setShowAddDanaModal(true); }}
+                  onClick={() => setShowKelolaDanaModal(true)}
                   className="bg-[#1A3D63] text-white font-bold text-sm px-4 py-2.5 rounded-xl cursor-pointer border-none hover:bg-[#122A44] transition-all flex items-center shadow-sm"
                 >
-                  Tambah Dana Beasiswa
+                  Kelola Dana
                 </button>
                 <button
                   onClick={() => { setIsProgramFormDirty(false); setShowAddProgramModal(true); }}
@@ -3271,11 +3272,82 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
         </div>
       )}
 
+      {showKelolaDanaModal && (
+        <div className="fixed inset-0 z-[998] flex items-center justify-center p-4 md:p-6 lg:p-10">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowKelolaDanaModal(false)} />
+          <div className="bg-white rounded-[24px] p-0 w-full max-w-4xl relative z-10 shadow-2xl animate-scaleUp font-sans border border-gray-100 flex flex-col overflow-hidden max-h-[90vh]">
+            <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100 shrink-0 bg-white">
+              <div>
+                <h2 className="text-lg font-bold text-gray-800">Kelola Dana Beasiswa</h2>
+                <p className="text-xs text-gray-500 mt-0.5">Riwayat dana beasiswa yang masuk</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => { setIsDanaFormDirty(false); setShowAddDanaModal(true); }}
+                  className="bg-[#1A3D63] text-white font-bold text-xs px-4 py-2 rounded-xl cursor-pointer border-none hover:bg-[#122A44] transition-all flex items-center shadow-sm"
+                >
+                  Tambah Dana Beasiswa
+                </button>
+                <button onClick={() => setShowKelolaDanaModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors cursor-pointer border-none">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto bg-gray-50/30 p-6">
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50/80 border-b border-gray-200 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                        <th className="py-3 px-4 w-[120px]">TANGGAL</th>
+                        <th className="py-3 px-4 w-[130px]">SUMBER</th>
+                        <th className="py-3 px-4">KETERANGAN</th>
+                        <th className="py-3 px-4 text-right w-[140px]">NOMINAL</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 text-[11px]">
+                      {danaBeasiswaList.length === 0 ? (
+                        <tr>
+                          <td colSpan="4" className="py-10 text-center text-gray-400 font-medium">
+                            <div className="flex flex-col items-center justify-center gap-2">
+                              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818.879-.659c1.546-1.16 3.86-1.16 5.405 0l.879.66M8.25 12h7.5m-8.25-2.818.879-.66c1.546-1.159 3.86-1.159 5.405 0l.879.66" /></svg>
+                              Belum ada riwayat dana masuk.
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        danaBeasiswaList.map((dana, idx) => (
+                          <tr key={dana.id || idx} className="hover:bg-gray-50/50 transition-colors">
+                            <td className="py-4 px-4 font-semibold text-gray-600">{formatTanggal(dana.tanggal)}</td>
+                            <td className="py-4 px-4">
+                              <span className="bg-blue-50 text-blue-600 border border-blue-100 px-2 py-1 rounded-md text-[10px] font-bold">
+                                {dana.sumber}
+                              </span>
+                            </td>
+                            <td className="py-4 px-4 text-gray-600 truncate max-w-[200px]" title={dana.keterangan}>
+                              {dana.keterangan || "-"}
+                            </td>
+                            <td className="py-4 px-4 font-bold text-emerald-600 text-right">
+                              Rp {Number(dana.nominal).toLocaleString('id-ID')}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showAddDanaModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-6 md:p-10">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCancelDana} />
           <div className="bg-white rounded-[24px] p-5 sm:p-6 max-w-lg w-full relative z-10 shadow-2xl animate-scaleUp font-sans border border-gray-100 flex flex-col">
-            <div className="flex justify-between items-center mb-4 shrink-0">
+            <div className="flex justify-between items-center mb-6 shrink-0">
               <h2 className="text-lg font-bold text-gray-800">Tambah Dana Masuk</h2>
               <button onClick={handleCancelDana} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors cursor-pointer border-none">
                 <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -3343,9 +3415,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               </div>
             </div>
 
-            <div className="mt-6 pt-3 border-t border-gray-100 flex justify-end gap-3 shrink-0">
-              <button onClick={handleCancelDana} className="px-5 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer border-none bg-transparent">Batal</button>
-              <button onClick={handleSaveDana} className="bg-[#1A3D63] hover:bg-[#122A44] text-white py-2 px-6 rounded-xl text-sm font-bold cursor-pointer border-none shadow-md transition-all active:scale-95 flex items-center gap-2"
+            <div className="mt-6 pt-5 border-t border-gray-100 flex justify-end items-center gap-4 shrink-0">
+              <button onClick={handleCancelDana} className="text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors cursor-pointer border-none bg-transparent">Batal</button>
+              <button onClick={handleSaveDana} className="bg-[#1A3D63] hover:bg-[#122A44] text-white py-2.5 px-6 rounded-xl text-sm font-bold cursor-pointer border-none shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
               >
                 Simpan Dana
               </button>
