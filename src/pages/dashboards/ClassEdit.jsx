@@ -1,6 +1,26 @@
-import React from "react";
+import React, { useState } from "react";
 
-const ClassEdit = ({ setView }) => {
+const ClassEdit = ({ setView, initialData, onSave }) => {
+  const [editForm, setEditForm] = useState(initialData || {
+    id: Date.now(),
+    code: "X-IPA-1",
+    name: "Kelas X IPA 1",
+    desc: "",
+    level: "Kelas X",
+    major: "IPA",
+    teacher: "Ibu Sari Dewi, S.Pd",
+    capacity: 36,
+    students: 32,
+    room: "Ruang 101",
+    status: "Aktif",
+    year: "2023/2024",
+    semester: "Ganjil"
+  });
+
+  const handleSave = () => {
+    if (onSave) onSave(editForm);
+  };
+
   return (
     <div className="p-6 md:p-8 animate-fadeIn font-sans bg-[#F4F6FA] min-h-full">
       <div className="text-[13px] font-medium text-gray-500 mb-4">
@@ -18,9 +38,9 @@ const ClassEdit = ({ setView }) => {
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-[26px] font-bold text-[#1e293b] leading-tight">Edit Kelas</h1>
-              <span className="text-[13px] text-gray-400 font-bold uppercase tracking-wider">X-IPA-1</span>
+              <span className="text-[13px] text-gray-400 font-bold uppercase tracking-wider">{editForm.code}</span>
             </div>
-            <p className="text-[14px] text-gray-500 mt-1">Anda sedang mengubah data Kelas X IPA 1. Perubahan akan berpengaruh pada jadwal dan rapor semester yang berjalan.</p>
+            <p className="text-[14px] text-gray-500 mt-1">Anda sedang mengubah data {editForm.name}. Perubahan akan berpengaruh pada jadwal dan rapor semester yang berjalan.</p>
           </div>
         </div>
         <button className="bg-white border border-red-200 text-red-500 hover:bg-red-50 px-5 py-2.5 rounded-xl font-bold text-[13px] shadow-sm transition-all flex items-center gap-2">
@@ -38,18 +58,18 @@ const ClassEdit = ({ setView }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-2">Kode Kelas<span className="text-red-500">*</span></label>
-                <input type="text" defaultValue="X-IPA-1" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
+                <input type="text" value={editForm.code} onChange={e => setEditForm({...editForm, code: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
                 <p className="text-[11px] text-gray-400 mt-1.5">Kode unik, tidak boleh sama dengan kelas lain</p>
               </div>
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-2">Nama Kelas<span className="text-red-500">*</span></label>
-                <input type="text" defaultValue="Kelas X IPA 1" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
+                <input type="text" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
               </div>
             </div>
 
             <div>
               <label className="block text-[13px] font-bold text-gray-700 mb-2">Deskripsi</label>
-              <textarea rows="3" placeholder="Deskripsi kelas (opsional)" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-[#F8FAFC]"></textarea>
+              <textarea rows="3" value={editForm.desc} onChange={e => setEditForm({...editForm, desc: e.target.value})} placeholder="Deskripsi kelas (opsional)" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-[#F8FAFC]"></textarea>
             </div>
           </div>
 
@@ -60,14 +80,14 @@ const ClassEdit = ({ setView }) => {
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-2">Tingkat Kelas<span className="text-red-500">*</span></label>
                 <div className="flex gap-2">
-                  <button className="flex-1 py-3 text-[13px] font-bold rounded-xl border border-[#3B82F6] text-white bg-[#3B82F6]">Kelas X</button>
-                  <button className="flex-1 py-3 text-[13px] font-bold rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50">Kelas XI</button>
-                  <button className="flex-1 py-3 text-[13px] font-bold rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50">Kelas XII</button>
+                  {["Kelas X", "Kelas XI", "Kelas XII"].map(t => (
+                    <button key={t} onClick={() => setEditForm({...editForm, level: t})} className={`flex-1 py-3 text-[13px] font-bold rounded-xl border ${editForm.level === t ? 'border-[#3B82F6] text-white bg-[#3B82F6]' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>{t}</button>
+                  ))}
                 </div>
               </div>
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-2">Jurusan / Program<span className="text-red-500">*</span></label>
-                <input type="text" defaultValue="IPA" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
+                <input type="text" value={editForm.major} onChange={e => setEditForm({...editForm, major: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
               </div>
             </div>
           </div>
@@ -78,22 +98,22 @@ const ClassEdit = ({ setView }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-2">Ruangan<span className="text-red-500">*</span></label>
-                <input type="text" defaultValue="Ruang 101" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
+                <input type="text" value={editForm.room} onChange={e => setEditForm({...editForm, room: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
               </div>
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-2">Kapasitas Siswa</label>
-                <input type="number" defaultValue="36" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
+                <input type="number" value={editForm.capacity} onChange={e => setEditForm({...editForm, capacity: parseInt(e.target.value)})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-2">Tahun Ajaran</label>
-                <input type="text" defaultValue="2023/2024" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
+                <input type="text" value={editForm.year} onChange={e => setEditForm({...editForm, year: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
               </div>
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-2">Semester</label>
-                <input type="text" defaultValue="Ganjil" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
+                <input type="text" value={editForm.semester} onChange={e => setEditForm({...editForm, semester: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
               </div>
             </div>
           </div>
@@ -146,14 +166,16 @@ const ClassEdit = ({ setView }) => {
             </div>
             
             <div className="bg-[#F8FAFC] border border-gray-200 rounded-xl p-4 mb-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-[#818CF8] text-white flex items-center justify-center font-bold text-sm">IS</div>
+              <div className="w-10 h-10 rounded-full bg-[#818CF8] text-white flex items-center justify-center font-bold text-sm">
+                {editForm.teacher ? editForm.teacher.substring(0,2).toUpperCase() : "WK"}
+              </div>
               <div>
-                <div className="text-[13px] font-bold text-[#1e293b]">Ibu Sari Dewi, S.Pd</div>
-                <div className="text-[11px] text-gray-500">Matematika</div>
+                <div className="text-[13px] font-bold text-[#1e293b]">{editForm.teacher}</div>
+                <div className="text-[11px] text-gray-500">Guru Utama</div>
               </div>
             </div>
 
-            <input type="text" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700" />
+            <input type="text" value={editForm.teacher} onChange={e => setEditForm({...editForm, teacher: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700" />
           </div>
 
           <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-sm">
@@ -163,8 +185,8 @@ const ClassEdit = ({ setView }) => {
                 <div className="text-[14px] font-bold text-[#1e293b]">Aktif</div>
                 <div className="text-[11px] text-gray-400">Kelas dapat digunakan dalam jadwal</div>
               </div>
-              <div className="w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors bg-[#3B82F6]">
-                <div className="bg-white w-4 h-4 rounded-full shadow-md transform transition-transform translate-x-6"></div>
+              <div onClick={() => setEditForm({...editForm, status: editForm.status === 'Aktif' ? 'Nonaktif' : 'Aktif'})} className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors ${editForm.status === 'Aktif' ? 'bg-[#3B82F6]' : 'bg-gray-300'}`}>
+                <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${editForm.status === 'Aktif' ? 'translate-x-6' : 'translate-x-0'}`}></div>
               </div>
             </div>
           </div>
@@ -182,13 +204,13 @@ const ClassEdit = ({ setView }) => {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-[13px] text-gray-500">Jumlah Siswa</span>
-                <span className="text-[13px] text-[#1e293b] font-medium">32 siswa</span>
+                <span className="text-[13px] text-[#1e293b] font-medium">{editForm.students} siswa</span>
               </div>
             </div>
           </div>
 
           <div className="space-y-3">
-            <button className="w-full py-3.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl text-[14px] font-bold transition-colors flex items-center justify-center gap-2 shadow-sm">
+            <button onClick={handleSave} className="w-full py-3.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl text-[14px] font-bold transition-colors flex items-center justify-center gap-2 shadow-sm">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
               Simpan Perubahan
             </button>

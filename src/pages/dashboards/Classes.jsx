@@ -40,20 +40,80 @@ const MOCK_CLASSES = [
 ];
 
 const Classes = () => {
+  const [classes, setClasses] = useState(() => {
+    const saved = localStorage.getItem("classes_data");
+    if (saved) {
+      try { return JSON.parse(saved); } catch(e){}
+    }
+    return MOCK_CLASSES;
+  });
+
+  React.useEffect(() => {
+    localStorage.setItem("classes_data", JSON.stringify(classes));
+  }, [classes]);
+
   const [view, setView] = useState("list"); // list, add, detail, edit
   const [activeTab, setActiveTab] = useState("Semua Tingkat");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedClass, setSelectedClass] = useState(null);
+
   
   // Add form state
+  const [addForm, setAddForm] = useState({
+    code: "", name: "", desc: "", major: "IPA", room: "", capacity: 36, year: "2023/2024", semester: "Ganjil", teacher: ""
+  });
   const [level, setLevel] = useState("Kelas X");
   const [isActive, setIsActive] = useState(true);
+
+  const handleExport = () => {
+    const headers = ["ID", "KODE", "NAMA KELAS", "TINGKAT", "JURUSAN", "WALI KELAS", "SISWA", "KAPASITAS", "RUANGAN", "STATUS"];
+    const rows = classes.map(c => [c.id, c.code, c.name, c.level, c.major, c.teacher, c.students, c.capacity, c.room, c.status]);
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "daftar_kelas.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleSaveAdd = () => {
+    if (!addForm.code || !addForm.name) {
+      alert("Kode dan Nama Kelas wajib diisi!");
+      return;
+    }
+    const newClass = {
+      id: Date.now(),
+      code: addForm.code,
+      name: addForm.name,
+      level: level,
+      major: addForm.major || "Umum",
+      teacher: addForm.teacher || "Belum Ditentukan",
+      students: 0,
+      capacity: parseInt(addForm.capacity) || 36,
+      room: addForm.room || "TBA",
+      status: isActive ? "Aktif" : "Nonaktif"
+    };
+    setClasses([newClass, ...classes]);
+    setView("list");
+  };
+
+  const handleDelete = (id) => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus kelas ini?")) {
+      setClasses(prev => prev.filter(c => c.id !== id));
+    }
+  };
 
   if (view === "detail") {
     return <ClassDetail setView={setView} />;
   }
 
   if (view === "edit") {
-    return <ClassEdit setView={setView} />;
+    return <ClassEdit setView={setView} initialData={selectedClass} onSave={(updatedData) => {
+      setClasses(prev => prev.map(c => c.id === updatedData.id ? updatedData : c));
+      setView("list");
+    }} />;
   }
 
   if (view === "add") {
@@ -87,18 +147,18 @@ const Classes = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
                 <div>
                   <label className="block text-[13px] font-bold text-gray-700 mb-2">Kode Kelas<span className="text-red-500">*</span></label>
-                  <input type="text" placeholder="cth. X-IPA-1" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
+                  <input type="text" value={addForm.code} onChange={(e) => setAddForm({...addForm, code: e.target.value})} placeholder="cth. X-IPA-1" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
                   <p className="text-[11px] text-gray-400 mt-1.5">Kode unik untuk mengidentifikasi kelas</p>
                 </div>
                 <div>
                   <label className="block text-[13px] font-bold text-gray-700 mb-2">Nama Kelas<span className="text-red-500">*</span></label>
-                  <input type="text" placeholder="cth. Kelas X IPA 1" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
+                  <input type="text" value={addForm.name} onChange={(e) => setAddForm({...addForm, name: e.target.value})} placeholder="cth. Kelas X IPA 1" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
                 </div>
               </div>
 
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-2">Deskripsi</label>
-                <textarea rows="3" placeholder="Deskripsi singkat tentang kelas ini (opsional)" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]"></textarea>
+                <textarea rows="3" value={addForm.desc} onChange={(e) => setAddForm({...addForm, desc: e.target.value})} placeholder="Deskripsi singkat tentang kelas ini (opsional)" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]"></textarea>
               </div>
             </div>
 
@@ -123,7 +183,7 @@ const Classes = () => {
                 </div>
                 <div>
                   <label className="block text-[13px] font-bold text-gray-700 mb-2">Jurusan / Program<span className="text-red-500">*</span></label>
-                  <input type="text" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
+                  <input type="text" value={addForm.major} onChange={(e) => setAddForm({...addForm, major: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
                 </div>
               </div>
             </div>
@@ -135,22 +195,22 @@ const Classes = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
                 <div>
                   <label className="block text-[13px] font-bold text-gray-700 mb-2">Ruangan<span className="text-red-500">*</span></label>
-                  <input type="text" placeholder="cth. Ruang 101" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
+                  <input type="text" value={addForm.room} onChange={(e) => setAddForm({...addForm, room: e.target.value})} placeholder="cth. Ruang 101" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
                 </div>
                 <div>
                   <label className="block text-[13px] font-bold text-gray-700 mb-2">Kapasitas Siswa</label>
-                  <input type="number" defaultValue="36" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
+                  <input type="number" value={addForm.capacity} onChange={(e) => setAddForm({...addForm, capacity: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-[13px] font-bold text-gray-700 mb-2">Tahun Ajaran</label>
-                  <input type="text" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
+                  <input type="text" value={addForm.year} onChange={(e) => setAddForm({...addForm, year: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
                 </div>
                 <div>
                   <label className="block text-[13px] font-bold text-gray-700 mb-2">Semester</label>
-                  <input type="text" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
+                  <input type="text" value={addForm.semester} onChange={(e) => setAddForm({...addForm, semester: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
                 </div>
               </div>
             </div>
@@ -180,7 +240,7 @@ const Classes = () => {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                 <p className="text-[12px]">Pilih wali kelas dari daftar di bawah</p>
               </div>
-              <input type="text" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700" />
+              <input type="text" value={addForm.teacher} onChange={(e) => setAddForm({...addForm, teacher: e.target.value})} placeholder="Nama Wali Kelas" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700" />
             </div>
 
             {/* Status Kelas */}
@@ -213,7 +273,7 @@ const Classes = () => {
 
             {/* Action Buttons */}
             <div className="space-y-3">
-              <button 
+              <button onClick={handleSaveAdd}
                 className="w-full py-3.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl text-[14px] font-bold transition-colors flex items-center justify-center gap-2 shadow-sm"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
@@ -246,7 +306,7 @@ const Classes = () => {
           <p className="text-[14px] text-gray-500 mt-1">Kelola data kelas, wali kelas, dan informasi ruangan belajar siswa.</p>
         </div>
         <div className="flex gap-3">
-          <button className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-5 py-2.5 rounded-xl font-bold text-[13px] shadow-sm transition-all flex items-center gap-2">
+          <button onClick={handleExport} className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-5 py-2.5 rounded-xl font-bold text-[13px] shadow-sm transition-all flex items-center gap-2">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             Ekspor Daftar
           </button>
@@ -370,7 +430,10 @@ const Classes = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {MOCK_CLASSES.map((item, idx) => (
+              {classes.filter(item => 
+                (activeTab === "Semua Tingkat" || item.level === activeTab) &&
+                (item.name.toLowerCase().includes(searchQuery.toLowerCase()) || item.code.toLowerCase().includes(searchQuery.toLowerCase()) || item.teacher.toLowerCase().includes(searchQuery.toLowerCase()))
+              ).map((item, idx) => (
                 <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-6 py-4 text-[13px] text-gray-500 font-medium">{item.id}</td>
                   <td className="px-6 py-4 text-[13px] font-bold text-gray-500">{item.code}</td>
@@ -413,13 +476,13 @@ const Classes = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-center gap-2">
-                      <button onClick={() => setView("detail")} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                      <button onClick={() => { setSelectedClass(item); setView("detail"); }} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                       </button>
-                      <button onClick={() => setView("edit")} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                      <button onClick={() => { setSelectedClass(item); setView("edit"); }} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                       </button>
-                      <button className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors">
+                      <button onClick={() => handleDelete(item.id)} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                       </button>
                     </div>
