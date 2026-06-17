@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import ManageUsers from "./ManageUsers";
 import Profile from "../Profile";
+import { getPendingUsers, activateUser, deactivateUser, getAuditLogs } from "../../api/system";
 
 // Icons
 const IconUsers = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>;
@@ -235,10 +236,7 @@ const MassActivationModal = ({ onClose }) => {
           </button>
           <button 
             onClick={() => {
-              const msg = sendEmail 
-                ? "Sebanyak 24 akun dengan status Pending berhasil diaktifkan secara massal. Email pemberitahuan telah berhasil dikirimkan ke masing-masing pengguna."
-                : "Sebanyak 24 akun dengan status Pending berhasil diaktifkan secara massal (tanpa pengiriman email pemberitahuan).";
-              alert(msg);
+              alert("Aktivasi massal berhasil disetujui!");
               onClose();
             }}
             className="bg-[#059669] hover:bg-[#047857] text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-md shadow-emerald-600/10 hover:shadow-emerald-600/20 active:scale-[0.98] transition-all flex items-center gap-1.5"
@@ -388,27 +386,71 @@ const ActivationModule = () => {
   const [activeTab, setActiveTab] = useState("Pending");
   const [showMassActivationModal, setShowMassActivationModal] = useState(false);
   const [reactivateUser, setReactivateUser] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [allUsers, setAllUsers] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [toast, setToast] = useState(null);
 
-  const pendingUsers = [
-    { name: "Bambang Supriyadi", email: "bambang.sup@gmail.com", id: "USR-1201", user: "ortu.andi", role: "Orang Tua", date: "Hari ini, 09:12", status: "Pending", initials: "BA" },
-    { name: "Citra Kirana", email: "citra.k@siswa.sch.id", id: "USR-1202", user: "citra.k", role: "Siswa", date: "Kemarin, 14:30", status: "Pending", initials: "CI" },
-    { name: "Ahmad Ridwan", email: "ahmad.ridwan@sch.id", id: "USR-0754", user: "ahmad.ridwan", role: "Wakil Kepala", date: "12 Okt 2026", status: "Nonaktif", initials: "Ae" },
-    { name: "Dedi Kurniawan", email: "dedi.k@guru.sch.id", id: "USR-0622", user: "dedi.k", role: "Guru Mapel", date: "05 Okt 2026", status: "Nonaktif", initials: "ME" },
-  ];
+  const triggerToast = (msg, type = 'success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
-  const nonaktifUsers = [
-    { name: "Ahmad Ridwan", email: "ahmad.ridwan@sch.id", id: "USR-0754", user: "ahmad.ridwan", role: "Wakil Kepala", date: "12 Okt 2026", status: "Nonaktif", initials: "AH" },
-    { name: "Dedi Kurniawan", email: "dedi.k@guru.sch.id", id: "USR-0622", user: "dedi.k", role: "Guru Mapel", date: "05 Okt 2026", status: "Nonaktif", initials: "DE" },
-    { name: "Siti Aminah", email: "siti.a@siswa.sch.id", id: "USR-0511", user: "siti.a", role: "Siswa", date: "28 Sep 2026", status: "Nonaktif", initials: "SI" },
-    { name: "Budi Santoso", email: "budi.s@gmail.com", id: "USR-0405", user: "budi.s", role: "Orang Tua", date: "15 Sep 2026", status: "Nonaktif", initials: "BU" },
-    { name: "Fajar Hidayat", email: "fajar.h@siswa.sch.id", id: "USR-0399", user: "fajar.h", role: "Siswa", date: "10 Sep 2026", status: "Nonaktif", initials: "FA" },
-  ];
+  const loadUsers = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const rows = await getPendingUsers();
+      setAllUsers(Array.isArray(rows) ? rows : []);
+    } catch (e) {
+      console.error('loadUsers:', e);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-  const filteredUsers = activeTab === "Pending" ? pendingUsers : nonaktifUsers;
+  useEffect(() => { loadUsers(); }, [loadUsers]);
+
+  const handleActivate = async (userId, userName) => {
+    try {
+      await activateUser(userId);
+      triggerToast(`Akun ${userName} berhasil diaktifkan!`);
+      loadUsers();
+    } catch (e) {
+      triggerToast('Gagal mengaktifkan akun', 'error');
+    }
+  };
+
+  const handleDeactivate = async (userId, userName) => {
+    try {
+      await deactivateUser(userId);
+      triggerToast(`Akun ${userName} berhasil dinonaktifkan!`);
+      loadUsers();
+    } catch (e) {
+      triggerToast('Gagal menonaktifkan akun', 'error');
+    }
+  };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '-';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+  };
+
+  const getInitials = (nama) => {
+    if (!nama) return '?';
+    return nama.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
+  };
+
+  const filteredUsers = allUsers;
 
   return (
     <div className="flex flex-col gap-6 animate-fadeIn">
+      {/* Toast */}
+      {toast && (
+        <div className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl text-white text-sm font-bold shadow-xl ${
+          toast.type === 'error' ? 'bg-red-500' : 'bg-emerald-500'
+        }`}>{toast.msg}</div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -426,35 +468,16 @@ const ActivationModule = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Menunggu Persetujuan */}
+        {/* Menunggu Persetujuan / Nonaktif */}
         <div 
-          onClick={() => setActiveTab("Pending")}
-          className={`bg-white rounded-2xl p-5 border flex items-center gap-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer select-none ${
-            activeTab === "Pending" ? "border-orange-200 ring-1 ring-orange-50/50" : "border-gray-100/80 hover:border-orange-100"
-          }`}
+          className={`bg-white rounded-2xl p-5 border flex items-center gap-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer select-none border-orange-200 ring-1 ring-orange-50/50`}
         >
           <div className="w-14 h-14 rounded-full bg-[#FFF7ED] flex items-center justify-center text-orange-500 flex-shrink-0">
              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
           </div>
           <div>
-            <div className="text-gray-500 text-sm font-medium mb-1">Menunggu Persetujuan</div>
-            <div className="text-3xl font-bold text-gray-800 leading-none">24</div>
-          </div>
-        </div>
-
-        {/* Akun Nonaktif */}
-        <div 
-          onClick={() => setActiveTab("Nonaktif")}
-          className={`bg-white rounded-2xl p-5 border flex items-center gap-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer select-none ${
-            activeTab === "Nonaktif" ? "border-red-200 ring-1 ring-red-50/50" : "border-gray-100/80 hover:border-red-100"
-          }`}
-        >
-          <div className="w-14 h-14 rounded-full bg-[#FEF2F2] flex items-center justify-center text-red-500 flex-shrink-0">
-             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><line x1="17" y1="8" x2="22" y2="13" /><line x1="22" y1="8" x2="17" y2="13" /></svg>
-          </div>
-          <div>
             <div className="text-gray-500 text-sm font-medium mb-1">Akun Nonaktif</div>
-            <div className="text-3xl font-bold text-gray-800 leading-none">156</div>
+            <div className="text-3xl font-bold text-gray-800 leading-none">{isLoading ? '...' : allUsers.length}</div>
           </div>
         </div>
 
@@ -464,8 +487,22 @@ const ActivationModule = () => {
              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><polyline points="16 11 18 13 22 9" /></svg>
           </div>
           <div>
-            <div className="text-gray-500 text-sm font-medium mb-1">Aktivasi Bulan Ini</div>
-            <div className="text-3xl font-bold text-gray-800 leading-none">89</div>
+            <div className="text-gray-500 text-sm font-medium mb-1">Aksi: Aktifkan / Nonaktifkan</div>
+            <div className="text-xl font-bold text-gray-600 leading-none">Pilih dari tabel</div>
+          </div>
+        </div>
+
+        {/* Refresh */}
+        <div 
+          onClick={loadUsers}
+          className="bg-white rounded-2xl p-5 border border-gray-100/80 flex items-center gap-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
+        >
+          <div className="w-14 h-14 rounded-full bg-[#EFF6FF] flex items-center justify-center text-blue-500 flex-shrink-0">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" /></svg>
+          </div>
+          <div>
+            <div className="text-gray-500 text-sm font-medium mb-1">Refresh Data</div>
+            <div className="text-sm font-bold text-blue-500 leading-none">Klik untuk reload</div>
           </div>
         </div>
       </div>
@@ -513,61 +550,58 @@ const ActivationModule = () => {
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50/50">
-                <th className="px-6 py-4 text-left"><input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#1A3D63] focus:ring-[#1A3D63]/20" /></th>
+                <th className="px-6 py-4 text-left"></th>
                 <th className="px-4 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Pengguna & Email</th>
-                <th className="px-4 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Username / ID</th>
                 <th className="px-4 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Role</th>
-                <th className="px-4 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Tanggal Request / Nonaktif</th>
+                <th className="px-4 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Tgl. Daftar</th>
                 <th className="px-4 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-4 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredUsers.map((u, i) => (
-                <tr key={i} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4"><input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#1A3D63] focus:ring-[#1A3D63]/20" /></td>
-                  <td className="px-4 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-[#F1F5F9] flex items-center justify-center text-xs font-bold text-[#475569]">
-                        {u.initials}
+              {isLoading ? (
+                <tr><td colSpan={6} className="text-center py-10 text-gray-400">Memuat data...</td></tr>
+              ) : filteredUsers.length === 0 ? (
+                <tr><td colSpan={6} className="text-center py-10 text-gray-400">Tidak ada akun nonaktif</td></tr>
+              ) : (
+                filteredUsers.map((u, i) => (
+                  <tr key={u.id || i} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="px-6 py-4"></td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[#F1F5F9] flex items-center justify-center text-xs font-bold text-[#475569]">
+                          {getInitials(u.nama)}
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-gray-800 leading-tight">{u.nama}</span>
+                          <span className="text-xs text-gray-400 font-medium mt-0.5">{u.email}</span>
+                        </div>
                       </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-gray-800 leading-tight">{u.name}</span>
-                        <span className="text-xs text-gray-400 font-medium mt-0.5">{u.email}</span>
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className="px-2.5 py-1 bg-[#F1F5F9] text-gray-700 rounded-md text-xs font-medium">
+                        {u.roles || '-'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 text-sm text-gray-500">{formatDate(u.created_at)}</td>
+                    <td className="px-4 py-4">
+                      <div className="flex items-center gap-1.5 text-red-600">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                        <span className="text-sm font-semibold">Nonaktif</span>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-semibold text-gray-700">{u.user}</span>
-                      <span className="text-[10px] text-gray-450 font-bold uppercase tracking-wider mt-0.5">{u.id}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4">
-                    <span className="px-2.5 py-1 bg-[#F1F5F9] text-gray-700 rounded-md text-xs font-medium">
-                      {u.role}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 text-sm text-gray-500">
-                    {u.date}
-                  </td>
-                  <td className="px-4 py-4">
-                    <div className="flex items-center gap-1.5 text-red-600">
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                      <span className="text-sm font-semibold">{u.status}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button 
-                      onClick={() => setReactivateUser(u)}
-                      className="inline-flex items-center gap-1.5 bg-[#F8FAFC] hover:bg-gray-100 text-gray-750 px-3.5 py-2 rounded-lg text-xs font-semibold border border-gray-200 shadow-sm transition-all active:scale-[0.98]"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0" /><line x1="12" y1="2" x2="12" y2="12" /></svg>
-                      Aktivasi Ulang
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button 
+                        onClick={() => handleActivate(u.id, u.nama)}
+                        className="inline-flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3.5 py-2 rounded-lg text-xs font-semibold border border-emerald-200 shadow-sm transition-all active:scale-[0.98]"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                        Aktifkan
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
@@ -575,39 +609,8 @@ const ActivationModule = () => {
         {/* Pagination */}
         <div className="px-6 py-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#F8FAFC]/30">
           <span className="text-xs text-gray-400 font-medium">
-            Menampilkan 1-{filteredUsers.length} dari {activeTab === "Pending" ? "24 akun pending" : "156 akun nonaktif"}
+            Menampilkan {filteredUsers.length} akun nonaktif
           </span>
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              className={`px-3 py-1.5 text-xs font-semibold transition-colors ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:text-gray-700'}`}
-              disabled={currentPage === 1}
-            >
-              Sebelumnya
-            </button>
-            <div className="flex items-center gap-1">
-              {[1, 2, 3].map(p => (
-                <button 
-                  key={p} 
-                  onClick={() => setCurrentPage(p)}
-                  className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
-                    p === currentPage 
-                      ? "bg-[#1A3D63] text-white shadow-sm" 
-                      : "text-gray-500 hover:bg-white hover:border-gray-200 border border-transparent"
-                  }`}
-                >
-                  {p}
-                </button>
-              ))}
-              <span className="text-gray-300 mx-1">...</span>
-            </div>
-            <button 
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, 3))}
-              className="px-3 py-1.5 text-xs font-semibold text-gray-750 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-all"
-            >
-              Selanjutnya
-            </button>
-          </div>
         </div>
       </div>
       {showMassActivationModal && <MassActivationModal onClose={() => setShowMassActivationModal(false)} />}
@@ -3026,21 +3029,33 @@ const LogAktivitasModule = () => {
   const [filterAction, setFilterAction] = useState("Semua");
   const [filterUser, setFilterUser] = useState("");
   const [dateRange, setDateRange] = useState("Hari Ini");
+  const [logs, setLogs] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const logs = [
-    { id: "LOG-9201", user: "budi.admin", role: "Admin Global", action: "LOGIN", detail: "Login berhasil dari IP 192.168.1.105", time: "Hari ini, 08:32", type: "info" },
-    { id: "LOG-9200", user: "superadmin", role: "Super Admin", action: "USER_EDIT", detail: "Mengubah role 'Eko Prasetyo' dari Guru menjadi Wali Kelas", time: "Hari ini, 08:15", type: "warning" },
-    { id: "LOG-9199", user: "sri.wahyuni", role: "Guru", action: "LOGIN", detail: "Login berhasil dari IP 10.0.0.22", time: "Hari ini, 08:10", type: "info" },
-    { id: "LOG-9198", user: "superadmin", role: "Super Admin", action: "BACKUP", detail: "Backup manual 'Manual_Pre_Update_v2.1' berhasil dibuat (1.15 GB)", time: "Kemarin, 14:30", type: "success" },
-    { id: "LOG-9197", user: "budi.admin", role: "Admin Global", action: "USER_CREATE", detail: "Membuat akun baru: 'bambang.sup' (Guru Mapel)", time: "Kemarin, 11:20", type: "info" },
-    { id: "LOG-9196", user: "superadmin", role: "Super Admin", action: "ROLE_CHANGE", detail: "Mengubah permission role 'Admin TU' — modul Keuangan dinonaktifkan", time: "Kemarin, 10:05", type: "warning" },
-    { id: "LOG-9195", user: "dr.wahyu", role: "Staff TU", action: "LOGIN_FAILED", detail: "Percobaan login gagal (3x) — akun sementara dikunci", time: "Kemarin, 09:47", type: "error" },
-    { id: "LOG-9194", user: "system", role: "SYSTEM", action: "BACKUP", detail: "Backup otomatis harian berhasil (Full_Backup_System_v2, 1.2 GB)", time: "Kemarin, 02:00", type: "success" },
-    { id: "LOG-9193", user: "siti.aminah", role: "Bendahara", action: "DATA_EXPORT", detail: "Mengekspor laporan keuangan semester genap ke Excel", time: "2 hari lalu, 15:30", type: "info" },
-    { id: "LOG-9192", user: "superadmin", role: "Super Admin", action: "USER_DELETE", detail: "Menonaktifkan akun 'ahmad.ridwan' (Wakil Kepala)", time: "3 hari lalu, 09:00", type: "error" },
-  ];
+  const loadLogs = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const rows = await getAuditLogs();
+      setLogs(Array.isArray(rows) ? rows : []);
+    } catch (e) {
+      console.error('loadLogs:', e);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-  const actionTypes = ["Semua", "LOGIN", "LOGIN_FAILED", "USER_CREATE", "USER_EDIT", "USER_DELETE", "ROLE_CHANGE", "BACKUP", "DATA_EXPORT"];
+  useEffect(() => { loadLogs(); }, [loadLogs]);
+
+  const actionTypes = ["Semua", "LOGIN", "LOGOUT", "CREATE", "UPDATE", "DELETE", "EXPORT"];
+
+  const getLogType = (aksi) => {
+    if (!aksi) return 'info';
+    const a = aksi.toUpperCase();
+    if (a.includes('DELETE') || a.includes('GAGAL') || a.includes('FAILED') || a.includes('ERROR')) return 'error';
+    if (a.includes('UPDATE') || a.includes('CHANGE') || a.includes('EDIT')) return 'warning';
+    if (a.includes('LOGIN') || a.includes('EXPORT') || a.includes('CREATE')) return 'info';
+    return 'success';
+  };
 
   const typeConfig = {
     info:    { bg: "bg-blue-50",    text: "text-blue-600",   dot: "bg-blue-500"   },
@@ -3049,17 +3064,25 @@ const LogAktivitasModule = () => {
     error:   { bg: "bg-red-50",     text: "text-red-600",    dot: "bg-red-500"    },
   };
 
+  const formatLogTime = (dateStr) => {
+    if (!dateStr) return '-';
+    const d = new Date(dateStr);
+    return d.toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
+
   const filteredLogs = logs.filter(l => {
-    const matchAction = filterAction === "Semua" || l.action === filterAction;
-    const matchUser = !filterUser || l.user.toLowerCase().includes(filterUser.toLowerCase()) || l.detail.toLowerCase().includes(filterUser.toLowerCase());
+    const matchAction = filterAction === "Semua" || (l.aksi || '').toUpperCase() === filterAction;
+    const matchUser = !filterUser ||
+      (l.user_name || '').toLowerCase().includes(filterUser.toLowerCase()) ||
+      (l.detail || '').toLowerCase().includes(filterUser.toLowerCase());
     return matchAction && matchUser;
   });
 
   const stats = [
-    { label: "Total Events", value: "2,841", sub: "Hari ini", color: "text-[#1A3D63]", bg: "bg-blue-50" },
-    { label: "Login Berhasil", value: "142", sub: "Pengguna aktif", color: "text-green-600", bg: "bg-green-50" },
-    { label: "Login Gagal", value: "3", sub: "Perlu perhatian", color: "text-red-500", bg: "bg-red-50" },
-    { label: "Perubahan Data", value: "18", sub: "Hari ini", color: "text-amber-600", bg: "bg-amber-50" },
+    { label: "Total Events", value: logs.length.toLocaleString(), sub: "Dari database", color: "text-[#1A3D63]", bg: "bg-blue-50" },
+    { label: "Login", value: logs.filter(l => (l.aksi||'').toUpperCase() === 'LOGIN').length, sub: "Tercatat", color: "text-green-600", bg: "bg-green-50" },
+    { label: "Error/Delete", value: logs.filter(l => ['DELETE','ERROR','FAILED'].some(k => (l.aksi||'').toUpperCase().includes(k))).length, sub: "Perlu perhatian", color: "text-red-500", bg: "bg-red-50" },
+    { label: "Perubahan Data", value: logs.filter(l => ['UPDATE','CREATE','EDIT'].some(k => (l.aksi||'').toUpperCase().includes(k))).length, sub: "Update/Create", color: "text-amber-600", bg: "bg-amber-50" },
   ];
 
   return (
@@ -3152,41 +3175,55 @@ const LogAktivitasModule = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50/80">
-              {filteredLogs.map((log) => {
-                const t = typeConfig[log.type];
-                return (
-                  <tr key={log.id} className="hover:bg-gray-50/50 transition-colors group">
-                    <td className="px-8 py-5">
-                      <span className="text-[11px] font-mono font-bold text-gray-400">{log.id}</span>
-                    </td>
-                    <td className="px-4 py-5">
-                      <div>
-                        <div className="text-sm font-bold text-gray-800">{log.user}</div>
-                        <div className="text-xs text-gray-400 font-medium mt-0.5">{log.role}</div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-5">
-                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-black uppercase tracking-wide ${t.bg} ${t.text}`}>
-                        <div className={`w-1.5 h-1.5 rounded-full ${t.dot}`}></div>
-                        {log.action.replace(/_/g, ' ')}
-                      </span>
-                    </td>
-                    <td className="px-4 py-5 max-w-sm">
-                      <p className="text-sm font-medium text-gray-600 leading-snug">{log.detail}</p>
-                    </td>
-                    <td className="px-8 py-5 text-right">
-                      <span className="text-sm font-semibold text-gray-500">{log.time}</span>
-                    </td>
-                  </tr>
-                );
-              })}
+              {isLoading ? (
+                <tr><td colSpan={5} className="text-center py-10 text-gray-400">Memuat log...</td></tr>
+              ) : filteredLogs.length === 0 ? (
+                <tr><td colSpan={5} className="text-center py-10 text-gray-400">Tidak ada log yang cocok</td></tr>
+              ) : (
+                filteredLogs.map((log) => {
+                  const t = typeConfig[getLogType(log.aksi)];
+                  return (
+                    <tr key={log.id} className="hover:bg-gray-50/50 transition-colors group">
+                      <td className="px-8 py-5">
+                        <span className="text-[11px] font-mono font-bold text-gray-400">{String(log.id).slice(0,8).toUpperCase()}</span>
+                      </td>
+                      <td className="px-4 py-5">
+                        <div>
+                          <div className="text-sm font-bold text-gray-800">{log.user_name || 'System'}</div>
+                          <div className="text-xs text-gray-400 font-medium mt-0.5">{log.user_email || ''}</div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-5">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-black uppercase tracking-wide ${t.bg} ${t.text}`}>
+                          <div className={`w-1.5 h-1.5 rounded-full ${t.dot}`}></div>
+                          {(log.aksi || '').replace(/_/g, ' ')}
+                        </span>
+                      </td>
+                      <td className="px-4 py-5 max-w-sm">
+                        <p className="text-sm font-medium text-gray-600 leading-snug">{log.detail}</p>
+                        {log.ip_address && <span className="text-xs text-gray-400">IP: {log.ip_address}</span>}
+                      </td>
+                      <td className="px-8 py-5 text-right">
+                        <span className="text-sm font-semibold text-gray-500">{formatLogTime(log.created_at)}</span>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
 
         {/* Footer Pagination */}
         <div className="px-8 py-5 border-t border-gray-50 flex items-center justify-between bg-gray-50/30">
-          <span className="text-xs font-black text-gray-400 uppercase tracking-tight">Menampilkan {filteredLogs.length} dari 2,841 log</span>
+          <span className="text-xs font-black text-gray-400 uppercase tracking-tight">Menampilkan {filteredLogs.length} dari {logs.length} log</span>
+          <button
+            onClick={loadLogs}
+            className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-gray-50 transition-all"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" /></svg>
+            Refresh
+          </button>
           <div className="flex items-center gap-2">
             <button className="px-4 py-2 text-xs font-black text-gray-500 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all shadow-sm">← Prev</button>
             {[1, 2, 3].map(p => (

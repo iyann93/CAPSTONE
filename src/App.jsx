@@ -5,7 +5,6 @@ import TopBar from "./components/TopBar";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
-import SiswaDashboard from "./pages/dashboards/SiswaDashboard";
 import SuperAdminDashboard from "./pages/dashboards/SuperAdminDashboard";
 import PlaceholderDashboard from "./pages/dashboards/PlaceholderDashboard";
 import BendaharaDashboard from "./pages/dashboards/BendaharaDashboard";
@@ -142,8 +141,7 @@ const App = () => {
         return <AdminTUDashboard user={user} activeMenu={activeMenu} />;
       case "Super Admin":
         return <SuperAdminDashboard user={user} activeMenu={activeMenu} />;
-      case "Siswa":
-        return <SiswaDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
+
       case "Bendahara":
         return <BendaharaDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
       default:
