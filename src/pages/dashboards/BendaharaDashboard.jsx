@@ -222,6 +222,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
   // Actual Program State
   const [showAddProgramModal, setShowAddProgramModal] = useState(false);
+  const [editingProgramTitle, setEditingProgramTitle] = useState(null);
+  const [isSavingProgram, setIsSavingProgram] = useState(false);
   const [programList, setProgramList] = useState([]);
   const [newProgramForm, setNewProgramForm] = useState({
     nama: "",
@@ -254,6 +256,10 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     tanggalSelesai: ""
   });
 
+  const [isBeasiswaFormDirty, setIsBeasiswaFormDirty] = useState(false);
+  const [showBeasiswaCancelConfirm, setShowBeasiswaCancelConfirm] = useState(false);
+  const [isSavingBeasiswa, setIsSavingBeasiswa] = useState(false);
+
   // Dana Beasiswa States
   const [danaBeasiswaList, setDanaBeasiswaList] = useState([]);
   const [showAddDanaModal, setShowAddDanaModal] = useState(false);
@@ -266,9 +272,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   });
   const [isDanaFormDirty, setIsDanaFormDirty] = useState(false);
   const [showDanaCancelConfirm, setShowDanaCancelConfirm] = useState(false);
-  const [showDanaDatePicker, setShowDanaDatePicker] = useState(false);
-  const [calendarBulan, setCalendarBulan] = useState(new Date().getMonth() + 1);
-  const [calendarTahun, setCalendarTahun] = useState(new Date().getFullYear());
 
 
   // Pengaturan SPP states
@@ -277,10 +280,10 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const [editingSppId, setEditingSppId] = useState(null);
   const [editSppAmount, setEditSppAmount] = useState("");
   const [editSppDenda, setEditSppDenda] = useState("");
-  const [globalSppBerlaku, setGlobalSppBerlaku] = useState("2025-07-01");
-  const [globalSppJatuhTempo, setGlobalSppJatuhTempo] = useState("2025-07-10");
-  const [editGlobalSppBerlaku, setEditGlobalSppBerlaku] = useState("2025-07-01");
-  const [editGlobalSppJatuhTempo, setEditGlobalSppJatuhTempo] = useState("2025-07-10");
+  const [globalSppBerlaku, setGlobalSppBerlaku] = useState(() => localStorage.getItem("globalSppBerlaku") || "2025-07-01");
+  const [globalSppJatuhTempo, setGlobalSppJatuhTempo] = useState(() => localStorage.getItem("globalSppJatuhTempo") || "2025-07-10");
+  const [editGlobalSppBerlaku, setEditGlobalSppBerlaku] = useState(() => localStorage.getItem("globalSppBerlaku") || "2025-07-01");
+  const [editGlobalSppJatuhTempo, setEditGlobalSppJatuhTempo] = useState(() => localStorage.getItem("globalSppJatuhTempo") || "2025-07-10");
   const [isEditingGlobalJadwal, setIsEditingGlobalJadwal] = useState(false);
   const [editSppGrade, setEditSppGrade] = useState("");
   const [editSppTa, setEditSppTa] = useState("");
@@ -300,15 +303,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const [siswaSearchQuery, setSiswaSearchQuery] = useState("");
   const [showSiswaDropdown, setShowSiswaDropdown] = useState(false);
   const [openKomponenMenu, setOpenKomponenMenu] = useState(null);
-
-  // Initialize calendar when date picker opens
-  useEffect(() => {
-    if (showDanaDatePicker) {
-      const [tahun, bulan] = (newDanaForm.tanggal || new Date().toISOString().split('T')[0]).split('-').slice(0, 2);
-      setCalendarBulan(parseInt(bulan));
-      setCalendarTahun(parseInt(tahun));
-    }
-  }, [showDanaDatePicker]);
 
   // Data Loaders
   const loadKomponenSpp = useCallback(async () => {
@@ -369,10 +363,82 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     }
   }, []);
 
+  // ── localStorage helpers for program persistence ──────────────────────────
+  const LS_KEY = 'capstone_program_beasiswa';
+  const saveProgramsToStorage = (programs) => {
+    try {
+      // Only save program metadata (no penerima list) to keep storage light
+      const meta = programs.map(({ penerima: _p, ...rest }) => rest);
+      localStorage.setItem(LS_KEY, JSON.stringify(meta));
+    } catch (_) {}
+  };
+  const loadProgramsFromStorage = () => {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (_) { return []; }
+  };
+
   const loadBeasiswa = useCallback(async () => {
     try {
       const rows = await getBeasiswa();
-      setBeasiswaList(Array.isArray(rows) ? rows : []);
+      const beasiswaData = Array.isArray(rows) ? rows : [];
+      setBeasiswaList(beasiswaData);
+
+      // Group recipients from backend by nama_beasiswa
+      const grouped = {};
+      beasiswaData.forEach(b => {
+        if (!grouped[b.nama_beasiswa]) {
+          grouped[b.nama_beasiswa] = { penerima: [] };
+        }
+        grouped[b.nama_beasiswa].penerima.push({
+          id: b.id,
+          siswa_id: b.siswa_id,
+          siswa_nama: b.siswa_nama,
+          nis: b.nis,
+          nama_kelas: b.nama_kelas || b.kelas || "-",
+          nama_beasiswa: b.nama_beasiswa,
+          nominal: b.nominal,
+          periode: b.periode,
+          status: b.status,
+          tanggal_mulai: b.tanggal_mulai,
+          tanggal_selesai: b.tanggal_selesai
+        });
+      });
+
+      setProgramList(prev => {
+        // Start from saved programs (localStorage), then add any new programs
+        // found only in backend (no metadata saved yet)
+        const base = prev.length > 0 ? [...prev] : loadProgramsFromStorage().map(p => ({ ...p, penerima: [] }));
+
+        // Merge penerima from backend
+        const merged = base.map(prog => ({
+          ...prog,
+          penerima: grouped[prog.title]?.penerima || prog.penerima || []
+        }));
+
+        // Add programs only known from backend (edge case: someone added via different client)
+        Object.keys(grouped).forEach(namaBeasiswa => {
+          if (!merged.find(p => p.title === namaBeasiswa)) {
+            merged.push({
+              title: namaBeasiswa,
+              subtitle: "2025/2026",
+              type: "Beasiswa",
+              sumberDana: "Sekolah",
+              amount: `Rp ${Number(grouped[namaBeasiswa].penerima[0]?.nominal || 0).toLocaleString('id-ID')}`,
+              status: "Aktif",
+              typeColor: "blue",
+              description: "",
+              quota: 0,
+              requirements: "",
+              periodePendaftaran: "-",
+              penerima: grouped[namaBeasiswa].penerima
+            });
+          }
+        });
+
+        return merged;
+      });
     } catch (e) {
       console.error("loadBeasiswa:", e);
     }
@@ -393,6 +459,14 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     jatuh_tempo: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-10`
   });
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Seed programList from localStorage on first mount (before API call resolves)
+  useEffect(() => {
+    const stored = loadProgramsFromStorage();
+    if (stored.length > 0) {
+      setProgramList(stored.map(p => ({ ...p, penerima: [] })));
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     loadKomponenSpp();
@@ -456,31 +530,81 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   };
 
   const handleSaveProgram = () => {
-    if(!newProgramForm.nama || !newProgramForm.kategori || !newProgramForm.sumberDana || !newProgramForm.nominal || !newProgramForm.tahunAjaran || !newProgramForm.tanggalMulaiDaftar || !newProgramForm.tanggalSelesaiDaftar) {
-      triggerToast("Mohon isi seluruh field wajib bertanda *", "error");
+    const missingFields = [];
+    if (!newProgramForm.nama) missingFields.push("Nama Program");
+    if (!newProgramForm.kategori) missingFields.push("Kategori");
+    if (!newProgramForm.sumberDana) missingFields.push("Sumber Dana");
+    if (!newProgramForm.nominal) missingFields.push("Nominal Bantuan");
+    if (!newProgramForm.tahunAjaran) missingFields.push("Tahun Ajaran");
+    if (!newProgramForm.tanggalMulaiDaftar) missingFields.push("Tanggal Mulai Daftar");
+    if (!newProgramForm.tanggalSelesaiDaftar) missingFields.push("Tanggal Selesai Daftar");
+
+    if (missingFields.length > 0) {
+      triggerToast(`Gagal: Field belum lengkap (${missingFields.join(', ')})`, "error");
       return;
     }
-    const newProgram = {
-      title: newProgramForm.nama,
-      subtitle: newProgramForm.tahunAjaran,
-      type: newProgramForm.kategori,
-      sumberDana: newProgramForm.sumberDana,
-      amount: "Rp " + newProgramForm.nominal,
-      status: newProgramForm.status,
-      typeColor: "blue",
-      description: newProgramForm.deskripsi,
-      quota: newProgramForm.kuota,
-      requirements: newProgramForm.persyaratan,
-      periodePendaftaran: `${newProgramForm.tanggalMulaiDaftar} s/d ${newProgramForm.tanggalSelesaiDaftar}`,
-      penerima: []
-    };
-    setProgramList([newProgram, ...programList]);
-    setShowAddProgramModal(false);
-    setIsProgramFormDirty(false);
-    triggerToast("Program berhasil ditambahkan!");
+
+    setIsSavingProgram(true);
+    setTimeout(() => {
+      const newProgramData = {
+        title: newProgramForm.nama,
+        subtitle: newProgramForm.tahunAjaran,
+        type: newProgramForm.kategori,
+        sumberDana: newProgramForm.sumberDana,
+        amount: "Rp " + newProgramForm.nominal,
+        status: newProgramForm.status,
+        typeColor: "blue",
+        description: newProgramForm.deskripsi,
+        quota: newProgramForm.kuota,
+        requirements: newProgramForm.persyaratan,
+        periodePendaftaran: `${newProgramForm.tanggalMulaiDaftar} s/d ${newProgramForm.tanggalSelesaiDaftar}`
+      };
+
+      let updatedList;
+      if (editingProgramTitle) {
+        updatedList = programList.map(p => 
+          p.title === editingProgramTitle ? { ...p, ...newProgramData } : p
+        );
+        if (selectedProgramForView === editingProgramTitle) {
+          setSelectedProgramForView(newProgramData.title);
+        }
+      } else {
+        updatedList = [{ ...newProgramData, id: Date.now(), penerima: [] }, ...programList];
+      }
+
+      setProgramList(updatedList);
+      // Persist to localStorage so data survives logout/login
+      saveProgramsToStorage(updatedList);
+      setShowAddProgramModal(false);
+      setIsProgramFormDirty(false);
+      setEditingProgramTitle(null);
+      setIsSavingProgram(false);
+      triggerToast(editingProgramTitle ? "Program berhasil diperbarui!" : "Program berhasil ditambahkan!");
+      setNewProgramForm({
+        nama: "", kategori: "", sumberDana: "", nominal: "", kuota: "", tahunAjaran: "2025/2026", tanggalMulaiDaftar: "", tanggalSelesaiDaftar: "", deskripsi: "", persyaratan: "", status: "Aktif"
+      });
+    }, 800);
+  };
+
+  const handleEditProgram = (prog) => {
     setNewProgramForm({
-      nama: "", kategori: "", sumberDana: "", nominal: "", kuota: "", tahunAjaran: "2025/2026", tanggalMulaiDaftar: "", tanggalSelesaiDaftar: "", deskripsi: "", persyaratan: "", status: "Aktif"
+      nama: prog.title || "",
+      kategori: prog.type || "",
+      sumberDana: prog.sumberDana || "",
+      nominal: (() => {
+        let val = String(prog.amount || "").replace(/[^0-9]/g, '');
+        return val ? new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0 }).format(val) : "";
+      })(),
+      kuota: prog.quota || "",
+      tahunAjaran: prog.subtitle || "2025/2026",
+      tanggalMulaiDaftar: prog.periodePendaftaran ? prog.periodePendaftaran.split(' s/d ')[0] : "",
+      tanggalSelesaiDaftar: prog.periodePendaftaran ? prog.periodePendaftaran.split(' s/d ')[1] : "",
+      deskripsi: prog.description || "",
+      persyaratan: prog.requirements || "",
+      status: prog.status || "Aktif"
     });
+    setEditingProgramTitle(prog.title);
+    setShowAddProgramModal(true);
   };
 
   const handleCancelProgram = () => {
@@ -488,6 +612,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
       setShowProgramCancelConfirm(true);
     } else {
       setShowAddProgramModal(false);
+      setEditingProgramTitle(null);
     }
   };
 
@@ -531,115 +656,129 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
   const executeDeleteProgram = () => {
     if (programToDelete) {
-      setProgramList(programList.filter(p => p.title !== programToDelete));
+      const updatedList = programList.filter(p => p.title !== programToDelete);
+      setProgramList(updatedList);
+      // Also remove from localStorage
+      saveProgramsToStorage(updatedList);
       triggerToast("Program berhasil dihapus!");
       setProgramToDelete(null);
       setShowDeleteProgramConfirmModal(false);
     }
   };
 
+  const handleCancelBeasiswa = () => {
+    if (isBeasiswaFormDirty) {
+      setShowBeasiswaCancelConfirm(true);
+    } else {
+      setShowAddPenerimaModal(false);
+      setSelectedBeasiswa(null);
+    }
+  };
+
   const handleSaveBeasiswa = async () => {
-    if (!beasiswaForm.siswaId || !beasiswaForm.namaBeasiswa || !beasiswaForm.nominal || !beasiswaForm.periode || !beasiswaForm.tanggalMulai || !beasiswaForm.tanggalSelesai) {
+    if (!beasiswaForm.siswaId || !beasiswaForm.namaBeasiswa || !beasiswaForm.nominal || !beasiswaForm.periode || !beasiswaForm.tanggalMulai) {
       triggerToast("Mohon isi seluruh field wajib bertanda *", "error");
       return;
     }
 
-    const btn = document.getElementById("btn-simpan-beasiswa");
-    if(btn) {
-      btn.innerHTML = '<svg class="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg> Menyimpan...';
-      btn.disabled = true;
-    }
+    setIsSavingBeasiswa(true);
 
-    const payload = {
-      siswaId: beasiswaForm.siswaId,
-      namaBeasiswa: beasiswaForm.namaBeasiswa,
-      nominal: Number(beasiswaForm.nominal),
-      periode: beasiswaForm.periode,
-      status: beasiswaForm.status,
-      tanggalMulai: beasiswaForm.tanggalMulai,
-      tanggalSelesai: beasiswaForm.tanggalSelesai || null,
-    };
-
-    // Use a small timeout to show the saving state clearly for presentation
     setTimeout(async () => {
-      try {
-        if (selectedBeasiswa && selectedBeasiswa.id) {
-          await updateBeasiswa(selectedBeasiswa.id, payload);
-        } else {
-          await createBeasiswa(payload);
-        }
-      } catch (e) {
-        console.warn("API Error ignored for UI demonstration:", e);
-      }
+      const nominalClean = Number(String(beasiswaForm.nominal).replace(/[^0-9]/g, ''));
 
-      // Also update local programList penerima so UI stays in sync
-      const siswaData = siswaList.find(s => String(s.id) === String(beasiswaForm.siswaId));
-      const newPenerima = {
-        id: selectedBeasiswa?.id || Date.now(),
-        siswa_id: beasiswaForm.siswaId,
-        siswa_nama: siswaData?.nama_lengkap || "Siswa",
-        nis: siswaData?.nis || "-",
-        nama_kelas: siswaData?.nama_kelas || siswaData?.kelas || "-",
-        nama_beasiswa: beasiswaForm.namaBeasiswa,
-        nominal: Number(beasiswaForm.nominal),
+      const payload = {
+        siswaId: beasiswaForm.siswaId,
+        namaBeasiswa: beasiswaForm.namaBeasiswa,
+        nominal: nominalClean,
         periode: beasiswaForm.periode,
         status: beasiswaForm.status,
-        tanggal_mulai: beasiswaForm.tanggalMulai,
-        tanggal_selesai: beasiswaForm.tanggalSelesai || null,
+        tanggalMulai: beasiswaForm.tanggalMulai,
+        tanggalSelesai: beasiswaForm.tanggalSelesai || null,
       };
 
-      setProgramList(prev => prev.map(prog => {
-        if (prog.title === beasiswaForm.namaBeasiswa) {
-          let updatedPenerima;
-          if (selectedBeasiswa && selectedBeasiswa.id) {
-            // Edit existing
-            updatedPenerima = (prog.penerima || []).map(p =>
-              p.id === selectedBeasiswa.id ? newPenerima : p
-            );
-          } else {
-            // Add new
-            updatedPenerima = [...(prog.penerima || []), newPenerima];
+      try {
+        let savedData;
+        if (selectedBeasiswa && selectedBeasiswa.id) {
+          savedData = await updateBeasiswa(selectedBeasiswa.id, payload);
+        } else {
+          savedData = await createBeasiswa(payload);
+        }
+
+        const siswaData = siswaList.find(s => String(s.id) === String(beasiswaForm.siswaId));
+        const realId = savedData?.id || selectedBeasiswa?.id || Date.now();
+        const newPenerima = {
+          id: realId,
+          siswa_id: beasiswaForm.siswaId,
+          siswa_nama: siswaData?.nama_lengkap || "Siswa",
+          nis: siswaData?.nis || "-",
+          nama_kelas: siswaData?.nama_kelas || siswaData?.kelas || "-",
+          nama_beasiswa: beasiswaForm.namaBeasiswa,
+          nominal: nominalClean,
+          periode: beasiswaForm.periode,
+          status: beasiswaForm.status,
+          tanggal_mulai: beasiswaForm.tanggalMulai,
+          tanggal_selesai: beasiswaForm.tanggalSelesai || null,
+        };
+
+        setProgramList(prev => prev.map(prog => {
+          if (prog.title === beasiswaForm.namaBeasiswa) {
+            let updatedPenerima;
+            if (selectedBeasiswa && selectedBeasiswa.id) {
+              updatedPenerima = (prog.penerima || []).map(p =>
+                p.id === selectedBeasiswa.id ? newPenerima : p
+              );
+            } else {
+              updatedPenerima = [...(prog.penerima || []), newPenerima];
+            }
+            return { ...prog, penerima: updatedPenerima };
           }
-          return { ...prog, penerima: updatedPenerima };
-        }
-        // If editing and program changed, remove from old program
-        if (selectedBeasiswa && prog.penerima?.some(p => p.id === selectedBeasiswa.id)) {
-          return { ...prog, penerima: prog.penerima.filter(p => p.id !== selectedBeasiswa.id) };
-        }
-        return prog;
-      }));
-      
-      if(btn) {
-        btn.innerText = "Simpan Data";
-        btn.disabled = false;
+          if (selectedBeasiswa && prog.penerima?.some(p => p.id === selectedBeasiswa.id)) {
+            return { ...prog, penerima: prog.penerima.filter(p => p.id !== selectedBeasiswa.id) };
+          }
+          return prog;
+        }));
+
+        setIsSavingBeasiswa(false);
+        triggerToast(selectedBeasiswa ? "Penerima beasiswa berhasil diperbarui!" : "Penerima beasiswa berhasil ditambahkan!");
+        loadBeasiswa();
+        setShowAddPenerimaModal(false);
+        setIsBeasiswaFormDirty(false);
+        setSelectedBeasiswa(null);
+      } catch (e) {
+        console.error('handleSaveBeasiswa error:', e);
+        const msg = e?.response?.data?.message
+          || e?.response?.data?.errors?.[0]?.msg
+          || e?.message
+          || "Gagal menyimpan data";
+        setIsSavingBeasiswa(false);
+        triggerToast(`Gagal: ${msg}`, "error");
       }
-      
-      triggerToast(selectedBeasiswa ? "Penerima beasiswa berhasil diperbarui!" : "Penerima beasiswa berhasil ditambahkan!");
-      loadBeasiswa();
-      setShowAddPenerimaModal(false);
-      setSelectedBeasiswa(null);
     }, 800);
   };
+
 
   const handleDeleteBeasiswa = async () => {
     if (!selectedBeasiswa || !selectedBeasiswa.id) return;
     try {
       await deleteBeasiswa(selectedBeasiswa.id);
+      // API succeeded — update UI
+      setProgramList(prev => prev.map(prog => {
+        if (prog.penerima?.some(p => p.id === selectedBeasiswa.id)) {
+          return { ...prog, penerima: prog.penerima.filter(p => p.id !== selectedBeasiswa.id) };
+        }
+        return prog;
+      }));
+      triggerToast("Penerima beasiswa berhasil dihapus");
+      loadBeasiswa();
+      setShowDeleteBeasiswaModal(false);
+      setSelectedBeasiswa(null);
     } catch (e) {
-      console.warn("API Error ignored for UI demonstration:", e);
+      console.error('handleDeleteBeasiswa error:', e);
+      const msg = e?.response?.data?.message || e?.message || "Gagal menghapus data";
+      triggerToast(`Gagal: ${msg}`, "error");
     }
-    // Also remove from local programList penerima
-    setProgramList(prev => prev.map(prog => {
-      if (prog.penerima?.some(p => p.id === selectedBeasiswa.id)) {
-        return { ...prog, penerima: prog.penerima.filter(p => p.id !== selectedBeasiswa.id) };
-      }
-      return prog;
-    }));
-    triggerToast("Penerima beasiswa berhasil dihapus");
-    loadBeasiswa();
-    setShowDeleteBeasiswaModal(false);
-    setSelectedBeasiswa(null);
   };
+
 
   // Status Bayar Gaji Modal State
   const [selectedDetailGaji, setSelectedDetailGaji] = useState(null);
@@ -698,6 +837,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   };
 
   const filteredBills = studentsBill.filter((row) => {
+    if (row.status === "Lunas" || row.status?.toLowerCase() === "lunas") return false;
+    
     const name = row.siswa_nama || row.name || '';
     const nis = row.nis || '';
     const kelas = row.nama_kelas || row.class || '';
@@ -808,6 +949,14 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
           };
         });
 
+        const formatRupiah = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
+        const totalPenggajian = payrollMockData.reduce((acc, curr) => {
+          const nominalStr = String(curr.salary || "").replace(/[^0-9]/g, '');
+          const nominalNum = parseInt(nominalStr, 10) || 0;
+          return acc + nominalNum;
+        }, 0);
+        const jumlahStaff = payrollMockData.length;
+
         return (
           <div className="flex flex-col gap-6 animate-fadeIn font-sans">
             {/* Header Area */}
@@ -835,113 +984,125 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               </div>
             </div>
 
-            {/* Stat Cards Row 1: Financials */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-              <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
-                <div>
-                  <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total SPP Terkumpul Bulan Ini</div>
-                  <div className="text-3xl font-black text-white">
-                    Rp {nominalTerkumpul.toLocaleString('id-ID')}
+            {/* Stat Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
+              {[
+                {
+                  title: "Total SPP Terkumpul",
+                  value: formatRupiah(nominalTerkumpul),
+                  subText: `Bulan ${dashboardBulan} ${new Date().getFullYear()}`,
+                },
+                {
+                  title: "Siswa Lunas SPP",
+                  value: `${countLunas} Siswa`,
+                  subText: `dari ${totalSiswaBulanIni} siswa aktif`,
+                },
+                {
+                  title: "Tunggakan SPP",
+                  value: formatRupiah(nominalTunggakan),
+                  subText: `${countBelum} siswa belum bayar`,
+                },
+                {
+                  title: "Penggajian Bulan Ini",
+                  value: formatRupiah(totalPenggajian),
+                  subText: `${jumlahStaff} guru & staf`,
+                }
+              ].map((card, i) => (
+                <div key={i} className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
+                  <div>
+                    <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">{card.title}</div>
+                    <div className="text-3xl font-black text-white">{card.value}</div>
+                    <div className="text-xs font-medium text-blue-300 mt-2">{card.subText}</div>
                   </div>
-                  <div className="text-xs font-medium text-blue-300 mt-2">Bulan {dashboardBulan}</div>
                 </div>
-              </div>
-
-              <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
-                <div>
-                  <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Tunggakan SPP</div>
-                  <div className="text-3xl font-black text-white">
-                    Rp {nominalTunggakan.toLocaleString('id-ID')}
-                  </div>
-                  <div className="text-xs font-medium text-blue-300 mt-2">Bulan {dashboardBulan}</div>
-                </div>
-              </div>
+              ))}
             </div>
 
-            {/* Stat Cards Row 2: Students */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
-              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex flex-col justify-center min-h-[100px]">
-                <div>
-                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Jumlah Siswa Lunas</div>
-                  <div className="text-2xl font-black text-emerald-600">{countLunas} Siswa</div>
-                  <div className="text-[11px] font-medium text-gray-500 mt-1">Sudah membayar SPP</div>
+            {/* Tables Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              {/* Left Table: Pembayaran SPP Terbaru */}
+              <div className="bg-white rounded-[24px] border border-gray-50 p-5 shadow-sm">
+                <div className="flex justify-between items-center mb-5">
+                  <h3 className="text-sm font-bold text-gray-800">Pembayaran SPP Terbaru</h3>
+                  <button
+                    onClick={() => onViewChange && onViewChange("Monitoring Pembayaran")}
+                    className="text-xs font-bold text-[#1A3D63] hover:underline bg-transparent border-none cursor-pointer flex items-center gap-1"
+                  >
+                    Lihat Semua <span className="font-bold">→</span>
+                  </button>
                 </div>
-              </div>
-
-              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex flex-col justify-center min-h-[100px]">
-                <div>
-                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Jumlah Siswa Belum Bayar</div>
-                  <div className="text-2xl font-black text-red-500">{countBelum} Siswa</div>
-                  <div className="text-[11px] font-medium text-gray-500 mt-1">Menunggak SPP</div>
-                </div>
-              </div>
-
-              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex flex-col justify-center min-h-[100px]">
-                <div>
-                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total Siswa</div>
-                  <div className="text-2xl font-black text-gray-800">{totalSiswaBulanIni} Siswa</div>
-                  <div className="text-[11px] font-medium text-gray-500 mt-1">Tercatat aktif di bulan ini</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Table Row: SPP Terbaru */}
-            <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm">
-              <div className="flex justify-between items-center mb-5">
-                <h3 className="text-sm font-bold text-gray-800">Pembayaran SPP Terbaru</h3>
-                <button onClick={() => onViewChange && onViewChange("Monitoring Pembayaran")} className="text-[#2563EB] text-[11px] font-bold hover:underline bg-transparent border-none cursor-pointer">Lihat Semua →</button>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/50">
-                      <th className="py-4 px-4 w-12 text-center rounded-tl-xl">NO</th>
-                      <th className="py-4 px-4">WAKTU/TGL</th>
-                      <th className="py-4 px-4">NAMA SISWA</th>
-                      <th className="py-4 px-4">KELAS</th>
-                      <th className="py-4 px-4">PERIODE</th>
-                      <th className="py-4 px-4">NOMINAL</th>
-                      <th className="py-4 px-4 text-right rounded-tr-xl">STATUS</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50 text-[12px]">
-                    {[...sppPayments]
-                      .filter(p => p.status === "Lunas" || p.status?.toLowerCase() === "lunas")
-                      .sort((a, b) => new Date(b.tanggal_bayar || 0) - new Date(a.tanggal_bayar || 0))
-                      .slice(0, 3)
-                      .map((row, i) => {
-                      const isNew = row.tanggal_bayar && (new Date() - new Date(row.tanggal_bayar)) < 24 * 60 * 60 * 1000;
-                      return (
-                        <tr key={i} className="hover:bg-gray-50/80 transition-colors">
-                          <td className="py-4 px-4 text-center text-gray-500 font-bold">{i + 1}.</td>
-                          <td className="py-4 px-4 text-gray-600">
-                            <div className="flex flex-col gap-0.5">
-                              <span className="font-semibold text-gray-800">{row.dateTime?.split(' • ')[0] || (row.tanggal_bayar ? new Date(row.tanggal_bayar).toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'}) : "-")}</span>
-                              <span className="text-[10px] text-gray-400">{row.dateTime?.split(' • ')[1] || (row.tanggal_bayar ? new Date(row.tanggal_bayar).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) + " WIB" : "")}</span>
-                            </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-gray-50 text-[10px] font-bold text-gray-400 uppercase tracking-wide">
+                        <th className="pb-3">NAMA SISWA</th>
+                        <th className="pb-3">KELAS</th>
+                        <th className="pb-3">NOMINAL</th>
+                        <th className="pb-3">PERIODE</th>
+                        <th className="pb-3 text-right">STATUS</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50 text-xs">
+                      {[...sppPayments]
+                        .filter(p => p.status === "Lunas" || p.status?.toLowerCase() === "lunas")
+                        .sort((a, b) => new Date(b.tanggal_bayar || 0) - new Date(a.tanggal_bayar || 0))
+                        .slice(0, 3)
+                        .map((row) => (
+                        <tr key={row.id || Math.random()} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="py-3 font-bold text-gray-800">{row.name}</td>
+                          <td className="py-3 text-gray-500">{row.kelas?.replace('Kelas ', '')?.replace('-', ' ') || row.class?.replace('Kelas ', '')?.replace('-', ' ')}</td>
+                          <td className="py-3 font-bold text-gray-700">{row.amount}</td>
+                          <td className="py-3 text-gray-400">{row.period}</td>
+                          <td className="py-3 text-right">
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold inline-block bg-green-50 text-green-600`}>
+                              Lunas
+                            </span>
                           </td>
-                          <td className="py-4 px-4">
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-gray-800">{row.name}</span>
-                              {isNew && <span className="bg-blue-100 text-[#1A3D63] text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">Baru</span>}
-                            </div>
-                          </td>
-                          <td className="py-4 px-4 text-gray-500 font-medium">{row.kelas?.replace('Kelas ', '')?.replace('-', ' ')}</td>
-                          <td className="py-4 px-4 text-gray-500">{row.period}</td>
-                          <td className="py-4 px-4 font-bold text-gray-700">{row.amount}</td>
-                          <td className="py-4 px-4 text-right">
-                            <span className={`px-2.5 py-1 rounded-md font-bold inline-block text-[10px] ${row.status === "Lunas" || row.status?.toLowerCase() === "lunas" ? "bg-[#E6F4EA] text-[#137333]" :
-                              row.status === "Cicilan" ? "bg-[#FEF7E0] text-[#B06000]" :
-                                "bg-[#FCE8E6] text-[#C5221F]"
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Right Table: Status Penggajian Guru & Staf */}
+              <div className="bg-white rounded-[24px] border border-gray-50 p-5 shadow-sm">
+                <div className="flex justify-between items-center mb-5">
+                  <h3 className="text-sm font-bold text-gray-800">Status Penggajian Guru &amp; Staf</h3>
+                  <button
+                    onClick={() => onViewChange && onViewChange("Status Bayar Gaji")}
+                    className="text-xs font-bold text-[#1A3D63] hover:underline bg-transparent border-none cursor-pointer flex items-center gap-1"
+                  >
+                    Lihat Semua <span className="font-bold">→</span>
+                  </button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-gray-50 text-[10px] font-bold text-gray-400 uppercase tracking-wide">
+                        <th className="pb-3">NAMA</th>
+                        <th className="pb-3">JABATAN</th>
+                        <th className="pb-3">GAJI BERSIH</th>
+                        <th className="pb-3 text-right">STATUS</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50 text-xs">
+                      {payrollMockData.slice(0, 3).map((row) => (
+                        <tr key={row.id} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="py-3 font-bold text-gray-800">{row.name}</td>
+                          <td className="py-3 text-gray-500">{row.role}</td>
+                          <td className="py-3 font-bold text-gray-700">{row.salary}</td>
+                          <td className="py-3 text-right">
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold inline-block ${row.status === "Sudah Transfer" ? "bg-green-50 text-green-600" : "bg-yellow-50 text-yellow-600"
                               }`}>
                               {row.status}
                             </span>
                           </td>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
@@ -1066,32 +1227,21 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
             {/* Stat Cards Row */}
             {(() => {
-              const totalSiswa = filteredBills.length;
-              const lunasBills = filteredBills.filter(b => b.status === "Lunas" || b.status?.toLowerCase() === "lunas");
-              const belumLunasBills = filteredBills.filter(b => b.status !== "Lunas" && b.status?.toLowerCase() !== "lunas");
-              
-              const totalTagihanNominal = filteredBills.reduce((acc, b) => acc + Number(b.nominal || 0), 0);
-              const totalLunasNominal = lunasBills.reduce((acc, b) => acc + Number(b.nominal || 0), 0);
-              const totalBelumLunasNominal = belumLunasBills.reduce((acc, b) => acc + Number(b.nominal || 0), 0);
+              const totalSiswaMenunggak = filteredBills.length;
+              const totalTagihanMenunggak = filteredBills.reduce((acc, b) => acc + Number(b.nominal || 0), 0);
 
               return (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                  {/* Card 1: Total Tagihan */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                  {/* Card 1: Total Siswa */}
                   <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
-                    <div className="text-2xl font-bold text-white">Rp {totalTagihanNominal.toLocaleString('id-ID')}</div>
-                    <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Total Tagihan ({totalSiswa} Siswa)</div>
+                    <div className="text-2xl font-bold text-white">{totalSiswaMenunggak} Siswa</div>
+                    <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Total Siswa Belum Bayar</div>
                   </div>
 
-                  {/* Card 2: Sudah Terbayar */}
+                  {/* Card 2: Total Tagihan */}
                   <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
-                    <div className="text-2xl font-bold text-white">Rp {totalLunasNominal.toLocaleString('id-ID')}</div>
-                    <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Sudah Terbayar ({lunasBills.length} Siswa)</div>
-                  </div>
-
-                  {/* Card 3: Belum Lunas */}
-                  <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
-                    <div className="text-2xl font-bold text-white">Rp {totalBelumLunasNominal.toLocaleString('id-ID')}</div>
-                    <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Belum Lunas ({belumLunasBills.length} Siswa)</div>
+                    <div className="text-2xl font-bold text-white">Rp {totalTagihanMenunggak.toLocaleString('id-ID')}</div>
+                    <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Total Nominal Tunggakan</div>
                   </div>
                 </div>
               );
@@ -1161,7 +1311,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                       <th className="pb-3 px-3">BULAN</th>
                       <th className="pb-3 px-3">JATUH TEMPO</th>
                       <th className="pb-3 px-3">STATUS</th>
-                      <th className="pb-3 px-3 text-right">TGL BAYAR</th>
                     </tr>
                   </thead>
                               <tbody className="divide-y divide-gray-50 text-xs">
@@ -1188,11 +1337,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                         }`}>
                                           {row.status || "Belum Lunas"}
                                         </span>
-                                      </td>
-                                      <td className="py-4 px-3 text-right text-gray-500 font-medium">
-                                        {(row.status === "Lunas" || row.status?.toLowerCase() === "lunas") 
-                                          ? formatTanggal(row.tanggal_bayar || new Date().toISOString()) 
-                                          : (formatTanggal(row.tanggal_bayar) || "-")}
                                       </td>
                                     </tr>
                                   ))
@@ -1396,7 +1540,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             <div className="bg-white rounded-2xl border border-gray-100 p-1 flex gap-1 shadow-sm">
               {[
                 { key: "nominal", label: "Nominal SPP per Kelas" },
-                { key: "kalender", label: "Kalender Pembayaran" }
+                { key: "kalender", label: "Jadwal Pembayaran" }
               ].map((tab) => (
                 <button
                   key={tab.key}
@@ -1681,6 +1825,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                             onClick={() => {
                               setGlobalSppBerlaku(editGlobalSppBerlaku);
                               setGlobalSppJatuhTempo(editGlobalSppJatuhTempo);
+                              localStorage.setItem("globalSppBerlaku", editGlobalSppBerlaku);
+                              localStorage.setItem("globalSppJatuhTempo", editGlobalSppJatuhTempo);
                               setIsEditingGlobalJadwal(false);
                               triggerToast("Jadwal SPP berhasil disimpan!");
                             }}
@@ -1697,58 +1843,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   </div>
                 </div>
 
-                {/* Card 2: Kalender Tagihan SPP */}
-                <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                  <div className="mb-6">
-                    <h3 className="text-sm font-bold text-gray-800">Kalender Tagihan SPP Tahun Ajaran 2025/2026</h3>
-                    <p className="text-[11px] text-gray-400 mt-1">Periode penagihan SPP Juli 2025 — Juni 2026</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                    {[
-                      { month: "Juli 2025", active: false, hasDetails: true },
-                      { month: "Agustus 2025", active: false, hasDetails: true },
-                      { month: "September 2025", active: false, hasDetails: true },
-                      { month: "Oktober 2025", active: false, hasDetails: true },
-                      { month: "November 2025", active: false, hasDetails: true },
-                      { month: "Desember 2025", active: false, hasDetails: true },
-                      { month: "Januari 2026", active: false, hasDetails: true },
-                      { month: "Februari 2026", active: false, hasDetails: true },
-                      { month: "Maret 2026", active: false, hasDetails: true },
-                      { month: "April 2026", active: false, hasDetails: true },
-                      { month: "Mei 2026", active: true, hasDetails: true },
-                      { month: "Juni 2026", active: false, hasDetails: false }
-                    ].map((item, i) => (
-                      <div
-                        key={i}
-                        className={`p-4 rounded-xl border ${item.active
-                          ? "border-blue-500 bg-blue-50/30"
-                          : "border-gray-100 bg-white"
-                          } h-[84px] flex flex-col justify-center`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className={`text-sm ${item.active
-                            ? "font-bold text-blue-700"
-                            : item.hasDetails
-                              ? "font-bold text-gray-700"
-                              : "font-semibold text-gray-400"
-                            }`}>
-                            {item.month}
-                          </span>
-                          {item.active && (
-                            <span className="bg-blue-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">Aktif</span>
-                          )}
-                        </div>
-
-                        {item.hasDetails && (
-                          <div className={`text-[10px] mt-1 ${item.active ? "text-blue-500/80" : "text-gray-400"}`}>
-                            Jatuh tempo tgl 10 · Kelas VII-IX
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
             )}
           </div>
@@ -2108,11 +2202,17 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
                 return (
                   <div className="flex flex-col gap-4 animate-fadeIn">
-                    <div className="flex items-center gap-3 mb-4">
-                      <button onClick={() => setSelectedProgramForView(null)} className="w-9 h-9 flex items-center justify-center bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer border-none shrink-0">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
+                    <div className="flex justify-between items-center mb-4">
+                      <div className="flex items-center gap-3">
+                        <button onClick={() => setSelectedProgramForView(null)} className="w-9 h-9 flex items-center justify-center bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer border-none shrink-0">
+                          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
+                        </button>
+                        <h2 className="text-xl font-bold text-gray-800 tracking-tight">Detail Program Beasiswa</h2>
+                      </div>
+                      <button onClick={() => handleEditProgram(activeProgram)} className="text-sm font-bold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-4 py-1.5 rounded-lg transition-colors border-none cursor-pointer flex items-center gap-1.5">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
+                        Edit Program
                       </button>
-                      <h2 className="text-xl font-bold text-gray-800 tracking-tight">Detail Program Beasiswa</h2>
                     </div>
 
                     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
@@ -2125,8 +2225,19 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                           const rNominal = r.nominal ? parseInt(String(r.nominal).replace(/[^0-9]/g, ''), 10) : amtNum;
                           return s + (rNominal || 0);
                         }, 0);
-                        const anggaran = qNum > 0 ? (amtNum * qNum) : disalurkan;
-                        const sisaDana = anggaran - disalurkan;
+                        
+                        // Global Sisa Dana calculation
+                        const totalDanaGlobal = danaBeasiswaList.reduce((sum, d) => sum + (Number(d.nominal) || 0), 0);
+                        const totalTersalurkanGlobal = programList.reduce((sum, p) => {
+                          const pAmtStr = String(p.amount || "0").replace(/[^0-9]/g, '');
+                          const pAmountNum = parseInt(pAmtStr, 10) || 0;
+                          return sum + (p.penerima || []).reduce((s, r) => {
+                            const rNominal = r.nominal ? parseInt(String(r.nominal).replace(/[^0-9]/g, ''), 10) : pAmountNum;
+                            return s + (rNominal || 0);
+                          }, 0);
+                        }, 0);
+                        const sisaDana = totalDanaGlobal - totalTersalurkanGlobal;
+                        
                         const formatRupiah = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
                         
                         return (
@@ -2171,7 +2282,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                             <div className="text-sm font-bold text-emerald-600">{formatRupiah(disalurkan)}</div>
                           </div>
                           <div className="col-span-2 pt-2 border-t border-gray-50">
-                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Sisa Dana Program</div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Sisa Total Dana Beasiswa</div>
                             <div className="text-base font-bold text-gray-800">{formatRupiah(sisaDana)}</div>
                           </div>
                         </div>
@@ -3007,255 +3118,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
         );
 
       default:
-        // Default Overview Dashboard Bendahara
-        return (
-          <div className="flex flex-col gap-5 sm:gap-6 pb-10 animate-fadeIn">
-            {/* Header Area */}
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-              <div>
-                <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Dashboard Bendahara</h1>
-                <p className="text-sm text-gray-500 mt-1">Monitor keuangan sekolah, SPP siswa, dan penggajian guru & staf.</p>
-              </div>
-              <div className="flex gap-2 sm:gap-3 items-center flex-wrap">
-                <div className="relative group w-full sm:w-auto">
-                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
-                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
-                  </div>
-                  <select
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(e.target.value)}
-                    className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
-                  >
-                    <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-                  </select>
-                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
-                    <IconChevronDown />
-                  </div>
-                </div>
-
-                
-              </div>
-            </div>
-
-            {/* Stat Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-              {[
-                {
-                  title: "Total SPP Terkumpul",
-                  value: "Rp 16,1 Jt",
-                  subText: "Bulan Mei 2026",
-                  trend: "+8.5% vs bulan lalu",
-                  trendUp: true,
-                  bgIcon: "bg-green-50 text-green-600",
-                  icon: <IconDollar />
-                },
-                {
-                  title: "Siswa Lunas SPP",
-                  value: "24",
-                  subText: "dari 34 siswa aktif",
-                  trend: "70.6% tingkat pembayaran",
-                  trendUp: true,
-                  bgIcon: "bg-blue-50 text-blue-600",
-                  icon: <IconCheckCircle />
-                },
-                {
-                  title: "Tunggakan SPP",
-                  value: "Rp 2,75 Jt",
-                  subText: "10 siswa belum bayar",
-                  trend: "-5.2% vs bulan lalu",
-                  trendUp: false,
-                  bgIcon: "bg-red-50 text-red-600",
-                  icon: <IconAlertCircle />
-                },
-                {
-                  title: "Penggajian Bulan Ini",
-                  value: "Rp 13,5 Jt",
-                  subText: "6 guru & staf",
-                  trend: "83% sudah transfer",
-                  trendUp: true,
-                  bgIcon: "bg-purple-50 text-purple-600",
-                  icon: <IconClock />
-                }
-              ].map((card, i) => (
-                <div key={i} className="bg-white rounded-[20px] border border-gray-50 p-5 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:shadow-md transition-all duration-300">
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">{card.title}</span>
-                    <div className={`w-10 h-10 rounded-[12px] flex items-center justify-center ${card.bgIcon}`}>
-                      {card.icon}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-2xl sm:text-[28px] font-black text-gray-800 leading-none mb-2">{card.value}</div>
-                    <div className="text-[11px] font-bold text-gray-400 mb-3">{card.subText}</div>
-                    <div className={`flex items-center gap-1 text-[11px] font-bold ${card.trendUp ? "text-green-500" : "text-red-500"}`}>
-                      {card.trendUp ? <IconTrendUp /> : <IconTrendDown />}
-                      <span>{card.trend}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-              {/* Left Bar Chart */}
-              <div className="lg:col-span-2 bg-white rounded-[24px] border border-gray-50 p-5 shadow-sm">
-                <div className="flex justify-between items-center mb-6">
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-800">Rekapitulasi SPP Per Bulan</h3>
-                    <p className="text-[11px] text-gray-400">Jumlah siswa lunas vs belum bayar</p>
-                  </div>
-                  <button
-                    onClick={() => triggerToast("Mengunduh detil rekapitulasi iuran bulanan...")}
-                    className="text-xs font-bold text-[#1A3D63] hover:underline bg-transparent border-none cursor-pointer"
-                  >
-                    Selengkapnya
-                  </button>
-                </div>
-                <div className="h-[230px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={sppRecapData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#9ca3af" }} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#9ca3af" }} domain={[0, 34]} ticks={[0, 10, 20, 34]} />
-                      <Tooltip contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }} />
-                      <Legend iconSize={10} iconType="circle" wrapperStyle={{ fontSize: 11, paddingTop: 10 }} />
-                      <Bar dataKey="Lunas" fill="#1A3D63" radius={[4, 4, 0, 0]} barSize={20} />
-                      <Bar dataKey="Belum" fill="#FF8E8D" radius={[4, 4, 0, 0]} barSize={20} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Right Donut Chart */}
-              <div className="lg:col-span-1 bg-white rounded-[24px] border border-gray-50 p-5 shadow-sm flex flex-col justify-between">
-                <div>
-                  <h3 className="text-sm font-bold text-gray-800 mb-0.5">Status SPP Siswa</h3>
-                  <p className="text-[11px] text-gray-400">Distribusi pembayaran bulan ini</p>
-                </div>
-
-                <div className="relative flex items-center justify-center h-[160px] my-3">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={sppDonutData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={50}
-                        outerRadius={70}
-                        paddingAngle={3}
-                        dataKey="value"
-                      >
-                        {sppDonutData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.fill} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-2xl font-black text-gray-800">70.6%</span>
-                    <span className="text-[10px] font-bold text-gray-400">Lunas</span>
-                  </div>
-                </div>
-
-                <div className="flex justify-center gap-4 text-[10px] font-bold text-gray-500">
-                  {sppDonutData.map((d, i) => (
-                    <div key={i} className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: d.fill }} />
-                      <span>{d.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Tables Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              {/* Left Table: Pembayaran SPP Terbaru */}
-              <div className="bg-white rounded-[24px] border border-gray-50 p-5 shadow-sm">
-                <div className="flex justify-between items-center mb-5">
-                  <h3 className="text-sm font-bold text-gray-800">Pembayaran SPP Terbaru</h3>
-                  <button
-                    onClick={() => triggerToast("Membuka riwayat lengkap pembayaran SPP...")}
-                    className="text-xs font-bold text-[#1A3D63] hover:underline bg-transparent border-none cursor-pointer flex items-center gap-1"
-                  >
-                    Lihat Semua <span className="font-bold">→</span>
-                  </button>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="border-b border-gray-50 text-[10px] font-bold text-gray-400 uppercase tracking-wide">
-                        <th className="pb-3">NAMA SISWA</th>
-                        <th className="pb-3">KELAS</th>
-                        <th className="pb-3">NOMINAL</th>
-                        <th className="pb-3">PERIODE</th>
-                        <th className="pb-3 text-right">STATUS</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50 text-xs">
-                      {sppPayments.slice(0, 3).map((row) => (
-                        <tr key={row.id} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="py-3 font-bold text-gray-800">{row.name}</td>
-                          <td className="py-3 text-gray-500">{row.class?.replace('Kelas ', '')?.replace('-', ' ')}</td>
-                          <td className="py-3 font-bold text-gray-700">{row.amount}</td>
-                          <td className="py-3 text-gray-400">{row.period}</td>
-                          <td className="py-3 text-right">
-                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold inline-block ${row.status === "Lunas" ? "bg-green-50 text-green-600" :
-                              row.status === "Cicilan" ? "bg-amber-50 text-amber-600" : "bg-red-50 text-red-600"
-                              }`}>
-                              {row.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Right Table: Status Penggajian Guru & Staf */}
-              <div className="bg-white rounded-[24px] border border-gray-50 p-5 shadow-sm">
-                <div className="flex justify-between items-center mb-5">
-                  <h3 className="text-sm font-bold text-gray-800">Status Penggajian Guru &amp; Staf</h3>
-                  <button
-                    onClick={() => triggerToast("Mengarahkan ke modul Generate Slip Gaji...")}
-                    className="text-xs font-bold text-[#1A3D63] hover:underline bg-transparent border-none cursor-pointer flex items-center gap-1"
-                  >
-                    Generate Slip <span className="font-bold">→</span>
-                  </button>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="border-b border-gray-50 text-[10px] font-bold text-gray-400 uppercase tracking-wide">
-                        <th className="pb-3">NAMA</th>
-                        <th className="pb-3">JABATAN</th>
-                        <th className="pb-3">GAJI BERSIH</th>
-                        <th className="pb-3 text-right">STATUS</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50 text-xs">
-                      {payrollMockData.slice(0, 3).map((row) => (
-                        <tr key={row.id} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="py-3 font-bold text-gray-800">{row.name}</td>
-                          <td className="py-3 text-gray-500">{row.role}</td>
-                          <td className="py-3 font-bold text-gray-700">{row.salary}</td>
-                          <td className="py-3 text-right">
-                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold inline-block ${row.status === "Sudah Transfer" ? "bg-green-50 text-green-600" : "bg-yellow-50 text-yellow-600"
-                              }`}>
-                              {row.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+        return <div className="text-gray-500 font-medium p-4">Menu tidak ditemukan.</div>;
 
     }
   };
@@ -3264,7 +3127,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     <main className="flex-1 p-4 sm:p-6 overflow-y-auto bg-[#F3F4F6] min-h-screen relative">
       {/* Toast Notification */}
       {showToast && (
-        <div className="fixed top-5 right-5 z-[999] bg-[#1A3D63] text-white px-5 py-3 rounded-xl shadow-lg border border-white/10 font-sans text-xs font-semibold flex items-center gap-2 animate-slideIn">
+        <div className="fixed top-5 right-5 z-[99999] bg-[#1A3D63] text-white px-5 py-3 rounded-xl shadow-lg border border-white/10 font-sans text-xs font-semibold flex items-center gap-2 animate-slideIn">
           <div className="w-2.5 h-2.5 rounded-full bg-green-400 animate-ping" />
           <span>{toastMessage}</span>
         </div>
@@ -3450,7 +3313,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCancelProgram} />
           <div className="bg-white rounded-[24px] p-5 sm:p-6 max-w-2xl w-full relative z-10 shadow-2xl animate-scaleUp font-sans border border-gray-100 flex flex-col max-h-[calc(100vh-100px)]">
             <div className="flex justify-between items-center mb-4 shrink-0">
-              <h2 className="text-lg font-bold text-gray-800">Tambah Program Baru</h2>
+              <h2 className="text-lg font-bold text-gray-800">{editingProgramTitle ? "Edit Program Beasiswa" : "Tambah Program Baru"}</h2>
               <button onClick={handleCancelProgram} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors cursor-pointer border-none">
                 <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
@@ -3616,8 +3479,15 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
             <div className="mt-6 pt-3 border-t border-gray-100 flex justify-end gap-3 shrink-0">
               <button onClick={handleCancelProgram} className="px-5 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer border-none bg-transparent">Batal</button>
-              <button onClick={handleSaveProgram} className="bg-[#1A3D63] hover:bg-[#122A44] text-white py-2 px-6 rounded-xl text-sm font-bold cursor-pointer border-none shadow-md transition-all active:scale-95 flex items-center gap-2">
-                Simpan Program
+              <button type="button" onClick={handleSaveProgram} disabled={isSavingProgram} className={`${isSavingProgram ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#1A3D63] hover:bg-[#122A44] cursor-pointer'} text-white py-2 px-6 rounded-xl text-sm font-bold border-none shadow-md transition-all active:scale-95 flex items-center gap-2`}>
+                {isSavingProgram ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Memproses...
+                  </>
+                ) : (
+                  editingProgramTitle ? "Simpan Perubahan" : "Simpan Program"
+                )}
               </button>
             </div>
           </div>
@@ -3649,7 +3519,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             <p className="text-sm text-gray-600 mb-6">Data yang sudah Anda isi belum disimpan dan akan hilang. Apakah Anda yakin ingin membatalkan?</p>
             <div className="flex justify-end gap-3">
               <button onClick={() => setShowProgramCancelConfirm(false)} className="px-4 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-100 transition-colors">Lanjutkan Mengisi</button>
-              <button onClick={() => { setShowProgramCancelConfirm(false); setShowAddProgramModal(false); setIsProgramFormDirty(false); }} className="px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 transition-colors shadow-sm">Ya, Batalkan</button>
+              <button onClick={() => { setShowProgramCancelConfirm(false); setShowAddProgramModal(false); setIsProgramFormDirty(false); setEditingProgramTitle(null); setNewProgramForm({nama: "", kategori: "", sumberDana: "", nominal: "", kuota: "", tahunAjaran: "2025/2026", tanggalMulaiDaftar: "", tanggalSelesaiDaftar: "", deskripsi: "", persyaratan: "", status: "Aktif"}); }} className="px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 transition-colors shadow-sm">Ya, Batalkan</button>
             </div>
           </div>
         </div>
@@ -3779,162 +3649,15 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Tanggal Dana Masuk <span className="text-red-500">*</span></label>
                   <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => setShowDanaDatePicker(!showDanaDatePicker)}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all flex items-center justify-between hover:border-[#1A3D63]"
-                    >
-                      <span>
-                        {newDanaForm.tanggal 
-                          ? (() => {
-                              const [tahun, bulan, tanggal] = newDanaForm.tanggal.split('-');
-                              const namaBulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'][parseInt(bulan) - 1];
-                              return `${tanggal} ${namaBulan} ${tahun}`;
-                            })()
-                          : 'Pilih tanggal'
-                        }
-                      </span>
-                      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-gray-400">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </button>
-
-                    {/* Calendar Popover */}
-                    {showDanaDatePicker && (() => {
-                      const [tahun, bulan, tanggal] = (newDanaForm.tanggal || new Date().toISOString().split('T')[0]).split('-');
-                      
-                      // Generate calendar dates
-                      const firstDay = new Date(calendarTahun, calendarBulan - 1, 1);
-                      const lastDay = new Date(calendarTahun, calendarBulan, 0);
-                      const daysInMonth = lastDay.getDate();
-                      const startingDayOfWeek = firstDay.getDay();
-                      
-                      const namaBulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-                      const daysOfWeek = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-                      
-                      const handleSelectDate = (day) => {
-                        const newDate = `${calendarTahun}-${String(calendarBulan).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                        setNewDanaForm({ ...newDanaForm, tanggal: newDate });
-                        setShowDanaDatePicker(false);
+                    <input
+                      type="date"
+                      value={newDanaForm.tanggal}
+                      onChange={(e) => {
                         setIsDanaFormDirty(true);
-                      };
-                      
-                      const handleToday = () => {
-                        const today = new Date();
-                        const newDate = today.toISOString().split('T')[0];
-                        setNewDanaForm({ ...newDanaForm, tanggal: newDate });
-                        setCalendarBulan(today.getMonth() + 1);
-                        setCalendarTahun(today.getFullYear());
-                        setShowDanaDatePicker(false);
-                        setIsDanaFormDirty(true);
-                      };
-                      
-                      const handleClear = () => {
-                        setNewDanaForm({ ...newDanaForm, tanggal: '' });
-                        setShowDanaDatePicker(false);
-                        setIsDanaFormDirty(true);
-                      };
-                      
-                      const calendarDays = [];
-                      for (let i = 0; i < startingDayOfWeek; i++) {
-                        calendarDays.push(null);
-                      }
-                      for (let i = 1; i <= daysInMonth; i++) {
-                        calendarDays.push(i);
-                      }
-                      
-                      return (
-                        <div className="absolute top-full left-0 mt-2 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-3 w-72">
-                          {/* Month and Year Selectors */}
-                          <div className="flex gap-2 mb-3">
-                            <div className="flex-1">
-                              <label className="text-xs font-semibold text-gray-600 mb-1 block">Bulan</label>
-                              <div className="relative">
-                                <select
-                                  value={calendarBulan}
-                                  onChange={(e) => setCalendarBulan(parseInt(e.target.value))}
-                                  className="w-full border border-gray-300 rounded px-2 py-1.5 text-xs focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 bg-white text-gray-700 appearance-none cursor-pointer pr-6 font-medium"
-                                >
-                                  {namaBulan.map((m, i) => (
-                                    <option key={i} value={i + 1}>{m}</option>
-                                  ))}
-                                </select>
-                                <span className="absolute right-1.5 top-2 text-gray-400 pointer-events-none text-xs"><IconChevronDown /></span>
-                              </div>
-                            </div>
-                            
-                            <div className="flex-1">
-                              <label className="text-xs font-semibold text-gray-600 mb-1 block">Tahun</label>
-                              <div className="relative">
-                                <select
-                                  value={calendarTahun}
-                                  onChange={(e) => setCalendarTahun(parseInt(e.target.value))}
-                                  className="w-full border border-gray-300 rounded px-2 py-1.5 text-xs focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 bg-white text-gray-700 appearance-none cursor-pointer pr-6 font-medium"
-                                >
-                                  {Array.from({length: 10}, (_, i) => new Date().getFullYear() - 5 + i).map(y => (
-                                    <option key={y} value={y}>{y}</option>
-                                  ))}
-                                </select>
-                                <span className="absolute right-1.5 top-2 text-gray-400 pointer-events-none text-xs"><IconChevronDown /></span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Days of week */}
-                          <div className="grid grid-cols-7 gap-1 mb-2">
-                            {daysOfWeek.map(day => (
-                              <div key={day} className="text-center text-xs font-bold text-gray-600 py-1.5 uppercase tracking-tight">
-                                {day}
-                              </div>
-                            ))}
-                          </div>
-
-                          {/* Calendar grid */}
-                          <div className="grid grid-cols-7 gap-1 mb-3">
-                            {calendarDays.map((day, idx) => {
-                              const isToday = new Date().toISOString().split('T')[0] === `${calendarTahun}-${String(calendarBulan).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                              const isSelected = parseInt(tanggal) === day && parseInt(bulan) === calendarBulan && parseInt(tahun) === calendarTahun;
-                              
-                              return (
-                                <button
-                                  key={idx}
-                                  type="button"
-                                  onClick={() => day && handleSelectDate(day)}
-                                  disabled={!day}
-                                  className={`
-                                    w-full py-1.5 flex items-center justify-center text-xs font-semibold rounded transition-all
-                                    ${!day ? 'text-gray-200 cursor-default bg-transparent' : 'cursor-pointer hover:bg-gray-100'}
-                                    ${isSelected ? 'bg-[#1A3D63] text-white shadow-sm hover:bg-[#122A44]' : ''}
-                                    ${isToday && !isSelected ? 'border border-[#1A3D63] text-[#1A3D63] bg-blue-50' : ''}
-                                    ${!isSelected && !isToday && day ? 'text-gray-700' : ''}
-                                  `}
-                                >
-                                  {day}
-                                </button>
-                              );
-                            })}
-                          </div>
-
-                          {/* Footer buttons */}
-                          <div className="border-t border-gray-200 pt-2 flex justify-between gap-2">
-                            <button
-                              type="button"
-                              onClick={handleClear}
-                              className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors bg-transparent border-none cursor-pointer px-2 py-1 rounded hover:bg-blue-50"
-                            >
-                              Clear
-                            </button>
-                            <button
-                              type="button"
-                              onClick={handleToday}
-                              className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors bg-transparent border-none cursor-pointer px-2 py-1 rounded hover:bg-blue-50"
-                            >
-                              Today
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })()}
+                        setNewDanaForm({ ...newDanaForm, tanggal: e.target.value });
+                      }}
+                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 transition-colors cursor-pointer"
+                    />
                   </div>
                 </div>
 
@@ -3964,13 +3687,13 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
       {/* Modal Tambah Penerima */}
       {showAddPenerimaModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowAddPenerimaModal(false)}></div>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCancelBeasiswa}></div>
           <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl relative animate-scaleIn z-10">
             {/* Modal Header */}
             <div className="flex justify-between items-center p-6 border-b border-gray-100">
               <h2 className="text-lg font-bold text-gray-800">{selectedBeasiswa ? "Edit Penerima Beasiswa" : "Tambah Penerima Beasiswa"}</h2>
               <button
-                onClick={() => setShowAddPenerimaModal(false)}
+                onClick={handleCancelBeasiswa}
                 className="text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer"
               >
                 <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -3996,6 +3719,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                         placeholder="Ketik nama atau NIS siswa..."
                         value={siswaSearchQuery || (beasiswaForm.siswaId ? (siswaList.find(s => String(s.id) === String(beasiswaForm.siswaId))?.nama_lengkap || "") : "")}
                         onChange={(e) => {
+                          setIsBeasiswaFormDirty(true);
                           setSiswaSearchQuery(e.target.value);
                           setBeasiswaForm({ ...beasiswaForm, siswaId: "" });
                           setShowSiswaDropdown(true);
@@ -4015,6 +3739,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                 key={s.id}
                                 className={"px-4 py-2.5 text-sm cursor-pointer rounded-lg hover:bg-blue-50 transition-colors flex items-center justify-between " + (String(beasiswaForm.siswaId) === String(s.id) ? "bg-blue-50/50" : "")}
                                 onClick={() => {
+                                  setIsBeasiswaFormDirty(true);
                                   setBeasiswaForm({ ...beasiswaForm, siswaId: s.id });
                                   setSiswaSearchQuery(s.nama_lengkap);
                                   setShowSiswaDropdown(false);
@@ -4041,7 +3766,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     <div className="relative">
                       <select
                         value={beasiswaForm.namaBeasiswa}
-                        onChange={(e) => setBeasiswaForm({ ...beasiswaForm, namaBeasiswa: e.target.value })}
+                        onChange={(e) => { setIsBeasiswaFormDirty(true); setBeasiswaForm({ ...beasiswaForm, namaBeasiswa: e.target.value }); }}
                         className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700 appearance-none pr-10"
                       >
                         <option value="" disabled>-- Pilih Program --</option>
@@ -4059,10 +3784,15 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     <div className="relative flex items-center">
                       <span className="absolute left-4 text-gray-500 font-semibold text-sm">Rp</span>
                       <input
-                        type="number"
+                        type="text"
                         value={beasiswaForm.nominal}
-                        onChange={(e) => setBeasiswaForm({ ...beasiswaForm, nominal: e.target.value })}
-                        placeholder="250000"
+                        onChange={(e) => {
+                          setIsBeasiswaFormDirty(true);
+                          let val = e.target.value.replace(/[^0-9]/g, '');
+                          if (val) val = new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0 }).format(val);
+                          setBeasiswaForm({ ...beasiswaForm, nominal: val });
+                        }}
+                        placeholder="250.000"
                         className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20"
                       />
                     </div>
@@ -4075,7 +3805,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                       </div>
                       <select
                         value={beasiswaForm.periode}
-                        onChange={(e) => setBeasiswaForm({ ...beasiswaForm, periode: e.target.value })}
+                        onChange={(e) => { setIsBeasiswaFormDirty(true); setBeasiswaForm({ ...beasiswaForm, periode: e.target.value }); }}
                         className="w-full border border-gray-200 rounded-xl pl-10 pr-10 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/20 bg-white text-gray-700 appearance-none hover:bg-gray-50 hover:border-gray-300 transition-all"
                       >
                         <option value="2025/2026">2025/2026</option>
@@ -4089,7 +3819,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Status <span className="text-red-500">*</span></label>
                     <select
                       value={beasiswaForm.status}
-                      onChange={(e) => setBeasiswaForm({ ...beasiswaForm, status: e.target.value })}
+                      onChange={(e) => { setIsBeasiswaFormDirty(true); setBeasiswaForm({ ...beasiswaForm, status: e.target.value }); }}
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700 h-[46px]"
                     >
                       <option value="Aktif">Aktif</option>
@@ -4101,7 +3831,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     <input
                       type="date"
                       value={beasiswaForm.tanggalMulai}
-                      onChange={(e) => setBeasiswaForm({ ...beasiswaForm, tanggalMulai: e.target.value })}
+                      onChange={(e) => { setIsBeasiswaFormDirty(true); setBeasiswaForm({ ...beasiswaForm, tanggalMulai: e.target.value }); }}
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20"
                     />
                   </div>
@@ -4110,7 +3840,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     <input
                       type="date"
                       value={beasiswaForm.tanggalSelesai}
-                      onChange={(e) => setBeasiswaForm({ ...beasiswaForm, tanggalSelesai: e.target.value })}
+                      onChange={(e) => { setIsBeasiswaFormDirty(true); setBeasiswaForm({ ...beasiswaForm, tanggalSelesai: e.target.value }); }}
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20"
                     />
                   </div>
@@ -4121,18 +3851,43 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             {/* Modal Footer */}
             <div className="p-6 border-t border-gray-100 flex justify-end gap-3 rounded-b-2xl">
               <button
-                onClick={() => setShowAddPenerimaModal(false)}
+                onClick={handleCancelBeasiswa}
                 className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 py-3 px-8 rounded-xl text-sm font-bold cursor-pointer transition-colors"
               >
                 Batal
               </button>
               <button
-                id="btn-simpan-beasiswa"
                 onClick={handleSaveBeasiswa}
-                className="bg-[#1A3D63] hover:bg-[#122A44] text-white py-3 px-8 rounded-xl text-sm font-bold cursor-pointer border-none shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-wait min-w-[140px]"
+                disabled={isSavingBeasiswa}
+                className={`${isSavingBeasiswa ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#1A3D63] hover:bg-[#122A44] cursor-pointer'} text-white py-3 px-8 rounded-xl text-sm font-bold border-none shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 min-w-[140px]`}
               >
-                Simpan Data
+                {isSavingBeasiswa ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Memproses...
+                  </>
+                ) : (
+                  "Simpan Data"
+                )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Cancel Konfirmasi Penerima */}
+      {showBeasiswaCancelConfirm && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowBeasiswaCancelConfirm(false)}></div>
+          <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl relative animate-scaleIn z-10 p-6 text-center">
+            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            </div>
+            <h2 className="text-xl font-bold text-gray-800 mb-2">Batalkan Pengisian?</h2>
+            <p className="text-sm text-gray-600 mb-6">Data yang sudah Anda isi belum disimpan dan akan hilang. Apakah Anda yakin ingin membatalkan?</p>
+            <div className="flex justify-center gap-3">
+              <button onClick={() => setShowBeasiswaCancelConfirm(false)} className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-100 transition-colors border-none bg-transparent cursor-pointer">Kembali Mengisi</button>
+              <button onClick={() => { setShowBeasiswaCancelConfirm(false); setShowAddPenerimaModal(false); setIsBeasiswaFormDirty(false); setSelectedBeasiswa(null); }} className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 transition-colors shadow-sm border-none cursor-pointer">Ya, Batalkan</button>
             </div>
           </div>
         </div>
