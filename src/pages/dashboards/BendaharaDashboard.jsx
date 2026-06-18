@@ -791,6 +791,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   };
 
   const filteredBills = studentsBill.filter((row) => {
+    if (row.status === "Lunas" || row.status?.toLowerCase() === "lunas") return false;
+    
     const name = row.siswa_nama || row.name || '';
     const nis = row.nis || '';
     const kelas = row.nama_kelas || row.class || '';
@@ -932,11 +934,11 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
               <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
                 <div>
-                  <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total SPP Terkumpul Bulan Ini</div>
+                  <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total SPP Terkumpul</div>
                   <div className="text-3xl font-black text-white">
                     Rp {nominalTerkumpul.toLocaleString('id-ID')}
                   </div>
-                  <div className="text-xs font-medium text-blue-300 mt-2">Bulan {dashboardBulan}</div>
+                  <div className="text-xs font-medium text-blue-300 mt-2">Bulan {dashboardBulan} {new Date().getFullYear()}</div>
                 </div>
               </div>
 
@@ -946,7 +948,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   <div className="text-3xl font-black text-white">
                     Rp {nominalTunggakan.toLocaleString('id-ID')}
                   </div>
-                  <div className="text-xs font-medium text-blue-300 mt-2">Bulan {dashboardBulan}</div>
+                  <div className="text-xs font-medium text-blue-300 mt-2">Bulan {dashboardBulan} {new Date().getFullYear()}</div>
                 </div>
               </div>
             </div>
@@ -1159,32 +1161,21 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
             {/* Stat Cards Row */}
             {(() => {
-              const totalSiswa = filteredBills.length;
-              const lunasBills = filteredBills.filter(b => b.status === "Lunas" || b.status?.toLowerCase() === "lunas");
-              const belumLunasBills = filteredBills.filter(b => b.status !== "Lunas" && b.status?.toLowerCase() !== "lunas");
-              
-              const totalTagihanNominal = filteredBills.reduce((acc, b) => acc + Number(b.nominal || 0), 0);
-              const totalLunasNominal = lunasBills.reduce((acc, b) => acc + Number(b.nominal || 0), 0);
-              const totalBelumLunasNominal = belumLunasBills.reduce((acc, b) => acc + Number(b.nominal || 0), 0);
+              const totalSiswaMenunggak = filteredBills.length;
+              const totalTagihanMenunggak = filteredBills.reduce((acc, b) => acc + Number(b.nominal || 0), 0);
 
               return (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                  {/* Card 1: Total Tagihan */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                  {/* Card 1: Total Siswa */}
                   <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
-                    <div className="text-2xl font-bold text-white">Rp {totalTagihanNominal.toLocaleString('id-ID')}</div>
-                    <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Total Tagihan ({totalSiswa} Siswa)</div>
+                    <div className="text-2xl font-bold text-white">{totalSiswaMenunggak} Siswa</div>
+                    <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Total Siswa Belum Bayar</div>
                   </div>
 
-                  {/* Card 2: Sudah Terbayar */}
+                  {/* Card 2: Total Tagihan */}
                   <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
-                    <div className="text-2xl font-bold text-white">Rp {totalLunasNominal.toLocaleString('id-ID')}</div>
-                    <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Sudah Terbayar ({lunasBills.length} Siswa)</div>
-                  </div>
-
-                  {/* Card 3: Belum Lunas */}
-                  <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
-                    <div className="text-2xl font-bold text-white">Rp {totalBelumLunasNominal.toLocaleString('id-ID')}</div>
-                    <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Belum Lunas ({belumLunasBills.length} Siswa)</div>
+                    <div className="text-2xl font-bold text-white">Rp {totalTagihanMenunggak.toLocaleString('id-ID')}</div>
+                    <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Total Nominal Tunggakan</div>
                   </div>
                 </div>
               );
@@ -1254,7 +1245,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                       <th className="pb-3 px-3">BULAN</th>
                       <th className="pb-3 px-3">JATUH TEMPO</th>
                       <th className="pb-3 px-3">STATUS</th>
-                      <th className="pb-3 px-3 text-right">TGL BAYAR</th>
                     </tr>
                   </thead>
                               <tbody className="divide-y divide-gray-50 text-xs">
@@ -1281,11 +1271,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                         }`}>
                                           {row.status || "Belum Lunas"}
                                         </span>
-                                      </td>
-                                      <td className="py-4 px-3 text-right text-gray-500 font-medium">
-                                        {(row.status === "Lunas" || row.status?.toLowerCase() === "lunas") 
-                                          ? formatTanggal(row.tanggal_bayar || new Date().toISOString()) 
-                                          : (formatTanggal(row.tanggal_bayar) || "-")}
                                       </td>
                                     </tr>
                                   ))

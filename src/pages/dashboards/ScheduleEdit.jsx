@@ -1,9 +1,58 @@
 import React, { useState } from "react";
 
-const ScheduleEdit = ({ setView }) => {
-  const [selectedDay, setSelectedDay] = useState("Senin");
-  const [selectedSlot, setSelectedSlot] = useState("Jam 1-2");
-  const [isActive, setIsActive] = useState(true);
+const ScheduleEdit = ({ setView, handleEdit, handleDelete, currentSchedule }) => {
+  const [selectedDay, setSelectedDay] = useState(currentSchedule?.day || "Senin");
+  const [selectedSlot, setSelectedSlot] = useState(currentSchedule?.period?.replace("Jam ke-", "Jam ") || "Jam 1-2");
+  const [isActive, setIsActive] = useState(currentSchedule?.status === "Aktif");
+  const [formData, setFormData] = useState({
+    class: currentSchedule?.class || "",
+    subject: currentSchedule?.subject || "",
+    teacher: currentSchedule?.teacher || "",
+    room: currentSchedule?.room || "",
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const getSubjectCode = (subject) => {
+    if (!subject) return "";
+    return subject.substring(0, 3).toUpperCase();
+  };
+
+  const getSubjectColor = (code) => {
+    switch (code) {
+      case "MAT": return "bg-blue-50 border-blue-200 text-blue-700";
+      case "FIS": return "bg-pink-50 border-pink-200 text-pink-700";
+      default: return "bg-gray-50 border-gray-200 text-gray-700";
+    }
+  };
+
+  const onSave = () => {
+    if (!formData.class || !formData.subject || !formData.teacher || !selectedDay || !selectedSlot || !formData.room) {
+      alert("Harap lengkapi semua data wajib (*).");
+      return;
+    }
+
+    const timeObj = timeSlots.find(t => t.label === selectedSlot);
+    const code = getSubjectCode(formData.subject);
+
+    const updatedSchedule = {
+      ...currentSchedule,
+      class: formData.class,
+      day: selectedDay,
+      time: timeObj ? timeObj.time.replace(" - ", "-") : "",
+      period: selectedSlot.replace("Jam ", "Jam ke-"),
+      code: code,
+      subject: formData.subject,
+      teacher: formData.teacher,
+      room: formData.room,
+      status: isActive ? "Aktif" : "Nonaktif",
+      color: getSubjectColor(code)
+    };
+
+    handleEdit(updatedSchedule);
+  };
 
   const timeSlots = [
     { label: "Jam 1-2", time: "07:00 - 08:30" },
@@ -34,7 +83,7 @@ const ScheduleEdit = ({ setView }) => {
             <p className="text-[14px] text-gray-500 mt-1">Perubahan akan berpengaruh pada jadwal aktif semester berjalan.</p>
           </div>
         </div>
-        <button className="bg-white border border-red-200 text-red-500 hover:bg-red-50 px-5 py-2.5 rounded-xl font-bold text-[13px] shadow-sm transition-all flex items-center gap-2">
+        <button onClick={() => handleDelete(currentSchedule?.id)} className="bg-white border border-red-200 text-red-500 hover:bg-red-50 px-5 py-2.5 rounded-xl font-bold text-[13px] shadow-sm transition-all flex items-center gap-2">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
           Hapus Jadwal
         </button>
@@ -51,7 +100,8 @@ const ScheduleEdit = ({ setView }) => {
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-2">Kelas<span className="text-red-500">*</span></label>
                 <div className="relative">
-                  <select defaultValue="X IPA 1" className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700">
+                  <select name="class" value={formData.class} onChange={handleChange} className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700">
+                    <option value="">Pilih kelas...</option>
                     <option value="X IPA 1">X IPA 1</option>
                     <option value="X IPA 2">X IPA 2</option>
                   </select>
@@ -61,9 +111,17 @@ const ScheduleEdit = ({ setView }) => {
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-2">Mata Pelajaran<span className="text-red-500">*</span></label>
                 <div className="relative">
-                  <select defaultValue="Matematika" className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700">
+                  <select name="subject" value={formData.subject} onChange={handleChange} className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700">
+                    <option value="">Pilih mata pelajaran...</option>
                     <option value="Matematika">Matematika</option>
                     <option value="Fisika">Fisika</option>
+                    <option value="Bahasa Indonesia">Bahasa Indonesia</option>
+                    <option value="Kimia">Kimia</option>
+                    <option value="Biologi">Biologi</option>
+                    <option value="Bahasa Inggris">Bahasa Inggris</option>
+                    <option value="PKn">PKn</option>
+                    <option value="Seni Budaya">Seni Budaya</option>
+                    <option value="PJOK">PJOK</option>
                   </select>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-4 top-4 text-gray-400 pointer-events-none"><polyline points="6 9 12 15 18 9"></polyline></svg>
                 </div>
@@ -72,9 +130,17 @@ const ScheduleEdit = ({ setView }) => {
             <div>
               <label className="block text-[13px] font-bold text-gray-700 mb-2">Guru Pengampu<span className="text-red-500">*</span></label>
               <div className="relative">
-                <select defaultValue="Drs. Hendra, M.Pd" className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700">
+                <select name="teacher" value={formData.teacher} onChange={handleChange} className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700">
+                  <option value="">Pilih guru pengampu...</option>
                   <option value="Drs. Hendra, M.Pd">Drs. Hendra, M.Pd</option>
                   <option value="Ibu Sari Dewi, S.Pd">Ibu Sari Dewi, S.Pd</option>
+                  <option value="Ibu Rani Kusuma, S.Pd">Ibu Rani Kusuma, S.Pd</option>
+                  <option value="Bpk. Ahmad Fauzi, M.Pd">Bpk. Ahmad Fauzi, M.Pd</option>
+                  <option value="Ibu Dewi Anggraini, S.Pd">Ibu Dewi Anggraini, S.Pd</option>
+                  <option value="Bpk. James Hutapea, S.Pd">Bpk. James Hutapea, S.Pd</option>
+                  <option value="Ibu Nurdiana, S.Pd">Ibu Nurdiana, S.Pd</option>
+                  <option value="Ibu Ani Sulistyo, S.Sn">Ibu Ani Sulistyo, S.Sn</option>
+                  <option value="Bpk. Rizal Maulana, S.Pd">Bpk. Rizal Maulana, S.Pd</option>
                 </select>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-4 top-4 text-gray-400 pointer-events-none"><polyline points="6 9 12 15 18 9"></polyline></svg>
               </div>
@@ -130,7 +196,7 @@ const ScheduleEdit = ({ setView }) => {
 
             <div>
               <label className="block text-[13px] font-bold text-gray-700 mb-2">Ruangan<span className="text-red-500">*</span></label>
-              <input type="text" defaultValue="Ruang 101" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
+              <input type="text" name="room" value={formData.room} onChange={handleChange} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
             </div>
           </div>
 
@@ -239,7 +305,7 @@ const ScheduleEdit = ({ setView }) => {
 
           {/* Actions */}
           <div className="space-y-3">
-            <button className="w-full py-3.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl text-[14px] font-bold transition-colors flex items-center justify-center gap-2 shadow-sm">
+            <button onClick={onSave} className="w-full py-3.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl text-[14px] font-bold transition-colors flex items-center justify-center gap-2 shadow-sm">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
               Simpan Perubahan
             </button>
