@@ -299,6 +299,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const [komponenGajiList, setKomponenGajiList] = useState([]);
   const [siswaSearchQuery, setSiswaSearchQuery] = useState("");
   const [showSiswaDropdown, setShowSiswaDropdown] = useState(false);
+  const [openKomponenMenu, setOpenKomponenMenu] = useState(null);
 
   // Initialize calendar when date picker opens
   useEffect(() => {
@@ -2529,26 +2530,28 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             </div>
 
             {/* Stat Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
               {/* Card Pendapatan */}
               <div className="bg-[#1A3D63] rounded-2xl border border-[#1A3D63] p-5 shadow-sm flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#0F3A5F] text-white flex items-center justify-center font-bold text-xl">
-                  +
-                </div>
                 <div>
-                  <div className="text-[11px] font-bold text-blue-200 mb-1 uppercase tracking-wide">Total Pendapatan</div>
+                  <div className="text-[11px] font-bold text-blue-200 mb-1 uppercase tracking-wide">Pendapatan</div>
                   <div className="text-xl sm:text-2xl font-black text-white">12 Komponen</div>
                 </div>
               </div>
 
               {/* Card Potongan */}
               <div className="bg-[#1A3D63] rounded-2xl border border-[#1A3D63] p-5 shadow-sm flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#0F3A5F] text-white flex items-center justify-center">
-                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-1.624 11.368A2.25 2.25 0 0 1 15.648 21H8.352a2.25 2.25 0 0 1-2.228-1.382L4.5 8.25M14.25 12v4.5m-4.5-4.5v4.5M10.5 4.5h3m-6 0a2.25 2.25 0 0 1 2.25-2.25h1.5A2.25 2.25 0 0 1 13.5 4.5m-6 0h9" /></svg>
-                </div>
                 <div>
-                  <div className="text-[11px] font-bold text-blue-200 mb-1 uppercase tracking-wide">Total Potongan</div>
+                  <div className="text-[11px] font-bold text-blue-200 mb-1 uppercase tracking-wide">Potongan</div>
                   <div className="text-xl sm:text-2xl font-black text-white">5 Komponen</div>
+                </div>
+              </div>
+
+              {/* Card Total */}
+              <div className="bg-[#1A3D63] rounded-2xl border border-[#1A3D63] p-5 shadow-sm flex items-center gap-4">
+                <div>
+                  <div className="text-[11px] font-bold text-blue-200 mb-1 uppercase tracking-wide">Total</div>
+                  <div className="text-xl sm:text-2xl font-black text-white">17 Komponen</div>
                 </div>
               </div>
             </div>
@@ -2616,36 +2619,47 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                             <span className="text-[#3B82F6] font-bold text-[11px]">{row.is_aktif ? "Aktif" : "Non-Aktif"}</span>
                           </td>
                           <td className="p-4 pr-5">
-                            <div className="flex items-center justify-end gap-2">
+                            <div className="flex items-center justify-end relative">
                               <button
-                                onClick={() => {
-                                  setSelectedKomponen(row);
-                                  setEditKomponenForm({
-                                    name: row.nama,
-                                    category: row.tipe !== 'potongan' ? 'Pendapatan' : 'Potongan',
-                                    type: row.formula_tipe === 'flat' ? 'Bulanan' :
-                                      row.formula_tipe === 'per_hari_hadir' ? 'Harian' :
-                                        row.formula_tipe === 'persen_gaji_pokok' ? 'Persentase' : 'Bulanan',
-                                    nominal: row.formula_tipe === 'persen_gaji_pokok' ? row.nilai_satuan : row.nominal_default,
-                                    status: row.is_aktif ? "Aktif" : "Non-Aktif"
-                                  });
-                                  setShowEditKomponenModal(true);
-                                }}
-                                className="text-[#3B82F6] hover:bg-blue-50 p-1.5 rounded-lg transition-colors border-none bg-transparent cursor-pointer"
-                                title="Edit Komponen"
+                                onClick={() => setOpenKomponenMenu(openKomponenMenu === idx ? null : idx)}
+                                className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg transition-colors border-none bg-transparent cursor-pointer"
+                                title="Menu"
                               >
-                                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" /></svg>
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-0.9 2-2s-0.9-2-2-2-2 0.9-2 2 0.9 2 2 2zm0 2c-1.1 0-2 0.9-2 2s0.9 2 2 2 2-0.9 2-2-0.9-2-2-2zm0 6c-1.1 0-2 0.9-2 2s0.9 2 2 2 2-0.9 2-2-0.9-2-2-2z"/></svg>
                               </button>
-                              <button
-                                onClick={() => {
-                                  setSelectedKomponen({ ...row, name: row.nama, category: row.tipe !== 'potongan' ? 'Pendapatan' : 'Potongan', nominal: row.formula_tipe === 'persen_gaji_pokok' ? `${row.nilai_satuan}%` : `Rp ${parseInt(row.nominal_default).toLocaleString('id-ID')}` });
-                                  setShowDeleteKomponenModal(true);
-                                }}
-                                className="text-[#EF4444] hover:bg-red-50 p-1.5 rounded-lg transition-colors border-none bg-transparent cursor-pointer"
-                                title="Hapus Komponen"
-                              >
-                                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
-                              </button>
+                              {openKomponenMenu === idx && (
+                                <div className="absolute right-0 top-8 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[140px] overflow-hidden">
+                                  <button
+                                    onClick={() => {
+                                      setSelectedKomponen(row);
+                                      setEditKomponenForm({
+                                        name: row.nama,
+                                        category: row.tipe !== 'potongan' ? 'Pendapatan' : 'Potongan',
+                                        type: row.formula_tipe === 'flat' ? 'Bulanan' :
+                                          row.formula_tipe === 'per_hari_hadir' ? 'Harian' :
+                                            row.formula_tipe === 'persen_gaji_pokok' ? 'Persentase' : 'Bulanan',
+                                        nominal: row.formula_tipe === 'persen_gaji_pokok' ? row.nilai_satuan : row.nominal_default,
+                                        status: row.is_aktif ? "Aktif" : "Non-Aktif"
+                                      });
+                                      setShowEditKomponenModal(true);
+                                      setOpenKomponenMenu(null);
+                                    }}
+                                    className="block w-full text-left px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50 border-none bg-transparent cursor-pointer"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setSelectedKomponen({ ...row, name: row.nama, category: row.tipe !== 'potongan' ? 'Pendapatan' : 'Potongan', nominal: row.formula_tipe === 'persen_gaji_pokok' ? `${row.nilai_satuan}%` : `Rp ${parseInt(row.nominal_default).toLocaleString('id-ID')}` });
+                                      setShowDeleteKomponenModal(true);
+                                      setOpenKomponenMenu(null);
+                                    }}
+                                    className="block w-full text-left px-4 py-2.5 text-xs font-medium text-red-600 hover:bg-red-50 border-none bg-transparent cursor-pointer border-t border-gray-100"
+                                  >
+                                    Hapus
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           </td>
                         </tr>
