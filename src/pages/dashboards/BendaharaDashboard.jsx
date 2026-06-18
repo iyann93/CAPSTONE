@@ -133,13 +133,23 @@ const sppDonutData = [
 ];
 
 // Tables Mock Data
-const initialPayments = [
-  { id: 1, name: "Ahmad Fauzi", class: "Kelas VIIA", amount: "Rp 250.000", period: "Mei 2026", status: "Lunas" },
-  { id: 2, name: "Aulia Rahma", class: "Kelas VIIB", amount: "Rp 250.000", period: "Mei 2026", status: "Lunas" },
-  { id: 3, name: "Budi Wijaya", class: "Kelas VIIC", amount: "Rp 275.000", period: "Mei 2026", status: "Belum Bayar" },
-  { id: 4, name: "Sinta Bella", class: "Kelas VIIIA", amount: "Rp 250.000", period: "Mei 2026", status: "Lunas" },
-  { id: 5, name: "Deni Pratama", class: "Kelas VIIIB", amount: "Rp 250.000", period: "Mei 2026", status: "Cicilan" }
+const initialPaymentsRaw = [
+  { id: 1, name: "Ahmad Fauzi", kelas: "VII A", amount: "Rp 1.250.000", method: "Transfer Bank", period: "Mei 2026", month: "Mei", nis: "2024/001", status: "Lunas", payer: "Siti Nur Aisyah", bank: "BCA", rekening: "1234****5678", tanggal_bayar: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
+  { id: 2, name: "Aulia Rahma", kelas: "VII B", amount: "Rp 1.250.000", method: "Transfer Bank", period: "Mei 2026", month: "Mei", nis: "2024/002", status: "Lunas", payer: "Rahmat Suryanto", bank: "Mandiri", rekening: "9876****5432", tanggal_bayar: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString() },
+  { id: 3, name: "Eka Putri", kelas: "IX A", amount: "Rp 1.500.000", method: "Transfer Bank", period: "Mei 2026", month: "Mei", nis: "2022/015", status: "Lunas", payer: "Siti Nurhaliza", bank: "BNI", rekening: "5555****1111", tanggal_bayar: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString() },
+  { id: 4, name: "Budi Santoso", kelas: "VIII A", amount: "Rp 1.300.000", method: "Transfer Bank", period: "Januari 2026", month: "Januari", nis: "2023/008", status: "Lunas", payer: "Budi Hermawan", bank: "BCA", rekening: "2222****8888", tanggal_bayar: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString() },
+  { id: 5, name: "Siti Aminah", kelas: "VIII B", amount: "Rp 1.300.000", method: "Transfer Bank", period: "Januari 2026", month: "Januari", nis: "2023/020", status: "Lunas", payer: "Aminah Dewi Lestari", bank: "Mandiri", rekening: "7777****3333", tanggal_bayar: new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString() },
+  { id: 6, name: "Lina Marlina", kelas: "VII C", amount: "Rp 1.250.000", method: "Transfer Bank", period: "Januari 2026", month: "Januari", nis: "2024/012", status: "Lunas", payer: "Marlin Jaya Kusuma", bank: "BCA", rekening: "4444****9999", tanggal_bayar: new Date(Date.now() - 96 * 60 * 60 * 1000).toISOString() }
 ];
+
+const initialPayments = initialPaymentsRaw.map(p => {
+  const d = new Date(p.tanggal_bayar);
+  return {
+    ...p,
+    date: d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + " WIB",
+    dateTime: d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + " • " + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + " WIB"
+  };
+});
 
 const payrollMockData = [
   { id: 1, name: "Andi Susanto, S.Pd", role: "Guru Matematika", salary: "Rp 4.105.500", status: "Sudah Transfer" },
@@ -167,7 +177,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const [catatSearchQuery, setCatatSearchQuery] = useState("");
 
   const [riwayatKelas, setRiwayatKelas] = useState("Semua Kelas");
-  const [riwayatBulan, setRiwayatBulan] = useState("Mei");
+  const [riwayatBulan, setRiwayatBulan] = useState("Semua Bulan");
   const [expandedRiwayatId, setExpandedRiwayatId] = useState(null);
 
   // Form states for manually recording payments
@@ -616,11 +626,19 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     const newPayment = {
       id: sppPayments.length + 1,
       name: inputStudent,
-      class: inputClass,
+      kelas: inputClass.replace("Kelas ", ""),
       amount: inputAmount,
       period: inputPeriod,
+      month: inputPeriod.split(" ")[0] || "Mei",
       status: inputStatus,
-      tanggal_bayar: new Date().toISOString()
+      tanggal_bayar: new Date().toISOString(),
+      date: new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) + " WIB",
+      dateTime: new Date().toLocaleDateString('id-ID', {day: '2-digit', month: 'long', year: 'numeric'}) + " • " + new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) + " WIB",
+      method: "Manual",
+      nis: "-", 
+      payer: "Siswa",
+      bank: "-",
+      rekening: "-"
     };
     setSppPayments([newPayment, ...sppPayments]);
 
@@ -871,36 +889,57 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm">
                 <div className="flex justify-between items-center mb-5">
                   <h3 className="text-sm font-bold text-gray-800">Pembayaran SPP Terbaru</h3>
-                  <button onClick={() => onViewChange && onViewChange("Tagihan SPP")} className="text-[#2563EB] text-[11px] font-bold hover:underline bg-transparent border-none cursor-pointer">Lihat Semua →</button>
+                  <button onClick={() => onViewChange && onViewChange("Monitoring Pembayaran")} className="text-[#2563EB] text-[11px] font-bold hover:underline bg-transparent border-none cursor-pointer">Lihat Semua →</button>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                        <th className="pb-3 px-2">NAMA SISWA</th>
-                        <th className="pb-3 px-2">KELAS</th>
-                        <th className="pb-3 px-2">NOMINAL</th>
-                        <th className="pb-3 px-2">PERIODE</th>
-                        <th className="pb-3 px-2 text-right">STATUS</th>
+                      <tr className="border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/50">
+                        <th className="py-4 px-4 w-12 text-center rounded-tl-xl">NO</th>
+                        <th className="py-4 px-4">WAKTU/TGL</th>
+                        <th className="py-4 px-4">NAMA SISWA</th>
+                        <th className="py-4 px-4">KELAS</th>
+                        <th className="py-4 px-4">PERIODE</th>
+                        <th className="py-4 px-4">NOMINAL</th>
+                        <th className="py-4 px-4 text-right rounded-tr-xl">STATUS</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50 text-[11px]">
-                      {sppPayments.slice(0, 3).map((row, i) => (
-                        <tr key={i} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="py-4 px-2 font-bold text-gray-800">{row.name}</td>
-                          <td className="py-4 px-2 text-gray-500 font-medium">{row.class?.replace('Kelas ', '')?.replace('-', ' ')}</td>
-                          <td className="py-4 px-2 font-bold text-gray-700">{row.amount}</td>
-                          <td className="py-4 px-2 text-gray-500">{row.period}</td>
-                          <td className="py-4 px-2 text-right">
-                            <span className={`px-2 py-0.5 rounded-md font-bold inline-block text-[9px] ${row.status === "Lunas" ? "bg-[#E6F4EA] text-[#137333]" :
-                              row.status === "Cicilan" ? "bg-[#FEF7E0] text-[#B06000]" :
-                                "bg-[#FCE8E6] text-[#C5221F]"
-                              }`}>
-                              {row.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
+                    <tbody className="divide-y divide-gray-50 text-[12px]">
+                      {[...sppPayments]
+                        .filter(p => p.status === "Lunas" || p.status?.toLowerCase() === "lunas")
+                        .sort((a, b) => new Date(b.tanggal_bayar || 0) - new Date(a.tanggal_bayar || 0))
+                        .slice(0, 3)
+                        .map((row, i) => {
+                        const isNew = row.tanggal_bayar && (new Date() - new Date(row.tanggal_bayar)) < 24 * 60 * 60 * 1000;
+                        return (
+                          <tr key={i} className="hover:bg-gray-50/80 transition-colors">
+                            <td className="py-4 px-4 text-center text-gray-500 font-bold">{i + 1}.</td>
+                            <td className="py-4 px-4 text-gray-600">
+                              <div className="flex flex-col gap-0.5">
+                                <span className="font-semibold">{row.tanggal_bayar ? new Date(row.tanggal_bayar).toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'}) : "-"}</span>
+                                <span className="text-[10px] text-gray-400">{row.tanggal_bayar ? new Date(row.tanggal_bayar).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : ""}</span>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-gray-800">{row.name}</span>
+                                {isNew && <span className="bg-blue-100 text-[#1A3D63] text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">Baru</span>}
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 text-gray-500 font-medium">{row.kelas?.replace('Kelas ', '')?.replace('-', ' ')}</td>
+                            <td className="py-4 px-4 text-gray-500">{row.period}</td>
+                            <td className="py-4 px-4 font-bold text-gray-700">{row.amount}</td>
+                            <td className="py-4 px-4 text-right">
+                              <span className={`px-2.5 py-1 rounded-md font-bold inline-block text-[10px] ${row.status === "Lunas" || row.status?.toLowerCase() === "lunas" ? "bg-[#E6F4EA] text-[#137333]" :
+                                row.status === "Cicilan" ? "bg-[#FEF7E0] text-[#B06000]" :
+                                  "bg-[#FCE8E6] text-[#C5221F]"
+                                }`}>
+                                {row.status}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -940,6 +979,87 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     </tbody>
                   </table>
                 </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "Monitoring Pembayaran":
+        const monitoringData = [...sppPayments]
+          .filter(p => p.status === "Lunas" || p.status?.toLowerCase() === "lunas")
+          .sort((a, b) => new Date(b.tanggal_bayar || 0) - new Date(a.tanggal_bayar || 0));
+
+        return (
+          <div className="flex flex-col gap-6 animate-fadeIn font-sans">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-3">
+                  <button onClick={() => onViewChange && onViewChange("Dashboard")} className="p-2 hover:bg-gray-200 rounded-full transition-colors bg-gray-100 text-gray-600 border-none cursor-pointer">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
+                  </button>
+                  <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Monitoring Pembayaran SPP</h1>
+                </div>
+                <p className="text-sm text-gray-500 mt-2 ml-[44px]">Aktivitas pembayaran SPP terbaru secara real-time.</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-sm">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-sm font-bold text-gray-800">Daftar Pembayaran Terbaru</h3>
+                <span className="text-[11px] font-bold text-[#1A3D63] bg-blue-50 px-3 py-1 rounded-lg">Update Otomatis</span>
+              </div>
+              <div className="overflow-x-auto relative rounded-xl border border-gray-100">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/50 border-b border-gray-100">
+                      <th className="py-4 px-4 w-12 text-center">NO</th>
+                      <th className="py-4 px-4">WAKTU/TANGGAL</th>
+                      <th className="py-4 px-4">NAMA SISWA</th>
+                      <th className="py-4 px-4">KELAS</th>
+                      <th className="py-4 px-4">PERIODE</th>
+                      <th className="py-4 px-4">NOMINAL</th>
+                      <th className="py-4 px-4 text-right">STATUS</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 text-[12px]">
+                    {monitoringData.length > 0 ? monitoringData.map((row, i) => {
+                      const isNew = row.tanggal_bayar && (new Date() - new Date(row.tanggal_bayar)) < 24 * 60 * 60 * 1000;
+                      return (
+                        <tr key={row.id || i} className="hover:bg-gray-50/80 transition-colors">
+                          <td className="py-4 px-4 text-center text-gray-500 font-bold">{i + 1}.</td>
+                          <td className="py-4 px-4">
+                            <div className="flex flex-col gap-0.5">
+                              <span className="font-semibold text-gray-800">
+                                {row.tanggal_bayar ? new Date(row.tanggal_bayar).toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'}) : "-"}
+                              </span>
+                              <span className="text-[10px] font-semibold text-gray-400">
+                                {row.tanggal_bayar ? new Date(row.tanggal_bayar).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) + ' WIB' : ""}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-4 px-4">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-gray-800">{row.name}</span>
+                              {isNew && <span className="bg-blue-100 text-[#1A3D63] text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">Baru</span>}
+                            </div>
+                          </td>
+                          <td className="py-4 px-4 text-gray-500 font-medium">{row.kelas?.replace('Kelas ', '')?.replace('-', ' ')}</td>
+                          <td className="py-4 px-4 text-gray-500">{row.period}</td>
+                          <td className="py-4 px-4 font-bold text-gray-700">{row.amount}</td>
+                          <td className="py-4 px-4 text-right">
+                            <span className={`px-2.5 py-1 rounded-md font-bold inline-block text-[10px] bg-[#E6F4EA] text-[#137333]`}>
+                              {row.status}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    }) : (
+                      <tr>
+                        <td colSpan="7" className="py-8 text-center text-gray-500">Tidak ada data pembayaran terbaru</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -1676,18 +1796,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
         );
 
       case "Riwayat Pembayaran":
-        const mockRiwayat = [
-          { id: 1, name: "Ahmad Fauzi", kelas: "VII A", date: "09.14 WIB", dateTime: "12 Mei 2026 • 09:14 WIB", amount: "Rp 250.000", method: "Transfer Bank", month: "Mei", nis: "2024/001", status: "Lunas", payer: "Siti Nur Aisyah", bank: "BCA", rekening: "1234****5678" },
-          { id: 2, name: "Aulia Rahma", kelas: "VII B", date: "09.02 WIB", dateTime: "11 Mei 2026 • 09:02 WIB", amount: "Rp 250.000", method: "Transfer Bank", month: "Mei", nis: "2024/002", status: "Lunas", payer: "Rahmat Suryanto", bank: "Mandiri", rekening: "9876****5432" },
-          { id: 3, name: "Eka Putri", kelas: "IX A", date: "08.45 WIB", dateTime: "10 Mei 2026 • 08:45 WIB", amount: "Rp 300.000", method: "Transfer Bank", month: "Mei", nis: "2022/015", status: "Lunas", payer: "Siti Nurhaliza", bank: "BNI", rekening: "5555****1111" },
-          { id: 4, name: "Budi Santoso", kelas: "VIII A", date: "10.00 WIB", dateTime: "31 Januari 2026 • 10:00 WIB", amount: "Rp 275.000", method: "Transfer Bank", month: "Januari", nis: "2023/008", status: "Lunas", payer: "Budi Hermawan", bank: "BCA", rekening: "2222****8888" },
-          { id: 5, name: "Siti Aminah", kelas: "VIII B", date: "11.30 WIB", dateTime: "30 Januari 2026 • 11:30 WIB", amount: "Rp 275.000", method: "Transfer Bank", month: "Januari", nis: "2023/020", status: "Lunas", payer: "Aminah Dewi Lestari", bank: "Mandiri", rekening: "7777****3333" },
-          { id: 6, name: "Lina Marlina", kelas: "VII C", date: "08.20 WIB", dateTime: "29 Januari 2026 • 08:20 WIB", amount: "Rp 250.000", method: "Transfer Bank", month: "Januari", nis: "2024/012", status: "Lunas", payer: "Marlin Jaya Kusuma", bank: "BCA", rekening: "4444****9999" }
-        ];
-
         let filteredRiwayat = riwayatBulan === "Semua Bulan" 
-          ? mockRiwayat 
-          : mockRiwayat.filter(r => r.month === riwayatBulan);
+          ? sppPayments 
+          : sppPayments.filter(r => r.month === riwayatBulan);
           
         const classGroups = riwayatKelas === "Semua Kelas" ? ["Kelas VII", "Kelas VIII", "Kelas IX"] : [riwayatKelas];
 
