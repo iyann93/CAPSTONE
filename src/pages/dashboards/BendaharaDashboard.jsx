@@ -133,13 +133,41 @@ const sppDonutData = [
 ];
 
 // Tables Mock Data
-const initialPayments = [
-  { id: 1, name: "Ahmad Fauzi", class: "Kelas VIIA", amount: "Rp 250.000", period: "Mei 2026", status: "Lunas" },
-  { id: 2, name: "Aulia Rahma", class: "Kelas VIIB", amount: "Rp 250.000", period: "Mei 2026", status: "Lunas" },
-  { id: 3, name: "Budi Wijaya", class: "Kelas VIIC", amount: "Rp 275.000", period: "Mei 2026", status: "Belum Bayar" },
-  { id: 4, name: "Sinta Bella", class: "Kelas VIIIA", amount: "Rp 250.000", period: "Mei 2026", status: "Lunas" },
-  { id: 5, name: "Deni Pratama", class: "Kelas VIIIB", amount: "Rp 250.000", period: "Mei 2026", status: "Cicilan" }
+const initialPaymentsRaw = [
+  { id: 1, name: "Ahmad Fauzi", kelas: "VII A", amount: "Rp 1.250.000", method: "Transfer Bank", period: "Mei 2026", month: "Mei", nis: "2024/001", status: "Lunas", payer: "Siti Nur Aisyah", bank: "BCA", rekening: "1234****5678", tanggal_bayar: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
+  { id: 2, name: "Aulia Rahma", kelas: "VII B", amount: "Rp 1.250.000", method: "Transfer Bank", period: "Mei 2026", month: "Mei", nis: "2024/002", status: "Lunas", payer: "Rahmat Suryanto", bank: "Mandiri", rekening: "9876****5432", tanggal_bayar: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString() },
+  { id: 3, name: "Eka Putri", kelas: "IX A", amount: "Rp 1.500.000", method: "Transfer Bank", period: "Mei 2026", month: "Mei", nis: "2022/015", status: "Lunas", payer: "Siti Nurhaliza", bank: "BNI", rekening: "5555****1111", tanggal_bayar: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString() },
+  { id: 4, name: "Budi Santoso", kelas: "VIII A", amount: "Rp 1.300.000", method: "Transfer Bank", period: "Januari 2026", month: "Januari", nis: "2023/008", status: "Lunas", payer: "Budi Hermawan", bank: "BCA", rekening: "2222****8888", tanggal_bayar: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString() },
+  { id: 5, name: "Siti Aminah", kelas: "VIII B", amount: "Rp 1.300.000", method: "Transfer Bank", period: "Januari 2026", month: "Januari", nis: "2023/020", status: "Lunas", payer: "Aminah Dewi Lestari", bank: "Mandiri", rekening: "7777****3333", tanggal_bayar: new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString() },
+  { id: 6, name: "Lina Marlina", kelas: "VII C", amount: "Rp 1.250.000", method: "Transfer Bank", period: "Januari 2026", month: "Januari", nis: "2024/012", status: "Lunas", payer: "Marlin Jaya Kusuma", bank: "BCA", rekening: "4444****9999", tanggal_bayar: new Date(Date.now() - 96 * 60 * 60 * 1000).toISOString() },
+  { id: 7, name: "Rizky Darmawan", kelas: "VII A", amount: "Rp 1.250.000", method: "Tunai", period: "Mei 2026", month: "Mei", nis: "2024/003", status: "Lunas", payer: "Darmawan", bank: "-", rekening: "-", tanggal_bayar: new Date(Date.now() - 120 * 60 * 60 * 1000).toISOString() },
+  { id: 8, name: "Nabila Putri", kelas: "VII B", amount: "Rp 1.250.000", method: "Transfer Bank", period: "Mei 2026", month: "Mei", nis: "2024/004", status: "Lunas", payer: "Ibunda Nabila", bank: "BCA", rekening: "1111****2222", tanggal_bayar: new Date(Date.now() - 144 * 60 * 60 * 1000).toISOString() }
 ];
+
+const getBulanSekarang = () => {
+  const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+  return months[new Date().getMonth()];
+};
+
+const initialPayments = initialPaymentsRaw.map(p => {
+  const d = new Date(p.tanggal_bayar);
+  const getNominalStr = (k) => {
+    if (!k) return "Rp 1.250.000";
+    if (k.includes('VII') && !k.includes('VIII')) return "Rp 1.250.000";
+    if (k.includes('VIII')) return "Rp 1.300.000";
+    if (k.includes('IX')) return "Rp 1.500.000";
+    return "Rp 1.250.000";
+  };
+  const currentMonth = getBulanSekarang();
+  return {
+    ...p,
+    amount: getNominalStr(p.kelas),
+    period: `${currentMonth} 2025`,
+    month: currentMonth,
+    date: d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + " WIB",
+    dateTime: d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + " • " + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + " WIB"
+  };
+});
 
 const payrollMockData = [
   { id: 1, name: "Andi Susanto, S.Pd", role: "Guru Matematika", salary: "Rp 4.105.500", status: "Sudah Transfer" },
@@ -153,6 +181,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [selectedYear, setSelectedYear] = useState("2025/2026");
+  const [dashboardBulan, setDashboardBulan] = useState(getBulanSekarang());
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [showGenerateMonthModal, setShowGenerateMonthModal] = useState(false);
   
@@ -167,14 +196,14 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const [catatSearchQuery, setCatatSearchQuery] = useState("");
 
   const [riwayatKelas, setRiwayatKelas] = useState("Semua Kelas");
-  const [riwayatBulan, setRiwayatBulan] = useState("Mei");
+  const [riwayatBulan, setRiwayatBulan] = useState("Semua Bulan");
   const [expandedRiwayatId, setExpandedRiwayatId] = useState(null);
 
   // Form states for manually recording payments
   const [inputStudent, setInputStudent] = useState("");
   const [inputClass, setInputClass] = useState("Kelas VIIA");
-  const [inputAmount, setInputAmount] = useState("Rp 250.000");
-  const [inputPeriod, setInputPeriod] = useState("Mei 2026");
+  const [inputAmount, setInputAmount] = useState("Rp 1.250.000");
+  const [inputPeriod, setInputPeriod] = useState(`${getBulanSekarang()} 2025`);
   const [inputStatus, setInputStatus] = useState("Lunas");
 
   // Form states for creating new bill
@@ -311,7 +340,29 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const loadTagihan = useCallback(async (params = {}) => {
     try {
       const rows = await getTagihan(params);
-      setStudentsBill(Array.isArray(rows) ? rows : []);
+      const formattedRows = (Array.isArray(rows) ? rows : []).map(row => {
+        const kelas = row.nama_kelas || row.class || '';
+        const getNominal = (k) => {
+          if (!k) return 1250000;
+          if (k.includes('VII') && !k.includes('VIII')) return 1250000;
+          if (k.includes('VIII')) return 1300000;
+          if (k.includes('IX')) return 1500000;
+          return 1250000;
+        };
+        const currentMonth = getBulanSekarang();
+        const paymentInfo = initialPaymentsRaw.find(p => (p.name === row.siswa_nama || p.name === row.name));
+        return {
+          ...row,
+          status: paymentInfo ? 'Lunas' : 'Belum Bayar',
+          tanggal_bayar: paymentInfo ? paymentInfo.tanggal_bayar : null,
+          nominal: getNominal(kelas),
+          bulan: currentMonth,
+          tahun: '2025',
+          period: `${currentMonth} 2025`,
+          jatuh_tempo: '2025-06-30'
+        };
+      });
+      setStudentsBill(formattedRows);
     } catch (e) {
       console.error("loadTagihan:", e);
     }
@@ -616,11 +667,19 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     const newPayment = {
       id: sppPayments.length + 1,
       name: inputStudent,
-      class: inputClass,
+      kelas: inputClass.replace("Kelas ", ""),
       amount: inputAmount,
       period: inputPeriod,
+      month: inputPeriod.split(" ")[0] || "Mei",
       status: inputStatus,
-      tanggal_bayar: new Date().toISOString()
+      tanggal_bayar: new Date().toISOString(),
+      date: new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) + " WIB",
+      dateTime: new Date().toLocaleDateString('id-ID', {day: '2-digit', month: 'long', year: 'numeric'}) + " • " + new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) + " WIB",
+      method: "Manual",
+      nis: "-", 
+      payer: "Siswa",
+      bank: "-",
+      rekening: "-"
     };
     setSppPayments([newPayment, ...sppPayments]);
 
@@ -660,9 +719,13 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   });
 
   const formatBulan = (bulan, tahun) => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
     if (!bulan) return '';
-    return `${months[(parseInt(bulan) - 1) % 12]} ${tahun || ''}`;
+    const num = parseInt(bulan);
+    if (!isNaN(num)) {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+      return `${months[(num - 1) % 12]} ${tahun || ''}`;
+    }
+    return `${bulan} ${tahun || ''}`;
   };
 
   const formatTanggal = (dateStr) => {
@@ -704,6 +767,46 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
         return <Profile user={user} />;
       case "Dashboard":
       case "Overview":
+        // Dynamic Calculations based on Single Source of Truth
+        const getNominalNum = (kelas) => {
+          if (!kelas) return 1250000;
+          if (kelas.includes('VII') && !kelas.includes('VIII')) return 1250000;
+          if (kelas.includes('VIII')) return 1300000;
+          if (kelas.includes('IX')) return 1500000;
+          return 1250000;
+        };
+
+        const currentMonthBills = studentsBill.filter(b => b.bulan === dashboardBulan || b.period?.startsWith(dashboardBulan));
+        
+        const totalSiswaBulanIni = currentMonthBills.length;
+        const lunasBulanIni = currentMonthBills.filter(b => b.status === "Lunas" || b.status?.toLowerCase() === "lunas");
+        const belumBayarBulanIni = currentMonthBills.filter(b => b.status !== "Lunas" && b.status?.toLowerCase() !== "lunas");
+        
+        const countLunas = lunasBulanIni.length;
+        const countBelum = belumBayarBulanIni.length;
+        
+        const nominalTerkumpul = lunasBulanIni.reduce((acc, curr) => acc + getNominalNum(curr.kelas), 0);
+        const nominalTunggakan = belumBayarBulanIni.reduce((acc, curr) => acc + getNominalNum(curr.kelas), 0);
+        
+        const dynamicDonutData = totalSiswaBulanIni > 0 ? [
+          { name: "Lunas SPP", value: countLunas, fill: "#22c55e" },
+          { name: "Belum Bayar", value: countBelum, fill: "#ef4444" }
+        ] : [
+          { name: "Belum Ada Data", value: 1, fill: "#e5e7eb" }
+        ];
+
+        const monthsArray = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        const currentMonthIndex = monthsArray.indexOf(dashboardBulan);
+        
+        const dynamicSppRecapData = monthsArray.slice(0, currentMonthIndex + 1).map(month => {
+          const monthBills = studentsBill.filter(b => b.bulan === month || b.period?.startsWith(month));
+          return {
+            name: month.substring(0, 3),
+            Lunas: monthBills.filter(b => b.status === "Lunas" || b.status?.toLowerCase() === "lunas").length,
+            Belum: monthBills.filter(b => b.status !== "Lunas" && b.status?.toLowerCase() !== "lunas").length,
+          };
+        });
+
         return (
           <div className="flex flex-col gap-6 animate-fadeIn font-sans">
             {/* Header Area */}
@@ -723,152 +826,110 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
                   <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
                   </div>
                 </div>
-
-                
               </div>
             </div>
 
-            {/* Stat Cards Row */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-              {/* Card 1: Total SPP */}
-              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm relative overflow-hidden flex flex-col justify-center min-h-[110px]">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-[#10B981]" />
+            {/* Stat Cards Row 1: Financials */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+              <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
                 <div>
-                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total SPP Terkumpul</div>
-                  <div className="text-2xl font-black text-gray-800">Rp 16,1 Jt</div>
-                  <div className="text-[11px] font-medium text-gray-400 mt-1">Bulan Mei 2026</div>
-                </div>
-              </div>
-
-              {/* Card 2: Siswa Lunas */}
-              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm relative overflow-hidden flex flex-col justify-center min-h-[110px]">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-[#3B82F6]" />
-                <div>
-                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Siswa Lunas SPP</div>
-                  <div className="text-2xl font-black text-gray-800">24</div>
-                  <div className="text-[11px] font-medium text-gray-400 mt-1">dari 34 siswa aktif</div>
-                </div>
-              </div>
-
-              {/* Card 3: Tunggakan */}
-              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm relative overflow-hidden flex flex-col justify-center min-h-[110px]">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-[#EF4444]" />
-                <div>
-                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tunggakan SPP</div>
-                  <div className="text-2xl font-black text-gray-800">Rp 2,75 Jt</div>
-                  <div className="text-[11px] font-medium text-gray-400 mt-1">10 siswa belum bayar</div>
-                </div>
-              </div>
-
-              {/* Card 4: Penggajian */}
-              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm relative overflow-hidden flex flex-col justify-center min-h-[110px]">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-[#8B5CF6]" />
-                <div>
-                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Penggajian Bulan Ini</div>
-                  <div className="text-2xl font-black text-gray-800">Rp 13,5 Jt</div>
-                  <div className="text-[11px] font-medium text-gray-400 mt-1">6 guru & staf</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Bar Chart */}
-              <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-                <div className="mb-6">
-                  <h3 className="text-sm font-bold text-gray-800">Rekapitulasi SPP Per Bulan</h3>
-                  <p className="text-[11px] text-gray-400">Jumlah siswa lunas vs belum bayar</p>
-                </div>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={sppRecapData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} dy={10} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} domain={[0, 34]} ticks={[0, 8, 16, 24, 32, 34]} />
-                      <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                      <Bar dataKey="Lunas" fill="#22c55e" radius={[4, 4, 0, 0]} barSize={20} />
-                      <Bar dataKey="Belum" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={20} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Donut Chart */}
-              <div className="lg:col-span-1 bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-                <div className="mb-2">
-                  <h3 className="text-sm font-bold text-gray-800">Status SPP Siswa</h3>
-                  <p className="text-[11px] text-gray-400">Distribusi pembayaran bulan ini</p>
-                </div>
-                <div className="h-[220px] relative flex justify-center items-center">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={sppDonutData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={65}
-                        outerRadius={85}
-                        paddingAngle={3}
-                        dataKey="value"
-                        stroke="none"
-                      >
-                        {sppDonutData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.fill} />
-                        ))}
-                      </Pie>
-                      <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                {/* Custom Legend */}
-                <div className="flex justify-center gap-6 mt-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#22c55e]"></div>
-                    <span className="text-[10px] font-bold text-gray-500">Lunas SPP</span>
+                  <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total SPP Terkumpul Bulan Ini</div>
+                  <div className="text-3xl font-black text-white">
+                    Rp {nominalTerkumpul.toLocaleString('id-ID')}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#ef4444]"></div>
-                    <span className="text-[10px] font-bold text-gray-500">Belum Bayar</span>
+                  <div className="text-xs font-medium text-blue-300 mt-2">Bulan {dashboardBulan}</div>
+                </div>
+              </div>
+
+              <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
+                <div>
+                  <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Tunggakan SPP</div>
+                  <div className="text-3xl font-black text-white">
+                    Rp {nominalTunggakan.toLocaleString('id-ID')}
                   </div>
+                  <div className="text-xs font-medium text-blue-300 mt-2">Bulan {dashboardBulan}</div>
                 </div>
               </div>
             </div>
 
-            {/* Tables Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Table 1: SPP Terbaru */}
-              <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm">
-                <div className="flex justify-between items-center mb-5">
-                  <h3 className="text-sm font-bold text-gray-800">Pembayaran SPP Terbaru</h3>
-                  <button onClick={() => onViewChange && onViewChange("Tagihan SPP")} className="text-[#2563EB] text-[11px] font-bold hover:underline bg-transparent border-none cursor-pointer">Lihat Semua →</button>
+            {/* Stat Cards Row 2: Students */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex flex-col justify-center min-h-[100px]">
+                <div>
+                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Jumlah Siswa Lunas</div>
+                  <div className="text-2xl font-black text-emerald-600">{countLunas} Siswa</div>
+                  <div className="text-[11px] font-medium text-gray-500 mt-1">Sudah membayar SPP</div>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                        <th className="pb-3 px-2">NAMA SISWA</th>
-                        <th className="pb-3 px-2">KELAS</th>
-                        <th className="pb-3 px-2">NOMINAL</th>
-                        <th className="pb-3 px-2">PERIODE</th>
-                        <th className="pb-3 px-2 text-right">STATUS</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50 text-[11px]">
-                      {sppPayments.slice(0, 3).map((row, i) => (
-                        <tr key={i} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="py-4 px-2 font-bold text-gray-800">{row.name}</td>
-                          <td className="py-4 px-2 text-gray-500 font-medium">{row.class?.replace('Kelas ', '')?.replace('-', ' ')}</td>
-                          <td className="py-4 px-2 font-bold text-gray-700">{row.amount}</td>
-                          <td className="py-4 px-2 text-gray-500">{row.period}</td>
-                          <td className="py-4 px-2 text-right">
-                            <span className={`px-2 py-0.5 rounded-md font-bold inline-block text-[9px] ${row.status === "Lunas" ? "bg-[#E6F4EA] text-[#137333]" :
+              </div>
+
+              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex flex-col justify-center min-h-[100px]">
+                <div>
+                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Jumlah Siswa Belum Bayar</div>
+                  <div className="text-2xl font-black text-red-500">{countBelum} Siswa</div>
+                  <div className="text-[11px] font-medium text-gray-500 mt-1">Menunggak SPP</div>
+                </div>
+              </div>
+
+              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex flex-col justify-center min-h-[100px]">
+                <div>
+                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total Siswa</div>
+                  <div className="text-2xl font-black text-gray-800">{totalSiswaBulanIni} Siswa</div>
+                  <div className="text-[11px] font-medium text-gray-500 mt-1">Tercatat aktif di bulan ini</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Table Row: SPP Terbaru */}
+            <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm">
+              <div className="flex justify-between items-center mb-5">
+                <h3 className="text-sm font-bold text-gray-800">Pembayaran SPP Terbaru</h3>
+                <button onClick={() => onViewChange && onViewChange("Monitoring Pembayaran")} className="text-[#2563EB] text-[11px] font-bold hover:underline bg-transparent border-none cursor-pointer">Lihat Semua →</button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/50">
+                      <th className="py-4 px-4 w-12 text-center rounded-tl-xl">NO</th>
+                      <th className="py-4 px-4">WAKTU/TGL</th>
+                      <th className="py-4 px-4">NAMA SISWA</th>
+                      <th className="py-4 px-4">KELAS</th>
+                      <th className="py-4 px-4">PERIODE</th>
+                      <th className="py-4 px-4">NOMINAL</th>
+                      <th className="py-4 px-4 text-right rounded-tr-xl">STATUS</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 text-[12px]">
+                    {[...sppPayments]
+                      .filter(p => p.status === "Lunas" || p.status?.toLowerCase() === "lunas")
+                      .sort((a, b) => new Date(b.tanggal_bayar || 0) - new Date(a.tanggal_bayar || 0))
+                      .slice(0, 3)
+                      .map((row, i) => {
+                      const isNew = row.tanggal_bayar && (new Date() - new Date(row.tanggal_bayar)) < 24 * 60 * 60 * 1000;
+                      return (
+                        <tr key={i} className="hover:bg-gray-50/80 transition-colors">
+                          <td className="py-4 px-4 text-center text-gray-500 font-bold">{i + 1}.</td>
+                          <td className="py-4 px-4 text-gray-600">
+                            <div className="flex flex-col gap-0.5">
+                              <span className="font-semibold text-gray-800">{row.dateTime?.split(' • ')[0] || (row.tanggal_bayar ? new Date(row.tanggal_bayar).toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'}) : "-")}</span>
+                              <span className="text-[10px] text-gray-400">{row.dateTime?.split(' • ')[1] || (row.tanggal_bayar ? new Date(row.tanggal_bayar).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) + " WIB" : "")}</span>
+                            </div>
+                          </td>
+                          <td className="py-4 px-4">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-gray-800">{row.name}</span>
+                              {isNew && <span className="bg-blue-100 text-[#1A3D63] text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">Baru</span>}
+                            </div>
+                          </td>
+                          <td className="py-4 px-4 text-gray-500 font-medium">{row.kelas?.replace('Kelas ', '')?.replace('-', ' ')}</td>
+                          <td className="py-4 px-4 text-gray-500">{row.period}</td>
+                          <td className="py-4 px-4 font-bold text-gray-700">{row.amount}</td>
+                          <td className="py-4 px-4 text-right">
+                            <span className={`px-2.5 py-1 rounded-md font-bold inline-block text-[10px] ${row.status === "Lunas" || row.status?.toLowerCase() === "lunas" ? "bg-[#E6F4EA] text-[#137333]" :
                               row.status === "Cicilan" ? "bg-[#FEF7E0] text-[#B06000]" :
                                 "bg-[#FCE8E6] text-[#C5221F]"
                               }`}>
@@ -876,46 +937,91 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                             </span>
                           </td>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
+            </div>
+          </div>
+        );
 
-              {/* Table 2: Status Penggajian */}
-              <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm">
-                <div className="flex justify-between items-center mb-5">
-                  <h3 className="text-sm font-bold text-gray-800">Status Penggajian Guru & Staf</h3>
-                  <button onClick={() => onViewChange && onViewChange("Status Bayar Gaji")} className="text-[#2563EB] text-[11px] font-bold hover:underline bg-transparent border-none cursor-pointer">Lihat Semua →</button>
+      case "Monitoring Pembayaran":
+        const monitoringData = [...sppPayments]
+          .filter(p => p.status === "Lunas" || p.status?.toLowerCase() === "lunas")
+          .sort((a, b) => new Date(b.tanggal_bayar || 0) - new Date(a.tanggal_bayar || 0));
+
+        return (
+          <div className="flex flex-col gap-6 animate-fadeIn font-sans">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-3">
+                  <button onClick={() => onViewChange && onViewChange("Dashboard")} className="p-2 hover:bg-gray-200 rounded-full transition-colors bg-gray-100 text-gray-600 border-none cursor-pointer">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
+                  </button>
+                  <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Monitoring Pembayaran SPP</h1>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                        <th className="pb-3 px-2">NAMA</th>
-                        <th className="pb-3 px-2">JABATAN</th>
-                        <th className="pb-3 px-2">GAJI BERSIH</th>
-                        <th className="pb-3 px-2 text-right">STATUS</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50 text-[11px]">
-                      {payrollMockData.slice(0, 3).map((row, i) => (
-                        <tr key={i} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="py-4 px-2 font-bold text-gray-800">{row.name}</td>
-                          <td className="py-4 px-2 text-gray-500 font-medium">{row.role}</td>
-                          <td className="py-4 px-2 font-bold text-gray-700">{row.salary}</td>
-                          <td className="py-4 px-2 text-right">
-                            <span className={`px-2 py-0.5 rounded-md font-bold inline-block text-[9px] ${row.status === "Sudah Transfer" ? "bg-[#E6F4EA] text-[#137333]" :
-                              "bg-[#FEF7E0] text-[#B06000]"
-                              }`}>
+                <p className="text-sm text-gray-500 mt-2 ml-[44px]">Aktivitas pembayaran SPP terbaru secara real-time.</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-sm">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-sm font-bold text-gray-800">Daftar Pembayaran Terbaru</h3>
+                <span className="text-[11px] font-bold text-[#1A3D63] bg-blue-50 px-3 py-1 rounded-lg">Update Otomatis</span>
+              </div>
+              <div className="overflow-x-auto relative rounded-xl border border-gray-100">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/50 border-b border-gray-100">
+                      <th className="py-4 px-4 w-12 text-center">NO</th>
+                      <th className="py-4 px-4">WAKTU/TANGGAL</th>
+                      <th className="py-4 px-4">NAMA SISWA</th>
+                      <th className="py-4 px-4">KELAS</th>
+                      <th className="py-4 px-4">PERIODE</th>
+                      <th className="py-4 px-4">NOMINAL</th>
+                      <th className="py-4 px-4 text-right">STATUS</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 text-[12px]">
+                    {monitoringData.length > 0 ? monitoringData.map((row, i) => {
+                      const isNew = row.tanggal_bayar && (new Date() - new Date(row.tanggal_bayar)) < 24 * 60 * 60 * 1000;
+                      return (
+                        <tr key={row.id || i} className="hover:bg-gray-50/80 transition-colors">
+                          <td className="py-4 px-4 text-center text-gray-500 font-bold">{i + 1}.</td>
+                          <td className="py-4 px-4">
+                            <div className="flex flex-col gap-0.5">
+                              <span className="font-semibold text-gray-800">
+                                {row.tanggal_bayar ? new Date(row.tanggal_bayar).toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'}) : "-"}
+                              </span>
+                              <span className="text-[10px] font-semibold text-gray-400">
+                                {row.tanggal_bayar ? new Date(row.tanggal_bayar).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) + ' WIB' : ""}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-4 px-4">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-gray-800">{row.name}</span>
+                              {isNew && <span className="bg-blue-100 text-[#1A3D63] text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">Baru</span>}
+                            </div>
+                          </td>
+                          <td className="py-4 px-4 text-gray-500 font-medium">{row.kelas?.replace('Kelas ', '')?.replace('-', ' ')}</td>
+                          <td className="py-4 px-4 text-gray-500">{row.period}</td>
+                          <td className="py-4 px-4 font-bold text-gray-700">{row.amount}</td>
+                          <td className="py-4 px-4 text-right">
+                            <span className={`px-2.5 py-1 rounded-md font-bold inline-block text-[10px] bg-[#E6F4EA] text-[#137333]`}>
                               {row.status}
                             </span>
                           </td>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      );
+                    }) : (
+                      <tr>
+                        <td colSpan="7" className="py-8 text-center text-gray-500">Tidak ada data pembayaran terbaru</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -947,8 +1053,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
                   <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
@@ -1279,8 +1383,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
                   <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
@@ -1310,15 +1412,31 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               <div className="flex flex-col gap-5">
                 {/* 3 Quick View Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {sppList.map((item) => (
-                    <div key={item.id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col justify-between">
-                      <div>
-                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">{item.grade}</div>
-                        <div className="text-3xl font-black text-gray-800 mb-2">{item.amount}</div>
+                  {(() => {
+                    // Sort sppList by class order: VII, VIII, IX
+                    const sortOrder = { 'VII': 1, 'VIII': 2, 'IX': 3 };
+                    const sorted = [...sppList].sort((a, b) => {
+                      const orderA = sortOrder[a.grade.match(/VII|VIII|IX/)?.[0]] || 999;
+                      const orderB = sortOrder[b.grade.match(/VII|VIII|IX/)?.[0]] || 999;
+                      return orderA - orderB;
+                    });
+                    return sorted.map((item) => (
+                      <div key={item.id} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col justify-between">
+                        <div>
+                          <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                            {(() => {
+                              let kelas = item.grade || '';
+                              kelas = kelas.replace(/[-\s][A-Z]$/, '');
+                              kelas = kelas.replace('-', ' ');
+                              return kelas;
+                            })()}
+                          </div>
+                          <div className="text-3xl font-black text-gray-800 mb-2">{item.amount}</div>
+                        </div>
+                        <div className="text-[11px] text-gray-400 mt-2">Berlaku: {formatTanggal(globalSppBerlaku)} · Jatuh tempo: {formatTanggal(globalSppJatuhTempo)}</div>
                       </div>
-                      <div className="text-[11px] text-gray-400 mt-2">Berlaku: {formatTanggal(globalSppBerlaku)} · Jatuh tempo: {formatTanggal(globalSppJatuhTempo)}</div>
-                    </div>
-                  ))}
+                    ));
+                  })()}
                 </div>
 
                 {/* Daftar Pengaturan SPP */}
@@ -1328,13 +1446,18 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   </div>
 
                   <div className="flex flex-col gap-3">
-                    {sppList.map((item) => {
+                    {sppList.sort((a, b) => {
+                      const sortOrder = { 'VII': 1, 'VIII': 2, 'IX': 3 };
+                      const orderA = sortOrder[a.grade.match(/VII|VIII|IX/)?.[0]] || 999;
+                      const orderB = sortOrder[b.grade.match(/VII|VIII|IX/)?.[0]] || 999;
+                      return orderA - orderB;
+                    }).map((item) => {
                       const isEditing = editingSppId === item.id;
                       return (
-                        <div
-                          key={item.id}
-                          className={`border rounded-xl transition-all duration-200 ${isEditing ? "border-[#1A3D63] shadow-[0_0_0_3px_rgba(26,61,99,0.1)] p-5" : "border-gray-100 hover:bg-gray-50/50 p-4"}`}
-                        >
+                          <div
+                            key={item.id}
+                            className={`border rounded-xl transition-all duration-200 ${isEditing ? "border-[#1A3D63] shadow-[0_0_0_3px_rgba(26,61,99,0.1)] p-5" : "border-gray-100 hover:bg-gray-50/50 p-4"}`}
+                          >
                           {/* Header row (always visible) */}
                           <div className="flex items-center gap-4">
                             {/* Icon */}
@@ -1343,7 +1466,15 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                             {/* Info */}
                             <div className="flex-1">
                               <div className="text-sm font-bold text-gray-800">
-                                {item.grade.replace('-', ' ')}
+                                {(() => {
+                                  // Format kelas: hapus suffix huruf (A, B, C, etc)
+                                  let kelas = item.grade || '';
+                                  // Hapus suffix huruf setelah angka romawi
+                                  kelas = kelas.replace(/[-\s][A-Z]$/, '');
+                                  // Normalize: ganti dash dengan space
+                                  kelas = kelas.replace('-', ' ');
+                                  return kelas;
+                                })()}
                                 <span className="text-[11px] font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded ml-2">TA {item.ta}</span>
                               </div>
                               {!isEditing && (
@@ -1377,7 +1508,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                         denda: Number(editSppDenda)
                                       };
                                       await updateKomponenSpp(item.id, payload);
-                                      triggerToast(`Nominal ${editSppGrade} berhasil diperbarui!`);
+                                      // Format kelas untuk toast message
+                                      const formattedGrade = editSppGrade.replace(/[-\s][A-Z]$/, '').replace('-', ' ');
+                                      triggerToast(`Nominal ${formattedGrade} berhasil diperbarui!`);
                                       setEditingSppId(null);
                                       loadKomponenSpp();
                                     } catch (e) {
@@ -1621,18 +1754,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
         );
 
       case "Riwayat Pembayaran":
-        const mockRiwayat = [
-          { id: 1, name: "Ahmad Fauzi", kelas: "VII A", date: "09.14 WIB", amount: "Rp 250.000", method: "Transfer Bank", month: "Mei" },
-          { id: 2, name: "Aulia Rahma", kelas: "VII B", date: "09.02 WIB", amount: "Rp 250.000", method: "Transfer Bank", month: "Mei" },
-          { id: 3, name: "Eka Putri", kelas: "IX A", date: "08.45 WIB", amount: "Rp 300.000", method: "Transfer Bank", month: "Mei" },
-          { id: 4, name: "Budi Santoso", kelas: "VIII A", date: "10.00 WIB", amount: "Rp 275.000", method: "Transfer Bank", month: "Januari" },
-          { id: 5, name: "Siti Aminah", kelas: "VIII B", date: "11.30 WIB", amount: "Rp 275.000", method: "Transfer Bank", month: "Januari" },
-          { id: 6, name: "Lina Marlina", kelas: "VII C", date: "08.20 WIB", amount: "Rp 250.000", method: "Transfer Bank", month: "Januari" }
-        ];
-
         let filteredRiwayat = riwayatBulan === "Semua Bulan" 
-          ? mockRiwayat 
-          : mockRiwayat.filter(r => r.month === riwayatBulan);
+          ? sppPayments 
+          : sppPayments.filter(r => r.month === riwayatBulan);
           
         const classGroups = riwayatKelas === "Semua Kelas" ? ["Kelas VII", "Kelas VIII", "Kelas IX"] : [riwayatKelas];
 
@@ -1654,8 +1778,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
                   <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
@@ -1730,7 +1852,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                 </div>
                                 <div>
                                   <div className="text-[13px] font-bold text-gray-800">{item.name}</div>
-                                  <div className="text-[10px] font-semibold text-gray-400 mt-0.5">{item.kelas} • {item.month}</div>
+                                  <div className="text-[10px] font-semibold text-gray-400 mt-0.5">{item.kelas}</div>
                                 </div>
                               </div>
                               <div className="flex items-center gap-2">
@@ -1745,27 +1867,67 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
                             {/* Expanded Detail Section */}
                             {isExpanded && (
-                              <div className="mt-2 pt-3 border-t border-gray-200 animate-fadeIn grid grid-cols-2 gap-3">
-                                <div>
-                                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide">Nominal</div>
-                                  <div className="text-xs font-bold text-[#0F9D58] mt-0.5">{item.amount}</div>
+                              <div className="mt-2 pt-3 border-t border-gray-200 animate-fadeIn space-y-3">
+                                {/* Student & Payment Info */}
+                                <div className="grid grid-cols-2 gap-3 text-xs">
+                                  <div>
+                                    <div className="text-gray-400 font-semibold mb-1">NIS</div>
+                                    <div className="font-bold text-gray-800">{item.nis}</div>
+                                  </div>
+                                  <div>
+                                    <div className="text-gray-400 font-semibold mb-1">Status</div>
+                                    <div className="flex items-center gap-1">
+                                      <span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
+                                      <span className="font-bold text-green-600">{item.status}</span>
+                                    </div>
+                                  </div>
                                 </div>
-                                <div>
-                                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide">Bulan Tagihan</div>
-                                  <div className="text-xs font-semibold text-gray-700 mt-0.5">{item.month} 2026</div>
+
+                                {/* Payment Details */}
+                                <div className="border-t border-gray-100 pt-3 grid grid-cols-2 gap-3 text-xs">
+                                  <div>
+                                    <div className="text-gray-400 font-semibold mb-1">Bulan Tagihan</div>
+                                    <div className="font-bold text-gray-800">{item.month} 2026</div>
+                                  </div>
+                                  <div>
+                                    <div className="text-gray-400 font-semibold mb-1">Total Bayar</div>
+                                    <div className="font-bold text-[#1A3D63]">{item.amount}</div>
+                                  </div>
+                                  <div className="col-span-2">
+                                    <div className="text-gray-400 font-semibold mb-1">Metode</div>
+                                    <div className="font-bold text-gray-800">{item.method}</div>
+                                  </div>
                                 </div>
-                                <div>
-                                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide">Metode</div>
-                                  <div className="text-xs font-semibold text-gray-700 mt-0.5">{item.method}</div>
+
+                                {/* Payment Method Info */}
+                                <div className="border-t border-gray-100 pt-3 grid grid-cols-2 gap-3 text-xs">
+                                  <div className="col-span-2">
+                                    <div className="text-gray-400 font-semibold mb-1">Pengirim</div>
+                                    <div className="font-bold text-gray-800">{item.payer}</div>
+                                  </div>
+                                  <div>
+                                    <div className="text-gray-400 font-semibold mb-1">Bank</div>
+                                    <div className="font-bold text-gray-800">{item.bank}</div>
+                                  </div>
+                                  <div>
+                                    <div className="text-gray-400 font-semibold mb-1">Rekening</div>
+                                    <div className="font-mono font-bold text-gray-800">{item.rekening}</div>
+                                  </div>
                                 </div>
-                                <div>
-                                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wide">Waktu Bayar</div>
-                                  <div className="text-xs font-semibold text-gray-700 mt-0.5">{item.date}</div>
+
+                                {/* Timestamp */}
+                                <div className="border-t border-gray-100 pt-3">
+                                  <div className="flex items-start gap-2">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-gray-400 mt-0.5 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                                    <span className="text-xs text-gray-600">{item.dateTime}</span>
+                                  </div>
                                 </div>
                               </div>
                             )}
                           </div>
-                          {idx < groupData.length - 1 && !isExpanded && <div className="w-full h-px bg-gray-50"></div>}
+
+                            {/* Separator Line */}
+                            {idx < groupData.length - 1 && !isExpanded && <div className="w-full h-px bg-gray-50"></div>}
                         </React.Fragment>
                       )}) : (
                         <div className="text-center py-6 text-gray-400 text-[11px] font-medium border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
@@ -1792,17 +1954,20 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <p className="text-sm text-gray-500 mt-1">Kelola program beasiswa dan potongan SPP siswa.</p>
               </div>
               <div className="flex items-center gap-3">
-                <div className="relative">
+                <div className="relative group w-full sm:w-auto">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
+                  </div>
                   <select
                     onChange={(e) => setSelectedYear(e.target.value)}
                     value={selectedYear}
-                    className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none"
+                    className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
                   </select>
-                  <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none">
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
-                  </span>
+                  </div>
                 </div>
                 <button
                   onClick={() => setShowKelolaDanaModal(true)}
@@ -2178,8 +2343,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
                   <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
@@ -2346,8 +2509,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
                   <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
@@ -2370,24 +2531,24 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             {/* Stat Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               {/* Card Pendapatan */}
-              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm border-l-4 border-l-[#10B981] flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#E6F4EA] text-[#10B981] flex items-center justify-center font-bold text-xl">
+              <div className="bg-[#1A3D63] rounded-2xl border border-[#1A3D63] p-5 shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-[#0F3A5F] text-white flex items-center justify-center font-bold text-xl">
                   +
                 </div>
                 <div>
-                  <div className="text-[11px] font-bold text-gray-400 mb-1 uppercase tracking-wide">Total Pendapatan</div>
-                  <div className="text-xl sm:text-2xl font-black text-gray-800">12 Komponen</div>
+                  <div className="text-[11px] font-bold text-blue-200 mb-1 uppercase tracking-wide">Total Pendapatan</div>
+                  <div className="text-xl sm:text-2xl font-black text-white">12 Komponen</div>
                 </div>
               </div>
 
               {/* Card Potongan */}
-              <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm border-l-4 border-l-[#EF4444] flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-[#FEE2E2] text-[#EF4444] flex items-center justify-center">
+              <div className="bg-[#1A3D63] rounded-2xl border border-[#1A3D63] p-5 shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-[#0F3A5F] text-white flex items-center justify-center">
                   <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-1.624 11.368A2.25 2.25 0 0 1 15.648 21H8.352a2.25 2.25 0 0 1-2.228-1.382L4.5 8.25M14.25 12v4.5m-4.5-4.5v4.5M10.5 4.5h3m-6 0a2.25 2.25 0 0 1 2.25-2.25h1.5A2.25 2.25 0 0 1 13.5 4.5m-6 0h9" /></svg>
                 </div>
                 <div>
-                  <div className="text-[11px] font-bold text-gray-400 mb-1 uppercase tracking-wide">Total Potongan</div>
-                  <div className="text-xl sm:text-2xl font-black text-gray-800">5 Komponen</div>
+                  <div className="text-[11px] font-bold text-blue-200 mb-1 uppercase tracking-wide">Total Potongan</div>
+                  <div className="text-xl sm:text-2xl font-black text-white">5 Komponen</div>
                 </div>
               </div>
             </div>
@@ -2432,14 +2593,13 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                       komponenGajiList.map((row, idx) => (
                         <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                           <td className="p-4 pl-5 flex items-center gap-3">
-                            <div className="text-gray-400">
-                              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" /></svg>
+                            <div className="w-6 h-6 rounded-full bg-[#EBF3FA] flex items-center justify-center text-[11px] font-bold text-[#1A3D63] flex-shrink-0 shadow-sm">
+                              {idx + 1}
                             </div>
                             <span className="font-bold text-gray-800">{row.nama}</span>
                           </td>
                           <td className="p-4">
-                            <span className={`font-bold px-2.5 py-1 rounded-md text-[10px] inline-block ${row.tipe !== 'potongan' ? 'bg-[#E6F4EA] text-[#10B981]' : 'bg-[#FEE2E2] text-[#EF4444]'
-                              }`}>
+                            <span className={`font-bold text-[10px] ${row.tipe !== 'potongan' ? 'text-[#10B981]' : 'text-[#EF4444]'}`}>
                               {row.tipe !== 'potongan' ? 'Pendapatan' : 'Potongan'}
                             </span>
                           </td>
@@ -2522,22 +2682,14 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             {/* Stat Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { label: "Total Pegawai", value: "6", accent: "border-l-4 border-l-[#6366F1]", iconBg: "bg-indigo-50 text-indigo-500" },
-                { label: "Slip Sudah Generate", value: "4", accent: "border-l-4 border-l-[#10B981]", iconBg: "bg-green-50 text-green-500" },
-                { label: "Belum Generate", value: "2", accent: "border-l-4 border-l-[#EF4444]", iconBg: "bg-red-50 text-red-500" },
-                { label: "Total Payroll", value: "Rp 20.335.000", accent: "border-l-4 border-l-[#3B82F6]", iconBg: "bg-blue-50 text-blue-500" }
+                { label: "Total Pegawai", value: "6" },
+                { label: "Slip Sudah Generate", value: "4" },
+                { label: "Belum Generate", value: "2" },
+                { label: "Total Payroll", value: "Rp 20.335.000" }
               ].map((card, idx) => (
-                <div key={idx} className={`bg-white rounded-2xl border border-gray-100 p-4 sm:p-5 shadow-sm ${card.accent} flex items-center gap-3`}>
-                  <div className={`w-10 h-10 rounded-xl ${card.iconBg} flex items-center justify-center flex-shrink-0 text-lg font-bold`}>
-                    {idx === 0 && <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>}
-                    {idx === 1 && <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>}
-                    {idx === 2 && <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" /></svg>}
-                    {idx === 3 && <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" /></svg>}
-                  </div>
-                  <div>
-                    <div className="text-[20px] sm:text-2xl font-black text-gray-800 leading-none">{card.value}</div>
-                    <div className="text-[11px] text-gray-400 font-medium mt-0.5">{card.label}</div>
-                  </div>
+                <div key={idx} className="bg-[#1A3D63] rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col justify-center">
+                  <div className="text-[20px] sm:text-2xl font-black text-white leading-none">{card.value}</div>
+                  <div className="text-[11px] text-blue-200 font-medium mt-0.5 uppercase tracking-wider">{card.label}</div>
                 </div>
               ))}
             </div>
@@ -2650,8 +2802,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
                   <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
@@ -2669,17 +2819,14 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             {/* Stat Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { label: "TOTAL PEGAWAI", value: "87", accent: "border-t-[#1A3D63]", icon: <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" /></svg>, iconColor: "text-gray-400" },
-                { label: "SUDAH TERBAYAR", value: "62", accent: "border-t-[#10B981]", icon: <IconCheckCircle />, iconColor: "text-[#10B981]" },
-                { label: "PROSES TRANSFER", value: "15", accent: "border-t-[#3B82F6]", icon: <IconClock />, iconColor: "text-[#3B82F6]" },
-                { label: "BELUM DIPROSES", value: "10", accent: "border-t-[#EF4444]", icon: <IconAlertCircle />, iconColor: "text-[#EF4444]" }
+                { label: "TOTAL PEGAWAI", value: "87" },
+                { label: "SUDAH TERBAYAR", value: "62" },
+                { label: "PROSES TRANSFER", value: "15" },
+                { label: "BELUM DIPROSES", value: "10" }
               ].map((card, idx) => (
-                <div key={idx} className={`bg-white rounded-[20px] border border-gray-100 p-5 shadow-sm border-t-[3px] ${card.accent} flex flex-col justify-between h-[104px]`}>
-                  <div className="flex justify-between items-start">
-                    <div className="text-[10px] font-bold text-gray-400 mt-1 uppercase tracking-wider">{card.label}</div>
-                    <div className={`${card.iconColor}`}>{card.icon}</div>
-                  </div>
-                  <div className="text-3xl font-black text-gray-800 leading-none">{card.value}</div>
+                <div key={idx} className="bg-[#1A3D63] rounded-[20px] p-5 shadow-sm flex flex-col justify-between h-[104px]">
+                  <div className="text-[10px] font-bold text-blue-200 mt-1 uppercase tracking-wider">{card.label}</div>
+                  <div className="text-3xl font-black text-white leading-none">{card.value}</div>
                 </div>
               ))}
             </div>
@@ -2866,8 +3013,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
                   <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
@@ -3392,7 +3537,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                         className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 appearance-none transition-all cursor-pointer"
                       >
                         <option value="2025/2026">2025/2026</option>
-                        <option value="2024/2025">2024/2025</option>
                       </select>
                       <span className="absolute right-3 top-2.5 text-gray-400 pointer-events-none"><IconChevronDown /></span>
                     </div>
@@ -3911,15 +4055,18 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Periode <span className="text-red-500">*</span></label>
-                    <div className="relative">
+                    <div className="relative group">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
+                      </div>
                       <select
                         value={beasiswaForm.periode}
                         onChange={(e) => setBeasiswaForm({ ...beasiswaForm, periode: e.target.value })}
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700 appearance-none pr-10"
+                        className="w-full border border-gray-200 rounded-xl pl-10 pr-10 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/20 bg-white text-gray-700 appearance-none hover:bg-gray-50 hover:border-gray-300 transition-all"
                       >
                         <option value="2025/2026">2025/2026</option>
                       </select>
-                      <span className="absolute right-4 top-3.5 text-gray-400 pointer-events-none">
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                         <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
                       </span>
                     </div>
