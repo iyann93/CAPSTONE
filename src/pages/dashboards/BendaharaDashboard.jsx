@@ -139,13 +139,31 @@ const initialPaymentsRaw = [
   { id: 3, name: "Eka Putri", kelas: "IX A", amount: "Rp 1.500.000", method: "Transfer Bank", period: "Mei 2026", month: "Mei", nis: "2022/015", status: "Lunas", payer: "Siti Nurhaliza", bank: "BNI", rekening: "5555****1111", tanggal_bayar: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString() },
   { id: 4, name: "Budi Santoso", kelas: "VIII A", amount: "Rp 1.300.000", method: "Transfer Bank", period: "Januari 2026", month: "Januari", nis: "2023/008", status: "Lunas", payer: "Budi Hermawan", bank: "BCA", rekening: "2222****8888", tanggal_bayar: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString() },
   { id: 5, name: "Siti Aminah", kelas: "VIII B", amount: "Rp 1.300.000", method: "Transfer Bank", period: "Januari 2026", month: "Januari", nis: "2023/020", status: "Lunas", payer: "Aminah Dewi Lestari", bank: "Mandiri", rekening: "7777****3333", tanggal_bayar: new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString() },
-  { id: 6, name: "Lina Marlina", kelas: "VII C", amount: "Rp 1.250.000", method: "Transfer Bank", period: "Januari 2026", month: "Januari", nis: "2024/012", status: "Lunas", payer: "Marlin Jaya Kusuma", bank: "BCA", rekening: "4444****9999", tanggal_bayar: new Date(Date.now() - 96 * 60 * 60 * 1000).toISOString() }
+  { id: 6, name: "Lina Marlina", kelas: "VII C", amount: "Rp 1.250.000", method: "Transfer Bank", period: "Januari 2026", month: "Januari", nis: "2024/012", status: "Lunas", payer: "Marlin Jaya Kusuma", bank: "BCA", rekening: "4444****9999", tanggal_bayar: new Date(Date.now() - 96 * 60 * 60 * 1000).toISOString() },
+  { id: 7, name: "Rizky Darmawan", kelas: "VII A", amount: "Rp 1.250.000", method: "Tunai", period: "Mei 2026", month: "Mei", nis: "2024/003", status: "Lunas", payer: "Darmawan", bank: "-", rekening: "-", tanggal_bayar: new Date(Date.now() - 120 * 60 * 60 * 1000).toISOString() },
+  { id: 8, name: "Nabila Putri", kelas: "VII B", amount: "Rp 1.250.000", method: "Transfer Bank", period: "Mei 2026", month: "Mei", nis: "2024/004", status: "Lunas", payer: "Ibunda Nabila", bank: "BCA", rekening: "1111****2222", tanggal_bayar: new Date(Date.now() - 144 * 60 * 60 * 1000).toISOString() }
 ];
+
+const getBulanSekarang = () => {
+  const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+  return months[new Date().getMonth()];
+};
 
 const initialPayments = initialPaymentsRaw.map(p => {
   const d = new Date(p.tanggal_bayar);
+  const getNominalStr = (k) => {
+    if (!k) return "Rp 1.250.000";
+    if (k.includes('VII') && !k.includes('VIII')) return "Rp 1.250.000";
+    if (k.includes('VIII')) return "Rp 1.300.000";
+    if (k.includes('IX')) return "Rp 1.500.000";
+    return "Rp 1.250.000";
+  };
+  const currentMonth = getBulanSekarang();
   return {
     ...p,
+    amount: getNominalStr(p.kelas),
+    period: `${currentMonth} 2025`,
+    month: currentMonth,
     date: d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + " WIB",
     dateTime: d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + " • " + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + " WIB"
   };
@@ -163,6 +181,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [selectedYear, setSelectedYear] = useState("2025/2026");
+  const [dashboardBulan, setDashboardBulan] = useState(getBulanSekarang());
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [showGenerateMonthModal, setShowGenerateMonthModal] = useState(false);
   
@@ -183,8 +202,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   // Form states for manually recording payments
   const [inputStudent, setInputStudent] = useState("");
   const [inputClass, setInputClass] = useState("Kelas VIIA");
-  const [inputAmount, setInputAmount] = useState("Rp 250.000");
-  const [inputPeriod, setInputPeriod] = useState("Mei 2026");
+  const [inputAmount, setInputAmount] = useState("Rp 1.250.000");
+  const [inputPeriod, setInputPeriod] = useState(`${getBulanSekarang()} 2025`);
   const [inputStatus, setInputStatus] = useState("Lunas");
 
   // Form states for creating new bill
@@ -321,7 +340,29 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const loadTagihan = useCallback(async (params = {}) => {
     try {
       const rows = await getTagihan(params);
-      setStudentsBill(Array.isArray(rows) ? rows : []);
+      const formattedRows = (Array.isArray(rows) ? rows : []).map(row => {
+        const kelas = row.nama_kelas || row.class || '';
+        const getNominal = (k) => {
+          if (!k) return 1250000;
+          if (k.includes('VII') && !k.includes('VIII')) return 1250000;
+          if (k.includes('VIII')) return 1300000;
+          if (k.includes('IX')) return 1500000;
+          return 1250000;
+        };
+        const currentMonth = getBulanSekarang();
+        const paymentInfo = initialPaymentsRaw.find(p => (p.name === row.siswa_nama || p.name === row.name));
+        return {
+          ...row,
+          status: paymentInfo ? 'Lunas' : 'Belum Bayar',
+          tanggal_bayar: paymentInfo ? paymentInfo.tanggal_bayar : null,
+          nominal: getNominal(kelas),
+          bulan: currentMonth,
+          tahun: '2025',
+          period: `${currentMonth} 2025`,
+          jatuh_tempo: '2025-06-30'
+        };
+      });
+      setStudentsBill(formattedRows);
     } catch (e) {
       console.error("loadTagihan:", e);
     }
@@ -678,9 +719,13 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   });
 
   const formatBulan = (bulan, tahun) => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
     if (!bulan) return '';
-    return `${months[(parseInt(bulan) - 1) % 12]} ${tahun || ''}`;
+    const num = parseInt(bulan);
+    if (!isNaN(num)) {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+      return `${months[(num - 1) % 12]} ${tahun || ''}`;
+    }
+    return `${bulan} ${tahun || ''}`;
   };
 
   const formatTanggal = (dateStr) => {
@@ -722,6 +767,46 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
         return <Profile user={user} />;
       case "Dashboard":
       case "Overview":
+        // Dynamic Calculations based on Single Source of Truth
+        const getNominalNum = (kelas) => {
+          if (!kelas) return 1250000;
+          if (kelas.includes('VII') && !kelas.includes('VIII')) return 1250000;
+          if (kelas.includes('VIII')) return 1300000;
+          if (kelas.includes('IX')) return 1500000;
+          return 1250000;
+        };
+
+        const currentMonthBills = studentsBill.filter(b => b.bulan === dashboardBulan || b.period?.startsWith(dashboardBulan));
+        
+        const totalSiswaBulanIni = currentMonthBills.length;
+        const lunasBulanIni = currentMonthBills.filter(b => b.status === "Lunas" || b.status?.toLowerCase() === "lunas");
+        const belumBayarBulanIni = currentMonthBills.filter(b => b.status !== "Lunas" && b.status?.toLowerCase() !== "lunas");
+        
+        const countLunas = lunasBulanIni.length;
+        const countBelum = belumBayarBulanIni.length;
+        
+        const nominalTerkumpul = lunasBulanIni.reduce((acc, curr) => acc + getNominalNum(curr.kelas), 0);
+        const nominalTunggakan = belumBayarBulanIni.reduce((acc, curr) => acc + getNominalNum(curr.kelas), 0);
+        
+        const dynamicDonutData = totalSiswaBulanIni > 0 ? [
+          { name: "Lunas SPP", value: countLunas, fill: "#22c55e" },
+          { name: "Belum Bayar", value: countBelum, fill: "#ef4444" }
+        ] : [
+          { name: "Belum Ada Data", value: 1, fill: "#e5e7eb" }
+        ];
+
+        const monthsArray = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        const currentMonthIndex = monthsArray.indexOf(dashboardBulan);
+        
+        const dynamicSppRecapData = monthsArray.slice(0, currentMonthIndex + 1).map(month => {
+          const monthBills = studentsBill.filter(b => b.bulan === month || b.period?.startsWith(month));
+          return {
+            name: month.substring(0, 3),
+            Lunas: monthBills.filter(b => b.status === "Lunas" || b.status?.toLowerCase() === "lunas").length,
+            Belum: monthBills.filter(b => b.status !== "Lunas" && b.status?.toLowerCase() !== "lunas").length,
+          };
+        });
+
         return (
           <div className="flex flex-col gap-6 animate-fadeIn font-sans">
             {/* Header Area */}
@@ -741,244 +826,121 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
                   <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
                   </div>
                 </div>
-
-                
               </div>
             </div>
 
-            {/* Stat Cards Row */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-              {/* Card 1: Total SPP */}
-              <div className="bg-[#1A3D63] rounded-2xl p-5 shadow-sm flex flex-col justify-center min-h-[110px]">
+            {/* Stat Cards Row 1: Financials */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+              <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
                 <div>
-                  <div className="text-[11px] font-bold text-blue-200 uppercase tracking-wider mb-1">Total SPP Terkumpul</div>
-                  <div className="text-2xl font-black text-white">Rp 16,1 Jt</div>
-                  <div className="text-[11px] font-medium text-blue-300 mt-1">Bulan Mei 2026</div>
+                  <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total SPP Terkumpul Bulan Ini</div>
+                  <div className="text-3xl font-black text-white">
+                    Rp {nominalTerkumpul.toLocaleString('id-ID')}
+                  </div>
+                  <div className="text-xs font-medium text-blue-300 mt-2">Bulan {dashboardBulan}</div>
                 </div>
               </div>
 
-              {/* Card 2: Siswa Lunas */}
-              <div className="bg-[#1A3D63] rounded-2xl p-5 shadow-sm flex flex-col justify-center min-h-[110px]">
+              <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
                 <div>
-                  <div className="text-[11px] font-bold text-blue-200 uppercase tracking-wider mb-1">Siswa Lunas SPP</div>
-                  <div className="text-2xl font-black text-white">24</div>
-                  <div className="text-[11px] font-medium text-blue-300 mt-1">dari 34 siswa aktif</div>
-                </div>
-              </div>
-
-              {/* Card 3: Tunggakan */}
-              <div className="bg-[#1A3D63] rounded-2xl p-5 shadow-sm flex flex-col justify-center min-h-[110px]">
-                <div>
-                  <div className="text-[11px] font-bold text-blue-200 uppercase tracking-wider mb-1">Tunggakan SPP</div>
-                  <div className="text-2xl font-black text-white">Rp 2,75 Jt</div>
-                  <div className="text-[11px] font-medium text-blue-300 mt-1">10 siswa belum bayar</div>
-                </div>
-              </div>
-
-              {/* Card 4: Penggajian */}
-              <div className="bg-[#1A3D63] rounded-2xl p-5 shadow-sm flex flex-col justify-center min-h-[110px]">
-                <div>
-                  <div className="text-[11px] font-bold text-blue-200 uppercase tracking-wider mb-1">Penggajian Bulan Ini</div>
-                  <div className="text-2xl font-black text-white">Rp 13,5 Jt</div>
-                  <div className="text-[11px] font-medium text-blue-300 mt-1">6 guru & staf</div>
+                  <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Tunggakan SPP</div>
+                  <div className="text-3xl font-black text-white">
+                    Rp {nominalTunggakan.toLocaleString('id-ID')}
+                  </div>
+                  <div className="text-xs font-medium text-blue-300 mt-2">Bulan {dashboardBulan}</div>
                 </div>
               </div>
             </div>
 
-            {/* Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Bar Chart */}
-              <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-                <div className="mb-6">
-                  <h3 className="text-sm font-bold text-gray-800">Rekapitulasi SPP Per Bulan</h3>
-                  <p className="text-[11px] text-gray-400">Jumlah siswa lunas vs belum bayar</p>
-                </div>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={sppRecapData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} dy={10} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} domain={[0, 34]} ticks={[0, 8, 16, 24, 32, 34]} />
-                      <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                      <Bar dataKey="Lunas" fill="#22c55e" radius={[4, 4, 0, 0]} barSize={20} />
-                      <Bar dataKey="Belum" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={20} />
-                    </BarChart>
-                  </ResponsiveContainer>
+            {/* Stat Cards Row 2: Students */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex flex-col justify-center min-h-[100px]">
+                <div>
+                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Jumlah Siswa Lunas</div>
+                  <div className="text-2xl font-black text-emerald-600">{countLunas} Siswa</div>
+                  <div className="text-[11px] font-medium text-gray-500 mt-1">Sudah membayar SPP</div>
                 </div>
               </div>
 
-              {/* Donut Chart */}
-              <div className="lg:col-span-1 bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-                <div className="mb-6">
-                  <h3 className="text-sm font-bold text-gray-800">Status SPP Siswa</h3>
-                  <p className="text-[11px] text-gray-400">Distribusi pembayaran bulan ini</p>
+              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex flex-col justify-center min-h-[100px]">
+                <div>
+                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Jumlah Siswa Belum Bayar</div>
+                  <div className="text-2xl font-black text-red-500">{countBelum} Siswa</div>
+                  <div className="text-[11px] font-medium text-gray-500 mt-1">Menunggak SPP</div>
                 </div>
+              </div>
 
-                {/* Donut Chart */}
-                <div className="h-[180px] relative flex justify-center items-center mb-6">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={sppDonutData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={55}
-                        outerRadius={75}
-                        paddingAngle={3}
-                        dataKey="value"
-                        stroke="none"
-                      >
-                        {sppDonutData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.fill} />
-                        ))}
-                      </Pie>
-                      <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-
-                {/* Enhanced Legend with Details */}
-                <div className="space-y-2.5 mb-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 rounded-full bg-[#22c55e]"></div>
-                      <span className="text-[11px] font-bold text-gray-700">Lunas</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-bold text-gray-600">24 siswa</span>
-                      <span className="text-[11px] font-bold text-[#22c55e] bg-green-50 px-2 py-0.5 rounded-md">70.6%</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 rounded-full bg-[#ef4444]"></div>
-                      <span className="text-[11px] font-bold text-gray-700">Belum Bayar</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-bold text-gray-600">10 siswa</span>
-                      <span className="text-[11px] font-bold text-[#ef4444] bg-red-50 px-2 py-0.5 rounded-md">29.4%</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Total Siswa Section */}
-                <div className="pt-4 border-t border-gray-100">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-sm font-bold text-blue-600">
-                        👥
-                      </div>
-                      <span className="text-[11px] font-bold text-gray-500">Total Siswa</span>
-                    </div>
-                    <span className="text-lg font-black text-gray-800">34</span>
-                  </div>
+              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex flex-col justify-center min-h-[100px]">
+                <div>
+                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total Siswa</div>
+                  <div className="text-2xl font-black text-gray-800">{totalSiswaBulanIni} Siswa</div>
+                  <div className="text-[11px] font-medium text-gray-500 mt-1">Tercatat aktif di bulan ini</div>
                 </div>
               </div>
             </div>
 
-            {/* Tables Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Table 1: SPP Terbaru */}
-              <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm">
-                <div className="flex justify-between items-center mb-5">
-                  <h3 className="text-sm font-bold text-gray-800">Pembayaran SPP Terbaru</h3>
-                  <button onClick={() => onViewChange && onViewChange("Monitoring Pembayaran")} className="text-[#2563EB] text-[11px] font-bold hover:underline bg-transparent border-none cursor-pointer">Lihat Semua →</button>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/50">
-                        <th className="py-4 px-4 w-12 text-center rounded-tl-xl">NO</th>
-                        <th className="py-4 px-4">WAKTU/TGL</th>
-                        <th className="py-4 px-4">NAMA SISWA</th>
-                        <th className="py-4 px-4">KELAS</th>
-                        <th className="py-4 px-4">PERIODE</th>
-                        <th className="py-4 px-4">NOMINAL</th>
-                        <th className="py-4 px-4 text-right rounded-tr-xl">STATUS</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50 text-[12px]">
-                      {[...sppPayments]
-                        .filter(p => p.status === "Lunas" || p.status?.toLowerCase() === "lunas")
-                        .sort((a, b) => new Date(b.tanggal_bayar || 0) - new Date(a.tanggal_bayar || 0))
-                        .slice(0, 3)
-                        .map((row, i) => {
-                        const isNew = row.tanggal_bayar && (new Date() - new Date(row.tanggal_bayar)) < 24 * 60 * 60 * 1000;
-                        return (
-                          <tr key={i} className="hover:bg-gray-50/80 transition-colors">
-                            <td className="py-4 px-4 text-center text-gray-500 font-bold">{i + 1}.</td>
-                            <td className="py-4 px-4 text-gray-600">
-                              <div className="flex flex-col gap-0.5">
-                                <span className="font-semibold">{row.tanggal_bayar ? new Date(row.tanggal_bayar).toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'}) : "-"}</span>
-                                <span className="text-[10px] text-gray-400">{row.tanggal_bayar ? new Date(row.tanggal_bayar).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) : ""}</span>
-                              </div>
-                            </td>
-                            <td className="py-4 px-4">
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-gray-800">{row.name}</span>
-                                {isNew && <span className="bg-blue-100 text-[#1A3D63] text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">Baru</span>}
-                              </div>
-                            </td>
-                            <td className="py-4 px-4 text-gray-500 font-medium">{row.kelas?.replace('Kelas ', '')?.replace('-', ' ')}</td>
-                            <td className="py-4 px-4 text-gray-500">{row.period}</td>
-                            <td className="py-4 px-4 font-bold text-gray-700">{row.amount}</td>
-                            <td className="py-4 px-4 text-right">
-                              <span className={`px-2.5 py-1 rounded-md font-bold inline-block text-[10px] ${row.status === "Lunas" || row.status?.toLowerCase() === "lunas" ? "bg-[#E6F4EA] text-[#137333]" :
-                                row.status === "Cicilan" ? "bg-[#FEF7E0] text-[#B06000]" :
-                                  "bg-[#FCE8E6] text-[#C5221F]"
-                                }`}>
-                                {row.status}
-                              </span>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+            {/* Table Row: SPP Terbaru */}
+            <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm">
+              <div className="flex justify-between items-center mb-5">
+                <h3 className="text-sm font-bold text-gray-800">Pembayaran SPP Terbaru</h3>
+                <button onClick={() => onViewChange && onViewChange("Monitoring Pembayaran")} className="text-[#2563EB] text-[11px] font-bold hover:underline bg-transparent border-none cursor-pointer">Lihat Semua →</button>
               </div>
-
-              {/* Table 2: Status Penggajian */}
-              <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm">
-                <div className="flex justify-between items-center mb-5">
-                  <h3 className="text-sm font-bold text-gray-800">Status Penggajian Guru & Staf</h3>
-                  <button onClick={() => onViewChange && onViewChange("Status Bayar Gaji")} className="text-[#2563EB] text-[11px] font-bold hover:underline bg-transparent border-none cursor-pointer">Lihat Semua →</button>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                        <th className="pb-3 px-2">NAMA</th>
-                        <th className="pb-3 px-2">JABATAN</th>
-                        <th className="pb-3 px-2">GAJI BERSIH</th>
-                        <th className="pb-3 px-2 text-right">STATUS</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50 text-[11px]">
-                      {payrollMockData.slice(0, 3).map((row, i) => (
-                        <tr key={i} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="py-4 px-2 font-bold text-gray-800">{row.name}</td>
-                          <td className="py-4 px-2 text-gray-500 font-medium">{row.role}</td>
-                          <td className="py-4 px-2 font-bold text-gray-700">{row.salary}</td>
-                          <td className="py-4 px-2 text-right">
-                            <span className={`px-2 py-0.5 rounded-md font-bold inline-block text-[9px] ${row.status === "Sudah Transfer" ? "bg-[#E6F4EA] text-[#137333]" :
-                              "bg-[#FEF7E0] text-[#B06000]"
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/50">
+                      <th className="py-4 px-4 w-12 text-center rounded-tl-xl">NO</th>
+                      <th className="py-4 px-4">WAKTU/TGL</th>
+                      <th className="py-4 px-4">NAMA SISWA</th>
+                      <th className="py-4 px-4">KELAS</th>
+                      <th className="py-4 px-4">PERIODE</th>
+                      <th className="py-4 px-4">NOMINAL</th>
+                      <th className="py-4 px-4 text-right rounded-tr-xl">STATUS</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 text-[12px]">
+                    {[...sppPayments]
+                      .filter(p => p.status === "Lunas" || p.status?.toLowerCase() === "lunas")
+                      .sort((a, b) => new Date(b.tanggal_bayar || 0) - new Date(a.tanggal_bayar || 0))
+                      .slice(0, 3)
+                      .map((row, i) => {
+                      const isNew = row.tanggal_bayar && (new Date() - new Date(row.tanggal_bayar)) < 24 * 60 * 60 * 1000;
+                      return (
+                        <tr key={i} className="hover:bg-gray-50/80 transition-colors">
+                          <td className="py-4 px-4 text-center text-gray-500 font-bold">{i + 1}.</td>
+                          <td className="py-4 px-4 text-gray-600">
+                            <div className="flex flex-col gap-0.5">
+                              <span className="font-semibold text-gray-800">{row.dateTime?.split(' • ')[0] || (row.tanggal_bayar ? new Date(row.tanggal_bayar).toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'}) : "-")}</span>
+                              <span className="text-[10px] text-gray-400">{row.dateTime?.split(' • ')[1] || (row.tanggal_bayar ? new Date(row.tanggal_bayar).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) + " WIB" : "")}</span>
+                            </div>
+                          </td>
+                          <td className="py-4 px-4">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-gray-800">{row.name}</span>
+                              {isNew && <span className="bg-blue-100 text-[#1A3D63] text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">Baru</span>}
+                            </div>
+                          </td>
+                          <td className="py-4 px-4 text-gray-500 font-medium">{row.kelas?.replace('Kelas ', '')?.replace('-', ' ')}</td>
+                          <td className="py-4 px-4 text-gray-500">{row.period}</td>
+                          <td className="py-4 px-4 font-bold text-gray-700">{row.amount}</td>
+                          <td className="py-4 px-4 text-right">
+                            <span className={`px-2.5 py-1 rounded-md font-bold inline-block text-[10px] ${row.status === "Lunas" || row.status?.toLowerCase() === "lunas" ? "bg-[#E6F4EA] text-[#137333]" :
+                              row.status === "Cicilan" ? "bg-[#FEF7E0] text-[#B06000]" :
+                                "bg-[#FCE8E6] text-[#C5221F]"
                               }`}>
                               {row.status}
                             </span>
                           </td>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -1091,8 +1053,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
                   <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
@@ -1423,8 +1383,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
                   <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
@@ -1820,8 +1778,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
                   <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
@@ -2008,8 +1964,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
                   <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
@@ -2389,8 +2343,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
                   <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
@@ -2557,8 +2509,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
                   <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
@@ -2852,8 +2802,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
                   <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
@@ -3065,8 +3013,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
                   >
                     <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-                    <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
-                    <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
                   </select>
                   <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <IconChevronDown />
@@ -3591,7 +3537,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                         className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 appearance-none transition-all cursor-pointer"
                       >
                         <option value="2025/2026">2025/2026</option>
-                        <option value="2024/2025">2024/2025</option>
                       </select>
                       <span className="absolute right-3 top-2.5 text-gray-400 pointer-events-none"><IconChevronDown /></span>
                     </div>
@@ -4120,8 +4065,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                         className="w-full border border-gray-200 rounded-xl pl-10 pr-10 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/20 bg-white text-gray-700 appearance-none hover:bg-gray-50 hover:border-gray-300 transition-all"
                       >
                         <option value="2025/2026">2025/2026</option>
-                        <option value="2024/2025">2024/2025</option>
-                        <option value="2023/2024">2023/2024</option>
                       </select>
                       <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                         <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
