@@ -948,6 +948,14 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
           };
         });
 
+        const formatRupiah = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
+        const totalPenggajian = payrollMockData.reduce((acc, curr) => {
+          const nominalStr = String(curr.salary || "").replace(/[^0-9]/g, '');
+          const nominalNum = parseInt(nominalStr, 10) || 0;
+          return acc + nominalNum;
+        }, 0);
+        const jumlahStaff = payrollMockData.length;
+
         return (
           <div className="flex flex-col gap-6 animate-fadeIn font-sans">
             {/* Header Area */}
@@ -975,113 +983,125 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               </div>
             </div>
 
-            {/* Stat Cards Row 1: Financials */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-              <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
-                <div>
-                  <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total SPP Terkumpul</div>
-                  <div className="text-3xl font-black text-white">
-                    Rp {nominalTerkumpul.toLocaleString('id-ID')}
+            {/* Stat Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
+              {[
+                {
+                  title: "Total SPP Terkumpul",
+                  value: formatRupiah(nominalTerkumpul),
+                  subText: `Bulan ${dashboardBulan} ${new Date().getFullYear()}`,
+                },
+                {
+                  title: "Siswa Lunas SPP",
+                  value: `${countLunas} Siswa`,
+                  subText: `dari ${totalSiswaBulanIni} siswa aktif`,
+                },
+                {
+                  title: "Tunggakan SPP",
+                  value: formatRupiah(nominalTunggakan),
+                  subText: `${countBelum} siswa belum bayar`,
+                },
+                {
+                  title: "Penggajian Bulan Ini",
+                  value: formatRupiah(totalPenggajian),
+                  subText: `${jumlahStaff} guru & staf`,
+                }
+              ].map((card, i) => (
+                <div key={i} className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
+                  <div>
+                    <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">{card.title}</div>
+                    <div className="text-3xl font-black text-white">{card.value}</div>
+                    <div className="text-xs font-medium text-blue-300 mt-2">{card.subText}</div>
                   </div>
-                  <div className="text-xs font-medium text-blue-300 mt-2">Bulan {dashboardBulan} {new Date().getFullYear()}</div>
                 </div>
-              </div>
-
-              <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
-                <div>
-                  <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Tunggakan SPP</div>
-                  <div className="text-3xl font-black text-white">
-                    Rp {nominalTunggakan.toLocaleString('id-ID')}
-                  </div>
-                  <div className="text-xs font-medium text-blue-300 mt-2">Bulan {dashboardBulan} {new Date().getFullYear()}</div>
-                </div>
-              </div>
+              ))}
             </div>
 
-            {/* Stat Cards Row 2: Students */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
-              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex flex-col justify-center min-h-[100px]">
-                <div>
-                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Jumlah Siswa Lunas</div>
-                  <div className="text-2xl font-black text-emerald-600">{countLunas} Siswa</div>
-                  <div className="text-[11px] font-medium text-gray-500 mt-1">Sudah membayar SPP</div>
+            {/* Tables Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              {/* Left Table: Pembayaran SPP Terbaru */}
+              <div className="bg-white rounded-[24px] border border-gray-50 p-5 shadow-sm">
+                <div className="flex justify-between items-center mb-5">
+                  <h3 className="text-sm font-bold text-gray-800">Pembayaran SPP Terbaru</h3>
+                  <button
+                    onClick={() => onViewChange && onViewChange("Monitoring Pembayaran")}
+                    className="text-xs font-bold text-[#1A3D63] hover:underline bg-transparent border-none cursor-pointer flex items-center gap-1"
+                  >
+                    Lihat Semua <span className="font-bold">→</span>
+                  </button>
                 </div>
-              </div>
-
-              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex flex-col justify-center min-h-[100px]">
-                <div>
-                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Jumlah Siswa Belum Bayar</div>
-                  <div className="text-2xl font-black text-red-500">{countBelum} Siswa</div>
-                  <div className="text-[11px] font-medium text-gray-500 mt-1">Menunggak SPP</div>
-                </div>
-              </div>
-
-              <div className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex flex-col justify-center min-h-[100px]">
-                <div>
-                  <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total Siswa</div>
-                  <div className="text-2xl font-black text-gray-800">{totalSiswaBulanIni} Siswa</div>
-                  <div className="text-[11px] font-medium text-gray-500 mt-1">Tercatat aktif di bulan ini</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Table Row: SPP Terbaru */}
-            <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm">
-              <div className="flex justify-between items-center mb-5">
-                <h3 className="text-sm font-bold text-gray-800">Pembayaran SPP Terbaru</h3>
-                <button onClick={() => onViewChange && onViewChange("Monitoring Pembayaran")} className="text-[#2563EB] text-[11px] font-bold hover:underline bg-transparent border-none cursor-pointer">Lihat Semua →</button>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-gray-50/50">
-                      <th className="py-4 px-4 w-12 text-center rounded-tl-xl">NO</th>
-                      <th className="py-4 px-4">WAKTU/TGL</th>
-                      <th className="py-4 px-4">NAMA SISWA</th>
-                      <th className="py-4 px-4">KELAS</th>
-                      <th className="py-4 px-4">PERIODE</th>
-                      <th className="py-4 px-4">NOMINAL</th>
-                      <th className="py-4 px-4 text-right rounded-tr-xl">STATUS</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50 text-[12px]">
-                    {[...sppPayments]
-                      .filter(p => p.status === "Lunas" || p.status?.toLowerCase() === "lunas")
-                      .sort((a, b) => new Date(b.tanggal_bayar || 0) - new Date(a.tanggal_bayar || 0))
-                      .slice(0, 3)
-                      .map((row, i) => {
-                      const isNew = row.tanggal_bayar && (new Date() - new Date(row.tanggal_bayar)) < 24 * 60 * 60 * 1000;
-                      return (
-                        <tr key={i} className="hover:bg-gray-50/80 transition-colors">
-                          <td className="py-4 px-4 text-center text-gray-500 font-bold">{i + 1}.</td>
-                          <td className="py-4 px-4 text-gray-600">
-                            <div className="flex flex-col gap-0.5">
-                              <span className="font-semibold text-gray-800">{row.dateTime?.split(' • ')[0] || (row.tanggal_bayar ? new Date(row.tanggal_bayar).toLocaleDateString('id-ID', {day: '2-digit', month: 'short', year: 'numeric'}) : "-")}</span>
-                              <span className="text-[10px] text-gray-400">{row.dateTime?.split(' • ')[1] || (row.tanggal_bayar ? new Date(row.tanggal_bayar).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) + " WIB" : "")}</span>
-                            </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-gray-50 text-[10px] font-bold text-gray-400 uppercase tracking-wide">
+                        <th className="pb-3">NAMA SISWA</th>
+                        <th className="pb-3">KELAS</th>
+                        <th className="pb-3">NOMINAL</th>
+                        <th className="pb-3">PERIODE</th>
+                        <th className="pb-3 text-right">STATUS</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50 text-xs">
+                      {[...sppPayments]
+                        .filter(p => p.status === "Lunas" || p.status?.toLowerCase() === "lunas")
+                        .sort((a, b) => new Date(b.tanggal_bayar || 0) - new Date(a.tanggal_bayar || 0))
+                        .slice(0, 3)
+                        .map((row) => (
+                        <tr key={row.id || Math.random()} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="py-3 font-bold text-gray-800">{row.name}</td>
+                          <td className="py-3 text-gray-500">{row.kelas?.replace('Kelas ', '')?.replace('-', ' ') || row.class?.replace('Kelas ', '')?.replace('-', ' ')}</td>
+                          <td className="py-3 font-bold text-gray-700">{row.amount}</td>
+                          <td className="py-3 text-gray-400">{row.period}</td>
+                          <td className="py-3 text-right">
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold inline-block bg-green-50 text-green-600`}>
+                              Lunas
+                            </span>
                           </td>
-                          <td className="py-4 px-4">
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-gray-800">{row.name}</span>
-                              {isNew && <span className="bg-blue-100 text-[#1A3D63] text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider">Baru</span>}
-                            </div>
-                          </td>
-                          <td className="py-4 px-4 text-gray-500 font-medium">{row.kelas?.replace('Kelas ', '')?.replace('-', ' ')}</td>
-                          <td className="py-4 px-4 text-gray-500">{row.period}</td>
-                          <td className="py-4 px-4 font-bold text-gray-700">{row.amount}</td>
-                          <td className="py-4 px-4 text-right">
-                            <span className={`px-2.5 py-1 rounded-md font-bold inline-block text-[10px] ${row.status === "Lunas" || row.status?.toLowerCase() === "lunas" ? "bg-[#E6F4EA] text-[#137333]" :
-                              row.status === "Cicilan" ? "bg-[#FEF7E0] text-[#B06000]" :
-                                "bg-[#FCE8E6] text-[#C5221F]"
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Right Table: Status Penggajian Guru & Staf */}
+              <div className="bg-white rounded-[24px] border border-gray-50 p-5 shadow-sm">
+                <div className="flex justify-between items-center mb-5">
+                  <h3 className="text-sm font-bold text-gray-800">Status Penggajian Guru &amp; Staf</h3>
+                  <button
+                    onClick={() => onViewChange && onViewChange("Status Bayar Gaji")}
+                    className="text-xs font-bold text-[#1A3D63] hover:underline bg-transparent border-none cursor-pointer flex items-center gap-1"
+                  >
+                    Lihat Semua <span className="font-bold">→</span>
+                  </button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-gray-50 text-[10px] font-bold text-gray-400 uppercase tracking-wide">
+                        <th className="pb-3">NAMA</th>
+                        <th className="pb-3">JABATAN</th>
+                        <th className="pb-3">GAJI BERSIH</th>
+                        <th className="pb-3 text-right">STATUS</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50 text-xs">
+                      {payrollMockData.slice(0, 3).map((row) => (
+                        <tr key={row.id} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="py-3 font-bold text-gray-800">{row.name}</td>
+                          <td className="py-3 text-gray-500">{row.role}</td>
+                          <td className="py-3 font-bold text-gray-700">{row.salary}</td>
+                          <td className="py-3 text-right">
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold inline-block ${row.status === "Sudah Transfer" ? "bg-green-50 text-green-600" : "bg-yellow-50 text-yellow-600"
                               }`}>
                               {row.status}
                             </span>
                           </td>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
@@ -3084,255 +3104,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
         );
 
       default:
-        // Default Overview Dashboard Bendahara
-        return (
-          <div className="flex flex-col gap-5 sm:gap-6 pb-10 animate-fadeIn">
-            {/* Header Area */}
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-              <div>
-                <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Dashboard Bendahara</h1>
-                <p className="text-sm text-gray-500 mt-1">Monitor keuangan sekolah, SPP siswa, dan penggajian guru & staf.</p>
-              </div>
-              <div className="flex gap-2 sm:gap-3 items-center flex-wrap">
-                <div className="relative group w-full sm:w-auto">
-                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
-                    <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
-                  </div>
-                  <select
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(e.target.value)}
-                    className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
-                  >
-                    <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
-                  </select>
-                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
-                    <IconChevronDown />
-                  </div>
-                </div>
-
-                
-              </div>
-            </div>
-
-            {/* Stat Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-              {[
-                {
-                  title: "Total SPP Terkumpul",
-                  value: "Rp 16,1 Jt",
-                  subText: "Bulan Mei 2026",
-                  trend: "+8.5% vs bulan lalu",
-                  trendUp: true,
-                  bgIcon: "bg-green-50 text-green-600",
-                  icon: <IconDollar />
-                },
-                {
-                  title: "Siswa Lunas SPP",
-                  value: "24",
-                  subText: "dari 34 siswa aktif",
-                  trend: "70.6% tingkat pembayaran",
-                  trendUp: true,
-                  bgIcon: "bg-blue-50 text-blue-600",
-                  icon: <IconCheckCircle />
-                },
-                {
-                  title: "Tunggakan SPP",
-                  value: "Rp 2,75 Jt",
-                  subText: "10 siswa belum bayar",
-                  trend: "-5.2% vs bulan lalu",
-                  trendUp: false,
-                  bgIcon: "bg-red-50 text-red-600",
-                  icon: <IconAlertCircle />
-                },
-                {
-                  title: "Penggajian Bulan Ini",
-                  value: "Rp 13,5 Jt",
-                  subText: "6 guru & staf",
-                  trend: "83% sudah transfer",
-                  trendUp: true,
-                  bgIcon: "bg-purple-50 text-purple-600",
-                  icon: <IconClock />
-                }
-              ].map((card, i) => (
-                <div key={i} className="bg-white rounded-[20px] border border-gray-50 p-5 flex flex-col justify-between shadow-sm relative overflow-hidden group hover:shadow-md transition-all duration-300">
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">{card.title}</span>
-                    <div className={`w-10 h-10 rounded-[12px] flex items-center justify-center ${card.bgIcon}`}>
-                      {card.icon}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-2xl sm:text-[28px] font-black text-gray-800 leading-none mb-2">{card.value}</div>
-                    <div className="text-[11px] font-bold text-gray-400 mb-3">{card.subText}</div>
-                    <div className={`flex items-center gap-1 text-[11px] font-bold ${card.trendUp ? "text-green-500" : "text-red-500"}`}>
-                      {card.trendUp ? <IconTrendUp /> : <IconTrendDown />}
-                      <span>{card.trend}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-              {/* Left Bar Chart */}
-              <div className="lg:col-span-2 bg-white rounded-[24px] border border-gray-50 p-5 shadow-sm">
-                <div className="flex justify-between items-center mb-6">
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-800">Rekapitulasi SPP Per Bulan</h3>
-                    <p className="text-[11px] text-gray-400">Jumlah siswa lunas vs belum bayar</p>
-                  </div>
-                  <button
-                    onClick={() => triggerToast("Mengunduh detil rekapitulasi iuran bulanan...")}
-                    className="text-xs font-bold text-[#1A3D63] hover:underline bg-transparent border-none cursor-pointer"
-                  >
-                    Selengkapnya
-                  </button>
-                </div>
-                <div className="h-[230px] w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={sppRecapData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                      <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#9ca3af" }} />
-                      <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#9ca3af" }} domain={[0, 34]} ticks={[0, 10, 20, 34]} />
-                      <Tooltip contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }} />
-                      <Legend iconSize={10} iconType="circle" wrapperStyle={{ fontSize: 11, paddingTop: 10 }} />
-                      <Bar dataKey="Lunas" fill="#1A3D63" radius={[4, 4, 0, 0]} barSize={20} />
-                      <Bar dataKey="Belum" fill="#FF8E8D" radius={[4, 4, 0, 0]} barSize={20} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Right Donut Chart */}
-              <div className="lg:col-span-1 bg-white rounded-[24px] border border-gray-50 p-5 shadow-sm flex flex-col justify-between">
-                <div>
-                  <h3 className="text-sm font-bold text-gray-800 mb-0.5">Status SPP Siswa</h3>
-                  <p className="text-[11px] text-gray-400">Distribusi pembayaran bulan ini</p>
-                </div>
-
-                <div className="relative flex items-center justify-center h-[160px] my-3">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={sppDonutData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={50}
-                        outerRadius={70}
-                        paddingAngle={3}
-                        dataKey="value"
-                      >
-                        {sppDonutData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.fill} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span className="text-2xl font-black text-gray-800">70.6%</span>
-                    <span className="text-[10px] font-bold text-gray-400">Lunas</span>
-                  </div>
-                </div>
-
-                <div className="flex justify-center gap-4 text-[10px] font-bold text-gray-500">
-                  {sppDonutData.map((d, i) => (
-                    <div key={i} className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: d.fill }} />
-                      <span>{d.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Tables Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-              {/* Left Table: Pembayaran SPP Terbaru */}
-              <div className="bg-white rounded-[24px] border border-gray-50 p-5 shadow-sm">
-                <div className="flex justify-between items-center mb-5">
-                  <h3 className="text-sm font-bold text-gray-800">Pembayaran SPP Terbaru</h3>
-                  <button
-                    onClick={() => triggerToast("Membuka riwayat lengkap pembayaran SPP...")}
-                    className="text-xs font-bold text-[#1A3D63] hover:underline bg-transparent border-none cursor-pointer flex items-center gap-1"
-                  >
-                    Lihat Semua <span className="font-bold">→</span>
-                  </button>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="border-b border-gray-50 text-[10px] font-bold text-gray-400 uppercase tracking-wide">
-                        <th className="pb-3">NAMA SISWA</th>
-                        <th className="pb-3">KELAS</th>
-                        <th className="pb-3">NOMINAL</th>
-                        <th className="pb-3">PERIODE</th>
-                        <th className="pb-3 text-right">STATUS</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50 text-xs">
-                      {sppPayments.slice(0, 3).map((row) => (
-                        <tr key={row.id} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="py-3 font-bold text-gray-800">{row.name}</td>
-                          <td className="py-3 text-gray-500">{row.class?.replace('Kelas ', '')?.replace('-', ' ')}</td>
-                          <td className="py-3 font-bold text-gray-700">{row.amount}</td>
-                          <td className="py-3 text-gray-400">{row.period}</td>
-                          <td className="py-3 text-right">
-                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold inline-block ${row.status === "Lunas" ? "bg-green-50 text-green-600" :
-                              row.status === "Cicilan" ? "bg-amber-50 text-amber-600" : "bg-red-50 text-red-600"
-                              }`}>
-                              {row.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Right Table: Status Penggajian Guru & Staf */}
-              <div className="bg-white rounded-[24px] border border-gray-50 p-5 shadow-sm">
-                <div className="flex justify-between items-center mb-5">
-                  <h3 className="text-sm font-bold text-gray-800">Status Penggajian Guru &amp; Staf</h3>
-                  <button
-                    onClick={() => triggerToast("Mengarahkan ke modul Generate Slip Gaji...")}
-                    className="text-xs font-bold text-[#1A3D63] hover:underline bg-transparent border-none cursor-pointer flex items-center gap-1"
-                  >
-                    Generate Slip <span className="font-bold">→</span>
-                  </button>
-                </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="border-b border-gray-50 text-[10px] font-bold text-gray-400 uppercase tracking-wide">
-                        <th className="pb-3">NAMA</th>
-                        <th className="pb-3">JABATAN</th>
-                        <th className="pb-3">GAJI BERSIH</th>
-                        <th className="pb-3 text-right">STATUS</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50 text-xs">
-                      {payrollMockData.slice(0, 3).map((row) => (
-                        <tr key={row.id} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="py-3 font-bold text-gray-800">{row.name}</td>
-                          <td className="py-3 text-gray-500">{row.role}</td>
-                          <td className="py-3 font-bold text-gray-700">{row.salary}</td>
-                          <td className="py-3 text-right">
-                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold inline-block ${row.status === "Sudah Transfer" ? "bg-green-50 text-green-600" : "bg-yellow-50 text-yellow-600"
-                              }`}>
-                              {row.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+        return <div className="text-gray-500 font-medium p-4">Menu tidak ditemukan.</div>;
 
     }
   };
