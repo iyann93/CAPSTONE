@@ -277,10 +277,10 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const [editingSppId, setEditingSppId] = useState(null);
   const [editSppAmount, setEditSppAmount] = useState("");
   const [editSppDenda, setEditSppDenda] = useState("");
-  const [globalSppBerlaku, setGlobalSppBerlaku] = useState("2025-07-01");
-  const [globalSppJatuhTempo, setGlobalSppJatuhTempo] = useState("2025-07-10");
-  const [editGlobalSppBerlaku, setEditGlobalSppBerlaku] = useState("2025-07-01");
-  const [editGlobalSppJatuhTempo, setEditGlobalSppJatuhTempo] = useState("2025-07-10");
+  const [globalSppBerlaku, setGlobalSppBerlaku] = useState(() => localStorage.getItem("globalSppBerlaku") || "2025-07-01");
+  const [globalSppJatuhTempo, setGlobalSppJatuhTempo] = useState(() => localStorage.getItem("globalSppJatuhTempo") || "2025-07-10");
+  const [editGlobalSppBerlaku, setEditGlobalSppBerlaku] = useState(() => localStorage.getItem("globalSppBerlaku") || "2025-07-01");
+  const [editGlobalSppJatuhTempo, setEditGlobalSppJatuhTempo] = useState(() => localStorage.getItem("globalSppJatuhTempo") || "2025-07-10");
   const [isEditingGlobalJadwal, setIsEditingGlobalJadwal] = useState(false);
   const [editSppGrade, setEditSppGrade] = useState("");
   const [editSppTa, setEditSppTa] = useState("");
@@ -1380,7 +1380,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             <div className="bg-white rounded-2xl border border-gray-100 p-1 flex gap-1 shadow-sm">
               {[
                 { key: "nominal", label: "Nominal SPP per Kelas" },
-                { key: "kalender", label: "Kalender Pembayaran" }
+                { key: "kalender", label: "Jadwal Pembayaran" }
               ].map((tab) => (
                 <button
                   key={tab.key}
@@ -1665,6 +1665,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                             onClick={() => {
                               setGlobalSppBerlaku(editGlobalSppBerlaku);
                               setGlobalSppJatuhTempo(editGlobalSppJatuhTempo);
+                              localStorage.setItem("globalSppBerlaku", editGlobalSppBerlaku);
+                              localStorage.setItem("globalSppJatuhTempo", editGlobalSppJatuhTempo);
                               setIsEditingGlobalJadwal(false);
                               triggerToast("Jadwal SPP berhasil disimpan!");
                             }}
@@ -1681,58 +1683,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   </div>
                 </div>
 
-                {/* Card 2: Kalender Tagihan SPP */}
-                <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                  <div className="mb-6">
-                    <h3 className="text-sm font-bold text-gray-800">Kalender Tagihan SPP Tahun Ajaran 2025/2026</h3>
-                    <p className="text-[11px] text-gray-400 mt-1">Periode penagihan SPP Juli 2025 — Juni 2026</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                    {[
-                      { month: "Juli 2025", active: false, hasDetails: true },
-                      { month: "Agustus 2025", active: false, hasDetails: true },
-                      { month: "September 2025", active: false, hasDetails: true },
-                      { month: "Oktober 2025", active: false, hasDetails: true },
-                      { month: "November 2025", active: false, hasDetails: true },
-                      { month: "Desember 2025", active: false, hasDetails: true },
-                      { month: "Januari 2026", active: false, hasDetails: true },
-                      { month: "Februari 2026", active: false, hasDetails: true },
-                      { month: "Maret 2026", active: false, hasDetails: true },
-                      { month: "April 2026", active: false, hasDetails: true },
-                      { month: "Mei 2026", active: true, hasDetails: true },
-                      { month: "Juni 2026", active: false, hasDetails: false }
-                    ].map((item, i) => (
-                      <div
-                        key={i}
-                        className={`p-4 rounded-xl border ${item.active
-                          ? "border-blue-500 bg-blue-50/30"
-                          : "border-gray-100 bg-white"
-                          } h-[84px] flex flex-col justify-center`}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className={`text-sm ${item.active
-                            ? "font-bold text-blue-700"
-                            : item.hasDetails
-                              ? "font-bold text-gray-700"
-                              : "font-semibold text-gray-400"
-                            }`}>
-                            {item.month}
-                          </span>
-                          {item.active && (
-                            <span className="bg-blue-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">Aktif</span>
-                          )}
-                        </div>
-
-                        {item.hasDetails && (
-                          <div className={`text-[10px] mt-1 ${item.active ? "text-blue-500/80" : "text-gray-400"}`}>
-                            Jatuh tempo tgl 10 · Kelas VII-IX
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
             )}
           </div>
