@@ -368,10 +368,82 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     }
   }, []);
 
+  // ── localStorage helpers for program persistence ──────────────────────────
+  const LS_KEY = 'capstone_program_beasiswa';
+  const saveProgramsToStorage = (programs) => {
+    try {
+      // Only save program metadata (no penerima list) to keep storage light
+      const meta = programs.map(({ penerima: _p, ...rest }) => rest);
+      localStorage.setItem(LS_KEY, JSON.stringify(meta));
+    } catch (_) {}
+  };
+  const loadProgramsFromStorage = () => {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (_) { return []; }
+  };
+
   const loadBeasiswa = useCallback(async () => {
     try {
       const rows = await getBeasiswa();
-      setBeasiswaList(Array.isArray(rows) ? rows : []);
+      const beasiswaData = Array.isArray(rows) ? rows : [];
+      setBeasiswaList(beasiswaData);
+
+      // Group recipients from backend by nama_beasiswa
+      const grouped = {};
+      beasiswaData.forEach(b => {
+        if (!grouped[b.nama_beasiswa]) {
+          grouped[b.nama_beasiswa] = { penerima: [] };
+        }
+        grouped[b.nama_beasiswa].penerima.push({
+          id: b.id,
+          siswa_id: b.siswa_id,
+          siswa_nama: b.siswa_nama,
+          nis: b.nis,
+          nama_kelas: b.nama_kelas || b.kelas || "-",
+          nama_beasiswa: b.nama_beasiswa,
+          nominal: b.nominal,
+          periode: b.periode,
+          status: b.status,
+          tanggal_mulai: b.tanggal_mulai,
+          tanggal_selesai: b.tanggal_selesai
+        });
+      });
+
+      setProgramList(prev => {
+        // Start from saved programs (localStorage), then add any new programs
+        // found only in backend (no metadata saved yet)
+        const base = prev.length > 0 ? [...prev] : loadProgramsFromStorage().map(p => ({ ...p, penerima: [] }));
+
+        // Merge penerima from backend
+        const merged = base.map(prog => ({
+          ...prog,
+          penerima: grouped[prog.title]?.penerima || prog.penerima || []
+        }));
+
+        // Add programs only known from backend (edge case: someone added via different client)
+        Object.keys(grouped).forEach(namaBeasiswa => {
+          if (!merged.find(p => p.title === namaBeasiswa)) {
+            merged.push({
+              title: namaBeasiswa,
+              subtitle: "2025/2026",
+              type: "Beasiswa",
+              sumberDana: "Sekolah",
+              amount: `Rp ${Number(grouped[namaBeasiswa].penerima[0]?.nominal || 0).toLocaleString('id-ID')}`,
+              status: "Aktif",
+              typeColor: "blue",
+              description: "",
+              quota: 0,
+              requirements: "",
+              periodePendaftaran: "-",
+              penerima: grouped[namaBeasiswa].penerima
+            });
+          }
+        });
+
+        return merged;
+      });
     } catch (e) {
       console.error("loadBeasiswa:", e);
     }
@@ -392,6 +464,14 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     jatuh_tempo: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-10`
   });
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // Seed programList from localStorage on first mount (before API call resolves)
+  useEffect(() => {
+    const stored = loadProgramsFromStorage();
+    if (stored.length > 0) {
+      setProgramList(stored.map(p => ({ ...p, penerima: [] })));
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     loadKomponenSpp();
@@ -473,7 +553,10 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
       periodePendaftaran: `${newProgramForm.tanggalMulaiDaftar} s/d ${newProgramForm.tanggalSelesaiDaftar}`,
       penerima: []
     };
-    setProgramList([newProgram, ...programList]);
+    const updatedList = [newProgram, ...programList];
+    setProgramList(updatedList);
+    // Persist to localStorage so data survives logout/login
+    saveProgramsToStorage(updatedList);
     setShowAddProgramModal(false);
     setIsProgramFormDirty(false);
     triggerToast("Program berhasil ditambahkan!");
@@ -530,7 +613,10 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
   const executeDeleteProgram = () => {
     if (programToDelete) {
-      setProgramList(programList.filter(p => p.title !== programToDelete));
+      const updatedList = programList.filter(p => p.title !== programToDelete);
+      setProgramList(updatedList);
+      // Also remove from localStorage
+      saveProgramsToStorage(updatedList);
       triggerToast("Program berhasil dihapus!");
       setProgramToDelete(null);
       setShowDeleteProgramConfirmModal(false);
@@ -549,38 +635,38 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
       btn.disabled = true;
     }
 
+    // Strip thousand-separator dots/commas from nominal before sending to API
+    const nominalClean = Number(String(beasiswaForm.nominal).replace(/[^0-9]/g, ''));
+
     const payload = {
       siswaId: beasiswaForm.siswaId,
       namaBeasiswa: beasiswaForm.namaBeasiswa,
-      nominal: Number(beasiswaForm.nominal),
+      nominal: nominalClean,
       periode: beasiswaForm.periode,
       status: beasiswaForm.status,
       tanggalMulai: beasiswaForm.tanggalMulai,
       tanggalSelesai: beasiswaForm.tanggalSelesai || null,
     };
 
-    // Use a small timeout to show the saving state clearly for presentation
-    setTimeout(async () => {
-      try {
-        if (selectedBeasiswa && selectedBeasiswa.id) {
-          await updateBeasiswa(selectedBeasiswa.id, payload);
-        } else {
-          await createBeasiswa(payload);
-        }
-      } catch (e) {
-        console.warn("API Error ignored for UI demonstration:", e);
+    try {
+      let savedData;
+      if (selectedBeasiswa && selectedBeasiswa.id) {
+        savedData = await updateBeasiswa(selectedBeasiswa.id, payload);
+      } else {
+        savedData = await createBeasiswa(payload);
       }
 
-      // Also update local programList penerima so UI stays in sync
+      // API succeeded — now update the UI
       const siswaData = siswaList.find(s => String(s.id) === String(beasiswaForm.siswaId));
+      const realId = savedData?.id || selectedBeasiswa?.id || Date.now();
       const newPenerima = {
-        id: selectedBeasiswa?.id || Date.now(),
+        id: realId,
         siswa_id: beasiswaForm.siswaId,
         siswa_nama: siswaData?.nama_lengkap || "Siswa",
         nis: siswaData?.nis || "-",
         nama_kelas: siswaData?.nama_kelas || siswaData?.kelas || "-",
         nama_beasiswa: beasiswaForm.namaBeasiswa,
-        nominal: Number(beasiswaForm.nominal),
+        nominal: nominalClean,
         periode: beasiswaForm.periode,
         status: beasiswaForm.status,
         tanggal_mulai: beasiswaForm.tanggalMulai,
@@ -607,38 +693,46 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
         }
         return prog;
       }));
-      
-      if(btn) {
-        btn.innerText = "Simpan Data";
-        btn.disabled = false;
-      }
-      
+
+      if(btn) { btn.innerText = "Simpan Data"; btn.disabled = false; }
       triggerToast(selectedBeasiswa ? "Penerima beasiswa berhasil diperbarui!" : "Penerima beasiswa berhasil ditambahkan!");
       loadBeasiswa();
       setShowAddPenerimaModal(false);
       setSelectedBeasiswa(null);
-    }, 800);
+    } catch (e) {
+      console.error('handleSaveBeasiswa error:', e);
+      const msg = e?.response?.data?.message
+        || e?.response?.data?.errors?.[0]?.msg
+        || e?.message
+        || "Gagal menyimpan data";
+      if(btn) { btn.innerText = "Simpan Data"; btn.disabled = false; }
+      triggerToast(`Gagal: ${msg}`, "error");
+    }
   };
+
 
   const handleDeleteBeasiswa = async () => {
     if (!selectedBeasiswa || !selectedBeasiswa.id) return;
     try {
       await deleteBeasiswa(selectedBeasiswa.id);
+      // API succeeded — update UI
+      setProgramList(prev => prev.map(prog => {
+        if (prog.penerima?.some(p => p.id === selectedBeasiswa.id)) {
+          return { ...prog, penerima: prog.penerima.filter(p => p.id !== selectedBeasiswa.id) };
+        }
+        return prog;
+      }));
+      triggerToast("Penerima beasiswa berhasil dihapus");
+      loadBeasiswa();
+      setShowDeleteBeasiswaModal(false);
+      setSelectedBeasiswa(null);
     } catch (e) {
-      console.warn("API Error ignored for UI demonstration:", e);
+      console.error('handleDeleteBeasiswa error:', e);
+      const msg = e?.response?.data?.message || e?.message || "Gagal menghapus data";
+      triggerToast(`Gagal: ${msg}`, "error");
     }
-    // Also remove from local programList penerima
-    setProgramList(prev => prev.map(prog => {
-      if (prog.penerima?.some(p => p.id === selectedBeasiswa.id)) {
-        return { ...prog, penerima: prog.penerima.filter(p => p.id !== selectedBeasiswa.id) };
-      }
-      return prog;
-    }));
-    triggerToast("Penerima beasiswa berhasil dihapus");
-    loadBeasiswa();
-    setShowDeleteBeasiswaModal(false);
-    setSelectedBeasiswa(null);
   };
+
 
   // Status Bayar Gaji Modal State
   const [selectedDetailGaji, setSelectedDetailGaji] = useState(null);
