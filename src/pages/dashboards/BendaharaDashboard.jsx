@@ -798,19 +798,21 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
               {/* Donut Chart */}
               <div className="lg:col-span-1 bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-                <div className="mb-2">
+                <div className="mb-6">
                   <h3 className="text-sm font-bold text-gray-800">Status SPP Siswa</h3>
                   <p className="text-[11px] text-gray-400">Distribusi pembayaran bulan ini</p>
                 </div>
-                <div className="h-[220px] relative flex justify-center items-center">
+
+                {/* Donut Chart */}
+                <div className="h-[180px] relative flex justify-center items-center mb-6">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
                         data={sppDonutData}
                         cx="50%"
                         cy="50%"
-                        innerRadius={65}
-                        outerRadius={85}
+                        innerRadius={55}
+                        outerRadius={75}
                         paddingAngle={3}
                         dataKey="value"
                         stroke="none"
@@ -823,15 +825,41 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                {/* Custom Legend */}
-                <div className="flex justify-center gap-6 mt-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#22c55e]"></div>
-                    <span className="text-[10px] font-bold text-gray-500">Lunas SPP</span>
+
+                {/* Enhanced Legend with Details */}
+                <div className="space-y-2.5 mb-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#22c55e]"></div>
+                      <span className="text-[11px] font-bold text-gray-700">Lunas</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-bold text-gray-600">24 siswa</span>
+                      <span className="text-[11px] font-bold text-[#22c55e] bg-green-50 px-2 py-0.5 rounded-md">70.6%</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#ef4444]"></div>
-                    <span className="text-[10px] font-bold text-gray-500">Belum Bayar</span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2.5 h-2.5 rounded-full bg-[#ef4444]"></div>
+                      <span className="text-[11px] font-bold text-gray-700">Belum Bayar</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-bold text-gray-600">10 siswa</span>
+                      <span className="text-[11px] font-bold text-[#ef4444] bg-red-50 px-2 py-0.5 rounded-md">29.4%</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Total Siswa Section */}
+                <div className="pt-4 border-t border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-sm font-bold text-blue-600">
+                        👥
+                      </div>
+                      <span className="text-[11px] font-bold text-gray-500">Total Siswa</span>
+                    </div>
+                    <span className="text-lg font-black text-gray-800">34</span>
                   </div>
                 </div>
               </div>
