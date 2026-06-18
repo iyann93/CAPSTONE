@@ -1757,7 +1757,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                 </div>
                                 <div>
                                   <div className="text-[13px] font-bold text-gray-800">{item.name}</div>
-                                  <div className="text-[10px] font-semibold text-gray-400 mt-0.5">{item.kelas} • {item.month}</div>
+                                  <div className="text-[10px] font-semibold text-gray-400 mt-0.5">{item.kelas}</div>
                                 </div>
                               </div>
                               <div className="flex items-center gap-2">
@@ -1820,18 +1820,12 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                   </div>
                                 </div>
 
-                                {/* Timestamp & Proof */}
+                                {/* Timestamp */}
                                 <div className="border-t border-gray-100 pt-3">
-                                  <div className="flex items-start gap-2 mb-2">
+                                  <div className="flex items-start gap-2">
                                     <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-gray-400 mt-0.5 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
                                     <span className="text-xs text-gray-600">{item.dateTime}</span>
                                   </div>
-                                  <button
-                                    onClick={() => triggerToast(`Membuka bukti pembayaran ${item.name}...`)}
-                                    className="w-full bg-blue-50 hover:bg-blue-100 text-[#1A3D63] border border-blue-200 px-2.5 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition-all active:scale-95"
-                                  >
-                                    📄 Lihat Bukti Pembayaran
-                                  </button>
                                 </div>
                               </div>
                             )}
@@ -2510,14 +2504,13 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                       komponenGajiList.map((row, idx) => (
                         <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                           <td className="p-4 pl-5 flex items-center gap-3">
-                            <div className="text-gray-400">
-                              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" /></svg>
+                            <div className="w-6 h-6 rounded-full bg-[#EBF3FA] flex items-center justify-center text-[11px] font-bold text-[#1A3D63] flex-shrink-0 shadow-sm">
+                              {idx + 1}
                             </div>
                             <span className="font-bold text-gray-800">{row.nama}</span>
                           </td>
                           <td className="p-4">
-                            <span className={`font-bold px-2.5 py-1 rounded-md text-[10px] inline-block ${row.tipe !== 'potongan' ? 'bg-[#E6F4EA] text-[#10B981]' : 'bg-[#FEE2E2] text-[#EF4444]'
-                              }`}>
+                            <span className={`font-bold text-[10px] ${row.tipe !== 'potongan' ? 'text-[#10B981]' : 'text-[#EF4444]'}`}>
                               {row.tipe !== 'potongan' ? 'Pendapatan' : 'Potongan'}
                             </span>
                           </td>
