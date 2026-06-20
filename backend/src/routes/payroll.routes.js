@@ -45,6 +45,36 @@ router.delete(
   PayrollController.deleteKomponen
 );
 
+// ─── TEMPLATE GAJI JABATAN ─────────────────────────────────────────────────────
+router.get(
+  '/templates',
+  verifyToken,
+  authorize('gaji.read'),
+  PayrollController.getTemplates
+);
+
+router.post(
+  '/templates',
+  verifyToken,
+  authorize('gaji.manage'),
+  PayrollController.upsertTemplate
+);
+
+// ─── OVERRIDE GAJI PEGAWAI ───────────────────────────────────────────────────
+router.get(
+  '/overrides',
+  verifyToken,
+  authorize('gaji.read'),
+  PayrollController.getOverrides
+);
+
+router.post(
+  '/overrides',
+  verifyToken,
+  authorize('gaji.manage'),
+  PayrollController.upsertOverride
+);
+
 // ─── Action Routes (POST) ─────────────────────────────────────────────────────
 // POST /api/v1/payroll/generate  — Hitung & buat slip gaji
 router.post(
@@ -74,6 +104,13 @@ router.post(
 );
 
 // ─── Read Routes (GET) ────────────────────────────────────────────────────────
+// GET /api/v1/payroll/employees  — Daftar pegawai (untuk list payroll)
+router.get(
+  '/employees',
+  verifyToken,
+  authorize('gaji.read'),
+  PayrollController.getEmployees
+);
 // GET /api/v1/payroll/riwayat/:userId  — Riwayat gaji per user (BEFORE /:id)
 router.get(
   '/riwayat/:userId',

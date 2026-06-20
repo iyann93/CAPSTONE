@@ -9,7 +9,4 @@ const p = new Pool({
   port: process.env.DB_PORT
 });
 
-p.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'shared'")
-  .then(r => console.log(r.rows.map(x=>x.table_name)))
-  .catch(console.error)
-  .finally(()=>p.end());
+p.query("SELECT * FROM finance.komponen_gaji").then(r => console.table(r.rows)).catch(console.error).finally(()=>p.end());

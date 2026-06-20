@@ -78,11 +78,13 @@ const SystemRepository = {
     const sql = `
       SELECT u.id, u.nama as name, u.email, u.is_active, u.created_at, u.last_login_at as "lastLogin",
              COALESCE(u.email, u.nama) as user,
-             STRING_AGG(r.nama_role, ', ') as role
+             STRING_AGG(r.nama_role, ', ') as role,
+             j.nama as nama_jabatan
       FROM shared.users u
       LEFT JOIN shared.user_roles ur ON u.id = ur.user_id
       LEFT JOIN shared.roles r ON ur.role_id = r.id
-      GROUP BY u.id
+      LEFT JOIN shared.jabatan j ON u.jabatan_id = j.id
+      GROUP BY u.id, j.nama
       ORDER BY u.created_at DESC
     `;
     const res = await query(sql);

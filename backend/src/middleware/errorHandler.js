@@ -28,7 +28,7 @@ const errorHandler = (err, req, res, next) => {
   }
   // PostgreSQL foreign key violation
   if (err.code === '23503') {
-    return response.error(res, 409, 'Referensi data tidak ditemukan');
+    return response.error(res, 409, 'Data ini tidak dapat dihapus karena masih digunakan/direferensikan oleh data lain (misalnya dalam template gaji).');
   }
 
   const statusCode = err.statusCode || 500;

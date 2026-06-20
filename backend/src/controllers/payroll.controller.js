@@ -108,6 +108,60 @@ const PayrollController = {
       return response.success(res, 200, 'Komponen gaji berhasil dihapus');
     } catch (err) { next(err); }
   },
+
+  // ── TEMPLATE & OVERRIDE ────────────────────────────────────────────────────
+  getTemplates: async (req, res, next) => {
+    try {
+      const { jabatan_id } = req.query;
+      if (!jabatan_id) return response.error(res, 400, 'jabatan_id query parameter is required');
+      const data = await PayrollService.getTemplatesByJabatan(jabatan_id);
+      return response.success(res, 200, 'Template gaji berhasil diambil', data);
+    } catch (err) { next(err); }
+  },
+
+  upsertTemplate: async (req, res, next) => {
+    try {
+      const data = await PayrollService.upsertTemplate(req.body);
+      return response.success(res, 200, 'Template gaji berhasil disimpan', data);
+    } catch (err) { next(err); }
+  },
+
+  getOverrides: async (req, res, next) => {
+    try {
+      const { user_id } = req.query;
+      if (!user_id) return response.error(res, 400, 'user_id query parameter is required');
+      const data = await PayrollService.getOverridesByUser(user_id);
+      return response.success(res, 200, 'Override gaji berhasil diambil', data);
+    } catch (err) { next(err); }
+  },
+
+  upsertOverride: async (req, res, next) => {
+    try {
+      const data = await PayrollService.upsertOverride(req.body);
+      return response.success(res, 200, 'Override gaji berhasil disimpan', data);
+    } catch (err) { next(err); }
+  },
+
+  // ── PEGAWAI ────────────────────────────────────────────────────────────────
+  getEmployees: async (req, res, next) => {
+    try {
+      const sql = `
+        SELECT u.id, u.nama as name, u.email,
+               STRING_AGG(r.nama_role, ', ') as role,
+               j.nama as nama_jabatan
+        FROM shared.users u
+        LEFT JOIN shared.user_roles ur ON u.id = ur.user_id
+        LEFT JOIN shared.roles r ON ur.role_id = r.id
+        LEFT JOIN shared.jabatan j ON u.jabatan_id = j.id
+        WHERE r.nama_role IS NULL OR r.nama_role NOT IN ('Siswa', 'Orang Tua')
+        GROUP BY u.id, j.nama
+        ORDER BY u.nama ASC
+      `;
+      const { query } = require('../config/db');
+      const data = await query(sql);
+      return response.success(res, 200, 'Daftar pegawai berhasil diambil', data.rows);
+    } catch (err) { next(err); }
+  },
 };
 
 module.exports = PayrollController;

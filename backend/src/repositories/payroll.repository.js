@@ -146,9 +146,9 @@ const PayrollRepository = {
         jamLembur   = 0,
       } = data;
 
-      // 1. Validasi user exists
+      // 1. Validasi user exists & dapatkan jabatan_id
       const userCheck = await client.query(
-        `SELECT id FROM shared.users WHERE id = $1`,
+        `SELECT id, jabatan_id FROM shared.users WHERE id = $1`,
         [userId]
       );
       if (userCheck.rows.length === 0) {
@@ -156,6 +156,7 @@ const PayrollRepository = {
         err.statusCode = 404;
         throw err;
       }
+      const userJabatanId = userCheck.rows[0].jabatan_id;
 
       // 2. Cek slip periode yang sudah ada
       const checkSql = `
@@ -194,12 +195,50 @@ const PayrollRepository = {
         throw err;
       }
 
-      // 4. Hitung setiap komponen sesuai formula_tipe
+      // 4. Ambil template jabatan dan override pegawai
+      let templates = {};
+      if (userJabatanId) {
+        const tRes = await client.query(
+          `SELECT komponen_gaji_id, nominal FROM finance.template_gaji_jabatan WHERE jabatan_id = $1`,
+          [userJabatanId]
+        );
+        for (const t of tRes.rows) templates[t.komponen_gaji_id] = parseFloat(t.nominal);
+      }
+
+      let overrides = {};
+      const oRes = await client.query(
+        `SELECT komponen_gaji_id, nominal FROM finance.pengaturan_gaji_user WHERE user_id = $1`,
+        [userId]
+      );
+      for (const o of oRes.rows) overrides[o.komponen_gaji_id] = parseFloat(o.nominal);
+
+      // Terapkan Template & Override ke nominal_default
+      for (let kom of komponenList) {
+        if (templates[kom.id] !== undefined) {
+          kom.nominal_default = templates[kom.id];
+        }
+        if (overrides[kom.id] !== undefined) {
+          kom.nominal_default = overrides[kom.id];
+        }
+      }
+
+      // 5. Hitung setiap komponen sesuai formula_tipe
       let totalTunjangan = 0;
       let totalPotongan  = 0;
       const detailToInsert = [];
 
-      const vars = { gajiPokok, hariHadir, jumlahAlpha, jamLembur };
+      // Dapatkan Gaji Pokok hasil akhir (karena bisa jadi Gaji Pokok juga di-override dan diperlukan untuk hitungan persen)
+      let finalGajiPokok = gajiPokok;
+      const komGajiPokok = komponenList.find(k => k.tipe === 'gaji_pokok');
+      if (komGajiPokok) {
+        // Jika gaji pokok dikirim dari payload, timpa? Atau kita pakai yang dari master/template/override?
+        // Prioritas: gajiPokok dari parameter vs template/override.
+        // Kita gunakan gajiPokok parameter HANYA jika template/override tidak menset.
+        // Asumsi gaji_pokok = komGajiPokok.nominal_default sekarang adalah nilai terbaru.
+        finalGajiPokok = parseFloat(komGajiPokok.nominal_default);
+      }
+
+      const vars = { gajiPokok: finalGajiPokok, hariHadir, jumlahAlpha, jamLembur };
 
       for (const kom of komponenList) {
         const nominal = hitungNominal(kom, vars);
@@ -217,10 +256,10 @@ const PayrollRepository = {
         }
       }
 
-      // 5. Hitung gaji bersih
-      const gajiBersih = parseFloat((gajiPokok + totalTunjangan - totalPotongan).toFixed(2));
+      // 6. Hitung gaji bersih
+      const gajiBersih = parseFloat((finalGajiPokok + totalTunjangan - totalPotongan).toFixed(2));
 
-      // 6. Insert slip gaji
+      // 7. Insert slip gaji
       const insertSlip = `
         INSERT INTO finance.slip_gaji
           (user_id, bulan, tahun, gaji_pokok, total_tunjangan, total_potongan, gaji_bersih, status, dibuat_at)
@@ -229,12 +268,12 @@ const PayrollRepository = {
       `;
       const slipRes = await client.query(insertSlip, [
         userId, bulan, tahun,
-        gajiPokok, totalTunjangan, totalPotongan, gajiBersih,
+        finalGajiPokok, totalTunjangan, totalPotongan, gajiBersih,
       ]);
       const slip   = slipRes.rows[0];
       const slipId = slip.id;
 
-      // 7. Insert detail komponen (batch)
+      // 8. Insert detail komponen (batch)
       for (const det of detailToInsert) {
         await client.query(
           `INSERT INTO finance.detail_slip_gaji (slip_gaji_id, komponen_gaji_id, nominal, keterangan)

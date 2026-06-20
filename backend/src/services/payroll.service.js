@@ -2,6 +2,8 @@
 
 const PayrollRepository = require('../repositories/payroll.repository');
 const KomponenGajiRepository = require('../repositories/komponen_gaji.repository');
+const TemplateGajiRepository = require('../repositories/template_gaji.repository');
+const PengaturanGajiRepository = require('../repositories/pengaturan_gaji.repository');
 const { paginate } = require('../utils/queryBuilder');
 
 const PAGE_SIZE = 20;
@@ -102,6 +104,24 @@ const PayrollService = {
       throw err;
     }
     return KomponenGajiRepository.delete(id);
+  },
+
+  // ── TEMPLATE GAJI JABATAN ──────────────────────────────────────────────────
+  getTemplatesByJabatan: async (jabatanId) => {
+    return TemplateGajiRepository.findByJabatanId(jabatanId);
+  },
+
+  upsertTemplate: async (data) => {
+    return TemplateGajiRepository.upsert(data);
+  },
+
+  // ── OVERRIDE GAJI PEGAWAI (USER) ───────────────────────────────────────────
+  getOverridesByUser: async (userId) => {
+    return PengaturanGajiRepository.findByUserId(userId);
+  },
+
+  upsertOverride: async (data) => {
+    return PengaturanGajiRepository.upsert(data);
   },
 };
 

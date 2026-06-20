@@ -32,6 +32,10 @@ import {
 } from "../../api/finance";
 import { getSiswa } from "../../api/academic";
 import Profile from "../Profile";
+import TemplateGajiTab from "../../components/payroll/TemplateGajiTab";
+import OverridePegawaiTab from "../../components/payroll/OverridePegawaiTab";
+import GenerateSlipTab from "../../components/payroll/GenerateSlipTab";
+import RiwayatSlipTab from "../../components/payroll/RiwayatSlipTab";
 
 // Icons Components
 const IconReceipt = () => (
@@ -907,6 +911,14 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     switch (activeMenu) {
       case "My Profile":
         return <Profile user={user} />;
+      case "Template Gaji Jabatan":
+        return <TemplateGajiTab triggerToast={triggerToast} />;
+      case "Pengaturan Gaji Pegawai":
+        return <OverridePegawaiTab triggerToast={triggerToast} />;
+      case "Generate Slip Gaji":
+        return <GenerateSlipTab triggerToast={triggerToast} />;
+      case "Riwayat Slip Gaji":
+        return <RiwayatSlipTab triggerToast={triggerToast} />;
       case "Dashboard":
       case "Overview":
         // Dynamic Calculations based on Single Source of Truth

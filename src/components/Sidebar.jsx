@@ -160,7 +160,10 @@ const menuSections = [
     section: "PENGGAJIAN",
     items: [
       { label: "Komponen Gaji", icon: <GridIcon /> },
+      { label: "Template Gaji Jabatan", icon: <UserSettingsIcon /> },
+      { label: "Pengaturan Gaji Pegawai", icon: <UsersIcon /> },
       { label: "Generate Slip Gaji", icon: <FileChartIcon /> },
+      { label: "Riwayat Slip Gaji", icon: <CalendarIcon /> },
       { label: "Status Bayar Gaji", icon: <WalletIcon /> },
       { label: "Transfer Gaji", icon: <WalletIcon /> }
     ],
