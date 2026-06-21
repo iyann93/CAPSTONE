@@ -482,8 +482,12 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
   // Handlers
   const handleSaveKomponen = async () => {
-    if (!editKomponenForm.name || !editKomponenForm.nominal) {
-      triggerToast("Mohon lengkapi form", "error");
+    if (!editKomponenForm.name) {
+      triggerToast("Nama komponen wajib diisi", "error");
+      return;
+    }
+    if (editKomponenForm.type === 'Persentase' && !editKomponenForm.nominal) {
+      triggerToast("Nilai persentase wajib diisi", "error");
       return;
     }
 
@@ -497,7 +501,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
         formula_tipe: editKomponenForm.type === 'Bulanan' ? 'flat' :
           editKomponenForm.type === 'Harian' ? 'per_hari_hadir' :
             editKomponenForm.type === 'Persentase' ? 'persen_gaji_pokok' : 'flat',
-        nominal_default: editKomponenForm.type === 'Persentase' ? 0 : Number(editKomponenForm.nominal),
+        // Nominal standar dihilangkan — nominal diatur di Template Gaji per Jabatan
+        nominal_default: 0,
         nilai_satuan: editKomponenForm.type === 'Persentase' ? Number(editKomponenForm.nominal) : 0,
         is_aktif: editKomponenForm.status === 'Aktif'
       };
@@ -2658,7 +2663,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               <div className="bg-[#1A3D63] rounded-2xl border border-[#1A3D63] p-5 shadow-sm flex items-center gap-4">
                 <div>
                   <div className="text-[11px] font-bold text-blue-200 mb-1 uppercase tracking-wide">Pendapatan</div>
-                  <div className="text-xl sm:text-2xl font-black text-white">12 Komponen</div>
+                  <div className="text-xl sm:text-2xl font-black text-white">
+                    {komponenGajiList.filter(k => k.tipe === 'tunjangan').length} Komponen
+                  </div>
                 </div>
               </div>
 
@@ -2666,7 +2673,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               <div className="bg-[#1A3D63] rounded-2xl border border-[#1A3D63] p-5 shadow-sm flex items-center gap-4">
                 <div>
                   <div className="text-[11px] font-bold text-blue-200 mb-1 uppercase tracking-wide">Potongan</div>
-                  <div className="text-xl sm:text-2xl font-black text-white">5 Komponen</div>
+                  <div className="text-xl sm:text-2xl font-black text-white">
+                    {komponenGajiList.filter(k => k.tipe === 'potongan').length} Komponen
+                  </div>
                 </div>
               </div>
 
@@ -2674,7 +2683,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               <div className="bg-[#1A3D63] rounded-2xl border border-[#1A3D63] p-5 shadow-sm flex items-center gap-4">
                 <div>
                   <div className="text-[11px] font-bold text-blue-200 mb-1 uppercase tracking-wide">Total</div>
-                  <div className="text-xl sm:text-2xl font-black text-white">17 Komponen</div>
+                  <div className="text-xl sm:text-2xl font-black text-white">
+                    {komponenGajiList.length} Komponen
+                  </div>
                 </div>
               </div>
             </div>
@@ -2700,8 +2711,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     <tr className="bg-gray-50/50 text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
                       <th className="p-4 pl-5">NAMA KOMPONEN</th>
                       <th className="p-4">KATEGORI</th>
-                      <th className="p-4">TIPE</th>
-                      <th className="p-4">NOMINAL STANDAR</th>
+                      <th className="p-4">TIPE FORMULA</th>
                       <th className="p-4">STATUS</th>
                       <th className="p-4 pr-5 text-right">AKSI</th>
                     </tr>
@@ -2723,12 +2733,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                           </td>
                           <td className="p-4 text-gray-500 font-medium">
                             {row.formula_tipe === 'flat' ? 'Bulanan' :
-                              row.formula_tipe === 'per_hari_hadir' ? 'Harian' :
-                                row.formula_tipe === 'persen_gaji_pokok' ? 'Persentase' : row.formula_tipe}
-                          </td>
-                          <td className="p-4 font-bold text-gray-800">
-                            {row.formula_tipe === 'persen_gaji_pokok' ? `${row.nilai_satuan}%` :
-                              row.nominal_default > 0 ? `Rp ${parseInt(row.nominal_default).toLocaleString('id-ID')}` : 'Varies'}
+                              row.formula_tipe === 'per_hari_hadir' ? 'Per Hari Hadir' :
+                                row.formula_tipe === 'persen_gaji_pokok' ? `Persentase (${row.nilai_satuan}%)` : row.formula_tipe}
                           </td>
                           <td className="p-4">
                             <span className="text-[#3B82F6] font-bold text-[11px]">{row.is_aktif ? "Aktif" : "Non-Aktif"}</span>
@@ -4221,10 +4227,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   <span className={`font-bold px-2 py-0.5 rounded text-[10px] ${selectedKomponen.category === 'Pendapatan' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'
                     }`}>{selectedKomponen.category}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-500 font-medium">Nominal Standar</span>
-                  <span className="font-bold text-gray-800">{selectedKomponen.nominal}</span>
-                </div>
+
               </div>
             </div>
             <div className="p-6 border-t border-gray-50 flex gap-3">
@@ -4400,27 +4403,25 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 </div>
               </div>
 
-              {/* Nominal */}
-              <div>
-                <label className="block text-xs font-bold text-gray-600 mb-1.5">
-                  {editKomponenForm.type === 'Persentase' ? 'Persentase (%)' : 'Nominal (Rp)'} <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-2.5 text-gray-400 text-sm font-medium">
-                    {editKomponenForm.type === 'Persentase' ? '%' : 'Rp'}
-                  </span>
-                  <input
-                    type="number"
-                    value={editKomponenForm.nominal}
-                    onChange={(e) => setEditKomponenForm({ ...editKomponenForm, nominal: e.target.value })}
-                    placeholder={editKomponenForm.type === 'Persentase' ? '5' : '500000'}
-                    className="w-full border border-gray-200 rounded-xl pl-8 pr-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all"
-                  />
+              {/* Persentase khusus untuk tipe Persentase */}
+              {editKomponenForm.type === 'Persentase' && (
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 mb-1.5">
+                    Nilai Persentase (%) <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-2.5 text-gray-400 text-sm font-medium">%</span>
+                    <input
+                      type="number"
+                      value={editKomponenForm.nominal}
+                      onChange={(e) => setEditKomponenForm({ ...editKomponenForm, nominal: e.target.value })}
+                      placeholder="5"
+                      className="w-full border border-gray-200 rounded-xl pl-8 pr-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all"
+                    />
+                  </div>
+                  <p className="text-[11px] text-gray-400 mt-1">Nilai ini akan menjadi default % dari Gaji Pokok.</p>
                 </div>
-                {editKomponenForm.type === 'Bulanan' && editKomponenForm.nominal && (
-                  <p className="text-[11px] text-gray-400 mt-1">= Rp {Number(editKomponenForm.nominal).toLocaleString('id-ID')}</p>
-                )}
-              </div>
+              )}
 
               {/* Status */}
               <div>

@@ -19,10 +19,14 @@ function hitungNominal(kom, { gajiPokok, hariHadir, jumlahAlpha, jamLembur }) {
       return nominalDef;
 
     case 'per_hari_hadir':
-      return hariHadir * satuan;
+      // Jika nilai_satuan ada (dari master komponen), pakai satuan * hari
+      // Jika tidak, pakai nominal_default flat (sudah di-override dari template)
+      if (satuan > 0) return hariHadir * satuan;
+      return nominalDef; // flat dari template
 
     case 'per_alpha':
-      return jumlahAlpha * satuan;
+      if (satuan > 0) return jumlahAlpha * satuan;
+      return nominalDef;
 
     case 'per_jam':
       return jamLembur * satuan;
@@ -168,7 +172,7 @@ const PayrollRepository = {
 
       if (checkRes.rows.length > 0) {
         const existing = checkRes.rows[0];
-        if (existing.status !== 'Draft') {
+        if (existing.status !== 'draft') {
           const err = new Error(
             `Slip gaji periode ${bulan}/${tahun} sudah berstatus '${existing.status}' dan tidak dapat di-generate ulang.`
           );
@@ -228,14 +232,14 @@ const PayrollRepository = {
       const detailToInsert = [];
 
       // Dapatkan Gaji Pokok hasil akhir (karena bisa jadi Gaji Pokok juga di-override dan diperlukan untuk hitungan persen)
-      let finalGajiPokok = gajiPokok;
-      const komGajiPokok = komponenList.find(k => k.tipe === 'gaji_pokok');
+      let finalGajiPokok = gajiPokok || 0;
+      // Cari komponen Gaji Pokok dari list (tipe tunjangan, nama mengandung 'gaji pokok')
+      const komGajiPokok = komponenList.find(k =>
+        k.nama?.toLowerCase().includes('gaji pokok')
+      );
       if (komGajiPokok) {
-        // Jika gaji pokok dikirim dari payload, timpa? Atau kita pakai yang dari master/template/override?
-        // Prioritas: gajiPokok dari parameter vs template/override.
-        // Kita gunakan gajiPokok parameter HANYA jika template/override tidak menset.
-        // Asumsi gaji_pokok = komGajiPokok.nominal_default sekarang adalah nilai terbaru.
-        finalGajiPokok = parseFloat(komGajiPokok.nominal_default);
+        // Prioritaskan nilai dari template/override yang sudah diset ke nominal_default
+        finalGajiPokok = parseFloat(komGajiPokok.nominal_default) || finalGajiPokok;
       }
 
       const vars = { gajiPokok: finalGajiPokok, hariHadir, jumlahAlpha, jamLembur };
@@ -245,8 +249,8 @@ const PayrollRepository = {
 
         // Hanya masukkan jika nominal > 0
         if (nominal > 0) {
-          if (kom.tipe === 'Tunjangan')       totalTunjangan += nominal;
-          else if (kom.tipe === 'Potongan')   totalPotongan  += nominal;
+          if (kom.tipe === 'tunjangan')      totalTunjangan += nominal;
+          else if (kom.tipe === 'potongan') totalPotongan  += nominal;
 
           detailToInsert.push({
             komponenGajiId: kom.id,
@@ -259,16 +263,16 @@ const PayrollRepository = {
       // 6. Hitung gaji bersih
       const gajiBersih = parseFloat((finalGajiPokok + totalTunjangan - totalPotongan).toFixed(2));
 
-      // 7. Insert slip gaji
+      // 7. Insert slip gaji (gaji_bersih adalah generated column, otomatis dihitung DB)
       const insertSlip = `
         INSERT INTO finance.slip_gaji
-          (user_id, bulan, tahun, gaji_pokok, total_tunjangan, total_potongan, gaji_bersih, status, dibuat_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, 'Draft', NOW())
+          (user_id, bulan, tahun, gaji_pokok, total_tunjangan, total_potongan, status, dibuat_at)
+        VALUES ($1, $2, $3, $4, $5, $6, 'draft', NOW())
         RETURNING *
       `;
       const slipRes = await client.query(insertSlip, [
         userId, bulan, tahun,
-        finalGajiPokok, totalTunjangan, totalPotongan, gajiBersih,
+        finalGajiPokok, totalTunjangan, totalPotongan,
       ]);
       const slip   = slipRes.rows[0];
       const slipId = slip.id;
@@ -312,16 +316,16 @@ const PayrollRepository = {
       if (checkRes.rows.length === 0) {
         const err = new Error('Slip gaji tidak ditemukan'); err.statusCode = 404; throw err;
       }
-      if (checkRes.rows[0].status !== 'Draft') {
+      if (checkRes.rows[0].status !== 'draft') {
         const err = new Error(
-          `Slip gaji tidak dapat di-approve. Status saat ini: '${checkRes.rows[0].status}' (hanya Draft yang bisa di-approve).`
+          `Slip gaji tidak dapat di-approve. Status saat ini: '${checkRes.rows[0].status}' (hanya draft yang bisa di-approve).`
         );
         err.statusCode = 409;
         throw err;
       }
 
       const res = await client.query(
-        `UPDATE finance.slip_gaji SET status = 'Approved' WHERE id = $1 RETURNING *`,
+        `UPDATE finance.slip_gaji SET status = 'disetujui' WHERE id = $1 RETURNING *`,
         [slipGajiId]
       );
 
@@ -355,10 +359,10 @@ const PayrollRepository = {
       }
 
       const slip = slipRes.rows[0];
-      if (slip.status === 'Transferred') {
+      if (slip.status === 'dibayar') {
         const err = new Error('Gaji untuk periode ini sudah ditransfer sebelumnya.'); err.statusCode = 409; throw err;
       }
-      if (slip.status !== 'Approved') {
+      if (slip.status !== 'disetujui') {
         const err = new Error(
           `Slip gaji belum di-approve. Status saat ini: '${slip.status}'.`
         );
@@ -389,9 +393,9 @@ const PayrollRepository = {
         rekeningId || null,
       ]);
 
-      // Update status slip → Transferred
+      // Update status slip → dibayar
       await client.query(
-        `UPDATE finance.slip_gaji SET status = 'Transferred' WHERE id = $1`,
+        `UPDATE finance.slip_gaji SET status = 'dibayar' WHERE id = $1`,
         [slipGajiId]
       );
 

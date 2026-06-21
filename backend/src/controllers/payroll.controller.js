@@ -30,7 +30,6 @@ const PayrollController = {
     } catch (err) { next(err); }
   },
 
-  // POST /payroll/generate  — Generate slip gaji + hitung komponen otomatis
   generate: async (req, res, next) => {
     try {
       const errors = validationResult(req);
@@ -41,7 +40,10 @@ const PayrollController = {
       }
       const data = await PayrollService.generate(req.body);
       return response.success(res, 201, 'Slip gaji berhasil di-generate', data);
-    } catch (err) { next(err); }
+    } catch (err) {
+      console.error('[GENERATE SLIP ERROR]', err.message, err.stack);
+      next(err);
+    }
   },
 
   // POST /payroll/approve  — Approve slip gaji (Draft → Approved)
@@ -121,7 +123,16 @@ const PayrollController = {
 
   upsertTemplate: async (req, res, next) => {
     try {
-      const data = await PayrollService.upsertTemplate(req.body);
+      // Normalize: frontend sends komponen_id, repository expects komponen_gaji_id
+      const payload = {
+        jabatan_id: req.body.jabatan_id,
+        komponen_gaji_id: req.body.komponen_gaji_id || req.body.komponen_id,
+        nominal: req.body.nominal,
+      };
+      if (!payload.jabatan_id || !payload.komponen_gaji_id) {
+        return response.error(res, 400, 'jabatan_id dan komponen_id wajib diisi');
+      }
+      const data = await PayrollService.upsertTemplate(payload);
       return response.success(res, 200, 'Template gaji berhasil disimpan', data);
     } catch (err) { next(err); }
   },
@@ -137,7 +148,16 @@ const PayrollController = {
 
   upsertOverride: async (req, res, next) => {
     try {
-      const data = await PayrollService.upsertOverride(req.body);
+      // Normalize: frontend sends komponen_id, repository expects komponen_gaji_id
+      const payload = {
+        user_id: req.body.user_id,
+        komponen_gaji_id: req.body.komponen_gaji_id || req.body.komponen_id,
+        nominal: req.body.nominal,
+      };
+      if (!payload.user_id || !payload.komponen_gaji_id) {
+        return response.error(res, 400, 'user_id dan komponen_id wajib diisi');
+      }
+      const data = await PayrollService.upsertOverride(payload);
       return response.success(res, 200, 'Override gaji berhasil disimpan', data);
     } catch (err) { next(err); }
   },

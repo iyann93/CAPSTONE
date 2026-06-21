@@ -48,14 +48,15 @@ const TemplateGajiTab = ({ triggerToast }) => {
       // Map API data back to our state format
       // We want all components listed, with nominal from template if it exists, else default 0
       const currentTemplates = komponenList.map((komp) => {
-        const found = data.find((t) => t.komponen_id === komp.id);
+        // API returns komponen_gaji_id column from the DB join
+        const found = data.find((t) => t.komponen_gaji_id === komp.id);
         return {
           komponen_id: komp.id,
           nama: komp.nama,
           kategori: komp.kategori,
           tipe: komp.tipe, // tunjangan atau potongan
           formula_tipe: komp.formula_tipe,
-          nominal: found ? found.nominal : 0,
+          nominal: found ? String(Math.round(Number(found.nominal))) : '0',
         };
       });
       setTemplates(currentTemplates);
@@ -68,11 +69,21 @@ const TemplateGajiTab = ({ triggerToast }) => {
   };
 
   const handleNominalChange = (komponen_id, val) => {
+    // Strip dots (thousand separator) and keep only digits
+    const raw = String(val).replace(/\./g, '').replace(/[^0-9]/g, '');
     setTemplates((prev) =>
       prev.map((t) =>
-        t.komponen_id === komponen_id ? { ...t, nominal: Number(val) || 0 } : t
+        t.komponen_id === komponen_id ? { ...t, nominal: raw } : t
       )
     );
+  };
+
+  // Format raw number string to Indonesian thousand format (50000 → 50.000)
+  const formatRibuan = (val) => {
+    if (val === '' || val === null || val === undefined) return '';
+    const num = parseInt(String(val).replace(/\./g, ''), 10);
+    if (isNaN(num)) return '';
+    return num.toLocaleString('id-ID');
   };
 
   const handleSave = async () => {
@@ -92,7 +103,7 @@ const TemplateGajiTab = ({ triggerToast }) => {
         await upsertTemplate({
           jabatan_id: selectedJabatan,
           komponen_id: t.komponen_id,
-          nominal: t.nominal,
+          nominal: Number(String(t.nominal).replace(/\./g, '')) || 0,
         });
       }
       triggerToast("Template gaji berhasil disimpan!");
@@ -153,13 +164,14 @@ const TemplateGajiTab = ({ triggerToast }) => {
                       {t.tipe === 'tunjangan' ? 'Pendapatan' : 'Potongan'}
                     </span>
                   </td>
-                  <td className="py-3 px-4 text-xs text-gray-500 capitalize">{t.formula_tipe.replace(/_/g, ' ')}</td>
+                  <td className="py-3 px-4 text-xs text-gray-500 capitalize">{(t.formula_tipe || 'flat').replace(/_/g, ' ')}</td>
                   <td className="py-3 px-4 text-right">
                     <input
-                      type="number"
-                      value={t.nominal}
+                      type="text"
+                      inputMode="numeric"
+                      value={formatRibuan(t.nominal)}
                       onChange={(e) => handleNominalChange(t.komponen_id, e.target.value)}
-                      className="w-32 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all"
+                      className="w-36 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all"
                     />
                   </td>
                 </tr>

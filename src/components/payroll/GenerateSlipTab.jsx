@@ -34,9 +34,8 @@ const GenerateSlipTab = ({ triggerToast }) => {
         try {
           await generateSlip({
             userId: emp.id,
-            bulan,
-            tahun,
-            // For now, assuming standard attendance. In real app, this might come from attendance module
+            bulan: parseInt(bulan, 10),
+            tahun: parseInt(tahun, 10),
             hariHadir: 20, 
             jumlahAlpha: 0,
             jamLembur: 0
@@ -46,7 +45,7 @@ const GenerateSlipTab = ({ triggerToast }) => {
         } catch (err) {
           failCount++;
           const msg = err.response?.data?.message || err.message;
-          setLogs(prev => [...prev, { status: 'error', message: `[ERROR] Gagal generate untuk ${emp.nama_lengkap}: ${msg}` }]);
+          setLogs(prev => [...prev, { status: 'error', message: `[ERROR] Gagal generate untuk ${emp.name}: ${msg}` }]);
         }
         
         // Update progress

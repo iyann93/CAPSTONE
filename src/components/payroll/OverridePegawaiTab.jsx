@@ -44,13 +44,14 @@ const OverridePegawaiTab = ({ triggerToast }) => {
       setLoading(true);
       const data = await getOverrides(user_id);
       const currentOverrides = komponenList.map((komp) => {
-        const found = data.find((o) => o.komponen_id === komp.id);
+        // API returns komponen_gaji_id column from the DB join
+        const found = data.find((o) => o.komponen_gaji_id === komp.id);
         return {
           komponen_id: komp.id,
           nama: komp.nama,
           kategori: komp.kategori,
           tipe: komp.tipe,
-          nominal: found ? found.nominal : '', // Empty string means no override
+          nominal: found ? String(Math.round(Number(found.nominal))) : '', // Empty string means no override
         };
       });
       setOverrides(currentOverrides);
@@ -63,32 +64,47 @@ const OverridePegawaiTab = ({ triggerToast }) => {
   };
 
   const handleNominalChange = (komponen_id, val) => {
+    // Strip dots (thousand separator) and keep only digits
+    const raw = String(val).replace(/\./g, '').replace(/[^0-9]/g, '');
     setOverrides((prev) =>
       prev.map((o) =>
-        o.komponen_id === komponen_id ? { ...o, nominal: val } : o
+        o.komponen_id === komponen_id ? { ...o, nominal: raw } : o
       )
     );
+  };
+
+  // Format raw number string to Indonesian thousand format (50000 → 50.000)
+  const formatRibuan = (val) => {
+    if (val === '' || val === null || val === undefined) return '';
+    const num = parseInt(String(val).replace(/\./g, ''), 10);
+    if (isNaN(num)) return '';
+    return num.toLocaleString('id-ID');
   };
 
   const handleSave = async () => {
     if (!selectedUserId) return;
     try {
       setIsSaving(true);
-      // We only save overrides that are not empty string
-      for (const o of overrides) {
-        if (o.nominal !== '') {
-          await upsertOverride({
+      // Save all overrides that have a non-empty nominal (including 0)
+      const toSave = overrides.filter(o => o.nominal !== '');
+      if (toSave.length === 0) {
+        triggerToast("Tidak ada nominal yang diisi", "error");
+        return;
+      }
+      await Promise.all(
+        toSave.map(o =>
+          upsertOverride({
             user_id: selectedUserId,
             komponen_id: o.komponen_id,
-            nominal: Number(o.nominal),
-          });
-        }
-      }
+            nominal: Number(String(o.nominal).replace(/\./g, '')) || 0,
+          })
+        )
+      );
       triggerToast("Override gaji berhasil disimpan!");
       fetchOverrides(selectedUserId);
     } catch (error) {
       console.error(error);
-      triggerToast("Gagal menyimpan override gaji", "error");
+      triggerToast(`Gagal menyimpan: ${error.response?.data?.message || error.message}`, "error");
     } finally {
       setIsSaving(false);
     }
@@ -194,11 +210,12 @@ const OverridePegawaiTab = ({ triggerToast }) => {
                         </td>
                         <td className="py-3 px-2 text-right">
                           <input
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
                             placeholder="Gunakan Default"
-                            value={o.nominal}
+                            value={formatRibuan(o.nominal)}
                             onChange={(e) => handleNominalChange(o.komponen_id, e.target.value)}
-                            className="w-full md:w-40 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all placeholder:text-gray-300"
+                            className="w-full md:w-44 border border-gray-200 rounded-lg px-3 py-1.5 text-sm text-right focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all placeholder:text-gray-300"
                           />
                         </td>
                       </tr>

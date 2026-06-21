@@ -20,7 +20,7 @@ const generatePayrollValidator = [
     .isInt({ min: 2000, max: 2100 }).withMessage('tahun tidak valid'),
 
   body('gajiPokok')
-    .notEmpty().withMessage('gajiPokok wajib diisi')
+    .optional()
     .isFloat({ min: 0 }).withMessage('gajiPokok harus berupa angka positif'),
 
   body('hariHadir')
