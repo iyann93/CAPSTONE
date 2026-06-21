@@ -117,8 +117,8 @@ const PayrollRepository = {
       ORDER BY k.tipe, k.nama
     `;
     const resDetail = await query(sqlDetail, [id]);
-    slip.tunjangan = resDetail.rows.filter(r => r.komponen_tipe === 'Tunjangan');
-    slip.potongan  = resDetail.rows.filter(r => r.komponen_tipe === 'Potongan');
+    slip.tunjangan = resDetail.rows.filter(r => r.komponen_tipe === 'tunjangan');
+    slip.potongan  = resDetail.rows.filter(r => r.komponen_tipe === 'potongan');
     slip.details   = resDetail.rows;
 
     // Info transfer jika ada
@@ -245,6 +245,9 @@ const PayrollRepository = {
       const vars = { gajiPokok: finalGajiPokok, hariHadir, jumlahAlpha, jamLembur };
 
       for (const kom of komponenList) {
+        // Lewati Gaji Pokok agar tidak masuk ke detail tunjangan (mencegah double-counting)
+        if (komGajiPokok && kom.id === komGajiPokok.id) continue;
+
         const nominal = hitungNominal(kom, vars);
 
         // Hanya masukkan jika nominal > 0

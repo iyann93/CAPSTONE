@@ -1,4 +1,5 @@
 import { useState } from "react";
+import EmployeeDetail from "./EmployeeDetail";
 const SearchIcon = () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-gray-400">
     <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
   </svg>;
@@ -54,6 +55,7 @@ const MOCK_EMPLOYEES = [
 const EmployeeData = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+  const [isDetail, setIsDetail] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -62,6 +64,11 @@ const EmployeeData = () => {
     e.nip.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleDetailClick = (employee) => {
+    setSelectedEmployee(employee);
+    setIsDetail(true);
+  };
+
   const handleEditClick = (employee) => {
     setSelectedEmployee(employee);
     setIsEditing(true);
@@ -69,6 +76,9 @@ const EmployeeData = () => {
   const handleAddClick = () => {
     setIsAdding(true);
   };
+  if (isDetail && selectedEmployee) {
+    return <EmployeeDetail employee={selectedEmployee} onBack={() => setIsDetail(false)} onEdit={(e) => { setIsDetail(false); handleEditClick(e); }} />;
+  }
   if (isAdding) {
     return <div className="animate-fadeIn space-y-6 pb-20">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -611,7 +621,7 @@ const EmployeeData = () => {
                   </td>
                   <td className="px-6 py-5">
                     <div className="flex items-center justify-end gap-2 pr-6">
-                       <button className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors"><EyeIcon /></button>
+                       <button onClick={() => handleDetailClick(e)} className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors"><EyeIcon /></button>
                        <button onClick={() => handleEditClick(e)} className="p-1.5 text-gray-400 hover:text-[#1A3D63] transition-colors" aria-label="Edit">
                          <EditIcon />
                        </button>

@@ -81,3 +81,8 @@ export const getAllSlips = async (params = {}) => {
   const response = await api.get('/payroll', { params });
   return response.data; // Mengembalikan { data, meta }
 };
+
+export const getSlipDetail = async (id) => {
+  const response = await api.get(`/payroll/${id}`);
+  return response.data?.data;
+};
