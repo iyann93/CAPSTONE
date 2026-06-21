@@ -2692,14 +2692,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     className="w-full pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-200 rounded-xl text-xs sm:text-[13px] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all"
                   />
                 </div>
-
-                <button
-                  onClick={() => triggerToast("Membuka pengaturan rumus gaji...")}
-                  className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all w-full sm:w-auto"
-                >
-                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.99l1.005.828c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
-                  Rumus Gaji
-                </button>
               </div>
 
               <div className="overflow-x-auto rounded-xl border border-gray-100">
@@ -2916,10 +2908,10 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
       case "Status Bayar Gaji":
         const statusBayarData = [
           { name: "Andi Susanto, S.Pd", role: "Guru Matematika", salary: "Rp 4.250.000", status: "Sudah Dibayar", date: "25 Mei 2026", bank: "BCA" },
-          { name: "Maya Putri, M.Pd", role: "Guru Bahasa Indo", salary: "Rp 3.800.000", status: "Sudah Dibayar", date: "25 Mei 2026", bank: "Mandiri" },
-          { name: "Hendro Wibowo", role: "Staff TU", salary: "Rp 2.500.000", status: "Proses Transfer", date: "â€”", bank: "BCA" },
-          { name: "Lina Sari, S.Kom", role: "Guru TIK", salary: "Rp 3.200.000", status: "Belum Diproses", date: "â€”", bank: "BRI" },
-          { name: "Dr. Hendra Wijaya", role: "Kepala Sekolah", salary: "Rp 7.500.000", status: "Sudah Dibayar", date: "24 Mei 2026", bank: "BCA" }
+          { name: "Maya Putri, M.Pd", role: "Guru Bahasa Indo", salary: "Rp 3.800.000", status: "Sudah Dibayar", date: "25 Mei 2026", bank: "BCA" },
+          { name: "Hendro Wibowo", role: "Staff TU", salary: "Rp 2.500.000", status: "Proses Transfer", date: "25 Mei 2026", bank: "BCA" },
+          { name: "Lina Sari, S.Kom", role: "Guru TIK", salary: "Rp 3.200.000", status: "Belum Diproses", date: "25 Mei 2026", bank: "BCA" },
+          { name: "Dr. Hendra Wijaya", role: "Kepala Sekolah", salary: "Rp 7.500.000", status: "Sudah Dibayar", date: "25 Mei 2026", bank: "BCA" }
         ];
 
         return (
@@ -2944,22 +2936,17 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     <IconChevronDown />
                   </div>
                 </div>
-                <button
-                  onClick={() => triggerToast("Review semua pembayaran...")}
-                  className="flex items-center gap-1.5 bg-white border border-gray-200 text-gray-700 rounded-xl px-4 py-2.5 text-xs sm:text-[13px] font-bold cursor-pointer hover:bg-gray-50 transition-colors shadow-sm"
-                >
-                  <IconPlus /> Review Semua
-                </button>
+
               </div>
             </div>
 
             {/* Stat Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { label: "TOTAL PEGAWAI", value: "87" },
-                { label: "SUDAH TERBAYAR", value: "62" },
-                { label: "PROSES TRANSFER", value: "15" },
-                { label: "BELUM DIPROSES", value: "10" }
+                { label: "TOTAL PEGAWAI", value: "87 Orang" },
+                { label: "SUDAH DIBAYAR", value: "62" },
+                { label: "SEDANG DIPROSES", value: "15" },
+                { label: "BELUM DIBAYAR", value: "10" }
               ].map((card, idx) => (
                 <div key={idx} className="bg-[#1A3D63] rounded-[20px] p-5 shadow-sm flex flex-col justify-between h-[104px]">
                   <div className="text-[10px] font-bold text-blue-200 mt-1 uppercase tracking-wider">{card.label}</div>
@@ -2981,12 +2968,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     className="w-full pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-100 rounded-xl text-xs sm:text-[13px] focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all font-medium"
                   />
                 </div>
-                <button
-                  onClick={() => triggerToast("Mencetak daftar pembayaran...")}
-                  className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-4 py-2.5 rounded-xl text-xs sm:text-[13px] font-bold flex items-center gap-2 cursor-pointer transition-colors shadow-sm"
-                >
-                  <IconPrinter /> Cetak Daftar
-                </button>
+
               </div>
 
               <div className="overflow-x-auto">
@@ -3036,40 +3018,165 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 </table>
               </div>
             </div>
+
+            {/* Notification Section */}
+            <div className="bg-white rounded-[24px] border border-gray-100 p-5 sm:p-6 shadow-sm">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center text-[#2563EB] relative flex-shrink-0 shadow-sm border border-blue-100">
+                    <svg width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" /></svg>
+                    <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full border-[2.5px] border-white"></div>
+                  </div>
+                  <div>
+                    <h2 className="text-[16px] font-bold text-gray-800">Notifikasi Pembayaran Gaji</h2>
+                    <p className="text-[12px] text-gray-500 mt-1 mb-3 leading-relaxed">
+                      Terdapat <strong className="text-gray-700">62 pegawai</strong> yang siap menerima pemberitahuan.
+                    </p>
+                    <div className="bg-[#EFF6FF] rounded-lg px-3 py-2 inline-flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-full bg-[#2563EB] flex items-center justify-center text-white flex-shrink-0">
+                        <span className="font-bold text-[9px]">i</span>
+                      </div>
+                      <div className="text-[11px] text-[#2563EB] font-medium">
+                        Hanya dikirim kepada status "Sudah Dibayar"
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => triggerToast("✓ Notifikasi Berhasil Dikirim")}
+                  className="w-full lg:w-auto bg-[#1A3D63] hover:bg-[#122A44] text-white px-6 py-3.5 rounded-xl font-bold text-[13px] flex items-center justify-center gap-2.5 transition-all shadow-md shadow-[#1A3D63]/20 active:scale-95 flex-shrink-0 group"
+                >
+                  <div className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">
+                    <IconSend />
+                  </div>
+                  Kirim Notifikasi ke Semua
+                </button>
+              </div>
+            </div>
           </div>
         );
       case "Transfer Gaji":
-        return (
-          <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm animate-fadeIn">
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Gerbang Transfer Gaji Host-to-Host (H2H)</h2>
-            <p className="text-sm text-gray-500 mb-6">Integrasi API Bank untuk transfer dana gaji massal secara instan sekali klik.</p>
+        const transferGajiData = [
+          { name: "Lina Sari, S.Kom", role: "Guru TIK", bank: "BRI", account: "0123-****-7890", salary: "Rp 3.085.000", status: "Antrian" },
+          { name: "Hendro Wibowo", role: "Staff TU", bank: "BCA", account: "8821-****-1234", salary: "Rp 2.408.500", status: "Antrian" },
+          { name: "Doni Prasetya", role: "Guru Olahraga", bank: "BNI", account: "0991-****-5562", salary: "Rp 2.696.000", status: "Antrian" },
+          { name: "Andi Susanto, S.Pd", role: "Guru Matematika", bank: "BCA", account: "8821-****-9901", salary: "Rp 4.105.500", status: "Terkirim" },
+          { name: "Maya Putri, M.Pd", role: "Guru B. Indonesia", bank: "BRI", account: "1234-****-5678", salary: "Rp 3.720.000", status: "Terkirim" },
+          { name: "Astuti, S.Si", role: "Guru Kimia", bank: "Mandiri", account: "9012-****-3456", salary: "Rp 4.320.000", status: "Terkirim" }
+        ];
 
-            <div className="border border-yellow-100 rounded-xl p-5 bg-yellow-50/30 mb-6">
-              <h3 className="text-xs font-bold text-yellow-700 uppercase mb-2">Verifikasi Transaksi</h3>
-              <p className="text-xs text-yellow-600 leading-relaxed mb-4">
-                Terdapat <strong>1 staf/guru</strong> yang status gajinya masih "Pending" (belum dikirim) senilai total <strong>Rp 3.150.000</strong>.
-              </p>
-              <button
-                onClick={() => triggerToast("Mengirimkan instruksi transfer massal via API H2H Bank...")}
-                className="bg-[#1A3D63] hover:bg-[#122A44] text-white px-5 py-2.5 rounded-lg border-none font-bold text-xs cursor-pointer transition-all shadow-md active:scale-95"
-              >
-                Eksekusi Transfer Massal Sekarang (API Bank)
-              </button>
+        return (
+          <div className="flex flex-col gap-6 animate-fadeIn font-sans">
+            {/* Header */}
+            <div>
+              <h1 className="text-[24px] sm:text-[26px] font-bold text-[#1A202C] tracking-tight">Kirim Notifikasi Gaji</h1>
+              <p className="text-sm text-gray-500 mt-1">Kirim pemberitahuan pembayaran gaji ke masing-masing guru & staf.</p>
             </div>
 
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Konektivitas Bank Partner</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-              <div className="p-4 border border-gray-100 rounded-xl flex items-center justify-between">
-                <span className="font-bold text-gray-700">Bank Mandiri H2H</span>
-                <span className="text-green-500 font-bold">Terhubung</span>
+            {/* Stat Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Card 1 */}
+              <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center text-orange-400">
+                  <IconClock />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-orange-500 leading-none mb-1">3</div>
+                  <div className="text-[11px] font-medium text-gray-400">Antrian Dikirim</div>
+                </div>
               </div>
-              <div className="p-4 border border-gray-100 rounded-xl flex items-center justify-between">
-                <span className="font-bold text-gray-700">BCA Enterprise API</span>
-                <span className="text-green-500 font-bold">Terhubung</span>
+              {/* Card 2 */}
+              <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center text-green-500">
+                  <IconCheckCircle />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-green-500 leading-none mb-1">3</div>
+                  <div className="text-[11px] font-medium text-gray-400">Notif Terkirim</div>
+                </div>
               </div>
-              <div className="p-4 border border-gray-100 rounded-xl flex items-center justify-between">
-                <span className="font-bold text-gray-700">BNI Direct Connect</span>
-                <span className="text-gray-400 font-bold">Tidak Terhubung</span>
+              {/* Card 3 */}
+              <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
+                  <IconSend />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-[#2563EB] leading-none mb-1">Rp 12.145.500</div>
+                  <div className="text-[11px] font-medium text-gray-400">Total Terkirim</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Table Card */}
+            <div className="bg-white rounded-[24px] border border-gray-100 p-5 sm:p-6 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div>
+                  <h2 className="text-[15px] font-bold text-gray-800">Daftar Gaji — Mei 2026</h2>
+                  <p className="text-[11px] text-gray-400 mt-1">Klik "Kirim" untuk mengirim notifikasi gaji ke guru/staf</p>
+                </div>
+                <div className="relative w-full sm:w-[280px]">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                    <IconSearch />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Cari nama..."
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50/50 border border-gray-100 rounded-xl text-xs sm:text-[13px] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all font-medium"
+                  />
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-[800px]">
+                  <thead>
+                    <tr className="bg-gray-50/50 text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
+                      <th className="py-4 px-4 font-semibold">NAMA PEGAWAI</th>
+                      <th className="py-4 px-4 font-semibold">JABATAN</th>
+                      <th className="py-4 px-4 font-semibold">BANK</th>
+                      <th className="py-4 px-4 font-semibold">NO. REKENING</th>
+                      <th className="py-4 px-4 font-semibold">NOMINAL GAJI</th>
+                      <th className="py-4 px-4 font-semibold text-center">STATUS</th>
+                      <th className="py-4 px-4 font-semibold text-center">AKSI</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50 text-xs">
+                    {transferGajiData.map((row, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                        <td className="py-4 px-4 font-bold text-gray-800">{row.name}</td>
+                        <td className="py-4 px-4 text-gray-500">{row.role}</td>
+                        <td className="py-4 px-4 text-gray-500">{row.bank}</td>
+                        <td className="py-4 px-4 text-gray-500">{row.account}</td>
+                        <td className="py-4 px-4 font-bold text-[#059669]">{row.salary}</td>
+                        <td className="py-4 px-4 text-center">
+                          {row.status === "Antrian" ? (
+                            <span className="bg-orange-50 text-orange-500 px-3 py-1 rounded-full text-[10px] font-bold">Antrian</span>
+                          ) : (
+                            <span className="bg-green-50 text-green-500 px-3 py-1 rounded-full text-[10px] font-bold">Terkirim</span>
+                          )}
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex justify-center">
+                            {row.status === "Antrian" ? (
+                              <button 
+                                onClick={() => triggerToast("✓ Notifikasi Berhasil Dikirim")}
+                                className="bg-[#2563EB] hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors w-24"
+                              >
+                                <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" /></svg>
+                                Kirim
+                              </button>
+                            ) : (
+                              <div className="text-[#059669] px-4 py-1.5 text-xs font-bold flex items-center justify-center gap-1.5 w-24">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                                Terkirim
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
