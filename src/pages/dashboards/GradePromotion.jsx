@@ -142,27 +142,18 @@ const GradePromotion = () => {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
         {[
-          { label: "Total Siswa", value: totalSiswa, sub: "Seluruh kelas", icon: (
-            <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#64748b" strokeWidth="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          ), bg: "bg-slate-100", color: "text-slate-700" },
-          { label: "Naik Kelas", value: totalNaik, sub: `${Math.round((totalNaik/totalSiswa)*100)}% dari total`, icon: (
-            <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#16a34a" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-          ), bg: "bg-green-100", color: "text-green-600" },
-          { label: "Tidak Naik", value: totalTidakNaik, sub: `${Math.round((totalTidakNaik/totalSiswa)*100)}% dari total`, icon: (
-            <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#dc2626" strokeWidth="1.8"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          ), bg: "bg-red-100", color: "text-red-600" },
-          { label: "Belum Diproses", value: totalBelum, sub: "Menunggu keputusan", icon: (
-            <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="#d97706" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          ), bg: "bg-amber-100", color: "text-amber-600" },
-        ].map((c, i) => (
-          <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
-            <div className={`w-14 h-14 rounded-2xl ${c.bg} flex items-center justify-center flex-shrink-0`}>{c.icon}</div>
+          { label: "Total Siswa", value: totalSiswa, subText: "Seluruh kelas" },
+          { label: "Naik Kelas", value: totalNaik, subText: `${Math.round((totalNaik/totalSiswa)*100)}% dari total` },
+          { label: "Tidak Naik", value: totalTidakNaik, subText: `${Math.round((totalTidakNaik/totalSiswa)*100)}% dari total` },
+          { label: "Belum Diproses", value: totalBelum, subText: "Menunggu keputusan" },
+        ].map((card, i) => (
+          <div key={i} className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
             <div>
-              <p className="text-[13px] text-gray-500">{c.label}</p>
-              <p className={`text-[28px] font-bold ${c.color}`}>{c.value}</p>
-              <p className="text-[12px] text-gray-400">{c.sub}</p>
+              <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">{card.label}</div>
+              <div className="text-3xl font-black text-white">{card.value}</div>
+              <div className="text-xs font-medium text-blue-300 mt-2">{card.subText}</div>
             </div>
           </div>
         ))}

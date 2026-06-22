@@ -139,61 +139,36 @@ const Subjects = () => {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-5">
         {/* Card 1 */}
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-[14px] bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-500 flex-shrink-0">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-            </svg>
-          </div>
+        <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
-            <div className="text-[12px] font-bold text-gray-400">Total Mata Pelajaran</div>
-            <div className="text-[26px] font-bold text-[#1e293b] leading-tight mt-0.5">48</div>
+            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Mata Pelajaran</div>
+            <div className="text-3xl font-black text-white">48</div>
           </div>
         </div>
 
         {/* Card 2 */}
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-[14px] bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500 flex-shrink-0">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-              <polyline points="22 4 12 14.01 9 11.01"></polyline>
-            </svg>
-          </div>
+        <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
-            <div className="text-[12px] font-bold text-gray-400">Sudah Ada Guru</div>
-            <div className="text-[26px] font-bold text-[#1e293b] leading-tight mt-0.5">45</div>
+            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Sudah Ada Guru</div>
+            <div className="text-3xl font-black text-white">45</div>
           </div>
         </div>
 
         {/* Card 3 */}
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-[14px] bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-500 flex-shrink-0">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="12"></line>
-              <line x1="12" y1="16" x2="12.01" y2="16"></line>
-            </svg>
-          </div>
+        <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
-            <div className="text-[12px] font-bold text-gray-400">Belum Ada Guru</div>
-            <div className="text-[26px] font-bold text-[#1e293b] leading-tight mt-0.5">3</div>
+            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Belum Ada Guru</div>
+            <div className="text-3xl font-black text-white">3</div>
           </div>
         </div>
 
         {/* Card 4 */}
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-[14px] bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-500 flex-shrink-0">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <polyline points="12 6 12 12 16 14"></polyline>
-            </svg>
-          </div>
+        <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
-            <div className="text-[12px] font-bold text-gray-400">Total Jam / Minggu</div>
-            <div className="text-[26px] font-bold text-[#1e293b] leading-tight mt-0.5">168</div>
+            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Jam / Minggu</div>
+            <div className="text-3xl font-black text-white">168</div>
           </div>
         </div>
       </div>
@@ -240,10 +215,10 @@ const Subjects = () => {
 
           {/* Legend */}
           <div className="flex items-center gap-4 text-[12px] font-bold text-gray-500">
-            <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-gray-600"></span> Wajib</div>
-            <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> IPA</div>
-            <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span> IPS</div>
-            <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span> Lintas Minat</div>
+            <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Wajib</div>
+            <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#1A3D63]"></span> IPA</div>
+            <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span> IPS</div>
+            <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-zinc-400"></span> Lintas Minat</div>
           </div>
         </div>
 
@@ -274,7 +249,12 @@ const Subjects = () => {
                   </td>
                   <td className="px-6 py-4 text-[14px] font-bold text-[#1e293b]">{item.name}</td>
                   <td className="px-6 py-4">
-                    <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide ${item.groupColor}`}>
+                    <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide ${
+                      item.group === 'Wajib' ? 'bg-slate-100 text-slate-700' :
+                      item.group === 'IPA' ? 'bg-[#1A3D63]/10 text-[#1A3D63]' :
+                      item.group === 'IPS' ? 'bg-gray-100 text-gray-700' :
+                      'bg-slate-100 text-slate-600'
+                    }`}>
                       {item.group}
                     </span>
                   </td>
@@ -285,8 +265,8 @@ const Subjects = () => {
                   <td className="px-6 py-4 text-[13px] font-medium text-gray-500">{item.teacher}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1.5">
-                      <span className={`w-1.5 h-1.5 rounded-full ${item.dotColor}`}></span>
-                      <span className={`text-[12px] font-bold ${item.statusColor}`}>{item.status}</span>
+                      <span className={`w-1.5 h-1.5 rounded-full ${item.status === 'Aktif' ? 'bg-emerald-500' : 'bg-gray-300'}`}></span>
+                      <span className={`text-[12px] font-bold ${item.status === 'Aktif' ? 'text-emerald-600' : 'text-gray-400'}`}>{item.status}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">

@@ -42,7 +42,7 @@ const StudentAttendance = () => {
         </div>
         <div className="flex items-center gap-3">
           <div className="relative">
-            <input type="date" defaultValue="2023-11-20" className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-[14px] font-medium shadow-sm outline-none focus:border-[#3B82F6]" />
+            <input type="date" defaultValue="2023-11-20" className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-[14px] font-medium shadow-sm outline-none focus:border-[#1A3D63]" />
           </div>
           <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-[14px] font-bold hover:bg-gray-50 shadow-sm transition-colors">
             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
@@ -55,65 +55,39 @@ const StudentAttendance = () => {
       <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A3D63" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
             <h3 className="text-[15px] font-bold text-[#1e293b]">Progress Input Absensi — Senin, 20 November 2023</h3>
           </div>
           <div className="flex items-center gap-4 text-[13px] font-medium">
-            <span className="flex items-center gap-1.5 text-emerald-600"><div className="w-2 h-2 rounded-full bg-emerald-500"></div>Sudah: 8 kelas</span>
-            <span className="flex items-center gap-1.5 text-gray-500"><div className="w-2 h-2 rounded-full bg-gray-300"></div>Belum: 4 kelas</span>
+            <span className="flex items-center gap-1.5 text-emerald-600"><div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>Sudah: 8 kelas</span>
+            <span className="flex items-center gap-1.5 text-gray-500"><div className="w-2.5 h-2.5 rounded-full bg-gray-300"></div>Belum: 4 kelas</span>
           </div>
         </div>
         <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden mb-2">
-          <div className="h-full bg-[#3B82F6] rounded-full transition-all" style={{ width: '67%' }}></div>
+          <div className="h-full bg-[#1A3D63] rounded-full transition-all" style={{ width: '67%' }}></div>
         </div>
         <div className="flex justify-between text-[13px]">
           <span className="text-gray-500">8 dari 12 kelas telah diinput</span>
-          <span className="font-bold text-[#3B82F6]">67%</span>
+          <span className="font-bold text-[#1A3D63]">67%</span>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-5 flex justify-between items-start">
-          <div>
-            <p className="text-[12px] text-gray-500 font-medium">Tingkat Kehadiran</p>
-            <h3 className="text-[26px] font-bold text-blue-600 my-0.5">63.9%</h3>
-            <p className="text-[11px] text-gray-400">232 dari 363 siswa</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
+        {[
+          { label: "Tingkat Kehadiran", val: "63.9%", subText: "232 dari 363 siswa" },
+          { label: "Hadir", val: "232", subText: "Siswa hadir hari ini" },
+          { label: "Tidak Hadir", val: "14", subText: "S:6 I:7 A:1" },
+          { label: "Kelas Belum Input", val: "4", subText: "Perlu segera diinput" },
+        ].map((card, i) => (
+          <div key={i} className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
+            <div>
+              <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">{card.label}</div>
+              <div className="text-3xl font-black text-white">{card.val}</div>
+              <div className="text-xs font-medium text-blue-300 mt-2">{card.subText}</div>
+            </div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500">
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-          </div>
-        </div>
-        <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-5 flex justify-between items-start">
-          <div>
-            <p className="text-[12px] text-gray-500 font-medium">Hadir</p>
-            <h3 className="text-[26px] font-bold text-emerald-500 my-0.5">232</h3>
-            <p className="text-[11px] text-gray-400">Siswa hadir hari ini</p>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500">
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          </div>
-        </div>
-        <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-5 flex justify-between items-start">
-          <div>
-            <p className="text-[12px] text-gray-500 font-medium">Tidak Hadir</p>
-            <h3 className="text-[26px] font-bold text-red-500 my-0.5">14</h3>
-            <p className="text-[11px] text-gray-400">S:6 I:7 A:1</p>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-500">
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-          </div>
-        </div>
-        <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-5 flex justify-between items-start">
-          <div>
-            <p className="text-[12px] text-gray-500 font-medium">Kelas Belum Input</p>
-            <h3 className="text-[26px] font-bold text-orange-500 my-0.5">4</h3>
-            <p className="text-[11px] text-gray-400">Perlu segera diinput</p>
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500">
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Charts */}
@@ -121,14 +95,14 @@ const StudentAttendance = () => {
         <div className="lg:col-span-2 bg-white rounded-[16px] border border-gray-100 shadow-sm p-6">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-[15px] font-bold text-[#1e293b] flex items-center gap-2">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A3D63" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
               Trend Kehadiran Mingguan
             </h3>
             <div className="flex items-center gap-4 text-[12px] font-medium text-gray-500">
-              <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded bg-blue-500"></div>Hadir</span>
-              <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded bg-orange-400"></div>Sakit</span>
-              <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded bg-purple-500"></div>Izin</span>
-              <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded bg-red-500"></div>Alpha</span>
+              <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded bg-[#1A3D63]"></div>Hadir</span>
+              <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded bg-amber-500"></div>Sakit</span>
+              <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded bg-violet-500"></div>Izin</span>
+              <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded bg-rose-500"></div>Alpha</span>
             </div>
           </div>
           
@@ -153,7 +127,7 @@ const StudentAttendance = () => {
               <div className="w-full flex justify-around relative z-10 h-full py-2">
                 {[230, 225, 235, 228, 220, 232].map((val, i) => (
                   <div key={i} className="flex flex-col items-center justify-end h-full">
-                    <div className="w-4 bg-red-500 rounded-t-sm" style={{ height: `${(val/280)*100}%` }}></div>
+                    <div className="w-4 bg-[#1A3D63] rounded-t-sm" style={{ height: `${(val/280)*100}%` }}></div>
                   </div>
                 ))}
               </div>
@@ -168,7 +142,7 @@ const StudentAttendance = () => {
 
         <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-6">
           <h3 className="text-[15px] font-bold text-[#1e293b] flex items-center gap-2 mb-6">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A3D63" strokeWidth="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
             Distribusi Hari Ini
           </h3>
           <div className="flex flex-col items-center">
@@ -186,7 +160,7 @@ const StudentAttendance = () => {
                 <path
                   d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                   fill="none"
-                  stroke="#3B82F6"
+                  stroke="#1A3D63"
                   strokeWidth="4.5"
                   strokeLinecap="round"
                   strokeDasharray="21.3 12.03"
@@ -201,20 +175,20 @@ const StudentAttendance = () => {
 
             <div className="w-full space-y-3">
               <div className="flex items-center justify-between text-[13px]">
-                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-blue-500 border-2 border-white shadow-sm"></div><span className="text-gray-600">Hadir</span></div>
-                <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-full h-full bg-blue-500 rounded-full"></div></div><span className="font-bold text-[#1e293b] w-6 text-right">232</span></div>
+                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#1A3D63] border-2 border-white shadow-sm"></div><span className="text-gray-600">Hadir</span></div>
+                <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-full h-full bg-[#1A3D63] rounded-full"></div></div><span className="font-bold text-[#1e293b] w-6 text-right">232</span></div>
               </div>
               <div className="flex items-center justify-between text-[13px]">
-                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-orange-400 border-2 border-white shadow-sm"></div><span className="text-gray-600">Sakit</span></div>
-                <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-[10%] h-full bg-orange-400 rounded-full"></div></div><span className="font-bold text-[#1e293b] w-6 text-right">6</span></div>
+                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-amber-500 border-2 border-white shadow-sm"></div><span className="text-gray-600">Sakit</span></div>
+                <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-[10%] h-full bg-amber-500 rounded-full"></div></div><span className="font-bold text-[#1e293b] w-6 text-right">6</span></div>
               </div>
               <div className="flex items-center justify-between text-[13px]">
-                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-purple-500 border-2 border-white shadow-sm"></div><span className="text-gray-600">Izin</span></div>
-                <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-[12%] h-full bg-purple-500 rounded-full"></div></div><span className="font-bold text-[#1e293b] w-6 text-right">7</span></div>
+                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-violet-500 border-2 border-white shadow-sm"></div><span className="text-gray-600">Izin</span></div>
+                <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-[12%] h-full bg-violet-500 rounded-full"></div></div><span className="font-bold text-[#1e293b] w-6 text-right">7</span></div>
               </div>
               <div className="flex items-center justify-between text-[13px]">
-                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-red-500 border-2 border-white shadow-sm"></div><span className="text-gray-600">Alpha</span></div>
-                <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-[2%] h-full bg-red-500 rounded-full"></div></div><span className="font-bold text-[#1e293b] w-6 text-right">1</span></div>
+                <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-rose-500 border-2 border-white shadow-sm"></div><span className="text-gray-600">Alpha</span></div>
+                <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-[2%] h-full bg-rose-500 rounded-full"></div></div><span className="font-bold text-[#1e293b] w-6 text-right">1</span></div>
               </div>
             </div>
           </div>
@@ -231,7 +205,7 @@ const StudentAttendance = () => {
                 onClick={() => setActiveTab(tab)}
                 className={`px-4 py-2 rounded-lg text-[13px] font-bold transition-colors ${
                   activeTab === tab
-                    ? "bg-[#3B82F6] text-white shadow-sm"
+                    ? "bg-[#1A3D63] text-white shadow-sm"
                     : "text-gray-600 hover:bg-gray-200"
                 }`}
               >
@@ -244,7 +218,7 @@ const StudentAttendance = () => {
             <input
               type="text"
               placeholder="Cari kelas..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all bg-gray-50 focus:bg-white"
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all bg-gray-50 focus:bg-white"
             />
             <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           </div>
@@ -283,7 +257,7 @@ const StudentAttendance = () => {
                     </span>
                   </td>
                   <td className="py-4 px-6">
-                    <span className={`inline-flex px-2.5 py-1 rounded-md text-[11px] font-bold whitespace-nowrap border ${cls.jurusan === 'IPA' ? 'bg-blue-50 text-blue-600 border-blue-100' : cls.jurusan === 'IPS' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-orange-50 text-orange-600 border-orange-100'}`}>
+                    <span className={`inline-flex px-2.5 py-1 rounded-md text-[11px] font-bold whitespace-nowrap border ${cls.jurusan === 'IPA' ? 'bg-[#1A3D63]/10 text-[#1A3D63] border-[#1A3D63]/25' : cls.jurusan === 'IPS' ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-gray-100 text-gray-700 border-gray-200'}`}>
                       {cls.jurusan}
                     </span>
                   </td>
@@ -296,7 +270,7 @@ const StudentAttendance = () => {
                     {cls.pct ? (
                       <div className="flex items-center gap-2 w-[80px]">
                         <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${cls.pct}%` }}></div>
+                          <div className="h-full bg-[#1A3D63] rounded-full" style={{ width: `${cls.pct}%` }}></div>
                         </div>
                         <span className="text-[13px] font-bold text-gray-700">{cls.pct}%</span>
                       </div>
@@ -338,7 +312,7 @@ const StudentAttendance = () => {
                         </>
                       ) : (
                         <>
-                          <button onClick={() => setSelectedClass(cls)} className="px-3 py-1.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-lg text-[12px] font-bold flex items-center gap-1.5 transition-colors shadow-sm">
+                          <button onClick={() => setSelectedClass(cls)} className="px-3 py-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white rounded-lg text-[12px] font-bold flex items-center gap-1.5 transition-colors shadow-sm animate-pulse">
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
                             Input
                           </button>
@@ -361,7 +335,7 @@ const StudentAttendance = () => {
           <div className="text-gray-500">
             Total 12 kelas ditampilkan
           </div>
-          <button className="px-4 py-2 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl text-[13px] font-bold flex items-center gap-2 shadow-sm transition-colors">
+          <button className="px-4 py-2 bg-[#1A3D63] hover:bg-[#122A44] text-white rounded-xl text-[13px] font-bold flex items-center gap-2 shadow-sm transition-colors">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
             Input Absensi Cepat
           </button>

@@ -312,7 +312,7 @@ const Classes = () => {
           </button>
           <button
             onClick={() => setView("add")}
-            className="bg-[#3B82F6] hover:bg-[#2563EB] text-white px-5 py-2.5 rounded-xl font-bold text-[13px] shadow-sm transition-all flex items-center gap-2"
+            className="bg-[#1A3D63] hover:bg-[#122A44] text-white px-5 py-2.5 rounded-xl font-bold text-[13px] shadow-sm transition-all flex items-center gap-2"
           >
             <span className="text-lg leading-none">+</span>
             Tambah Kelas
@@ -321,52 +321,36 @@ const Classes = () => {
       </div>
 
       {/* Top Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="bg-white border border-gray-100 p-5 rounded-[20px] shadow-sm flex items-center justify-between relative overflow-hidden">
-          <div className="absolute top-0 left-0 bottom-0 w-1 bg-[#3B82F6]"></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
+        <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
-            <div className="text-[11px] font-bold text-gray-400 mb-0.5">Total Kelas</div>
-            <div className="text-2xl font-black text-[#1e293b]">13</div>
-            <div className="text-[11px] text-gray-400 mt-0.5">12 kelas aktif</div>
-          </div>
-          <div className="w-10 h-10 rounded-2xl bg-[#EFF6FF] flex items-center justify-center text-[#3B82F6]">
-            <IconPrint />
+            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Kelas</div>
+            <div className="text-3xl font-black text-white">13</div>
+            <div className="text-xs font-medium text-blue-300 mt-2">12 kelas aktif</div>
           </div>
         </div>
 
-        <div className="bg-white border border-gray-100 p-5 rounded-[20px] shadow-sm flex items-center justify-between relative overflow-hidden">
-          <div className="absolute top-0 left-0 bottom-0 w-1 bg-[#22C55E]"></div>
+        <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
-            <div className="text-[11px] font-bold text-gray-400 mb-0.5">Kelas Aktif</div>
-            <div className="text-2xl font-black text-[#1e293b]">12</div>
-            <div className="text-[11px] text-gray-400 mt-0.5">1 tidak aktif</div>
-          </div>
-          <div className="w-10 h-10 rounded-2xl bg-[#F0FDF4] flex items-center justify-center text-[#22C55E]">
-            <IconCheckCircle />
+            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Kelas Aktif</div>
+            <div className="text-3xl font-black text-white">12</div>
+            <div className="text-xs font-medium text-blue-300 mt-2">1 tidak aktif</div>
           </div>
         </div>
 
-        <div className="bg-white border border-gray-100 p-5 rounded-[20px] shadow-sm flex items-center justify-between relative overflow-hidden">
-          <div className="absolute top-0 left-0 bottom-0 w-1 bg-[#F59E0B]"></div>
+        <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
-            <div className="text-[11px] font-bold text-gray-400 mb-0.5">Total Siswa</div>
-            <div className="text-2xl font-black text-[#1e293b]">390</div>
-            <div className="text-[11px] text-gray-400 mt-0.5">Seluruh kelas</div>
-          </div>
-          <div className="w-10 h-10 rounded-2xl bg-[#FFFBEB] flex items-center justify-center text-[#F59E0B]">
-            <IconUsers />
+            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Siswa</div>
+            <div className="text-3xl font-black text-white">390</div>
+            <div className="text-xs font-medium text-blue-300 mt-2">Seluruh kelas</div>
           </div>
         </div>
 
-        <div className="bg-white border border-gray-100 p-5 rounded-[20px] shadow-sm flex items-center justify-between relative overflow-hidden">
-          <div className="absolute top-0 left-0 bottom-0 w-1 bg-[#D946EF]"></div>
+        <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
-            <div className="text-[11px] font-bold text-gray-400 mb-0.5">Rata-rata Siswa/Kelas</div>
-            <div className="text-2xl font-black text-[#1e293b]">30</div>
-            <div className="text-[11px] text-gray-400 mt-0.5">siswa per kelas</div>
-          </div>
-          <div className="w-10 h-10 rounded-2xl bg-[#FDF4FF] flex items-center justify-center text-[#D946EF]">
-            <IconChart />
+            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Rata-rata Siswa/Kelas</div>
+            <div className="text-3xl font-black text-white">30</div>
+            <div className="text-xs font-medium text-blue-300 mt-2">siswa per kelas</div>
           </div>
         </div>
       </div>
@@ -381,7 +365,7 @@ const Classes = () => {
               <button 
                 key={t}
                 onClick={() => setActiveTab(t)}
-                className={`px-4 py-2 text-[12px] font-bold rounded-lg transition-colors ${activeTab === t ? 'bg-[#3B82F6] text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`px-4 py-2 text-[12px] font-bold rounded-lg transition-colors ${activeTab === t ? 'bg-[#1A3D63] text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
               >
                 {t}
               </button>
@@ -390,7 +374,7 @@ const Classes = () => {
 
           <div className="flex items-center gap-3">
             <div className="relative">
-              <select className="appearance-none pl-10 pr-8 py-2.5 bg-white border border-gray-200 rounded-xl text-[13px] font-bold text-gray-600 focus:outline-none focus:border-[#2563EB]">
+              <select className="appearance-none pl-10 pr-8 py-2.5 bg-white border border-gray-200 rounded-xl text-[13px] font-bold text-gray-600 focus:outline-none focus:border-[#1A3D63]">
                 <option>Semua Jurusan</option>
                 <option>IPA</option>
                 <option>IPS</option>
@@ -405,7 +389,7 @@ const Classes = () => {
                 placeholder="Cari kelas atau wali kelas..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:border-[#2563EB] w-[250px] font-medium" 
+                className="pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:border-[#1A3D63] w-[250px] font-medium" 
               />
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="absolute left-3.5 top-3 text-gray-400"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             </div>
@@ -444,10 +428,10 @@ const Classes = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${
-                      item.major === 'IPA' ? 'bg-[#EFF6FF] text-[#2563EB]' :
-                      item.major === 'IPS' ? 'bg-[#F0FDF4] text-[#16A34A]' :
-                      'bg-[#FFFBEB] text-[#D97706]'
+                    <span className={`text-[11px] font-bold px-2.5 py-1 rounded-md border ${
+                      item.major === 'IPA' ? 'bg-[#1A3D63]/10 text-[#1A3D63] border-[#1A3D63]/20' :
+                      item.major === 'IPS' ? 'bg-slate-100 text-slate-700 border-slate-200' :
+                      'bg-gray-100 text-gray-700 border-gray-200'
                     }`}>
                       {item.major}
                     </span>
@@ -458,11 +442,7 @@ const Classes = () => {
                       <span className="text-[13px] font-bold text-[#1e293b] w-12">{item.students}/{item.capacity}</span>
                       <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                         <div 
-                          className={`h-full rounded-full ${
-                            (item.students/item.capacity) > 0.9 ? 'bg-red-500' : 
-                            (item.students/item.capacity) > 0.7 ? 'bg-[#F59E0B]' : 
-                            'bg-[#22C55E]'
-                          }`} 
+                          className="h-full rounded-full bg-[#1A3D63]" 
                           style={{ width: `${(item.students/item.capacity)*100}%` }}
                         ></div>
                       </div>
@@ -470,7 +450,7 @@ const Classes = () => {
                   </td>
                   <td className="px-6 py-4 text-[13px] text-gray-500 font-medium">{item.room}</td>
                   <td className="px-6 py-4 text-center">
-                    <span className="bg-[#ECFDF5] text-[#059669] text-[11px] font-bold px-2.5 py-1 rounded-full flex items-center justify-center gap-1.5 mx-auto w-fit">
+                    <span className="bg-emerald-50 text-emerald-600 text-[11px] font-bold px-2.5 py-1 rounded-md flex items-center justify-center gap-1.5 mx-auto w-fit">
                       {item.status}
                     </span>
                   </td>
@@ -502,7 +482,7 @@ const Classes = () => {
             <button className="w-8 h-8 flex items-center justify-center text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
             </button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#3B82F6] text-white text-[13px] font-bold shadow-sm">
+            <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#1A3D63] text-white text-[13px] font-bold shadow-sm">
               1
             </button>
             <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-600 text-[13px] font-bold shadow-sm">

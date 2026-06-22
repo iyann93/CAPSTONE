@@ -88,6 +88,14 @@ const Schedules = () => {
     );
   };
 
+  const getCohesiveColor = (code) => {
+    const primaryCodes = ["MTK", "FIS", "KIM", "BIO", "ENG"];
+    if (primaryCodes.includes(code)) {
+      return "bg-[#1A3D63]/5 border-[#1A3D63]/20 text-[#1A3D63]";
+    }
+    return "bg-slate-50 border-slate-200 text-slate-700";
+  };
+
   return (
     <div className="p-6 md:p-8 animate-fadeIn space-y-6 bg-[#F4F6FA] min-h-full font-sans">
       {/* Breadcrumb */}
@@ -117,52 +125,36 @@ const Schedules = () => {
       </div>
 
       {/* Stats Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="bg-white border border-gray-100 p-5 rounded-[20px] shadow-sm flex items-center justify-between relative overflow-hidden">
-          <div className="absolute top-0 left-0 bottom-0 w-1 bg-[#3B82F6]"></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
+        <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
-            <div className="text-[11px] font-bold text-gray-400 mb-0.5">Total Jadwal</div>
-            <div className="text-2xl font-black text-[#1e293b]">42</div>
-            <div className="text-[11px] text-gray-400 mt-0.5">Semua kelas & hari</div>
-          </div>
-          <div className="w-10 h-10 rounded-2xl bg-[#EFF6FF] flex items-center justify-center text-[#3B82F6]">
-            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.617 0-1.11-.5-1.12-1.129L6.34 18m11.32 0a3 3 0 0 0 0-6M6.34 18a3 3 0 0 1 0-6m0 0a3 3 0 0 1 3-3h5.32a3 3 0 0 1 3 3m0 0v1.125m-6.32-6h6.32m-6.32 0a3 3 0 0 0-3 3v1.125m-6-2.25h16.5a1.5 1.5 0 0 1 1.5 1.5V15a1.5 1.5 0 0 1-1.5 1.5H3.75A1.5 1.5 0 0 1 2.25 15V11.25a1.5 1.5 0 0 1 1.5-1.5Z" /></svg>
+            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Jadwal</div>
+            <div className="text-3xl font-black text-white">42</div>
+            <div className="text-xs font-medium text-blue-300 mt-2">Semua kelas & hari</div>
           </div>
         </div>
 
-        <div className="bg-white border border-gray-100 p-5 rounded-[20px] shadow-sm flex items-center justify-between relative overflow-hidden">
-          <div className="absolute top-0 left-0 bottom-0 w-1 bg-[#22C55E]"></div>
+        <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
-            <div className="text-[11px] font-bold text-gray-400 mb-0.5">Mata Pelajaran</div>
-            <div className="text-2xl font-black text-[#1e293b]">14</div>
-            <div className="text-[11px] text-gray-400 mt-0.5">Mapel terjadwal</div>
-          </div>
-          <div className="w-10 h-10 rounded-2xl bg-[#F0FDF4] flex items-center justify-center text-[#22C55E]">
-            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" /></svg>
+            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Mata Pelajaran</div>
+            <div className="text-3xl font-black text-white">14</div>
+            <div className="text-xs font-medium text-blue-300 mt-2">Mapel terjadwal</div>
           </div>
         </div>
 
-        <div className="bg-white border border-gray-100 p-5 rounded-[20px] shadow-sm flex items-center justify-between relative overflow-hidden">
-          <div className="absolute top-0 left-0 bottom-0 w-1 bg-[#A855F7]"></div>
+        <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
-            <div className="text-[11px] font-bold text-gray-400 mb-0.5">Guru Mengajar</div>
-            <div className="text-2xl font-black text-[#1e293b]">14</div>
-            <div className="text-[11px] text-gray-400 mt-0.5">Guru aktif terjadwal</div>
-          </div>
-          <div className="w-10 h-10 rounded-2xl bg-[#FAF5FF] flex items-center justify-center text-[#A855F7]">
-            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
+            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Guru Mengajar</div>
+            <div className="text-3xl font-black text-white">14</div>
+            <div className="text-xs font-medium text-blue-300 mt-2">Guru aktif terjadwal</div>
           </div>
         </div>
 
-        <div className="bg-white border border-gray-100 p-5 rounded-[20px] shadow-sm flex items-center justify-between relative overflow-hidden">
-          <div className="absolute top-0 left-0 bottom-0 w-1 bg-[#F59E0B]"></div>
+        <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
-            <div className="text-[11px] font-bold text-gray-400 mb-0.5">Total Jam/Minggu</div>
-            <div className="text-2xl font-black text-[#1e293b]">63</div>
-            <div className="text-[11px] text-gray-400 mt-0.5">Jam pelajaran</div>
-          </div>
-          <div className="w-10 h-10 rounded-2xl bg-[#FFFBEB] flex items-center justify-center text-[#F59E0B]">
-            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Jam/Minggu</div>
+            <div className="text-3xl font-black text-white">63</div>
+            <div className="text-xs font-medium text-blue-300 mt-2">Jam pelajaran</div>
           </div>
         </div>
       </div>
@@ -314,7 +306,7 @@ const Schedules = () => {
                           return (
                             <div key={day} className="p-2 border-r border-gray-50 flex items-center justify-center">
                               {schedule ? (
-                                <div className={`w-full p-2.5 rounded-xl border text-left ${schedule.color} shadow-sm transition-transform hover:scale-[1.02]`}>
+                                <div className={`w-full p-2.5 rounded-xl border text-left ${getCohesiveColor(schedule.code)} shadow-sm transition-transform hover:scale-[1.02]`}>
                                   <div className="text-[12px] font-black leading-tight">{schedule.subject}</div>
                                   <div className="text-[10px] opacity-75 mt-1 font-medium">{schedule.teacher}</div>
                                   <div className="text-[10px] opacity-60 mt-0.5 flex items-center gap-1 font-bold">
@@ -339,15 +331,9 @@ const Schedules = () => {
 
             {/* Keterangan / Legend */}
             <div className="flex flex-wrap items-center gap-4 text-[11px] font-bold text-gray-400 pt-2 border-t border-gray-50">
-              <span>Keterangan:</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>MTK</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-pink-500"></span>FIS</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-teal-500"></span>KIM</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-green-500"></span>BIO</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-yellow-500"></span>IND</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-sky-500"></span>ENG</span>
-              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-purple-500"></span>SEJ</span>
-              <span className="text-gray-300 font-medium">+ lainnya</span>
+              <span>Keterangan Kelompok:</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#1A3D63]"></span> Eksakta & Bahasa Asing</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-400"></span> Umum & Humaniora</span>
             </div>
           </div>
         ) : (
@@ -387,7 +373,7 @@ const Schedules = () => {
                         </div>
                       </td>
                       <td className="px-5 py-4">
-                        <span className="text-[#3B82F6] text-[13px] font-bold">{item.day}</span>
+                        <span className="text-[#1A3D63] text-[13px] font-bold">{item.day}</span>
                       </td>
                       <td className="px-5 py-4">
                         <div>
@@ -398,12 +384,9 @@ const Schedules = () => {
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2">
                           <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
-                            item.code === 'MTK' ? 'bg-blue-100 text-blue-700' :
-                            item.code === 'IND' ? 'bg-yellow-100 text-yellow-700' :
-                            item.code === 'FIS' ? 'bg-pink-100 text-pink-700' :
-                            item.code === 'KIM' ? 'bg-teal-100 text-teal-700' :
-                            item.code === 'BIO' ? 'bg-green-100 text-green-700' :
-                            'bg-gray-100 text-gray-700'
+                            ["MTK", "FIS", "KIM", "BIO", "ENG"].includes(item.code)
+                              ? 'bg-[#1A3D63]/10 text-[#1A3D63]'
+                              : 'bg-slate-100 text-slate-700'
                           }`}>{item.code}</span>
                           <span className="text-[13px] font-bold text-[#1e293b]">{item.subject}</span>
                         </div>
@@ -414,7 +397,7 @@ const Schedules = () => {
                         {item.room}
                       </td>
                       <td className="px-5 py-4 text-center">
-                        <span className="bg-[#ECFDF5] text-[#059669] text-[11px] font-bold px-2.5 py-1 rounded-full">
+                        <span className="bg-emerald-50 text-emerald-600 text-[11px] font-bold px-2.5 py-1 rounded-md">
                           {item.status}
                         </span>
                       </td>

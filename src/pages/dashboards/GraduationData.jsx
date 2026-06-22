@@ -83,22 +83,19 @@ const GraduationData = () => {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
         {[
-          { label:"Total Siswa XII", val:totalSiswa, sub:"4 kelas", icon:"M17 20h5v-2a3 3 0 0 0-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 0 1 5.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 0 1 9.288 0", color:"text-blue-500 bg-blue-50" },
-          { label:"Dinyatakan Lulus", val:totalLulus, sub:`${pctLulus}% tingkat kelulusan`, icon:"M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0", color:"text-green-500 bg-green-50" },
-          { label:"Tidak Lulus", val:totalTidakLulus, sub:"Perlu remedial/mengulang", icon:"M10 14l2-2m0 0 2-2m-2 2-2-2m2 2 2 2m7-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0", color:"text-red-500 bg-red-50" },
-          { label:"Belum Diproses", val:totalPending, sub:"Menunggu keputusan", icon:"M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0", color:"text-amber-500 bg-amber-50" },
-        ].map((s,i)=>(
-          <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <div className="flex items-start justify-between mb-3">
-              <p className="text-[13px] text-gray-500 font-medium">{s.label}</p>
-              <div className={`w-9 h-9 rounded-xl ${s.color.split(" ")[1]} flex items-center justify-center`}>
-                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" className={s.color.split(" ")[0]}><path strokeLinecap="round" strokeLinejoin="round" d={s.icon}/></svg>
-              </div>
+          { label: "Total Siswa XII", val: totalSiswa, sub: "4 kelas" },
+          { label: "Dinyatakan Lulus", val: totalLulus, sub: `${pctLulus}% tingkat kelulusan` },
+          { label: "Tidak Lulus", val: totalTidakLulus, sub: "Perlu remedial/mengulang" },
+          { label: "Belum Diproses", val: totalPending, sub: "Menunggu keputusan" },
+        ].map((card, i) => (
+          <div key={i} className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
+            <div>
+              <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">{card.label}</div>
+              <div className="text-3xl font-black text-white">{card.val}</div>
+              <div className="text-xs font-medium text-blue-300 mt-2">{card.sub}</div>
             </div>
-            <p className="text-[28px] font-bold text-gray-800">{s.val}</p>
-            <p className="text-[12px] text-gray-400 mt-1">{s.sub}</p>
           </div>
         ))}
       </div>

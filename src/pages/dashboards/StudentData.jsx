@@ -212,50 +212,21 @@ const StudentData = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 flex items-center justify-between">
-          <div>
-            <p className="text-gray-500 text-[13px] font-medium mb-1">Total Siswa</p>
-            <h3 className="text-2xl font-bold text-[#1e293b]">20</h3>
-            <p className="text-gray-400 text-[12px] mt-1">Semua angkatan</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
+        {[
+          { label: "Total Siswa", val: 20, subText: "Semua angkatan" },
+          { label: "Siswa Aktif", val: 20, subText: "Sedang belajar" },
+          { label: "Siswa Baru", val: 10, subText: "Tahun ajaran 2023" },
+          { label: "Alumni", val: 0, subText: "Telah lulus" },
+        ].map((card, i) => (
+          <div key={i} className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
+            <div>
+              <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">{card.label}</div>
+              <div className="text-3xl font-black text-white">{card.val}</div>
+              <div className="text-xs font-medium text-blue-300 mt-2">{card.subText}</div>
+            </div>
           </div>
-          <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
-            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 flex items-center justify-between">
-          <div>
-            <p className="text-gray-500 text-[13px] font-medium mb-1">Siswa Aktif</p>
-            <h3 className="text-2xl font-bold text-[#1e293b]">20</h3>
-            <p className="text-gray-400 text-[12px] mt-1">Sedang belajar</p>
-          </div>
-          <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
-            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/><path strokeLinecap="round" strokeLinejoin="round" d="M19 8l-2 2-2-2"/></svg>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 flex items-center justify-between">
-          <div>
-            <p className="text-gray-500 text-[13px] font-medium mb-1">Siswa Baru</p>
-            <h3 className="text-2xl font-bold text-[#1e293b]">10</h3>
-            <p className="text-gray-400 text-[12px] mt-1">Tahun ajaran 2023</p>
-          </div>
-          <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center text-purple-500">
-            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-[16px] p-6 shadow-sm border border-gray-100 flex items-center justify-between">
-          <div>
-            <p className="text-gray-500 text-[13px] font-medium mb-1">Alumni</p>
-            <h3 className="text-2xl font-bold text-[#1e293b]">0</h3>
-            <p className="text-gray-400 text-[12px] mt-1">Telah lulus</p>
-          </div>
-          <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center text-orange-500">
-            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Main Content Area */}
@@ -320,7 +291,7 @@ const StudentData = () => {
                   <td className="py-4 px-6 text-[14px] text-gray-500">{index + 1}</td>
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-full ${student.avatarColor} flex items-center justify-center text-white text-[13px] font-bold flex-shrink-0`}>
+                      <div className="w-9 h-9 rounded-full bg-[#1A3D63]/10 text-[#1A3D63] flex items-center justify-center text-[13px] font-bold flex-shrink-0">
                         {student.initials}
                       </div>
                       <div>
@@ -340,28 +311,28 @@ const StudentData = () => {
                   </td>
                   <td className="py-4 px-6 text-[14px] font-medium text-[#1e293b] whitespace-nowrap">{student.kelas}</td>
                   <td className="py-4 px-6">
-                    <span className="inline-flex px-2.5 py-1 rounded-md bg-blue-50 text-blue-600 text-[12px] font-bold whitespace-nowrap">
+                    <span className="inline-flex px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-[12px] font-bold whitespace-nowrap">
                       {student.tingkat}
                     </span>
                   </td>
                   <td className="py-4 px-6">
-                    <span className={`inline-flex px-2.5 py-1 rounded-md text-[12px] font-bold whitespace-nowrap ${student.jurusan === 'IPA' ? 'bg-emerald-50 text-emerald-600' : 'bg-orange-50 text-orange-600'}`}>
+                    <span className={`inline-flex px-2.5 py-1 rounded-md text-[12px] font-bold whitespace-nowrap ${student.jurusan === 'IPA' ? 'bg-[#1A3D63]/10 text-[#1A3D63]' : 'bg-slate-100 text-slate-700'}`}>
                       {student.jurusan}
                     </span>
                   </td>
                   <td className="py-4 px-6 text-center">
-                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-md text-[12px] font-bold ${student.gender === 'L' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'}`}>
+                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-slate-100 text-slate-600 text-[12px] font-bold">
                       {student.gender}
                     </span>
                   </td>
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3 w-[120px]">
-                      <span className={`text-[14px] font-bold ${student.nilaiRataRata >= 85 ? 'text-emerald-600' : student.nilaiRataRata >= 80 ? 'text-blue-600' : 'text-orange-500'}`}>
+                      <span className="text-[14px] font-bold text-[#1A3D63]">
                         {student.nilaiRataRata}
                       </span>
                       <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
                         <div 
-                          className={`h-full rounded-full ${student.nilaiRataRata >= 85 ? 'bg-emerald-500' : student.nilaiRataRata >= 80 ? 'bg-blue-500' : 'bg-orange-500'}`}
+                          className="h-full rounded-full bg-[#1A3D63]"
                           style={{ width: `${student.nilaiRataRata}%` }}
                         ></div>
                       </div>
@@ -372,7 +343,7 @@ const StudentData = () => {
                       <span className="text-[14px] font-medium text-gray-700">{student.kehadiran}%</span>
                       <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
                         <div 
-                          className={`h-full rounded-full ${student.kehadiran >= 95 ? 'bg-emerald-500' : student.kehadiran >= 90 ? 'bg-emerald-400' : 'bg-orange-400'}`}
+                          className="h-full rounded-full bg-[#4A7FA7]"
                           style={{ width: `${student.kehadiran}%` }}
                         ></div>
                       </div>
