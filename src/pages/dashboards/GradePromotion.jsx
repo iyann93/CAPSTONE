@@ -53,10 +53,7 @@ const ProgressBar = ({ value, max, color = "bg-green-500" }) => {
 };
 
 const GradePromotion = () => {
-  const [classes, setClasses] = useState(() => {
-    const saved = localStorage.getItem("grade_promotion_classes");
-    return saved ? JSON.parse(saved) : mockClasses;
-  });
+  const [classes, setClasses] = useState(mockClasses);
   const [selectedClass, setSelectedClass] = useState(null);
   const [activeTab, setActiveTab] = useState("Semua Tingkat");
   const [view, setView] = useState("list");
@@ -64,7 +61,31 @@ const GradePromotion = () => {
   const [showCriteria, setShowCriteria] = useState(false);
   const perPage = 10;
 
-  const handleSavePromotion = (classId, updatedStats) => {
+  React.useEffect(() => {
+    // Load state from backend for true persistence across sessions
+    const fetchState = async () => {
+      try {
+        const { default: api } = await import('../../api/axios');
+        const res = await api.get('/system/frontend-state');
+        if (res.data?.data?.grade_promotion_classes) {
+          setClasses(res.data.data.grade_promotion_classes);
+          // Also sync to local storage for offline fast load
+          localStorage.setItem("grade_promotion_classes", JSON.stringify(res.data.data.grade_promotion_classes));
+        } else {
+          // Fallback to local storage
+          const saved = localStorage.getItem("grade_promotion_classes");
+          if (saved) setClasses(JSON.parse(saved));
+        }
+      } catch (err) {
+        console.error("Gagal memuat status kenaikan kelas dari backend", err);
+        const saved = localStorage.getItem("grade_promotion_classes");
+        if (saved) setClasses(JSON.parse(saved));
+      }
+    };
+    fetchState();
+  }, []);
+
+  const handleSavePromotion = async (classId, updatedStats) => {
     const updated = classes.map(c => {
       if (c.kode === classId) {
         return {
@@ -80,6 +101,19 @@ const GradePromotion = () => {
     setClasses(updated);
     localStorage.setItem("grade_promotion_classes", JSON.stringify(updated));
     setView("list");
+    
+    // Save to backend database for persistent storage across logouts/sessions
+    try {
+      const { default: api } = await import('../../api/axios');
+      const res = await api.get('/system/frontend-state');
+      const currentState = res.data?.data || {};
+      await api.put('/system/frontend-state', {
+        ...currentState,
+        grade_promotion_classes: updated
+      });
+    } catch (err) {
+      console.error("Gagal menyimpan ke database", err);
+    }
   };
 
   const filtered = activeTab === "Semua Tingkat"
