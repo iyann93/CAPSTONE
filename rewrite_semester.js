@@ -1,4 +1,4 @@
-const fs = require('fs');
+import fs from 'fs';
 const file = 'src/pages/dashboards/Semester.jsx';
 let content = fs.readFileSync(file, 'utf8');
 
@@ -12,12 +12,12 @@ content = content.replace(/\/\/ The List View\r?\n\s*return \(/, 'if (view === "
 
 // Wire the Detail icon (using .replace with simple string match since it's exactly formatted)
 const detailOld = '<button className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">\\n                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12';
-const detailNew = '<button onClick={() => setView(\\'detail\\')} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">\\n                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12';
+const detailNew = '<button onClick={() => setView(\'detail\')} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">\\n                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12';
 content = content.replace(detailOld, detailNew).replace(detailOld, detailNew); // Replace twice for the 2 rows
 
 // Wire the Edit icon
 const editOld = '<button className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">\\n                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4';
-const editNew = '<button onClick={() => setView(\\'edit\\')} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">\\n                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4';
+const editNew = '<button onClick={() => setView(\'edit\')} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">\\n                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4';
 content = content.replace(editOld, editNew).replace(editOld, editNew); // Replace twice for the 2 rows
 
 // Now append the Edit and Detail Views at the bottom.
@@ -43,7 +43,7 @@ const SemesterEdit = ({ setView }) => {
       <div className="flex flex-col md:flex-row justify-between md:items-start gap-4">
         <div>
           <div className="text-[13px] text-gray-500 font-medium mb-2">
-            Dashboard <span className="mx-2">›</span> Kelola Akademik <span className="mx-2">›</span> <span className="cursor-pointer hover:text-[#1A3D63] hover:underline" onClick={() => setView("list")}>Semester</span> <span className="mx-2">›</span> <span className="text-[#1A3D63] font-semibold">Edit</span>
+            Dashboard <span className="mx-2">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âº</span> Kelola Akademik <span className="mx-2">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âº</span> <span className="cursor-pointer hover:text-[#1A3D63] hover:underline" onClick={() => setView("list")}>Semester</span> <span className="mx-2">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âº</span> <span className="text-[#1A3D63] font-semibold">Edit</span>
           </div>
           <div className="flex items-center gap-3 mt-1">
             <h1 className="text-[26px] font-bold text-[#1e293b]">Edit Semester</h1>
@@ -255,17 +255,17 @@ const SemesterEdit = ({ setView }) => {
               <div className="relative border-l-2 border-gray-100 ml-3 space-y-6 pb-2">
                 <div className="relative pl-6">
                   <div className="absolute w-3 h-3 bg-gray-200 rounded-full -left-[7px] top-1.5 border-2 border-white"></div>
-                  <div className="text-[13px] text-[#1e293b]"><span className="font-bold">Siti Rahayu</span> — Mengubah tanggal selesai dari 20 Des menjadi 22 Des 2023</div>
+                  <div className="text-[13px] text-[#1e293b]"><span className="font-bold">Siti Rahayu</span> ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â Mengubah tanggal selesai dari 20 Des menjadi 22 Des 2023</div>
                   <div className="text-[11px] text-gray-400 mt-1">14 Okt 2023, 09:15</div>
                 </div>
                 <div className="relative pl-6">
                   <div className="absolute w-3 h-3 bg-gray-200 rounded-full -left-[7px] top-1.5 border-2 border-white"></div>
-                  <div className="text-[13px] text-[#1e293b]"><span className="font-bold">Siti Rahayu</span> — Memperbarui jadwal UAS menjadi 11 Des 2023</div>
+                  <div className="text-[13px] text-[#1e293b]"><span className="font-bold">Siti Rahayu</span> ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â Memperbarui jadwal UAS menjadi 11 Des 2023</div>
                   <div className="text-[11px] text-gray-400 mt-1">3 Sep 2023, 11:40</div>
                 </div>
                 <div className="relative pl-6">
                   <div className="absolute w-3 h-3 bg-gray-200 rounded-full -left-[7px] top-1.5 border-2 border-white"></div>
-                  <div className="text-[13px] text-[#1e293b]"><span className="font-bold">Admin Sistem</span> — Semester dibuat dan diaktifkan pertama kali</div>
+                  <div className="text-[13px] text-[#1e293b]"><span className="font-bold">Admin Sistem</span> ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â Semester dibuat dan diaktifkan pertama kali</div>
                   <div className="text-[11px] text-gray-400 mt-1">17 Jul 2023, 07:30</div>
                 </div>
               </div>
@@ -385,7 +385,7 @@ const SemesterDetail = ({ setView }) => {
       <div className="flex flex-col md:flex-row justify-between md:items-start gap-4">
         <div>
           <div className="text-[13px] text-gray-500 font-medium mb-2">
-            Dashboard <span className="mx-2">›</span> Kelola Akademik <span className="mx-2">›</span> <span className="cursor-pointer hover:text-[#1A3D63] hover:underline" onClick={() => setView("list")}>Semester</span> <span className="mx-2">›</span> <span className="text-[#1A3D63] font-semibold">Detail</span>
+            Dashboard <span className="mx-2">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âº</span> Kelola Akademik <span className="mx-2">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âº</span> <span className="cursor-pointer hover:text-[#1A3D63] hover:underline" onClick={() => setView("list")}>Semester</span> <span className="mx-2">ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Âº</span> <span className="text-[#1A3D63] font-semibold">Detail</span>
           </div>
           <div className="flex items-center gap-3 mt-1">
             <h1 className="text-[26px] font-bold text-[#1e293b]">Ganjil 2023/2024</h1>
@@ -421,7 +421,7 @@ const SemesterDetail = ({ setView }) => {
             <span className="font-bold text-[#1e293b] text-[15px]">Progress Semester</span>
           </div>
           <div className="text-[13px] font-medium text-gray-500">
-            17 Jul 2023 — 22 Des 2023
+            17 Jul 2023 ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â 22 Des 2023
           </div>
         </div>
         <div className="w-full bg-gray-100 rounded-full h-3.5 mb-3 relative overflow-hidden">
@@ -429,7 +429,7 @@ const SemesterDetail = ({ setView }) => {
         </div>
         <div className="flex justify-between items-center text-[12px] font-medium text-gray-500">
           <div>Mulai: 17 Jul 2023</div>
-          <div className="font-bold text-[#1e293b]">63% Selesai — 100 / 159 Hari</div>
+          <div className="font-bold text-[#1e293b]">63% Selesai ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â 100 / 159 Hari</div>
           <div>Selesai: 22 Des 2023</div>
         </div>
       </div>
@@ -597,7 +597,7 @@ const SemesterDetail = ({ setView }) => {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   <tr>
-                    <td className="px-6 py-4 text-[13px] font-semibold text-[#1e293b]">2 — 6 Okt</td>
+                    <td className="px-6 py-4 text-[13px] font-semibold text-[#1e293b]">2 ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â 6 Okt</td>
                     <td className="px-6 py-4 text-[13px] text-center text-gray-600">1,211</td>
                     <td className="px-6 py-4 text-[13px] text-center text-gray-600">18</td>
                     <td className="px-6 py-4 text-[13px] text-center text-orange-500 font-semibold">14</td>
@@ -605,7 +605,7 @@ const SemesterDetail = ({ setView }) => {
                     <td className="px-6 py-4 text-[13px] text-right font-bold text-[#059669]">97.0%</td>
                   </tr>
                   <tr>
-                    <td className="px-6 py-4 text-[13px] font-semibold text-[#1e293b]">9 — 13 Okt</td>
+                    <td className="px-6 py-4 text-[13px] font-semibold text-[#1e293b]">9 ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â 13 Okt</td>
                     <td className="px-6 py-4 text-[13px] text-center text-gray-600">1,197</td>
                     <td className="px-6 py-4 text-[13px] text-center text-gray-600">22</td>
                     <td className="px-6 py-4 text-[13px] text-center text-orange-500 font-semibold">20</td>
@@ -613,7 +613,7 @@ const SemesterDetail = ({ setView }) => {
                     <td className="px-6 py-4 text-[13px] text-right font-bold text-[#059669]">95.9%</td>
                   </tr>
                   <tr>
-                    <td className="px-6 py-4 text-[13px] font-semibold text-[#1e293b]">16 — 20 Okt</td>
+                    <td className="px-6 py-4 text-[13px] font-semibold text-[#1e293b]">16 ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â 20 Okt</td>
                     <td className="px-6 py-4 text-[13px] text-center text-gray-600">1,182</td>
                     <td className="px-6 py-4 text-[13px] text-center text-gray-600">31</td>
                     <td className="px-6 py-4 text-[13px] text-center text-orange-500 font-semibold">25</td>
@@ -621,7 +621,7 @@ const SemesterDetail = ({ setView }) => {
                     <td className="px-6 py-4 text-[13px] text-right font-bold text-[#059669]">94.7%</td>
                   </tr>
                   <tr>
-                    <td className="px-6 py-4 text-[13px] font-semibold text-[#1e293b]">23 — 27 Okt</td>
+                    <td className="px-6 py-4 text-[13px] font-semibold text-[#1e293b]">23 ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â 27 Okt</td>
                     <td className="px-6 py-4 text-[13px] text-center text-gray-600">1,175</td>
                     <td className="px-6 py-4 text-[13px] text-center text-gray-600">28</td>
                     <td className="px-6 py-4 text-[13px] text-center text-orange-500 font-semibold">30</td>
@@ -777,9 +777,9 @@ const SemesterDetail = ({ setView }) => {
 };
 
 export default Semester;
-\`;
+`;
 
-content = content.replace(/  \\);\\r?\\n};\\r?\\n\\r?\\nexport default Semester;/g, appendContent);
+content = content.replace(/  \);\r?\n};\r?\n\r?\nexport default Semester;/g, appendContent);
 
 fs.writeFileSync(file, content);
 console.log('Successfully updated Semester.jsx with Edit and Detail views!');

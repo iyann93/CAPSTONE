@@ -18,6 +18,47 @@ const classData = [
 ];
 
 const StudentAttendance = () => {
+  const [classes, setClasses] = useState(() => {
+    const saved = localStorage.getItem('attendance_classes');
+    return saved ? JSON.parse(saved) : classData;
+  });
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSaveAttendance = (classId, attendanceResults) => {
+    const now = new Date();
+    const formatTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
+    const updated = classes.map(c => {
+      if (c.id === classId) {
+        return {
+          ...c,
+          hadir: attendanceResults.hadir,
+          sakit: attendanceResults.sakit,
+          izin: attendanceResults.izin,
+          alpha: attendanceResults.alpha,
+          pct: attendanceResults.pct,
+          waktu: formatTime,
+          admin: "Siti Rahayu",
+          status: "Selesai"
+        };
+      }
+      return c;
+    });
+    setClasses(updated);
+    localStorage.setItem('attendance_classes', JSON.stringify(updated));
+    setSelectedClass(null);
+  };
+
+  const totalClasses = classes.length;
+  const inputtedClasses = classes.filter(c => c.status === "Selesai").length;
+  const inputProgressPct = Math.round((inputtedClasses / totalClasses) * 100) || 0;
+
+  const finishedClassesStudents = classes.filter(c => c.status === "Selesai").reduce((acc, c) => acc + c.students, 0);
+  const totalHadir = classes.reduce((acc, c) => acc + (c.hadir || 0), 0);
+  const totalSakit = classes.reduce((acc, c) => acc + (c.sakit || 0), 0);
+  const totalIzin = classes.reduce((acc, c) => acc + (c.izin || 0), 0);
+  const totalAlpha = classes.reduce((acc, c) => acc + (c.alpha || 0), 0);
+  const totalNotInputted = classes.filter(c => c.status !== "Selesai").length;
+  const avgAttendancePct = finishedClassesStudents > 0 ? Math.round((totalHadir / finishedClassesStudents) * 100) : 0;
   const [activeTab, setActiveTab] = useState("Semua Kelas");
   const [selectedClass, setSelectedClass] = useState(null);
   const [recapClass, setRecapClass] = useState(null);
@@ -27,7 +68,7 @@ const StudentAttendance = () => {
   }
 
   if (selectedClass) {
-    return <StudentAttendanceInput classData={selectedClass} onBack={() => setSelectedClass(null)} />;
+    return <StudentAttendanceInput classData={selectedClass} onBack={() => setSelectedClass(null)} onSave={(results) => handleSaveAttendance(selectedClass.id, results)} />;
   }
 
   return (
@@ -59,26 +100,26 @@ const StudentAttendance = () => {
             <h3 className="text-[15px] font-bold text-[#1e293b]">Progress Input Absensi — Senin, 20 November 2023</h3>
           </div>
           <div className="flex items-center gap-4 text-[13px] font-medium">
-            <span className="flex items-center gap-1.5 text-emerald-600"><div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>Sudah: 8 kelas</span>
-            <span className="flex items-center gap-1.5 text-gray-500"><div className="w-2.5 h-2.5 rounded-full bg-gray-300"></div>Belum: 4 kelas</span>
+            <span className="flex items-center gap-1.5 text-emerald-600"><div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>Sudah: {inputtedClasses} kelas</span>
+            <span className="flex items-center gap-1.5 text-gray-500"><div className="w-2.5 h-2.5 rounded-full bg-gray-300"></div>Belum: {totalClasses - inputtedClasses} kelas</span>
           </div>
         </div>
         <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden mb-2">
-          <div className="h-full bg-[#1A3D63] rounded-full transition-all" style={{ width: '67%' }}></div>
+          <div className="h-full bg-[#1A3D63] rounded-full transition-all" style={{ width: `${inputProgressPct}%` }}></div>
         </div>
         <div className="flex justify-between text-[13px]">
-          <span className="text-gray-500">8 dari 12 kelas telah diinput</span>
-          <span className="font-bold text-[#1A3D63]">67%</span>
+          <span className="text-gray-500">{inputtedClasses} dari {totalClasses} kelas telah diinput</span>
+          <span className="font-bold text-[#1A3D63]">{inputProgressPct}%</span>
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
         {[
-          { label: "Tingkat Kehadiran", val: "63.9%", subText: "232 dari 363 siswa" },
-          { label: "Hadir", val: "232", subText: "Siswa hadir hari ini" },
-          { label: "Tidak Hadir", val: "14", subText: "S:6 I:7 A:1" },
-          { label: "Kelas Belum Input", val: "4", subText: "Perlu segera diinput" },
+          { label: "Tingkat Kehadiran", val: `${avgAttendancePct}%`, subText: `${totalHadir} dari ${finishedClassesStudents} siswa` },
+          { label: "Hadir", val: String(totalHadir), subText: "Siswa hadir hari ini" },
+          { label: "Tidak Hadir", val: String(totalSakit + totalIzin + totalAlpha), subText: `S:${totalSakit} I:${totalIzin} A:${totalAlpha}` },
+          { label: "Kelas Belum Input", val: String(totalNotInputted), subText: "Perlu segera diinput" },
         ].map((card, i) => (
           <div key={i} className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
             <div>
@@ -163,12 +204,12 @@ const StudentAttendance = () => {
                   stroke="#1A3D63"
                   strokeWidth="4.5"
                   strokeLinecap="round"
-                  strokeDasharray="21.3 12.03"
-                  strokeDashoffset="-6"
+                  strokeDasharray={`${avgAttendancePct} 100`}
+
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-[28px] font-extrabold text-[#111827] tracking-tight">63.9%</span>
+                <span className="text-[28px] font-extrabold text-[#111827] tracking-tight">{avgAttendancePct}%</span>
                 <span className="text-[14px] text-gray-400 font-medium mt-0.5">Hadir</span>
               </div>
             </div>
@@ -176,19 +217,19 @@ const StudentAttendance = () => {
             <div className="w-full space-y-3">
               <div className="flex items-center justify-between text-[13px]">
                 <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#1A3D63] border-2 border-white shadow-sm"></div><span className="text-gray-600">Hadir</span></div>
-                <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-full h-full bg-[#1A3D63] rounded-full"></div></div><span className="font-bold text-[#1e293b] w-6 text-right">232</span></div>
+                <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-full h-full bg-[#1A3D63] rounded-full" style={{ width: `${avgAttendancePct}%` }}></div></div><span className="font-bold text-[#1e293b] w-6 text-right">{totalHadir}</span></div>
               </div>
               <div className="flex items-center justify-between text-[13px]">
                 <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-amber-500 border-2 border-white shadow-sm"></div><span className="text-gray-600">Sakit</span></div>
-                <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-[10%] h-full bg-amber-500 rounded-full"></div></div><span className="font-bold text-[#1e293b] w-6 text-right">6</span></div>
+                <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-full h-full bg-amber-500 rounded-full" style={{ width: `${finishedClassesStudents > 0 ? (totalSakit / finishedClassesStudents) * 100 : 0}%` }}></div></div><span className="font-bold text-[#1e293b] w-6 text-right">{totalSakit}</span></div>
               </div>
               <div className="flex items-center justify-between text-[13px]">
                 <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-violet-500 border-2 border-white shadow-sm"></div><span className="text-gray-600">Izin</span></div>
-                <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-[12%] h-full bg-violet-500 rounded-full"></div></div><span className="font-bold text-[#1e293b] w-6 text-right">7</span></div>
+                <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-full h-full bg-violet-500 rounded-full" style={{ width: `${finishedClassesStudents > 0 ? (totalIzin / finishedClassesStudents) * 100 : 0}%` }}></div></div><span className="font-bold text-[#1e293b] w-6 text-right">{totalIzin}</span></div>
               </div>
               <div className="flex items-center justify-between text-[13px]">
                 <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-rose-500 border-2 border-white shadow-sm"></div><span className="text-gray-600">Alpha</span></div>
-                <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-[2%] h-full bg-rose-500 rounded-full"></div></div><span className="font-bold text-[#1e293b] w-6 text-right">1</span></div>
+                <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-full h-full bg-rose-500 rounded-full" style={{ width: `${finishedClassesStudents > 0 ? (totalAlpha / finishedClassesStudents) * 100 : 0}%` }}></div></div><span className="font-bold text-[#1e293b] w-6 text-right">{totalAlpha}</span></div>
               </div>
             </div>
           </div>
@@ -218,6 +259,8 @@ const StudentAttendance = () => {
             <input
               type="text"
               placeholder="Cari kelas..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all bg-gray-50 focus:bg-white"
             />
             <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
@@ -244,7 +287,11 @@ const StudentAttendance = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {classData.map((cls, index) => (
+              {classes.filter(cls => {
+                 const matchTab = activeTab === "Semua Kelas" || cls.tingkat === activeTab;
+                 const matchSearch = cls.name.toLowerCase().includes(searchQuery.toLowerCase()) || cls.wali.toLowerCase().includes(searchQuery.toLowerCase());
+                 return matchTab && matchSearch;
+               }).map((cls, index) => (
                 <tr key={cls.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="py-4 px-6 text-[13px] text-gray-500">{index + 1}</td>
                   <td className="py-4 px-6">
@@ -333,7 +380,7 @@ const StudentAttendance = () => {
         {/* Footer */}
         <div className="p-4 border-t border-gray-100 flex items-center justify-between text-[13px]">
           <div className="text-gray-500">
-            Total 12 kelas ditampilkan
+            Total {classes.length} kelas ditampilkan
           </div>
           <button className="px-4 py-2 bg-[#1A3D63] hover:bg-[#122A44] text-white rounded-xl text-[13px] font-bold flex items-center gap-2 shadow-sm transition-colors">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>

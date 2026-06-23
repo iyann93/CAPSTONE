@@ -13,8 +13,18 @@ const initStudents = [
   { no:10,nis:"2021010",nama:"Julia Anggraini",init:"J",color:"bg-[#EC4899]",nilaiSek:87.8,nilaiUS:83.5,nilaiAkhir:85.7,kehadiran:92,star:false,status:"Lulus",catatan:"" },
 ];
 
-const GraduationDataDetail = ({ cls, setView }) => {
-  const [students] = useState(initStudents);
+const autoStatusGrad = (s) => {
+  if (s.nilaiSek >= 70 && s.nilaiUS >= 55 && s.nilaiAkhir >= 65) return "Lulus";
+  return "Tidak Lulus";
+};
+
+const GraduationDataDetail = ({ cls, setView, onSave }) => {
+  const storageKey = `graduation_students_${cls?.kode || "default"}`;
+
+  const [students, setStudents] = useState(() => {
+    const saved = localStorage.getItem(storageKey);
+    return saved ? JSON.parse(saved) : initStudents;
+  });
   const [tab, setTab] = useState("Semua");
   const [search, setSearch] = useState("");
   const [printStudent, setPrintStudent] = useState(null);
@@ -22,7 +32,31 @@ const GraduationDataDetail = ({ cls, setView }) => {
   const lulus = students.filter(s=>s.status==="Lulus").length;
   const tidakLulus = students.filter(s=>s.status==="Tidak Lulus").length;
   const pending = students.filter(s=>s.status==="Pending").length;
-  const pct = Math.round((lulus/students.length)*100);
+  const pct = students.length > 0 ? Math.round((lulus/students.length)*100) : 0;
+
+  const handleProcessAuto = () => {
+    setStudents(prev => prev.map(s => ({ ...s, status: autoStatusGrad(s) })));
+  };
+
+  const handleToggleStatus = (nis) => {
+    setStudents(prev => prev.map(s => {
+      if (s.nis !== nis) return s;
+      const next = s.status === "Lulus" ? "Tidak Lulus" : "Lulus";
+      return { ...s, status: next };
+    }));
+  };
+
+  const handleSaveDecision = () => {
+    localStorage.setItem(storageKey, JSON.stringify(students));
+    const lulusC = students.filter(s => s.status === "Lulus").length;
+    const tidakLulusC = students.filter(s => s.status === "Tidak Lulus").length;
+    const pendingC = students.filter(s => s.status === "Pending").length;
+    const pctC = students.length > 0 ? Math.round((lulusC / students.length) * 100) : 0;
+    const statusC = pendingC === 0 ? "Selesai" : "Dalam Proses";
+    if (onSave) {
+      onSave(cls?.kode, { lulus: lulusC, tidakLulus: tidakLulusC, pending: pendingC, pct: pctC, status: statusC });
+    }
+  };
 
   const filtered = students.filter(s=>{
     const tabOk = tab==="Semua"||s.status===tab;
@@ -69,11 +103,11 @@ const GraduationDataDetail = ({ cls, setView }) => {
             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Ekspor Data
           </button>
-          <button className="flex items-center gap-2 px-3.5 py-2.5 bg-[#F5F3FF] border border-[#EDE9FE] rounded-xl text-[13px] font-bold text-[#8B5CF6] hover:bg-[#EDE9FE] shadow-sm">
+          <button onClick={handleProcessAuto} className="flex items-center gap-2 px-3.5 py-2.5 bg-[#F5F3FF] border border-[#EDE9FE] rounded-xl text-[13px] font-bold text-[#8B5CF6] hover:bg-[#EDE9FE] shadow-sm">
             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0"/></svg>
             Proses Otomatis
           </button>
-          <button className="flex items-center gap-2 px-3.5 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl text-[13px] font-bold shadow-sm">
+          <button onClick={handleSaveDecision} className="flex items-center gap-2 px-3.5 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl text-[13px] font-bold shadow-sm">
             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
             Simpan Keputusan
           </button>
@@ -193,7 +227,7 @@ const GraduationDataDetail = ({ cls, setView }) => {
                           <button onClick={() => setPrintStudent(s)} className="text-gray-400 hover:text-gray-600 transition-colors">
                             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                           </button>
-                          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-xl text-[12px] font-bold hover:bg-gray-50 shadow-sm transition-colors">
+                          <button onClick={() => handleToggleStatus(s.nis)} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-xl text-[12px] font-bold hover:bg-gray-50 shadow-sm transition-colors">
                             Ubah
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
                           </button>

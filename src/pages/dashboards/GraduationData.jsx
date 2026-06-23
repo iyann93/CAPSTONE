@@ -17,22 +17,37 @@ const StatusBadge = ({ s }) => {
 };
 
 const GraduationData = () => {
+  const [classes, setClasses] = useState(() => {
+    const saved = localStorage.getItem("graduation_classes");
+    return saved ? JSON.parse(saved) : mockClasses;
+  });
   const [tab, setTab] = useState("Semua Jurusan");
   const [view, setView] = useState("list");
   const [selectedClass, setSelectedClass] = useState(null);
   const [showCriteria, setShowCriteria] = useState(false);
   const [showPengumuman, setShowPengumuman] = useState(false);
 
-  const totalSiswa = mockClasses.reduce((a,c)=>a+c.total,0);
-  const totalLulus = mockClasses.reduce((a,c)=>a+c.lulus,0);
-  const totalTidakLulus = mockClasses.reduce((a,c)=>a+c.tidakLulus,0);
-  const totalPending = mockClasses.reduce((a,c)=>a+c.pending,0);
-  const selesai = mockClasses.filter(c=>c.status==="Selesai").length;
-  const pctLulus = Math.round((totalLulus/totalSiswa)*100*10)/10;
+  const handleSaveGraduation = (classKode, updatedStats) => {
+    const updated = classes.map(c =>
+      c.kode === classKode
+        ? { ...c, lulus: updatedStats.lulus, tidakLulus: updatedStats.tidakLulus, pending: updatedStats.pending, pct: updatedStats.pct, status: updatedStats.status }
+        : c
+    );
+    setClasses(updated);
+    localStorage.setItem("graduation_classes", JSON.stringify(updated));
+    setView("list");
+  };
 
-  const filtered = tab==="Semua Jurusan" ? mockClasses : mockClasses.filter(c=>c.jurusan===tab);
+  const totalSiswa = classes.reduce((a,c)=>a+c.total,0);
+  const totalLulus = classes.reduce((a,c)=>a+c.lulus,0);
+  const totalTidakLulus = classes.reduce((a,c)=>a+c.tidakLulus,0);
+  const totalPending = classes.reduce((a,c)=>a+c.pending,0);
+  const selesai = classes.filter(c=>c.status==="Selesai").length;
+  const pctLulus = totalSiswa > 0 ? Math.round((totalLulus/totalSiswa)*100*10)/10 : 0;
 
-  if (view==="detail") return <GraduationDataDetail cls={selectedClass} setView={setView} />;
+  const filtered = tab==="Semua Jurusan" ? classes : classes.filter(c=>c.jurusan===tab);
+
+  if (view==="detail") return <GraduationDataDetail cls={selectedClass} setView={setView} onSave={handleSaveGraduation} />;
 
   return (
     <div className="p-6 md:p-8 animate-fadeIn bg-[#F4F6FA] min-h-full space-y-5">
@@ -104,10 +119,10 @@ const GraduationData = () => {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
         <div className="flex items-center justify-between mb-3">
           <p className="text-[14px] font-bold text-gray-700">Progress Proses Kelulusan</p>
-          <span className="text-[14px] font-bold text-blue-600">50% ({selesai}/{mockClasses.length} kelas)</span>
+          <span className="text-[14px] font-bold text-blue-600">{Math.round((selesai/classes.length)*100)}% ({selesai}/{classes.length} kelas)</span>
         </div>
         <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full" style={{width:`${(selesai/mockClasses.length)*100}%`}} />
+          <div className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full" style={{width:`${(selesai/classes.length)*100}%`}} />
         </div>
       </div>
 

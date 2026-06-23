@@ -53,38 +53,61 @@ const ProgressBar = ({ value, max, color = "bg-green-500" }) => {
 };
 
 const GradePromotion = () => {
+  const [classes, setClasses] = useState(() => {
+    const saved = localStorage.getItem("grade_promotion_classes");
+    return saved ? JSON.parse(saved) : mockClasses;
+  });
+  const [selectedClass, setSelectedClass] = useState(null);
   const [activeTab, setActiveTab] = useState("Semua Tingkat");
   const [view, setView] = useState("list");
   const [page, setPage] = useState(1);
   const [showCriteria, setShowCriteria] = useState(false);
   const perPage = 10;
 
+  const handleSavePromotion = (classId, updatedStats) => {
+    const updated = classes.map(c => {
+      if (c.kode === classId) {
+        return {
+          ...c,
+          naik: updatedStats.naik,
+          tidakNaik: updatedStats.tidakNaik,
+          belum: updatedStats.belum,
+          status: updatedStats.status
+        };
+      }
+      return c;
+    });
+    setClasses(updated);
+    localStorage.setItem("grade_promotion_classes", JSON.stringify(updated));
+    setView("list");
+  };
+
   const filtered = activeTab === "Semua Tingkat"
-    ? mockClasses
-    : mockClasses.filter(c => c.tingkat === activeTab);
+    ? classes
+    : classes.filter(c => c.tingkat === activeTab);
 
   const totalPages = Math.ceil(filtered.length / perPage);
   const paginated = filtered.slice((page - 1) * perPage, page * perPage);
 
-  const totalSiswa = mockClasses.reduce((a, c) => a + c.total, 0);
-  const totalNaik = mockClasses.reduce((a, c) => a + c.naik, 0);
-  const totalTidakNaik = mockClasses.reduce((a, c) => a + c.tidakNaik, 0);
-  const totalBelum = mockClasses.reduce((a, c) => a + c.belum, 0);
-  const selesai = mockClasses.filter(c => c.status === "Selesai").length;
-  const proses = mockClasses.filter(c => c.status === "Dalam Proses").length;
-  const belumProses = mockClasses.filter(c => c.status === "Belum Diproses").length;
-  const progressPct = Math.round((selesai / mockClasses.length) * 100);
+  const totalSiswa = classes.reduce((a, c) => a + c.total, 0);
+  const totalNaik = classes.reduce((a, c) => a + c.naik, 0);
+  const totalTidakNaik = classes.reduce((a, c) => a + c.tidakNaik, 0);
+  const totalBelum = classes.reduce((a, c) => a + c.belum, 0);
+  const selesai = classes.filter(c => c.status === "Selesai").length;
+  const proses = classes.filter(c => c.status === "Dalam Proses").length;
+  const belumProses = classes.filter(c => c.status === "Belum Diproses").length;
+  const progressPct = Math.round((selesai / classes.length) * 100);
 
   if (view === "criteria") {
     return <GradePromotionCriteria setView={setView} />;
   }
 
   if (view === "detail") {
-    return <GradePromotionDetail setView={setView} mode="selesai" />;
+    return <GradePromotionDetail setView={setView} classData={selectedClass} mode="selesai" onSave={handleSavePromotion} />;
   }
 
   if (view === "process") {
-    return <GradePromotionDetail setView={setView} mode="process" />;
+    return <GradePromotionDetail setView={setView} classData={selectedClass} mode="process" onSave={handleSavePromotion} />;
   }
 
   return (
@@ -217,12 +240,12 @@ const GradePromotion = () => {
                   <td className="px-5 py-4"><StatusBadge status={row.status} /></td>
                   <td className="px-5 py-4">
                     {row.status === "Belum Diproses" ? (
-                      <button onClick={() => setView("process")} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#2A4365] hover:bg-[#1A365D] text-white rounded-lg text-[12px] font-bold transition-colors">
+                      <button onClick={() => { setSelectedClass(row); setView("process"); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#2A4365] hover:bg-[#1A365D] text-white rounded-lg text-[12px] font-bold transition-colors">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
                         Proses
                       </button>
                     ) : (
-                      <button onClick={() => setView("detail")} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg text-[12px] font-bold transition-colors">
+                      <button onClick={() => { setSelectedClass(row); setView("detail"); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg text-[12px] font-bold transition-colors">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                         Detail
                       </button>

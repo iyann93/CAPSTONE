@@ -167,17 +167,46 @@ const initialStudents = [
 ];
 
 const StudentData = () => {
+  const [students, setStudents] = useState(() => {
+    const saved = localStorage.getItem('students_data');
+    return saved ? JSON.parse(saved) : initialStudents;
+  });
   const [viewMode, setViewMode] = useState("list"); // 'list', 'add', 'edit', 'detail'
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [activeTab, setActiveTab] = useState("Semua Kelas");
   const [searchQuery, setSearchQuery] = useState("");
 
+  const handleAdd = (newStudent) => {
+    const updated = [...students, newStudent];
+    setStudents(updated);
+    localStorage.setItem('students_data', JSON.stringify(updated));
+    setViewMode("list");
+  };
+
+  const handleEdit = (updatedStudent) => {
+    const updated = students.map(s => s.id === updatedStudent.id ? updatedStudent : s);
+    setStudents(updated);
+    localStorage.setItem('students_data', JSON.stringify(updated));
+    setViewMode("list");
+    setSelectedStudent(null);
+  };
+
+  const handleDelete = (id) => {
+    const updated = students.filter(s => s.id !== id);
+    setStudents(updated);
+    localStorage.setItem('students_data', JSON.stringify(updated));
+    if (viewMode !== "list") {
+      setViewMode("list");
+      setSelectedStudent(null);
+    }
+  };
+
   if (viewMode === "add") {
-    return <StudentForm onBack={() => setViewMode("list")} />;
+    return <StudentForm onBack={() => setViewMode("list")} onSave={handleAdd} />;
   }
 
   if (viewMode === "edit" && selectedStudent) {
-    return <StudentEdit student={selectedStudent} onBack={() => setViewMode("list")} />;
+    return <StudentEdit student={selectedStudent} onBack={() => setViewMode("list")} onSave={handleEdit} onDelete={handleDelete} />;
   }
 
   if (viewMode === "detail" && selectedStudent) {
@@ -214,9 +243,9 @@ const StudentData = () => {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
         {[
-          { label: "Total Siswa", val: 20, subText: "Semua angkatan" },
-          { label: "Siswa Aktif", val: 20, subText: "Sedang belajar" },
-          { label: "Siswa Baru", val: 10, subText: "Tahun ajaran 2023" },
+          { label: "Total Siswa", val: students.length, subText: "Semua angkatan" },
+          { label: "Siswa Aktif", val: students.filter(s => s.status === "Aktif").length, subText: "Sedang belajar" },
+          { label: "Siswa Baru", val: students.filter(s => (s.tahunMasuk === "2023" || !s.tahunMasuk)).length, subText: "Tahun ajaran 2023" },
           { label: "Alumni", val: 0, subText: "Telah lulus" },
         ].map((card, i) => (
           <div key={i} className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
@@ -286,7 +315,11 @@ const StudentData = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {initialStudents.map((student, index) => (
+              {students.filter(student => {
+                 const matchTab = activeTab === "Semua Kelas" || student.tingkat === activeTab;
+                 const matchSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) || student.nis.includes(searchQuery) || student.kelas.toLowerCase().includes(searchQuery.toLowerCase());
+                 return matchTab && matchSearch;
+               }).map((student, index) => (
                 <tr key={student.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="py-4 px-6 text-[14px] text-gray-500">{index + 1}</td>
                   <td className="py-4 px-6">
@@ -369,7 +402,14 @@ const StudentData = () => {
                       >
                         <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                       </button>
-                      <button className="p-1.5 text-gray-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50">
+                      <button 
+                        onClick={() => {
+                          if (window.confirm(`Apakah Anda yakin ingin menghapus siswa ${student.name}?`)) {
+                            handleDelete(student.id);
+                          }
+                        }}
+                        className="p-1.5 text-gray-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50"
+                      >
                         <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                       </button>
                     </div>
@@ -383,7 +423,7 @@ const StudentData = () => {
         {/* Pagination */}
         <div className="p-4 border-t border-gray-100 flex items-center justify-between text-[13px]">
           <div className="text-gray-500">
-            Menampilkan 1-10 dari 20 siswa
+            Total {students.length} siswa
           </div>
           <div className="flex items-center gap-1">
             <button className="p-1.5 border border-gray-200 text-gray-400 rounded-lg hover:bg-gray-50 transition-colors">

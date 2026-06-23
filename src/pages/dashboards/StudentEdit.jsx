@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const StudentEdit = ({ student, onBack }) => {
+const StudentEdit = ({ student, onBack, onSave, onDelete }) => {
   const [formData, setFormData] = useState({
     namaLengkap: student.name,
     nis: student.nis,
@@ -25,6 +25,63 @@ const StudentEdit = ({ student, onBack }) => {
     teleponOrtu: "081298765432",
     isAktif: student.status === "Aktif"
   });
+
+  const handleSave = () => {
+    // Determine tingkat and jurusan
+    let tingkat = "Kelas X";
+    if (formData.kelas.startsWith("XI ")) tingkat = "Kelas XI";
+    if (formData.kelas.startsWith("XII ")) tingkat = "Kelas XII";
+
+    let jurusan = "IPA";
+    if (formData.kelas.includes("IPS")) jurusan = "IPS";
+    if (formData.kelas.includes("Bahasa")) jurusan = "Bahasa";
+
+    // Initials
+    const initials = formData.namaLengkap
+      .split(" ")
+      .filter(Boolean)
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
+
+    const updatedStudent = {
+      ...student,
+      name: formData.namaLengkap,
+      email: formData.email,
+      nis: formData.nis,
+      nisn: formData.nisn,
+      kelas: formData.kelas,
+      tingkat,
+      jurusan,
+      gender: formData.jenisKelamin,
+      status: formData.isAktif ? "Aktif" : "Tidak Aktif",
+      initials,
+      // store detail fields as well
+      agama: formData.agama,
+      tempatLahir: formData.tempatLahir,
+      tanggalLahir: formData.tanggalLahir,
+      telepon: formData.telepon,
+      alamat: formData.alamat,
+      kelurahan: formData.kelurahan,
+      kecamatan: formData.kecamatan,
+      kota: formData.kota,
+      provinsi: formData.provinsi,
+      tahunMasuk: formData.tahunMasuk,
+      namaAyah: formData.namaAyah,
+      namaIbu: formData.namaIbu,
+      pekerjaanAyah: formData.pekerjaanAyah,
+      pekerjaanIbu: formData.pekerjaanIbu,
+      teleponOrtu: formData.teleponOrtu,
+    };
+    onSave(updatedStudent);
+  };
+
+  const handleDelete = () => {
+    if (window.confirm(`Apakah Anda yakin ingin menghapus siswa ${student.name}?`)) {
+      onDelete(student.id);
+    }
+  };
 
   return (
     <div className="p-6 md:p-8 animate-fadeIn space-y-6 bg-[#F4F6FA] min-h-full">
@@ -60,7 +117,10 @@ const StudentEdit = ({ student, onBack }) => {
           </div>
         </div>
 
-        <button className="flex items-center gap-2 px-4 py-2 border border-red-200 text-red-500 rounded-xl text-[14px] font-bold hover:bg-red-50 transition-colors mt-6 md:mt-0">
+        <button 
+          onClick={handleDelete}
+          className="flex items-center gap-2 px-4 py-2 border border-red-200 text-red-500 rounded-xl text-[14px] font-bold hover:bg-red-50 transition-colors mt-6 md:mt-0"
+        >
           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
           Hapus Siswa
         </button>
@@ -287,7 +347,10 @@ const StudentEdit = ({ student, onBack }) => {
 
           {/* Actions */}
           <div className="space-y-3 pt-2 border-t border-gray-200">
-            <button className="w-full py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-[12px] text-[14px] font-bold flex items-center justify-center gap-2 shadow-sm transition-colors">
+            <button 
+              onClick={handleSave}
+              className="w-full py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-[12px] text-[14px] font-bold flex items-center justify-center gap-2 shadow-sm transition-colors"
+            >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
               Simpan Perubahan
             </button>

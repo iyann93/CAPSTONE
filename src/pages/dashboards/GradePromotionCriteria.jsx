@@ -55,17 +55,25 @@ const criteriaData = [
 
 const GradePromotionCriteria = ({ setView }) => {
   const [editMode, setEditMode] = useState(false);
-  const [values, setValues] = useState({
-    "Nilai Minimum Per Mata Pelajaran": "75",
-    "Nilai Rata-rata Minimal": "70",
-    "Mata Pelajaran Tidak Boleh Remedial": "3",
-    "Persentase Kehadiran Minimal": "85",
-    "Maksimal Alpa (Tanpa Keterangan)": "10",
-    "Maksimal Total Ketidakhadiran": "20",
+  const [values, setValues] = useState(() => {
+    const saved = localStorage.getItem("grade_promotion_criteria");
+    return saved ? JSON.parse(saved) : {
+      "Nilai Minimum Per Mata Pelajaran": "75",
+      "Nilai Rata-rata Minimal": "70",
+      "Mata Pelajaran Tidak Boleh Remedial": "3",
+      "Persentase Kehadiran Minimal": "85",
+      "Maksimal Alpa (Tanpa Keterangan)": "10",
+      "Maksimal Total Ketidakhadiran": "20",
+    };
   });
 
   const handleChange = (label, val) => {
     setValues(prev => ({ ...prev, [label]: val }));
+  };
+
+  const handleSave = () => {
+    localStorage.setItem("grade_promotion_criteria", JSON.stringify(values));
+    setEditMode(false);
   };
 
   return (
@@ -102,7 +110,7 @@ const GradePromotionCriteria = ({ setView }) => {
                 Batalkan
               </button>
               <button
-                onClick={() => setEditMode(false)}
+                onClick={handleSave}
                 className="flex items-center gap-2 px-4 py-2.5 bg-[#2A4365] hover:bg-[#1A365D] text-white rounded-xl text-[13px] font-bold transition-colors shadow-sm"
               >
                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>

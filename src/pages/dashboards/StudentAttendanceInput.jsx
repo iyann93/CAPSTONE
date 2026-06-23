@@ -15,8 +15,20 @@ const initialStudents = [
   { id: 12, name: "Fira Aulia", nis: "2023012", initials: "FA", color: "bg-[#EF4444]", gender: "P", status: "Hadir", ket: "" },
 ];
 
-const StudentAttendanceInput = ({ classData, onBack }) => {
+const StudentAttendanceInput = ({ classData, onBack, onSave }) => {
   const [students, setStudents] = useState(initialStudents);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState("Semua");
+
+  const handleSave = () => {
+    onSave({
+      hadir: counts.Hadir,
+      sakit: counts.Sakit,
+      izin: counts.Izin,
+      alpha: counts.Alpha,
+      pct: pctHadir
+    });
+  };
 
   const setAllStatus = (status) => {
     setStudents(students.map(s => ({ ...s, status })));
@@ -73,7 +85,10 @@ const StudentAttendanceInput = ({ classData, onBack }) => {
           </div>
         </div>
 
-        <button className="flex items-center gap-2 px-6 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl text-[14px] font-bold shadow-sm transition-colors mt-6 md:mt-0">
+        <button 
+          onClick={handleSave}
+          className="flex items-center gap-2 px-6 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl text-[14px] font-bold shadow-sm transition-colors mt-6 md:mt-0"
+        >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
           Simpan Absensi
         </button>
@@ -103,17 +118,19 @@ const StudentAttendanceInput = ({ classData, onBack }) => {
             {/* Middle Toolbar: Tabs & Search */}
             <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div className="flex gap-1 bg-gray-100 p-1 rounded-xl overflow-x-auto w-full md:w-auto hide-scrollbar">
-                <button className="px-4 py-2 rounded-lg bg-[#3B82F6] text-white text-[13px] font-bold shadow-sm whitespace-nowrap">Semua</button>
-                <button className="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-200 text-[13px] font-bold whitespace-nowrap transition-colors">Hadir({counts.Hadir})</button>
-                <button className="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-200 text-[13px] font-bold whitespace-nowrap transition-colors">Sakit({counts.Sakit})</button>
-                <button className="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-200 text-[13px] font-bold whitespace-nowrap transition-colors">Izin({counts.Izin})</button>
-                <button className="px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-200 text-[13px] font-bold whitespace-nowrap transition-colors">Alpha({counts.Alpha})</button>
+                <button onClick={() => setFilterStatus("Semua")} className={`px-4 py-2 rounded-lg text-[13px] font-bold shadow-sm whitespace-nowrap ${filterStatus === 'Semua' ? 'bg-[#3B82F6] text-white' : 'text-gray-600 hover:bg-gray-200'}`}>Semua</button>
+                <button onClick={() => setFilterStatus("Hadir")} className={`px-4 py-2 rounded-lg text-[13px] font-bold whitespace-nowrap transition-colors ${filterStatus === 'Hadir' ? 'bg-[#3B82F6] text-white' : 'text-gray-600 hover:bg-gray-200'}`}>Hadir({counts.Hadir})</button>
+                <button onClick={() => setFilterStatus("Sakit")} className={`px-4 py-2 rounded-lg text-[13px] font-bold whitespace-nowrap transition-colors ${filterStatus === 'Sakit' ? 'bg-[#3B82F6] text-white' : 'text-gray-600 hover:bg-gray-200'}`}>Sakit({counts.Sakit})</button>
+                <button onClick={() => setFilterStatus("Izin")} className={`px-4 py-2 rounded-lg text-[13px] font-bold whitespace-nowrap transition-colors ${filterStatus === 'Izin' ? 'bg-[#3B82F6] text-white' : 'text-gray-600 hover:bg-gray-200'}`}>Izin({counts.Izin})</button>
+                <button onClick={() => setFilterStatus("Alpha")} className={`px-4 py-2 rounded-lg text-[13px] font-bold whitespace-nowrap transition-colors ${filterStatus === 'Alpha' ? 'bg-[#3B82F6] text-white' : 'text-gray-600 hover:bg-gray-200'}`}>Alpha({counts.Alpha})</button>
               </div>
 
               <div className="relative w-full md:w-[260px]">
                 <input
                   type="text"
                   placeholder="Cari nama atau NIS..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all bg-gray-50 focus:bg-white"
                 />
                 <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
@@ -122,7 +139,11 @@ const StudentAttendanceInput = ({ classData, onBack }) => {
 
             {/* Student List */}
             <div className="divide-y divide-gray-100">
-              {students.map((student, idx) => (
+              {students.filter(student => {
+                const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) || student.nis.includes(searchQuery);
+                const matchesFilter = filterStatus === "Semua" || student.status === filterStatus;
+                return matchesSearch && matchesFilter;
+              }).map((student, idx) => (
                 <div key={student.id} className="p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:bg-gray-50/50 transition-colors">
                   
                   {/* Student Info */}
@@ -284,7 +305,10 @@ const StudentAttendanceInput = ({ classData, onBack }) => {
             </div>
           </div>
 
-          <button className="w-full py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl text-[14px] font-bold flex items-center justify-center gap-2 shadow-sm transition-colors">
+          <button 
+            onClick={handleSave}
+            className="w-full py-3 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl text-[14px] font-bold flex items-center justify-center gap-2 shadow-sm transition-colors"
+          >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
             Simpan Absensi Kelas {classData.name}
           </button>

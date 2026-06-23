@@ -31,13 +31,17 @@ function autoStatus(s) {
   return "Tidak Naik";
 }
 
-const GradePromotionDetail = ({ setView, mode = "process" }) => {
-  const isSelesai = mode === "selesai";
-  const initData = isSelesai
-    ? initStudentsSelesai
-    : initStudentsProcess.map(s => ({ ...s, status: "Belum Ditentukan" }));
-
-  const [students, setStudents] = useState(initData);
+const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) => {
+  const isSelesai = mode === "selesai" || classData?.status === "Selesai";
+  
+  const [students, setStudents] = useState(() => {
+    const key = `grade_promotion_students_${classData?.kode || "default"}`;
+    const saved = localStorage.getItem(key);
+    if (saved) return JSON.parse(saved);
+    return isSelesai
+      ? initStudentsSelesai
+      : initStudentsProcess.map(s => ({ ...s, status: "Belum Ditentukan" }));
+  });
   const [activeTab, setActiveTab] = useState("Semua");
   const [search, setSearch] = useState("");
   const [processing, setProcessing] = useState(false);
@@ -64,12 +68,42 @@ const GradePromotionDetail = ({ setView, mode = "process" }) => {
     setProcessed(true);
   };
 
+  const handleToggleStatus = (nis) => {
+    setStudents(prev => prev.map(s => {
+      if (s.nis === nis) {
+        const nextStatus = s.status === "Naik Kelas" ? "Tidak Naik" : "Naik Kelas";
+        return { ...s, status: nextStatus };
+      }
+      return s;
+    }));
+  };
+
+  const handleSaveDecision = () => {
+    const key = `grade_promotion_students_${classData?.kode || "default"}`;
+    localStorage.setItem(key, JSON.stringify(students));
+    
+    const totalCount = students.length;
+    const naikCount = students.filter(s => s.status === "Naik Kelas").length;
+    const tidakNaikCount = students.filter(s => s.status === "Tidak Naik").length;
+    const belumCount = students.filter(s => s.status === "Belum Ditentukan").length;
+    const status = belumCount === 0 ? "Selesai" : "Dalam Proses";
+    
+    if (onSave) {
+      onSave(classData.kode, {
+        naik: naikCount,
+        tidakNaik: tidakNaikCount,
+        belum: belumCount,
+        status: status
+      });
+    }
+  };
+
   return (
     <div className="p-6 md:p-8 animate-fadeIn bg-[#F4F6FA] min-h-full">
 
       {/* Breadcrumb */}
       <div className="text-[13px] font-medium text-gray-400 mb-4">
-        Dashboard &gt; <button onClick={() => setView("list")} className="text-gray-500 hover:text-[#2A4365]">Kenaikan Kelas</button> &gt; <span className="text-[#2A4365] font-semibold">Kelas X IPS 1</span>
+        Dashboard &gt; <button onClick={() => setView("list")} className="text-gray-500 hover:text-[#2A4365]">Kenaikan Kelas</button> &gt; <span className="text-[#2A4365] font-semibold">{classData?.kelas || "Kelas X IPS 1"}</span>
       </div>
 
       {/* Header */}
@@ -80,13 +114,13 @@ const GradePromotionDetail = ({ setView, mode = "process" }) => {
           </button>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[24px] font-bold text-[#1e293b]">{isSelesai ? "Kelas X IPA 1" : "Kelas X IPS 1"}</h1>
-              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600">{isSelesai ? "X-IPA-1" : "X-IPS-1"}</span>
-              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border ${(isSelesai || processed) ? "bg-green-50 text-green-600 border-green-100" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
-                {(isSelesai || processed) ? "Selesai" : "Belum Diproses"}
+              <h1 className="text-[24px] font-bold text-[#1e293b]">{classData?.kelas || (isSelesai ? "Kelas X IPA 1" : "Kelas X IPS 1")}</h1>
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600">{classData?.kode || (isSelesai ? "X-IPA-1" : "X-IPS-1")}</span>
+              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border ${(isSelesai || processed || classData?.status === "Selesai") ? "bg-green-50 text-green-600 border-green-100" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
+                {(isSelesai || processed || classData?.status === "Selesai") ? "Selesai" : "Belum Diproses"}
               </span>
             </div>
-            <p className="text-[13px] text-gray-500 mt-1">Ganjil 2023/2024 · Wali Kelas: {isSelesai ? "Ibu Sari Dewi, S.Pd" : "Ibu Dewi Anggraini, S.Pd"}</p>
+            <p className="text-[13px] text-gray-500 mt-1">Ganjil 2023/2024 · Wali Kelas: {classData?.wali || (isSelesai ? "Ibu Sari Dewi, S.Pd" : "Ibu Dewi Anggraini, S.Pd")}</p>
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -118,7 +152,7 @@ const GradePromotionDetail = ({ setView, mode = "process" }) => {
               </>
             )}
           </button>
-          <button className="flex items-center gap-2 px-3.5 py-2.5 bg-[#2A4365] hover:bg-[#1A365D] text-white rounded-xl text-[13px] font-bold shadow-sm">
+          <button onClick={handleSaveDecision} className="flex items-center gap-2 px-3.5 py-2.5 bg-[#2A4365] hover:bg-[#1A365D] text-white rounded-xl text-[13px] font-bold shadow-sm">
             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
             Simpan Keputusan
           </button>
@@ -227,7 +261,7 @@ const GradePromotionDetail = ({ setView, mode = "process" }) => {
                         )}
                       </td>
                       <td className="px-4 py-3.5">
-                        <button className="flex items-center gap-1 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-[12px] font-bold text-gray-600 hover:bg-gray-50">
+                        <button onClick={() => handleToggleStatus(s.nis)} className="flex items-center gap-1 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-[12px] font-bold text-gray-600 hover:bg-gray-50">
                           Ubah <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
                         </button>
                       </td>

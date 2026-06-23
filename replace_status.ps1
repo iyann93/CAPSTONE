@@ -1,4 +1,4 @@
-$file = "c:\capstone SIA\CAPSTONE\src\pages\dashboards\BendaharaDashboard.jsx"
+$file = ".\src\pages\dashboards\BendaharaDashboard.jsx"
 $content = Get-Content $file -Raw -Encoding UTF8
 
 $startMarker = '      case "Status Bayar Gaji":'
@@ -16,8 +16,8 @@ if ($startIdx -ge 0 -and $endIdx -gt $startIdx) {
         const statusBayarData = [
           { name: "Andi Susanto, S.Pd", role: "Guru Matematika", salary: "Rp 4.250.000", status: "Sudah Dibayar", date: "25 Mei 2026", bank: "BCA" },
           { name: "Maya Putri, M.Pd", role: "Guru Bahasa Indo", salary: "Rp 3.800.000", status: "Sudah Dibayar", date: "25 Mei 2026", bank: "Mandiri" },
-          { name: "Hendro Wibowo", role: "Staff TU", salary: "Rp 2.500.000", status: "Proses Transfer", date: "—", bank: "BCA" },
-          { name: "Lina Sari, S.Kom", role: "Guru TIK", salary: "Rp 3.200.000", status: "Belum Diproses", date: "—", bank: "BRI" },
+          { name: "Hendro Wibowo", role: "Staff TU", salary: "Rp 2.500.000", status: "Proses Transfer", date: "â€”", bank: "BCA" },
+          { name: "Lina Sari, S.Kom", role: "Guru TIK", salary: "Rp 3.200.000", status: "Belum Diproses", date: "â€”", bank: "BRI" },
           { name: "Dr. Hendra Wijaya", role: "Kepala Sekolah", salary: "Rp 7.500.000", status: "Sudah Dibayar", date: "24 Mei 2026", bank: "BCA" }
         ];
 
