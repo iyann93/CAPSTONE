@@ -65,6 +65,40 @@ const SppRepository = {
     `;
     const res = await query(sql);
     return res.rows.length;
+  },
+
+  findById: async (id) => {
+    const sql = `SELECT * FROM finance.tagihan_spp WHERE id = $1`;
+    const res = await query(sql, [id]);
+    return res.rows[0];
+  },
+
+  updateBuktiUrl: async (id, url) => {
+    const sql = `
+      UPDATE finance.tagihan_spp 
+      SET status = 'menunggu_konfirmasi', 
+          bukti_pembayaran_url = $1, 
+          tanggal_upload_bukti = NOW(),
+          updated_at = NOW()
+      WHERE id = $2 
+      RETURNING *
+    `;
+    const res = await query(sql, [url, id]);
+    return res.rows[0];
+  },
+
+  tolakBukti: async (id) => {
+    const sql = `
+      UPDATE finance.tagihan_spp 
+      SET status = 'belum_bayar', 
+          bukti_pembayaran_url = NULL, 
+          tanggal_upload_bukti = NULL,
+          updated_at = NOW()
+      WHERE id = $1 
+      RETURNING *
+    `;
+    const res = await query(sql, [id]);
+    return res.rows[0];
   }
 };
 

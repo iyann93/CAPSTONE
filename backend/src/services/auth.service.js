@@ -46,7 +46,7 @@ const AuthService = {
     }
 
     // Generate tokens
-    const payload = { userId: user.id, email: user.email, nama: user.nama };
+    const payload = { userId: user.id, email: user.email, nama: user.nama, role: user.role };
     const accessToken = signAccessToken(payload);
     const refreshToken = signRefreshToken(payload);
 

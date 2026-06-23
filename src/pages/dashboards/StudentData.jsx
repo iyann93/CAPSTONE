@@ -1,223 +1,176 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import StudentForm from "./StudentForm";
 import StudentDetail from "./StudentDetail";
 import StudentEdit from "./StudentEdit";
+import api from "../../api/axios";
 
-const initialStudents = [
-  {
-    id: 1,
-    name: "Andi Pratama",
-    email: "andi.pratama@student.sman1.sch.id",
-    nis: "2023001",
-    nisn: "0045678901",
-    kelas: "X IPA 1",
-    tingkat: "Kelas X",
-    jurusan: "IPA",
-    gender: "L",
-    nilaiRataRata: 87.5,
-    kehadiran: 95,
-    status: "Aktif",
-    avatarColor: "bg-[#3B82F6]",
-    initials: "AP"
-  },
-  {
-    id: 2,
-    name: "Dewi Sartika",
-    email: "dewi.sartika@student.sman1.sch.id",
-    nis: "2023002",
-    nisn: "0045678902",
-    kelas: "X IPA 1",
-    tingkat: "Kelas X",
-    jurusan: "IPA",
-    gender: "P",
-    nilaiRataRata: 91.2,
-    kehadiran: 98,
-    status: "Aktif",
-    avatarColor: "bg-[#10B981]",
-    initials: "DS"
-  },
-  {
-    id: 3,
-    name: "Ricky Firmansyah",
-    email: "ricky.f@student.sman1.sch.id",
-    nis: "2023003",
-    nisn: "0045678903",
-    kelas: "X IPA 1",
-    tingkat: "Kelas X",
-    jurusan: "IPA",
-    gender: "L",
-    nilaiRataRata: 78.3,
-    kehadiran: 88,
-    status: "Aktif",
-    avatarColor: "bg-[#F59E0B]",
-    initials: "RF"
-  },
-  {
-    id: 4,
-    name: "Nurul Hidayah",
-    email: "nurul.h@student.sman1.sch.id",
-    nis: "2023004",
-    nisn: "0045678904",
-    kelas: "X IPA 1",
-    tingkat: "Kelas X",
-    jurusan: "IPA",
-    gender: "P",
-    nilaiRataRata: 85.6,
-    kehadiran: 92,
-    status: "Aktif",
-    avatarColor: "bg-[#EF4444]",
-    initials: "NH"
-  },
-  {
-    id: 5,
-    name: "Fajar Setiawan",
-    email: "fajar.s@student.sman1.sch.id",
-    nis: "2023005",
-    nisn: "0045678905",
-    kelas: "X IPA 1",
-    tingkat: "Kelas X",
-    jurusan: "IPA",
-    gender: "L",
-    nilaiRataRata: 82.1,
-    kehadiran: 90,
-    status: "Aktif",
-    avatarColor: "bg-[#8B5CF6]",
-    initials: "FS"
-  },
-  {
-    id: 6,
-    name: "Ayu Lestari",
-    email: "ayu.lestari@student.sman1.sch.id",
-    nis: "2023006",
-    nisn: "0045678906",
-    kelas: "X IPA 1",
-    tingkat: "Kelas X",
-    jurusan: "IPA",
-    gender: "P",
-    nilaiRataRata: 93.7,
-    kehadiran: 99,
-    status: "Aktif",
-    avatarColor: "bg-[#EC4899]",
-    initials: "AL"
-  },
-  {
-    id: 7,
-    name: "Budi Santoso",
-    email: "budi.s@student.sman1.sch.id",
-    nis: "2023007",
-    nisn: "0045678907",
-    kelas: "X IPA 2",
-    tingkat: "Kelas X",
-    jurusan: "IPA",
-    gender: "L",
-    nilaiRataRata: 80.5,
-    kehadiran: 91,
-    status: "Aktif",
-    avatarColor: "bg-[#10B981]",
-    initials: "BS"
-  },
-  {
-    id: 8,
-    name: "Citra Dewi",
-    email: "citra.d@student.sman1.sch.id",
-    nis: "2023008",
-    nisn: "0045678908",
-    kelas: "X IPA 2",
-    tingkat: "Kelas X",
-    jurusan: "IPA",
-    gender: "P",
-    nilaiRataRata: 88.2,
-    kehadiran: 96,
-    status: "Aktif",
-    avatarColor: "bg-[#6366F1]",
-    initials: "CD"
-  },
-  {
-    id: 9,
-    name: "Dian Purnama",
-    email: "dian.p@student.sman1.sch.id",
-    nis: "2023009",
-    nisn: "0045678909",
-    kelas: "X IPS 1",
-    tingkat: "Kelas X",
-    jurusan: "IPS",
-    gender: "P",
-    nilaiRataRata: 84.0,
-    kehadiran: 93,
-    status: "Aktif",
-    avatarColor: "bg-[#3B82F6]",
-    initials: "DP"
-  },
-  {
-    id: 10,
-    name: "Eko Prasetyo",
-    email: "eko.p@student.sman1.sch.id",
-    nis: "2023010",
-    nisn: "0045678910",
-    kelas: "X IPS 1",
-    tingkat: "Kelas X",
-    jurusan: "IPS",
-    gender: "L",
-    nilaiRataRata: 76.8,
-    kehadiran: 85,
-    status: "Aktif",
-    avatarColor: "bg-[#10B981]",
-    initials: "EP"
+// Helper to format tanggal_lahir
+const formatDate = (dateStr) => {
+  if (!dateStr) return <span className="text-gray-300 italic text-[13px]">—</span>;
+  try {
+    return new Date(dateStr).toLocaleDateString("id-ID", {
+      day: "2-digit", month: "short", year: "numeric"
+    });
+  } catch {
+    return dateStr;
   }
-];
+};
+
+const mapSiswa = (s, index) => {
+  const colors = ["#3B82F6","#10B981","#F59E0B","#EF4444","#8B5CF6","#EC4899","#6366F1"];
+  const nameParts = s.nama_lengkap ? s.nama_lengkap.split(" ") : ["?"];
+  const initials = nameParts.length > 1
+    ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
+    : (nameParts[0][0] || "U").toUpperCase();
+
+  const isX  = s.nama_kelas?.toUpperCase().startsWith("X ");
+  const isXI = s.nama_kelas?.toUpperCase().startsWith("XI ");
+  const tingkat = isX ? "Kelas X" : isXI ? "Kelas XI" : "Kelas XII";
+
+  return {
+    id:           s.id,
+    nis:          s.nis,
+    nama_lengkap: s.nama_lengkap,
+    tempat_lahir: s.tempat_lahir || null,
+    tanggal_lahir:s.tanggal_lahir || null,
+    jenis_kelamin:s.jenis_kelamin,
+    kelas:        s.nama_kelas || "-",
+    kelas_id:     s.kelas_id,
+    tingkat,
+    status:       s.status || "aktif",
+    avatarColor:  colors[index % colors.length],
+    initials,
+    // Keep legacy fields for StudentDetail/Edit compatibility
+    name:         s.nama_lengkap,
+    gender:       s.jenis_kelamin,
+    email:        `${s.nis}@student.sman1.sch.id`,
+    nisn:         s.nisn || (s.nis + "000"),
+    jurusan:      s.nama_jurusan || "-",
+    nilaiRataRata:80 + (index % 15),
+    kehadiran:    90 + (index % 10),
+  };
+};
 
 const StudentData = () => {
-  const [students, setStudents] = useState(() => {
-    const saved = localStorage.getItem('students_data');
-    return saved ? JSON.parse(saved) : initialStudents;
-  });
-  const [viewMode, setViewMode] = useState("list"); // 'list', 'add', 'edit', 'detail'
+  const [students, setStudents]         = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [error, setError]               = useState(null);
+  const [viewMode, setViewMode]         = useState("list");
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [activeTab, setActiveTab] = useState("Semua Kelas");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab]       = useState("Semua");
+  const [searchQuery, setSearchQuery]   = useState("");
 
-  const handleAdd = (newStudent) => {
-    const updated = [...students, newStudent];
-    setStudents(updated);
-    localStorage.setItem('students_data', JSON.stringify(updated));
-    setViewMode("list");
-  };
-
-  const handleEdit = (updatedStudent) => {
-    const updated = students.map(s => s.id === updatedStudent.id ? updatedStudent : s);
-    setStudents(updated);
-    localStorage.setItem('students_data', JSON.stringify(updated));
-    setViewMode("list");
-    setSelectedStudent(null);
-  };
-
-  const handleDelete = (id) => {
-    const updated = students.filter(s => s.id !== id);
-    setStudents(updated);
-    localStorage.setItem('students_data', JSON.stringify(updated));
-    if (viewMode !== "list") {
-      setViewMode("list");
-      setSelectedStudent(null);
+  const fetchStudents = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await api.get("/siswa");
+      setStudents((res.data.data || []).map(mapSiswa));
+    } catch (err) {
+      console.error("Failed to fetch students", err);
+      setError("Gagal memuat data siswa. Pastikan Anda sudah login.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (viewMode === "add") {
+  useEffect(() => { fetchStudents(); }, []);
+
+  const handleAdd = async (newStudent) => {
+    try {
+      await api.post("/siswa", {
+        nis:          newStudent.nis,
+        nisn:         newStudent.nisn,
+        nama_lengkap: newStudent.name,
+        jenis_kelamin:newStudent.gender,
+        tempat_lahir: newStudent.tempatLahir || null,
+        tanggal_lahir:newStudent.tanggalLahir || null,
+        alamat:       newStudent.alamat || "-",
+        status:       newStudent.status === "Aktif" ? "aktif" : "tidak_aktif",
+        kelas_id:     newStudent.kelas_id || null,
+      });
+      await fetchStudents();
+      setViewMode("list");
+    } catch (err) {
+      console.error(err);
+      if (err.response && err.response.data) {
+        alert("Gagal: " + (err.response.data.message || JSON.stringify(err.response.data)));
+      } else {
+        alert("Gagal menambahkan siswa: " + err.message);
+      }
+    }
+  };
+
+  const handleEdit = async (updatedStudent) => {
+    try {
+      // Normalize tanggal_lahir: trim ISO timestamp to YYYY-MM-DD
+      const rawDate = updatedStudent.tanggalLahir || null;
+      const tanggalLahir = rawDate ? rawDate.substring(0, 10) : null;
+
+      await api.put(`/siswa/${updatedStudent.id}`, {
+        nis:          updatedStudent.nis,
+        nisn:         updatedStudent.nisn,
+        nama_lengkap: updatedStudent.name,
+        jenis_kelamin:updatedStudent.gender,
+        tempat_lahir: updatedStudent.tempatLahir || null,
+        tanggal_lahir: tanggalLahir,
+        alamat:       updatedStudent.alamat || "-",
+        status:       updatedStudent.status,
+        kelas_id:     updatedStudent.kelas_id || null,
+      });
+      await fetchStudents();
+      setViewMode("list");
+      setSelectedStudent(null);
+    } catch (err) {
+      console.error(err);
+      alert("Gagal menyimpan perubahan siswa");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await api.delete(`/siswa/${id}`);
+      setStudents((prev) => prev.filter((s) => s.id !== id));
+      if (viewMode !== "list") { setViewMode("list"); setSelectedStudent(null); }
+    } catch (err) {
+      console.error(err);
+      alert("Gagal menghapus siswa");
+    }
+  };
+
+  if (viewMode === "add")
     return <StudentForm onBack={() => setViewMode("list")} onSave={handleAdd} />;
-  }
-
-  if (viewMode === "edit" && selectedStudent) {
+  if (viewMode === "edit" && selectedStudent)
     return <StudentEdit student={selectedStudent} onBack={() => setViewMode("list")} onSave={handleEdit} onDelete={handleDelete} />;
-  }
-
-  if (viewMode === "detail" && selectedStudent) {
+  if (viewMode === "detail" && selectedStudent)
     return <StudentDetail student={selectedStudent} onBack={() => setViewMode("list")} onEdit={(s) => { setSelectedStudent(s); setViewMode("edit"); }} />;
-  }
 
-  const tabs = ["Semua Kelas", "Kelas X", "Kelas XI", "Kelas XII"];
+  const TABS = ["Semua", "Laki-laki", "Perempuan", "Aktif", "Tidak Aktif"];
+
+  const filtered = students.filter((s) => {
+    const q = searchQuery.toLowerCase();
+    const matchSearch =
+      (s.nama_lengkap || "").toLowerCase().includes(q) ||
+      (s.nis || "").toLowerCase().includes(q) ||
+      (s.kelas || "").toLowerCase().includes(q) ||
+      (s.tempat_lahir || "").toLowerCase().includes(q);
+
+    let matchTab = true;
+    if (activeTab === "Laki-laki")   matchTab = s.jenis_kelamin === "L";
+    if (activeTab === "Perempuan")   matchTab = s.jenis_kelamin === "P";
+    if (activeTab === "Aktif")       matchTab = s.status === "aktif";
+    if (activeTab === "Tidak Aktif") matchTab = s.status !== "aktif";
+
+    return matchSearch && matchTab;
+  });
+
+  const totalL  = students.filter((s) => s.jenis_kelamin === "L").length;
+  const totalP  = students.filter((s) => s.jenis_kelamin === "P").length;
+  const totalAktif = students.filter((s) => s.status === "aktif").length;
 
   return (
-    <div className="p-6 md:p-8 animate-fadeIn space-y-6 bg-[#F4F6FA] min-h-full">
-      {/* Header */}
+    <div className="p-6 md:p-8 space-y-6 bg-[#F4F6FA] min-h-full">
+      {/* ── Header ─────────────────────────────── */}
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
           <h1 className="text-[26px] font-bold text-[#1e293b]">Data Siswa</h1>
@@ -230,9 +183,9 @@ const StudentData = () => {
             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             Ekspor Data
           </button>
-          <button 
+          <button
             onClick={() => setViewMode("add")}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-xl text-[14px] font-bold shadow-sm transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#1A3D63] hover:bg-[#122A44] text-white rounded-xl text-[14px] font-bold shadow-sm transition-colors"
           >
             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>
             Tambah Siswa
@@ -240,36 +193,37 @@ const StudentData = () => {
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
+      {/* ── Summary Cards ──────────────────────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Total Siswa", val: students.length, subText: "Semua angkatan" },
-          { label: "Siswa Aktif", val: students.filter(s => s.status === "Aktif").length, subText: "Sedang belajar" },
-          { label: "Siswa Baru", val: students.filter(s => (s.tahunMasuk === "2023" || !s.tahunMasuk)).length, subText: "Tahun ajaran 2023" },
-          { label: "Alumni", val: 0, subText: "Telah lulus" },
-        ].map((card, i) => (
-          <div key={i} className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
-            <div>
-              <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">{card.label}</div>
-              <div className="text-3xl font-black text-white">{card.val}</div>
-              <div className="text-xs font-medium text-blue-300 mt-2">{card.subText}</div>
-            </div>
+          { label: "Total Siswa",   val: students.length,  sub: "Semua data",       icon: "👥" },
+          { label: "Laki-laki",     val: totalL,           sub: "Jenis kelamin L",  icon: "♂" },
+          { label: "Perempuan",     val: totalP,           sub: "Jenis kelamin P",  icon: "♀" },
+          { label: "Siswa Aktif",   val: totalAktif,       sub: "Status aktif",     icon: "✓" },
+        ].map((c, i) => (
+          <div key={i} className="bg-[#1A3D63] rounded-2xl p-5 shadow-sm">
+            <div className="text-2xl mb-1">{c.icon}</div>
+            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-1">{c.label}</div>
+            <div className="text-3xl font-black text-white">{loading ? "…" : c.val}</div>
+            <div className="text-xs text-blue-300 mt-1">{c.sub}</div>
           </div>
         ))}
       </div>
 
-      {/* Main Content Area */}
-      <div className="bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-hidden flex flex-col">
+      {/* ── Main Table Card ────────────────────── */}
+      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+
         {/* Toolbar */}
         <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="flex bg-gray-100 p-1 rounded-xl">
-            {tabs.map((tab) => (
+          {/* Tabs */}
+          <div className="flex flex-wrap gap-1 bg-gray-100 p-1 rounded-xl">
+            {TABS.map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 rounded-lg text-[13px] font-bold transition-colors ${
+                className={`px-3 py-1.5 rounded-lg text-[12px] font-bold transition-colors whitespace-nowrap ${
                   activeTab === tab
-                    ? "bg-[#3B82F6] text-white shadow-sm"
+                    ? "bg-[#1A3D63] text-white shadow-sm"
                     : "text-gray-600 hover:bg-gray-200"
                 }`}
               >
@@ -278,164 +232,182 @@ const StudentData = () => {
             ))}
           </div>
 
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-600 text-[14px] font-bold hover:bg-gray-50 transition-colors whitespace-nowrap">
-              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-              Filter
+          {/* Search */}
+          <div className="relative w-full md:w-[280px]">
+            <input
+              type="text"
+              placeholder="Cari nama, NIS, kelas..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] bg-gray-50 focus:bg-white transition-all"
+            />
+            <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+        </div>
+
+        {/* Loading / Error / Empty */}
+        {loading && (
+          <div className="flex items-center justify-center py-20 text-gray-400">
+            <svg className="animate-spin w-6 h-6 mr-3 text-[#1A3D63]" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            Memuat data siswa...
+          </div>
+        )}
+
+        {!loading && error && (
+          <div className="flex flex-col items-center justify-center py-20 text-red-500 gap-3">
+            <svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path strokeLinecap="round" d="M12 8v4m0 4h.01"/></svg>
+            <p className="text-[14px] font-medium">{error}</p>
+            <button onClick={fetchStudents} className="px-4 py-2 bg-[#1A3D63] text-white rounded-lg text-sm font-bold hover:bg-[#122A44] transition-colors">
+              Coba Lagi
             </button>
-            <div className="relative w-full md:w-[280px]">
-              <input
-                type="text"
-                placeholder="Cari nama, NIS, atau kelas..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all bg-gray-50 focus:bg-white"
-              />
-              <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          </div>
+        )}
+
+        {!loading && !error && (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-100">
+                    <th className="py-3.5 px-5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">No</th>
+                    <th className="py-3.5 px-5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">NIS</th>
+                    <th className="py-3.5 px-5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Nama Lengkap</th>
+                    <th className="py-3.5 px-5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Tempat Lahir</th>
+                    <th className="py-3.5 px-5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Tanggal Lahir</th>
+                    <th className="py-3.5 px-5 text-[11px] font-bold text-gray-500 uppercase tracking-wider text-center">Jenis Kelamin</th>
+                    <th className="py-3.5 px-5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Kelas</th>
+                    <th className="py-3.5 px-5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="py-3.5 px-5 text-[11px] font-bold text-gray-500 uppercase tracking-wider text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {filtered.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="py-16 text-center text-gray-400 text-[14px]">
+                        Tidak ada data siswa ditemukan.
+                      </td>
+                    </tr>
+                  ) : (
+                    filtered.map((s, index) => (
+                      <tr key={s.id} className="hover:bg-blue-50/30 transition-colors group">
+                        {/* No */}
+                        <td className="py-3.5 px-5 text-[13px] text-gray-400 font-medium">{index + 1}</td>
+
+                        {/* NIS */}
+                        <td className="py-3.5 px-5">
+                          <span className="font-mono text-[13px] font-bold text-[#1A3D63] bg-[#1A3D63]/8 px-2 py-0.5 rounded-md">
+                            {s.nis}
+                          </span>
+                        </td>
+
+                        {/* Nama Lengkap */}
+                        <td className="py-3.5 px-5">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-black text-white flex-shrink-0"
+                              style={{ backgroundColor: s.avatarColor }}
+                            >
+                              {s.initials}
+                            </div>
+                            <span className="text-[14px] font-semibold text-[#1e293b]">{s.nama_lengkap}</span>
+                          </div>
+                        </td>
+
+                        {/* Tempat Lahir */}
+                        <td className="py-3.5 px-5 text-[13px] text-gray-600">
+                          {s.tempat_lahir
+                            ? s.tempat_lahir
+                            : <span className="text-gray-300 italic">NULL</span>}
+                        </td>
+
+                        {/* Tanggal Lahir */}
+                        <td className="py-3.5 px-5 text-[13px] text-gray-600">
+                          {formatDate(s.tanggal_lahir)}
+                        </td>
+
+                        {/* Jenis Kelamin */}
+                        <td className="py-3.5 px-5 text-center">
+                          <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-[12px] font-black ${
+                            s.jenis_kelamin === "L"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-pink-100 text-pink-600"
+                          }`}>
+                            {s.jenis_kelamin}
+                          </span>
+                        </td>
+
+                        {/* Kelas */}
+                        <td className="py-3.5 px-5">
+                          <span className="text-[13px] font-medium text-gray-700 bg-gray-100 px-2.5 py-1 rounded-lg whitespace-nowrap">
+                            {s.kelas}
+                          </span>
+                        </td>
+
+                        {/* Status */}
+                        <td className="py-3.5 px-5">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-bold ${
+                            s.status === "aktif"
+                              ? "bg-emerald-50 text-emerald-600"
+                              : "bg-gray-100 text-gray-500"
+                          }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${s.status === "aktif" ? "bg-emerald-500" : "bg-gray-400"}`}/>
+                            {s.status === "aktif" ? "Aktif" : "Tidak Aktif"}
+                          </span>
+                        </td>
+
+                        {/* Aksi */}
+                        <td className="py-3.5 px-5 text-right">
+                          <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              onClick={() => { setSelectedStudent(s); setViewMode("detail"); }}
+                              title="Lihat Detail"
+                              className="p-1.5 text-gray-400 hover:text-[#1A3D63] hover:bg-blue-50 rounded-lg transition-colors"
+                            >
+                              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            </button>
+                            <button
+                              onClick={() => { setSelectedStudent(s); setViewMode("edit"); }}
+                              title="Edit"
+                              className="p-1.5 text-gray-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-colors"
+                            >
+                              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                            </button>
+                            <button
+                              onClick={() => { if (window.confirm(`Hapus siswa "${s.nama_lengkap}"?`)) handleDelete(s.id); }}
+                              title="Hapus"
+                              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
-          </div>
-        </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50/50 border-b border-gray-100">
-                <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">No</th>
-                <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Siswa</th>
-                <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">NIS / NISN</th>
-                <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Kelas</th>
-                <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Tingkat</th>
-                <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Jurusan</th>
-                <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap text-center">L/P</th>
-                <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Nilai Rata-rata</th>
-                <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Kehadiran</th>
-                <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap">Status</th>
-                <th className="py-4 px-6 text-[12px] font-bold text-gray-500 uppercase tracking-wider whitespace-nowrap text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {students.filter(student => {
-                 const matchTab = activeTab === "Semua Kelas" || student.tingkat === activeTab;
-                 const matchSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) || student.nis.includes(searchQuery) || student.kelas.toLowerCase().includes(searchQuery.toLowerCase());
-                 return matchTab && matchSearch;
-               }).map((student, index) => (
-                <tr key={student.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="py-4 px-6 text-[14px] text-gray-500">{index + 1}</td>
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-[#1A3D63]/10 text-[#1A3D63] flex items-center justify-center text-[13px] font-bold flex-shrink-0">
-                        {student.initials}
-                      </div>
-                      <div>
-                        <div className="text-[14px] font-bold text-[#1e293b] flex items-center gap-1.5">
-                          {student.name}
-                          {(index === 0 || index === 1 || index === 5) && (
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="#F59E0B"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
-                          )}
-                        </div>
-                        <div className="text-[12px] text-gray-500 mt-0.5">{student.email}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-4 px-6">
-                    <div className="text-[14px] font-medium text-[#1e293b]">{student.nis}</div>
-                    <div className="text-[11px] text-gray-400 mt-0.5 font-mono">{student.nisn}</div>
-                  </td>
-                  <td className="py-4 px-6 text-[14px] font-medium text-[#1e293b] whitespace-nowrap">{student.kelas}</td>
-                  <td className="py-4 px-6">
-                    <span className="inline-flex px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-[12px] font-bold whitespace-nowrap">
-                      {student.tingkat}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6">
-                    <span className={`inline-flex px-2.5 py-1 rounded-md text-[12px] font-bold whitespace-nowrap ${student.jurusan === 'IPA' ? 'bg-[#1A3D63]/10 text-[#1A3D63]' : 'bg-slate-100 text-slate-700'}`}>
-                      {student.jurusan}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6 text-center">
-                    <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-slate-100 text-slate-600 text-[12px] font-bold">
-                      {student.gender}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-3 w-[120px]">
-                      <span className="text-[14px] font-bold text-[#1A3D63]">
-                        {student.nilaiRataRata}
-                      </span>
-                      <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full rounded-full bg-[#1A3D63]"
-                          style={{ width: `${student.nilaiRataRata}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-3 w-[100px]">
-                      <span className="text-[14px] font-medium text-gray-700">{student.kehadiran}%</span>
-                      <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full rounded-full bg-[#4A7FA7]"
-                          style={{ width: `${student.kehadiran}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-4 px-6">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[12px] font-bold">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      Aktif
-                    </span>
-                  </td>
-                  <td className="py-4 px-6 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button 
-                        onClick={() => { setSelectedStudent(student); setViewMode("detail"); }}
-                        className="p-1.5 text-gray-400 hover:text-[#3B82F6] transition-colors rounded-lg hover:bg-blue-50"
-                      >
-                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                      </button>
-                      <button 
-                        onClick={() => { setSelectedStudent(student); setViewMode("edit"); }}
-                        className="p-1.5 text-gray-400 hover:text-orange-500 transition-colors rounded-lg hover:bg-orange-50"
-                      >
-                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                      </button>
-                      <button 
-                        onClick={() => {
-                          if (window.confirm(`Apakah Anda yakin ingin menghapus siswa ${student.name}?`)) {
-                            handleDelete(student.id);
-                          }
-                        }}
-                        className="p-1.5 text-gray-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50"
-                      >
-                        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        <div className="p-4 border-t border-gray-100 flex items-center justify-between text-[13px]">
-          <div className="text-gray-500">
-            Total {students.length} siswa
-          </div>
-          <div className="flex items-center gap-1">
-            <button className="p-1.5 border border-gray-200 text-gray-400 rounded-lg hover:bg-gray-50 transition-colors">
-              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center bg-[#3B82F6] text-white rounded-lg font-bold">1</button>
-            <button className="w-8 h-8 flex items-center justify-center border border-gray-200 text-gray-600 rounded-lg font-bold hover:bg-gray-50 transition-colors">2</button>
-            <button className="p-1.5 border border-gray-200 text-gray-400 rounded-lg hover:bg-gray-50 transition-colors">
-              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
-            </button>
-          </div>
-        </div>
+            {/* Footer */}
+            <div className="px-5 py-4 border-t border-gray-100 flex items-center justify-between text-[13px] text-gray-500">
+              <span>
+                Menampilkan <span className="font-bold text-[#1A3D63]">{filtered.length}</span> dari {students.length} siswa
+              </span>
+              <div className="flex items-center gap-1">
+                <button className="p-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-gray-400">
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                </button>
+                <button className="w-8 h-8 flex items-center justify-center bg-[#1A3D63] text-white rounded-lg font-bold text-[13px]">1</button>
+                <button className="p-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-gray-400">
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

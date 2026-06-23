@@ -31,12 +31,14 @@ const Profile = ({ user }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
+  const isWali = user?.role === "Wali Kelas";
+
   const [profileData, setProfileData] = useState({
-    fullName: user?.fullName || "Siti Aminah",
-    email: "siti.keuangan@siakad.id",
-    phone: "+62 812-3456-7890",
-    address: "Jl. Pendidikan No. 1, Kel. Menteng, Kec. Menteng, Jakarta Pusat, DKI Jakarta 10310",
-    nip: "198507232010011015"
+    fullName: user?.fullName || (isWali ? "Asih Kinanti, S.Pd" : "Siti Aminah"),
+    email: isWali ? "asihkinanti@siakad.id" : "siti.keuangan@siakad.id",
+    phone: isWali ? "+62 856-1234-9988" : "+62 812-3456-7890",
+    address: isWali ? "Jl. Pramuka No. 45, Sleman, DI Yogyakarta 55281" : "Jl. Pendidikan No. 1, Kel. Menteng, Jakarta Pusat 10310",
+    nip: isWali ? "198807152010012015" : "198507232010011015"
   });
   const [formData, setFormData] = useState(profileData);
 
@@ -101,8 +103,8 @@ const Profile = ({ user }) => {
             {
               /* Name & Role */
             }
-            <h2 className="text-[20px] font-bold text-[#1F2937] mb-1">{user?.fullName || "Siti Aminah"}</h2>
-            <p className="text-[13px] text-gray-500">Bendahara</p>
+            <h2 className="text-[20px] font-bold text-[#1F2937] mb-1">{profileData.fullName}</h2>
+            <p className="text-[13px] text-gray-500">{user?.role || "Pegawai"}</p>
 
             <div className="w-full h-px bg-gray-100 mb-6" />
 

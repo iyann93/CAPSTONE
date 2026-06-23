@@ -20,7 +20,7 @@ const poolConfig = env.db.connectionString
       max: 20,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 5000,
-      ssl: { rejectUnauthorized: false },
+      ssl: false,
     };
 
 const pool = new Pool(poolConfig);
