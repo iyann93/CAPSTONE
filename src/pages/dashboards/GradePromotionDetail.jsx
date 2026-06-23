@@ -34,14 +34,29 @@ function autoStatus(s) {
 const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) => {
   const isSelesai = mode === "selesai" || classData?.status === "Selesai";
   
-  const [students, setStudents] = useState(() => {
-    const key = `grade_promotion_students_${classData?.kode || "default"}`;
-    const saved = localStorage.getItem(key);
-    if (saved) return JSON.parse(saved);
-    return isSelesai
-      ? initStudentsSelesai
-      : initStudentsProcess.map(s => ({ ...s, status: "Belum Ditentukan" }));
-  });
+  const [students, setStudents] = useState(isSelesai ? initStudentsSelesai : initStudentsProcess.map(s => ({ ...s, status: "Belum Ditentukan" })));
+  
+  React.useEffect(() => {
+    const fetchState = async () => {
+      const key = `grade_promotion_students_${classData?.kode || "default"}`;
+      try {
+        const { default: api } = await import('../../api/axios');
+        const res = await api.get('/system/frontend-state');
+        if (res.data?.data?.[key]) {
+          setStudents(res.data.data[key]);
+          localStorage.setItem(key, JSON.stringify(res.data.data[key]));
+        } else {
+          const saved = localStorage.getItem(key);
+          if (saved) setStudents(JSON.parse(saved));
+        }
+      } catch (err) {
+        const saved = localStorage.getItem(key);
+        if (saved) setStudents(JSON.parse(saved));
+      }
+    };
+    fetchState();
+  }, [classData?.kode]);
+
   const [activeTab, setActiveTab] = useState("Semua");
   const [search, setSearch] = useState("");
   const [processing, setProcessing] = useState(false);
@@ -62,7 +77,6 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
   const handleProses = () => {
     if (processing || processed) return;
     setProcessing(true);
-    // Langsung proses tanpa delay
     setStudents(prev => prev.map(s => ({ ...s, status: autoStatus(s) })));
     setProcessing(false);
     setProcessed(true);
@@ -78,9 +92,21 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
     }));
   };
 
-  const handleSaveDecision = () => {
+  const handleSaveDecision = async () => {
     const key = `grade_promotion_students_${classData?.kode || "default"}`;
     localStorage.setItem(key, JSON.stringify(students));
+    
+    try {
+      const { default: api } = await import('../../api/axios');
+      const res = await api.get('/system/frontend-state');
+      const currentState = res.data?.data || {};
+      await api.put('/system/frontend-state', {
+        ...currentState,
+        [key]: students
+      });
+    } catch (err) {
+      console.error("Gagal menyimpan data siswa ke database", err);
+    }
     
     const totalCount = students.length;
     const naikCount = students.filter(s => s.status === "Naik Kelas").length;

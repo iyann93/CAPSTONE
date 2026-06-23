@@ -1,14 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import api from "../../api/axios";
 
 const StudentEdit = ({ student, onBack, onSave, onDelete }) => {
+  const [classes, setClasses] = useState([]);
+
+  useEffect(() => {
+    api.get('/kelas').then(res => {
+      if (res.data && res.data.data) setClasses(res.data.data);
+    }).catch(err => {
+      console.error("Gagal mengambil data kelas:", err);
+    });
+  }, []);
+
   const [formData, setFormData] = useState({
     namaLengkap: student.name,
     nis: student.nis,
     nisn: student.nisn,
     jenisKelamin: student.gender,
     agama: "Islam",
-    tempatLahir: "Jakarta",
-    tanggalLahir: "2006-03-15",
+    tempatLahir: student.tempat_lahir || "Jakarta",
+    tanggalLahir: student.tanggal_lahir || "2006-03-15",
     telepon: "081234567890",
     email: student.email,
     alamat: "Jl. Mawar No. 12",
@@ -17,13 +28,14 @@ const StudentEdit = ({ student, onBack, onSave, onDelete }) => {
     kota: "Jakarta Selatan",
     provinsi: "DKI Jakarta",
     kelas: student.kelas,
+    kelas_id: student.kelas_id,
     tahunMasuk: "2023",
     namaAyah: "Budi Pratama",
     namaIbu: "Sri Wahyuni",
     pekerjaanAyah: "Wiraswasta",
     pekerjaanIbu: "Guru",
     teleponOrtu: "081298765432",
-    isAktif: student.status === "Aktif"
+    isAktif: student.status === "Aktif" || student.status === "aktif"
   });
 
   const handleSave = () => {
@@ -45,6 +57,10 @@ const StudentEdit = ({ student, onBack, onSave, onDelete }) => {
       .substring(0, 2)
       .toUpperCase();
 
+    // Find ID from classes list
+    const foundClass = classes.find(c => c.nama_kelas.toLowerCase() === formData.kelas.toLowerCase().trim());
+    const matchedKelasId = foundClass ? foundClass.id : student.kelas_id;
+
     const updatedStudent = {
       ...student,
       name: formData.namaLengkap,
@@ -52,10 +68,11 @@ const StudentEdit = ({ student, onBack, onSave, onDelete }) => {
       nis: formData.nis,
       nisn: formData.nisn,
       kelas: formData.kelas,
+      kelas_id: matchedKelasId,
       tingkat,
       jurusan,
       gender: formData.jenisKelamin,
-      status: formData.isAktif ? "Aktif" : "Tidak Aktif",
+      status: formData.isAktif ? "aktif" : "tidak_aktif",
       initials,
       // store detail fields as well
       agama: formData.agama,
@@ -224,11 +241,13 @@ const StudentEdit = ({ student, onBack, onSave, onDelete }) => {
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
               <div className="space-y-2">
                 <label className="text-[13px] font-bold text-gray-700">Kelas<span className="text-red-500">*</span></label>
-                <select value={formData.kelas} onChange={(e) => setFormData({...formData, kelas: e.target.value})} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-[14px] text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-colors bg-white appearance-none">
-                  <option>X IPA 1</option>
-                  <option>X IPS 1</option>
-                  <option>XI IPA 1</option>
-                </select>
+                <input 
+                  type="text" 
+                  value={formData.kelas}
+                  onChange={(e) => setFormData({ ...formData, kelas: e.target.value })}
+                  placeholder="Misal: X IPA 1"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-[14px] text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-colors bg-white"
+                />
               </div>
               <div className="space-y-2">
                 <label className="text-[13px] font-bold text-gray-700">Tahun Masuk</label>

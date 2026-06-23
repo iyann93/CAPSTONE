@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import PlaceholderDashboard from "./PlaceholderDashboard";
 import Subjects from "./Subjects";
 import Semester from "./Semester";
@@ -8,8 +8,44 @@ import GradePromotion from "./GradePromotion";
 import GraduationData from "./GraduationData";
 import StudentData from "./StudentData";
 import StudentAttendance from "./StudentAttendance";
+import api from "../../api/axios";
 
 const AdminTUDashboard = ({ user, activeMenu }) => {
+  const [recentStudents, setRecentStudents] = useState([]);
+  const [totalSiswa, setTotalSiswa] = useState(0);
+
+  useEffect(() => {
+    if (activeMenu === "Dashboard" || !activeMenu) {
+      const fetchDashboardData = async () => {
+        try {
+          const res = await api.get('/siswa?limit=5');
+          if (res.data && res.data.meta) {
+            setTotalSiswa(res.data.meta.total);
+          }
+          const colors = ["bg-[#E8EEF2]", "bg-[#F3E8FF]", "bg-[#E0E7FF]", "bg-[#FFEDD5]", "bg-[#D1FAE5]"];
+          const fetched = res.data.data.slice(0, 5).map((s, idx) => {
+            const nameParts = s.nama_lengkap ? s.nama_lengkap.split(' ') : ['?'];
+            const initial = nameParts.length > 1 
+              ? (nameParts[0][0] + nameParts[1][0]).toUpperCase() 
+              : (nameParts[0][0] || 'U').toUpperCase();
+            return {
+              name: s.nama_lengkap,
+              class: s.nama_kelas || "-",
+              nis: s.nis,
+              status: s.status || "Aktif",
+              avatarBg: colors[idx % colors.length],
+              initial: initial,
+              avatarImg: ""
+            };
+          });
+          setRecentStudents(fetched);
+        } catch (error) {
+          console.error("Failed to fetch dashboard data", error);
+        }
+      };
+      fetchDashboardData();
+    }
+  }, [activeMenu]);
   if (activeMenu === "Mata Pelajaran") {
     return <Subjects />;
   }
@@ -73,8 +109,8 @@ const AdminTUDashboard = ({ user, activeMenu }) => {
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
             <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Siswa Aktif</div>
-            <div className="text-3xl font-black text-white">1,248</div>
-            <div className="text-xs font-medium text-blue-300 mt-2">+12 siswa bulan ini</div>
+            <div className="text-3xl font-black text-white">{totalSiswa}</div>
+            <div className="text-xs font-medium text-blue-300 mt-2">Siswa terdaftar</div>
           </div>
         </div>
 
@@ -196,13 +232,7 @@ const AdminTUDashboard = ({ user, activeMenu }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {[
-                  { name: "Andi Pratama", class: "XII IPA 1", nis: "2023001", status: "Aktif", avatarBg: "bg-[#E8EEF2]", initial: "AP", avatarImg: "https://randomuser.me/api/portraits/men/32.jpg" },
-                  { name: "Dewi Sartika", class: "X IPS 2", nis: "2023148", status: "Aktif", avatarBg: "bg-[#E8EEF2]", initial: "DS", avatarImg: "https://randomuser.me/api/portraits/women/44.jpg" },
-                  { name: "Rizky Firmansyah", class: "XI IPA 3", nis: "2023072", status: "Aktif", avatarBg: "bg-[#E8EEF2]", initial: "RF", avatarImg: "https://randomuser.me/api/portraits/men/46.jpg" },
-                  { name: "Nurul Hidayah", class: "XII IPS 1", nis: "2023215", status: "Baru", avatarBg: "bg-[#E8EEF2]", initial: "NH", avatarImg: "https://randomuser.me/api/portraits/women/68.jpg" },
-                  { name: "Fajar Setiawan", class: "X MIPA 1", nis: "2023310", status: "Baru", avatarBg: "bg-[#E8EEF2]", initial: "FS", avatarImg: "https://randomuser.me/api/portraits/men/22.jpg" },
-                ].map((row, idx) => (
+                {recentStudents.length > 0 ? recentStudents.map((row, idx) => (
                   <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
@@ -222,14 +252,18 @@ const AdminTUDashboard = ({ user, activeMenu }) => {
                       {row.status === "Aktif" ? (
                         <span className="px-2.5 py-1 bg-[#E8EEF2] text-[#1A3D63] rounded-md text-[11px] font-bold tracking-wide">Aktif</span>
                       ) : (
-                        <span className="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-md text-[11px] font-bold tracking-wide">Baru</span>
+                        <span className="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-md text-[11px] font-bold tracking-wide">{row.status}</span>
                       )}
                     </td>
                     <td className="px-5 py-4">
                       <button className="text-[13px] font-bold text-gray-700 hover:text-[#1A3D63]">Detail</button>
                     </td>
                   </tr>
-                ))}
+                )) : (
+                  <tr>
+                    <td colSpan="5" className="px-5 py-8 text-center text-gray-400 text-sm">Belum ada data siswa.</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

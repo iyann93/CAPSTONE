@@ -16,7 +16,7 @@ const SiswaRepository = {
     const orderBy = buildOrderBy(sort, SORT_MAP, 's.nama_lengkap ASC');
 
     const sql = `
-      SELECT s.id, s.nis, s.nama_lengkap, s.jenis_kelamin, s.tanggal_lahir,
+      SELECT s.id, s.nis, s.nama_lengkap, s.jenis_kelamin, s.tempat_lahir, s.tanggal_lahir,
              s.alamat, s.status,
              k.nama_kelas, j.nama AS nama_jurusan, s.kelas_id, s.created_at
       FROM academic.siswa s
@@ -59,29 +59,31 @@ const SiswaRepository = {
     return result.rows[0] || null;
   },
 
-  create: async ({ nis, nama_lengkap, jenisKelamin, tanggalLahir, alamat, status, kelasId }) => {
+  create: async ({ nis, nisn, nama_lengkap, jenisKelamin, tempatLahir, tanggalLahir, alamat, status, kelasId }) => {
     const sql = `
       INSERT INTO academic.siswa
-        (nis, nama_lengkap, jenis_kelamin, tanggal_lahir, alamat, kelas_id, status, created_at)
-      VALUES ($1, $2, $3, $4, $5, $6, COALESCE($7, 'Aktif'), NOW()) RETURNING *
+        (nis, nisn, nama_lengkap, jenis_kelamin, tempat_lahir, tanggal_lahir, alamat, kelas_id, status, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, COALESCE($9, 'aktif'), NOW()) RETURNING *
     `;
-    const result = await query(sql, [nis, nama_lengkap, jenisKelamin, tanggalLahir, alamat, kelasId, status]);
+    const result = await query(sql, [nis, nisn, nama_lengkap, jenisKelamin, tempatLahir, tanggalLahir, alamat, kelasId, status]);
     return result.rows[0];
   },
 
-  update: async (id, { nis, nama_lengkap, jenisKelamin, tanggalLahir, alamat, status, kelasId }) => {
+  update: async (id, { nis, nisn, nama_lengkap, jenisKelamin, tempatLahir, tanggalLahir, alamat, status, kelasId }) => {
     const sql = `
       UPDATE academic.siswa
       SET nis           = COALESCE($1, nis),
-          nama_lengkap  = COALESCE($2, nama_lengkap),
-          jenis_kelamin = COALESCE($3, jenis_kelamin),
-          tanggal_lahir = COALESCE($4, tanggal_lahir),
-          alamat        = COALESCE($5, alamat),
-          kelas_id      = COALESCE($6, kelas_id),
-          status        = COALESCE($7, status)
-      WHERE id = $8 RETURNING *
+          nisn          = COALESCE($2, nisn),
+          nama_lengkap  = COALESCE($3, nama_lengkap),
+          jenis_kelamin = COALESCE($4, jenis_kelamin),
+          tempat_lahir  = COALESCE($5, tempat_lahir),
+          tanggal_lahir = COALESCE($6, tanggal_lahir),
+          alamat        = COALESCE($7, alamat),
+          kelas_id      = COALESCE($8, kelas_id),
+          status        = COALESCE($9, status)
+      WHERE id = $10 RETURNING *
     `;
-    const result = await query(sql, [nis, nama_lengkap, jenisKelamin, tanggalLahir, alamat, kelasId, status, id]);
+    const result = await query(sql, [nis, nisn, nama_lengkap, jenisKelamin, tempatLahir, tanggalLahir, alamat, kelasId, status, id]);
     return result.rows[0] || null;
   },
 
