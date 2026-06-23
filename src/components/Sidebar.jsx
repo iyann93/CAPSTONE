@@ -62,7 +62,7 @@ const menuSections = [
     items: [
       { label: "Dashboard", icon: <BarChartIcon /> }
     ],
-    roles: ["Admin", "Kepala Sekolah", "Wakil Kepsek", "Guru", "Super Admin", "Bendahara", "Admin TU"]
+    roles: ["Admin", "Kepala Sekolah", "Wakil Kepsek", "Guru", "Super Admin", "Bendahara", "Admin TU", "Orang Tua"]
   },
   {
     section: "KELOLA AKADEMIK",
@@ -182,6 +182,29 @@ const menuSections = [
       { label: "Pengaturan Sistem", icon: <SettingsIcon /> }
     ],
     roles: ["Kepala Sekolah"]
+  },
+  {
+    section: "AKADEMIK SISWA",
+    items: [
+      { label: "Perkembangan Akademik", icon: <BarChartIcon /> },
+      { label: "Unduh Rapor", icon: <FileChartIcon /> }
+    ],
+    roles: ["Orang Tua"]
+  },
+  {
+    section: "KEUANGAN SISWA",
+    items: [
+      { label: "Tagihan SPP", icon: <ReceiptIcon /> },
+      { label: "Bayar SPP", icon: <WalletIcon /> }
+    ],
+    roles: ["Orang Tua"]
+  },
+  {
+    section: "INFORMASI",
+    items: [
+      { label: "Pengumuman Sekolah", icon: <ChatIcon /> }
+    ],
+    roles: ["Orang Tua"]
   }
 ];
 const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) => {

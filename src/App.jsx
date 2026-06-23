@@ -9,6 +9,7 @@ import SuperAdminDashboard from "./pages/dashboards/SuperAdminDashboard";
 import PlaceholderDashboard from "./pages/dashboards/PlaceholderDashboard";
 import BendaharaDashboard from "./pages/dashboards/BendaharaDashboard";
 import AdminTUDashboard from "./pages/dashboards/AdminTUDashboard";
+import OrangTuaDashboard from "./pages/dashboards/OrangTuaDashboard";
 const App = () => {
   const [user, setUser] = useState(null);
   const [collapsed, setCollapsed] = useState(true);
@@ -144,6 +145,8 @@ const App = () => {
 
       case "Bendahara":
         return <BendaharaDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
+      case "Orang Tua":
+        return <OrangTuaDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
       default:
         return <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
     }
