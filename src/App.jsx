@@ -11,6 +11,8 @@ import BendaharaDashboard from "./pages/dashboards/BendaharaDashboard";
 import AdminTUDashboard from "./pages/dashboards/AdminTUDashboard";
 import OrangTuaDashboard from "./pages/dashboards/OrangTuaDashboard";
 import WakilKepalaDashboard from "./pages/dashboards/WakilKepalaDashboard";
+import GuruDashboard from "./pages/dashboards/GuruDashboard";
+
 const App = () => {
   const [user, setUser] = useState(null);
   const [collapsed, setCollapsed] = useState(true);
@@ -150,6 +152,10 @@ const App = () => {
         return <OrangTuaDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
       case "Wakil Kepala":
         return <WakilKepalaDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
+      case "Guru":
+      case "Guru Mapel":
+      case "Wali Kelas":
+        return <GuruDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
       default:
         return <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
     }

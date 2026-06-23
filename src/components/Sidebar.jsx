@@ -63,7 +63,7 @@ const menuSections = [
     items: [
       { label: "Dashboard", icon: <BarChartIcon /> }
     ],
-    roles: ["Admin", "Kepala Sekolah", "Wakil Kepsek", "Guru", "Super Admin", "Bendahara", "Admin TU", "Orang Tua", "Wakil Kepala"]
+    roles: ["Admin", "Kepala Sekolah", "Wakil Kepsek", "Super Admin", "Bendahara", "Admin TU", "Orang Tua", "Wakil Kepala", "Guru", "Guru Mapel", "Wali Kelas"]
   },
   {
     section: "KELOLA AKADEMIK",
@@ -136,7 +136,7 @@ const menuSections = [
       { label: "Kelas & Penjadwalan", icon: <GridIcon /> },
       { label: "E-Rapor & Input Nilai", icon: <GraduationIcon /> }
     ],
-    roles: ["Kepala Sekolah", "Wakil Kepsek", "Guru"]
+    roles: ["Kepala Sekolah", "Wakil Kepsek"]
   },
   {
     section: "MODUL KEUANGAN",
@@ -222,6 +222,14 @@ const menuSections = [
       { label: "Monitoring Pembayaran", icon: <ReceiptIcon /> }
     ],
     roles: ["Wakil Kepala"]
+  },
+  {
+    section: "PRIBADI",
+    items: [
+      { label: "Slip Gaji", icon: <FileChartIcon /> },
+      { label: "Riwayat Terima Gaji", icon: <CalendarIcon /> }
+    ],
+    roles: ["Guru", "Guru Mapel", "Wali Kelas"]
   }
 ];
 const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) => {
