@@ -1,6 +1,7 @@
 const BarChartIcon = () => <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
     <path d="M18 20V10M12 20V4M6 20v-6" />
   </svg>;
+const GiftIcon = () => <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>;
 const UsersIcon = () => <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
   </svg>;
@@ -195,7 +196,8 @@ const menuSections = [
     section: "KEUANGAN SISWA",
     items: [
       { label: "Tagihan SPP", icon: <ReceiptIcon /> },
-      { label: "Bayar SPP", icon: <WalletIcon /> }
+      { label: "Riwayat Pembayaran", icon: <CalendarIcon /> },
+      { label: "Beasiswa", icon: <GiftIcon /> }
     ],
     roles: ["Orang Tua"]
   },

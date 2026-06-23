@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 
 const mockRapor = [
-  { id: 1, semester: "Genap 2023/2024", tanggal: "15 Jun 2024", status: "Tersedia", rataRata: 84.5, peringkat: 5 },
-  { id: 2, semester: "Ganjil 2023/2024", tanggal: "10 Jan 2024", status: "Tersedia", rataRata: 81.2, peringkat: 7 },
-  { id: 3, semester: "Genap 2022/2023", tanggal: "14 Jun 2023", status: "Tersedia", rataRata: 79.8, peringkat: 9 },
-  { id: 4, semester: "Ganjil 2022/2023", tanggal: "—", status: "Belum Tersedia", rataRata: null, peringkat: null },
+  { id: 1, semester: "Genap 2024/2025", tanggal: "15 Jun 2025", status: "Tersedia", rataRata: 84.5, peringkat: 5 },
+  { id: 2, semester: "Ganjil 2024/2025", tanggal: "10 Jan 2025", status: "Tersedia", rataRata: 81.2, peringkat: 7 },
+  { id: 3, semester: "Genap 2023/2024", tanggal: "14 Jun 2024", status: "Tersedia", rataRata: 79.8, peringkat: 9 },
+  { id: 4, semester: "Ganjil 2025/2026", tanggal: "—", status: "Belum Tersedia", rataRata: null, peringkat: null },
 ];
 
 const RaporSiswa = () => {
@@ -32,7 +32,7 @@ const RaporSiswa = () => {
       {/* Header */}
       <div>
         <h1 className="text-[26px] font-bold text-[#1e293b]">Unduh Rapor Siswa</h1>
-        <p className="text-[14px] text-gray-500 mt-1">Ahmad Fauzi · Kelas XI IPA 2 · Daftar rapor yang tersedia untuk diunduh</p>
+        <p className="text-[14px] text-gray-500 mt-1">Ahmad Fauzi · Kelas VIII A · Daftar rapor yang tersedia untuk diunduh</p>
       </div>
 
       {/* Info Banner */}
@@ -164,7 +164,7 @@ const RaporSiswa = () => {
                   </div>
                   <div className="bg-white border border-gray-100 rounded-lg p-3">
                     <p className="text-[11px] text-gray-400">Kelas</p>
-                    <p className="text-[13px] font-bold text-gray-800">XI IPA 2</p>
+                    <p className="text-[13px] font-bold text-gray-800">VIII A</p>
                   </div>
                   <div className="bg-white border border-gray-100 rounded-lg p-3">
                     <p className="text-[11px] text-gray-400">Rata-rata Nilai</p>

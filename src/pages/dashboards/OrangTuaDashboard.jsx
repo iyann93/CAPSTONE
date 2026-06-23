@@ -3,7 +3,8 @@ import OrangTuaHome from "./OrangTuaHome";
 import AkademikSiswa from "./AkademikSiswa";
 import RaporSiswa from "./RaporSiswa";
 import TagihanSPP from "./TagihanSPP";
-import BayarSPP from "./BayarSPP";
+import RiwayatPembayaranSiswa from "./RiwayatPembayaranSiswa";
+import BeasiswaSiswa from "./BeasiswaSiswa";
 import PengumumanSekolah from "./PengumumanSekolah";
 import PlaceholderDashboard from "./PlaceholderDashboard";
 
@@ -27,8 +28,11 @@ const OrangTuaDashboard = ({ user, activeMenu, onViewChange }) => {
     case "Tagihan SPP":
       return <TagihanSPP onNavigate={handleNavigate} />;
     
-    case "Bayar SPP":
-      return <BayarSPP onNavigate={handleNavigate} />;
+    case "Riwayat Pembayaran":
+      return <RiwayatPembayaranSiswa onNavigate={handleNavigate} />;
+    
+    case "Beasiswa":
+      return <BeasiswaSiswa />;
     
     case "Pengumuman Sekolah":
       return <PengumumanSekolah />;

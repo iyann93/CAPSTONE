@@ -11,12 +11,12 @@ const mockSubjects = [
   { mapel: "PKN", guru: "Ibu Nur", nilai: [88, 85, 90, 87], kkmPassed: true },
 ];
 
-const semesters = ["Ganjil 2023/2024", "Genap 2023/2024"];
+const semesters = ["Ganjil 2025/2026", "Genap 2025/2026"];
 
 const getAvg = (arr) => (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1);
 
 const AkademikSiswa = () => {
-  const [semester, setSemester] = useState("Genap 2023/2024");
+  const [semester, setSemester] = useState("Ganjil 2025/2026");
   const [search, setSearch] = useState("");
   const [selectedMapel, setSelectedMapel] = useState(null);
 
@@ -41,7 +41,7 @@ const AkademikSiswa = () => {
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
           <h1 className="text-[26px] font-bold text-[#1e293b]">Perkembangan Akademik</h1>
-          <p className="text-[14px] text-gray-500 mt-1">Ahmad Fauzi · Kelas XI IPA 2</p>
+          <p className="text-[14px] text-gray-500 mt-1">Ahmad Fauzi · Kelas VIII A</p>
         </div>
         <div className="flex items-center gap-2">
           <label className="text-[13px] text-gray-500 font-medium">Semester:</label>

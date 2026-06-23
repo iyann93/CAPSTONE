@@ -17,9 +17,9 @@ const OrangTuaHome = ({ user, onNavigate }) => {
 
   const studentData = {
     nama: "Ahmad Fauzi",
-    kelas: "XI IPA 2",
+    kelas: "VIII A",
     nisn: "0012345678",
-    tahunAjaran: "2023/2024",
+    tahunAjaran: "2025/2026",
     wali: "Ibu Dewi Rahayu, S.Pd",
     avatar: "AF",
   };
@@ -28,13 +28,13 @@ const OrangTuaHome = ({ user, onNavigate }) => {
     rataRata: 84.5,
     rankKelas: 5,
     kehadiran: 94,
-    semester: "Genap 2023/2024",
+    semester: "Ganjil 2025/2026",
   };
 
   const tagihanInfo = {
-    bulan: "Juli 2024",
-    nominal: "Rp 500.000",
-    jatuhTempo: "10 Juli 2024",
+    bulan: "Januari 2026",
+    nominal: "Rp 1.250.000",
+    jatuhTempo: "10 Januari 2026",
     status: "Belum Lunas",
   };
 
@@ -208,7 +208,7 @@ const OrangTuaHome = ({ user, onNavigate }) => {
               Lihat Detail Tagihan
             </button>
             <button
-              onClick={() => onNavigate("Bayar SPP")}
+              onClick={() => onNavigate("Tagihan SPP")}
               className="w-full py-3 bg-green-50 hover:bg-green-100 text-green-700 rounded-xl text-[13px] font-bold flex items-center justify-center gap-2 border border-green-100 transition-colors"
             >
               <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4"/></svg>
@@ -255,7 +255,7 @@ const OrangTuaHome = ({ user, onNavigate }) => {
             { label: "Akademik", icon: "M9 19v-6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2zm0 0V9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v10m-6 0a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2m0 0V5a2 2 0 0 1 2-2h2a2 2 0 0 0 2 2v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z", color: "bg-blue-50 text-blue-600", menu: "Perkembangan Akademik" },
             { label: "Unduh Rapor", icon: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8", color: "bg-green-50 text-green-600", menu: "Unduh Rapor" },
             { label: "Tagihan SPP", icon: "M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1z", color: "bg-amber-50 text-amber-600", menu: "Tagihan SPP" },
-            { label: "Bayar SPP", icon: "M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 0 0 3-3V8a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3z", color: "bg-purple-50 text-purple-600", menu: "Bayar SPP" },
+            { label: "Riwayat Pembayaran", icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z", color: "bg-purple-50 text-purple-600", menu: "Riwayat Pembayaran" },
             { label: "Pengumuman", icon: "M11 5.882V19.24a1.76 1.76 0 0 1-3.417.592l-2.147-6.15M18 13a3 3 0 1 0 0-6M5.436 13.683A4.001 4.001 0 0 1 7 6h1.832", color: "bg-indigo-50 text-indigo-600", menu: "Pengumuman Sekolah" },
             { label: "Profil", icon: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z", color: "bg-rose-50 text-rose-600", menu: "My Profile" },
           ].map((item, i) => (
