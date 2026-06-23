@@ -288,12 +288,12 @@ const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) =>
             <div className="flex items-center gap-3">
               <div className="relative">
                 <div className="w-10 h-10 rounded-full bg-[#7C8FA9] flex items-center justify-center text-white font-bold text-sm shadow-sm border-2 border-white">
-                  {user?.role === "Bendahara" ? "SA" : (user?.fullName ? (user.fullName.split(" ").length >= 2 ? user.fullName.split(" ")[0][0] + user.fullName.split(" ")[1][0] : user.fullName.slice(0, 2)).toUpperCase() : "SW")}
+                  {user?.role === "Bendahara" ? "SA" : (user?.nama ? (user.nama.split(" ").length >= 2 ? user.nama.split(" ")[0][0] + user.nama.split(" ")[1][0] : user.nama.slice(0, 2)).toUpperCase() : "SW")}
                 </div>
                 <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="text-[13px] font-bold text-[#1A3D63] truncate leading-tight">{user?.role === "Bendahara" ? "Siti Aminah" : (user?.fullName || "Dr.Wahyu")}</span>
+                <span className="text-[13px] font-bold text-[#1A3D63] truncate leading-tight">{user?.role === "Bendahara" ? "Siti Aminah" : (user?.nama || "User")}</span>
                 <span className="text-[11px] text-[#4A7FA7] font-medium leading-tight mt-0.5">{user?.role || "Admin TU"}</span>
               </div>
             </div>

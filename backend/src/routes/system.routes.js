@@ -22,6 +22,7 @@ router.put('/users/:id/deactivate', verifyToken, authorize('users.activate'), Sy
 
 // === ALL USERS CRUD (Super Admin) ===
 router.get('/users', verifyToken, authorize('users.manage'), SystemController.getAllUsers);
+router.get('/siswa', verifyToken, authorize('users.manage'), SystemController.getSiswaList);
 router.post('/users', verifyToken, authorize('users.manage'), SystemController.createUser);
 router.put('/users/:id', verifyToken, authorize('users.manage'), SystemController.updateUser);
 router.delete('/users/:id', verifyToken, authorize('users.manage'), SystemController.deleteUser);

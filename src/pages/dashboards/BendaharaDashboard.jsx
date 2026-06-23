@@ -21,6 +21,8 @@ import {
   deleteKomponenGaji,
   getTagihan,
   generateTagihanBulanan,
+  batalTagihanBulanan,
+  konfirmasiBuktiSpp,
   getBeasiswa,
   createBeasiswa,
   updateBeasiswa,
@@ -29,6 +31,7 @@ import {
   createKomponenSpp,
   updateKomponenSpp,
   deleteKomponenSpp,
+  getPembayaran,
 } from "../../api/finance";
 import { getSiswa } from "../../api/academic";
 import Profile from "../Profile";
@@ -181,7 +184,7 @@ const payrollMockData = [
 ];
 
 const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
-  const [sppPayments, setSppPayments] = useState(initialPayments);
+  const [sppPayments, setSppPayments] = useState([]);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [selectedYear, setSelectedYear] = useState("2025/2026");
@@ -336,29 +339,26 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     }
   }, []);
 
+  const BULAN_NAMES = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
   const loadTagihan = useCallback(async (params = {}) => {
     try {
-      const rows = await getTagihan(params);
+      // limit=1000 ensures all months are loaded; client-side billMonthFilter handles per-month view
+      const rows = await getTagihan({ limit: 1000, ...params });
       const formattedRows = (Array.isArray(rows) ? rows : []).map(row => {
-        const kelas = row.nama_kelas || row.class || '';
-        const getNominal = (k) => {
-          if (!k) return 1250000;
-          if (k.includes('VII') && !k.includes('VIII')) return 1250000;
-          if (k.includes('VIII')) return 1300000;
-          if (k.includes('IX')) return 1500000;
-          return 1250000;
-        };
-        const currentMonth = getBulanSekarang();
-        const paymentInfo = initialPaymentsRaw.find(p => (p.name === row.siswa_nama || p.name === row.name));
+        // DB stores bulan as number (1-12); convert to Indonesian month name
+        const bulanNum = parseInt(row.bulan);
+        const bulanNama = (!isNaN(bulanNum) && bulanNum >= 1 && bulanNum <= 12)
+          ? ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][bulanNum - 1]
+          : (row.bulan || '');
         return {
           ...row,
-          status: paymentInfo ? 'Lunas' : 'Belum Bayar',
-          tanggal_bayar: paymentInfo ? paymentInfo.tanggal_bayar : null,
-          nominal: getNominal(kelas),
-          bulan: currentMonth,
-          tahun: '2025',
-          period: `${currentMonth} 2025`,
-          jatuh_tempo: '2025-06-30'
+          status: row.status === 'lunas' ? 'Lunas' : (row.status === 'menunggu_konfirmasi' ? 'menunggu_konfirmasi' : 'Belum Lunas'),
+          nominal: Number(row.nominal_akhir || row.nominal || 0),
+          bulan: bulanNama,
+          tahun: row.tahun || '',
+          period: `${bulanNama} ${row.tahun || ''}`,
+          jatuh_tempo: row.jatuh_tempo || ''
         };
       });
       setStudentsBill(formattedRows);
@@ -457,12 +457,71 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     }
   }, []);
 
+  const loadPembayaran = useCallback(async () => {
+    try {
+      const rows = await getPembayaran();
+      if (Array.isArray(rows)) {
+        const mapped = rows.map(p => {
+          const d = p.tanggal_bayar ? new Date(p.tanggal_bayar) : new Date();
+          return {
+            id: p.id,
+            name: p.siswa_nama || '-',
+            kelas: p.nama_kelas ? p.nama_kelas.replace('Kelas ', '') : '-',
+            amount: `Rp ${Number(p.jumlah_bayar || 0).toLocaleString('id-ID')}`,
+            method: p.metode || 'Transfer Bank',
+            period: `${p.bulan || ''} ${p.tahun || ''}`,
+            month: p.bulan || '',
+            nis: p.nis || '-',
+            status: 'Lunas',
+            payer: 'Siswa/Orang Tua',
+            bank: p.bank || '-',
+            rekening: p.rekening || '-',
+            tanggal_bayar: p.tanggal_bayar,
+            date: d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + " WIB",
+            dateTime: d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) + " • " + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + " WIB"
+          };
+        });
+        setSppPayments(mapped);
+      }
+    } catch (e) {
+      console.error("loadPembayaran:", e);
+    }
+  }, []);
+
   const [generateForm, setGenerateForm] = useState({
     bulan: String(new Date().getMonth() + 1),
     tahun: String(new Date().getFullYear()),
     jatuh_tempo: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-10`
   });
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showCancelMonthModal, setShowCancelMonthModal] = useState(false);
+  const [cancelForm, setCancelForm] = useState({
+    bulan: new Date().getMonth() + 1,
+    tahun: new Date().getFullYear()
+  });
+  const [isCanceling, setIsCanceling] = useState(false);
+
+  // States for Bukti Pembayaran Verification
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
+  const [verifyData, setVerifyData] = useState(null);
+  const [isVerifying, setIsVerifying] = useState(false);
+
+  const handleVerifySubmit = async (action) => {
+    if (!verifyData) return;
+    setIsVerifying(true);
+    try {
+      await konfirmasiBuktiSpp(verifyData.id, { action });
+      setShowToast({ type: "success", message: `Bukti pembayaran berhasil di${action === 'terima' ? 'terima' : 'tolak'}!` });
+      setShowVerifyModal(false);
+      setVerifyData(null);
+      loadTagihan(); // Refresh tagihan table
+    } catch (err) {
+      console.error(err);
+      setShowToast({ type: "error", message: err?.response?.data?.message || "Terjadi kesalahan saat memverifikasi bukti" });
+    } finally {
+      setIsVerifying(false);
+    }
+  };
 
   // Seed programList from localStorage on first mount (before API call resolves)
   useEffect(() => {
@@ -478,7 +537,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     loadTagihan();
     loadBeasiswa();
     loadSiswa();
-  }, [loadKomponenSpp, loadKomponenGaji, loadTagihan, loadBeasiswa, loadSiswa]);
+    loadPembayaran();
+  }, [loadKomponenSpp, loadKomponenGaji, loadTagihan, loadBeasiswa, loadSiswa, loadPembayaran]);
 
   // Handlers
   const handleSaveKomponen = async () => {
@@ -845,6 +905,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     triggerToast("Sukses mencatat pembayaran siswa baru!");
   };
 
+  const [billMonthFilter, setBillMonthFilter] = useState(getBulanSekarang());
+  const [billYearFilter, setBillYearFilter] = useState(new Date().getFullYear().toString());
+
   const filteredBills = studentsBill.filter((row) => {
     if (row.status === "Lunas" || row.status?.toLowerCase() === "lunas") return false;
     
@@ -856,7 +919,10 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     const matchesSearch = name.toLowerCase().includes(billSearchQuery.toLowerCase()) ||
       nis.includes(billSearchQuery);
 
-    if (billClassFilter === "Semua") return matchesSearch;
+    const matchesMonth = billMonthFilter === "Semua Bulan" || row.bulan === billMonthFilter;
+    const matchesYear = billYearFilter === "Semua Tahun" || row.tahun?.toString() === billYearFilter;
+
+    if (billClassFilter === "Semua") return matchesSearch && matchesMonth && matchesYear;
     
     const targetGrade = billClassFilter.replace("Kelas ", "").trim();
     const getGradePart = (k) => {
@@ -866,7 +932,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     const gradePart = getGradePart(kelasFormatted);
     const matchesClass = gradePart === targetGrade;
     
-    return matchesSearch && matchesClass;
+    return matchesSearch && matchesClass && matchesMonth && matchesYear;
   });
 
   const formatBulan = (bulan, tahun) => {
@@ -1238,6 +1304,38 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   </div>
                 </div>
 
+                <div className="relative group w-full sm:w-auto">
+                  <select
+                    value={billYearFilter}
+                    onChange={(e) => setBillYearFilter(e.target.value)}
+                    className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
+                  >
+                    <option value="Semua Tahun">Semua Tahun</option>
+                    {[2024, 2025, 2026, 2027, 2028, 2029, 2030].map(y => (
+                      <option key={y} value={y.toString()}>{y}</option>
+                    ))}
+                  </select>
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+                    <IconChevronDown />
+                  </div>
+                </div>
+
+                <div className="relative group w-full sm:w-auto">
+                  <select
+                    value={billMonthFilter}
+                    onChange={(e) => setBillMonthFilter(e.target.value)}
+                    className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
+                  >
+                    <option value="Semua Bulan">Semua Bulan</option>
+                    {["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"].map(m => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+                    <IconChevronDown />
+                  </div>
+                </div>
+
                 
               </div>
             </div>
@@ -1301,6 +1399,28 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     })}
                   </div>
 
+                  {/* Generate Tagihan Button */}
+                  <button
+                    onClick={() => setShowGenerateMonthModal(true)}
+                    className="flex items-center gap-2 justify-center bg-emerald-600 hover:bg-emerald-700 text-white border-none rounded-xl px-5 py-2 text-xs font-bold cursor-pointer transition-all active:scale-95 shadow-sm"
+                  >
+                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    Generate Tagihan
+                  </button>
+
+                  {/* Batalkan Tagihan Button */}
+                  <button
+                    onClick={() => setShowCancelMonthModal(true)}
+                    className="flex items-center gap-2 justify-center bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl px-4 py-2 text-xs font-bold cursor-pointer transition-all active:scale-95 shadow-sm"
+                  >
+                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                    </svg>
+                    Batal
+                  </button>
+
                   {/* Kirim Notifikasi Button */}
                   <button
                     onClick={() => {
@@ -1328,6 +1448,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                       <th className="pb-3 px-3">BULAN</th>
                       <th className="pb-3 px-3">JATUH TEMPO</th>
                       <th className="pb-3 px-3">STATUS</th>
+                      <th className="pb-3 px-3 text-center">AKSI</th>
                     </tr>
                   </thead>
                               <tbody className="divide-y divide-gray-50 text-xs">
@@ -1350,10 +1471,24 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                       <td className="py-4 px-3">
                                         <span className={`px-2.5 py-1 rounded-md font-bold inline-block text-[10px] no-underline ${
                                           (row.status === "Lunas" || row.status?.toLowerCase() === "lunas") ? "bg-emerald-50 text-emerald-600" :
+                                          (row.status === "menunggu_konfirmasi" || row.status?.toLowerCase() === "menunggu konfirmasi") ? "bg-amber-50 text-amber-600" :
                                           "bg-red-50 text-red-500"
                                         }`}>
-                                          {row.status || "Belum Lunas"}
+                                          {row.status === "menunggu_konfirmasi" ? "Menunggu Konfirmasi" : (row.status || "Belum Lunas")}
                                         </span>
+                                      </td>
+                                      <td className="py-4 px-3 text-center">
+                                        {(row.status === "menunggu_konfirmasi" || row.status?.toLowerCase() === "menunggu konfirmasi") && (
+                                          <button
+                                            onClick={() => {
+                                              setVerifyData(row);
+                                              setShowVerifyModal(true);
+                                            }}
+                                            className="px-3 py-1.5 bg-[#1A3D63] text-white text-[10px] font-bold rounded-lg hover:bg-blue-900 transition-colors cursor-pointer border-none shadow-sm"
+                                          >
+                                            Verifikasi
+                                          </button>
+                                        )}
                                       </td>
                                     </tr>
                                   ))
@@ -1363,6 +1498,55 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               </div>
             </div>
           </div>
+
+            {/* MODAL VERIFIKASI BUKTI */}
+            {showVerifyModal && verifyData && (
+              <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+                  <div className="p-5 sm:p-6 border-b border-gray-100 flex items-center justify-between bg-white">
+                    <h2 className="text-lg font-bold text-gray-800">Verifikasi Bukti Pembayaran</h2>
+                    <button onClick={() => { setShowVerifyModal(false); setVerifyData(null); }} className="text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer p-1">
+                      <IconX />
+                    </button>
+                  </div>
+                  <div className="p-5 sm:p-6 space-y-4">
+                    <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                      <p className="text-[12px] text-gray-500 mb-1 font-semibold uppercase">Detail Tagihan</p>
+                      <p className="text-[14px] font-bold text-[#1A3D63]">{verifyData.siswa_nama || verifyData.name}</p>
+                      <p className="text-[12px] text-gray-600 mt-0.5">Bulan {formatBulan(verifyData.bulan, verifyData.tahun)} - Rp {Number(verifyData.nominal).toLocaleString('id-ID')}</p>
+                    </div>
+                    {verifyData.bukti_pembayaran_url ? (
+                      <div>
+                        <p className="text-[12px] font-bold text-gray-700 mb-2">Gambar Bukti:</p>
+                        <div className="border border-gray-200 rounded-xl overflow-hidden bg-gray-50 flex justify-center p-2">
+                          <img src={verifyData.bukti_pembayaran_url} alt="Bukti Transfer" className="max-w-full h-auto max-h-[300px] object-contain rounded-lg" />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="py-8 text-center text-gray-500 text-sm bg-gray-50 rounded-xl border border-gray-200 border-dashed">
+                        File bukti pembayaran tidak ditemukan.
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-5 sm:p-6 border-t border-gray-100 bg-gray-50 flex gap-3">
+                    <button
+                      onClick={() => handleVerifySubmit('tolak')}
+                      disabled={isVerifying}
+                      className="flex-1 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-xl border border-red-200 transition-colors cursor-pointer"
+                    >
+                      {isVerifying ? "Loading..." : "Tolak"}
+                    </button>
+                    <button
+                      onClick={() => handleVerifySubmit('terima')}
+                      disabled={isVerifying}
+                      className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl border-none transition-colors cursor-pointer shadow-sm"
+                    >
+                      {isVerifying ? "Loading..." : "Terima & Lunas"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* MODAL KIRIM NOTIFIKASI */}
             {showNotificationModal && (() => {
@@ -3081,7 +3265,11 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                       jatuh_tempo: generateForm.jatuh_tempo
                     });
                     setShowGenerateMonthModal(false);
-                    triggerToast(`Berhasil generate ${result.generated ?? ''} tagihan SPP!`);
+                    const generatedBulanNama = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][parseInt(generateForm.bulan) - 1];
+                    const msgStr = `Berhasil generate ${result.generated ?? 0} baru${result.updated ? ` & update ${result.updated} tagihan` : ''} SPP bulan ${generatedBulanNama} ${generateForm.tahun}!`;
+                    triggerToast(msgStr);
+                    setBillMonthFilter(generatedBulanNama);
+                    setBillYearFilter(generateForm.tahun.toString());
                     loadTagihan();
                   } catch (e) {
                     console.error(e);
@@ -3100,6 +3288,101 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     Generating...
                   </>
                 ) : 'Konfirmasi Generate'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Month Modal Dialog */}
+      {showCancelMonthModal && (
+        <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowCancelMonthModal(false)}
+          />
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-[480px] w-full relative z-10 shadow-2xl animate-scaleUp font-sans border-t-4 border-red-500">
+            <div className="mb-6">
+              <h3 className="text-xl font-bold text-[#1e293b]">Batalkan Tagihan SPP</h3>
+              <p className="text-[13px] text-gray-400 mt-1">Hapus tagihan SPP massal untuk bulan tertentu</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-5">
+              <div>
+                <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Bulan</label>
+                <select
+                  value={cancelForm.bulan}
+                  onChange={(e) => setCancelForm({ ...cancelForm, bulan: e.target.value })}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-700 focus:outline-none focus:border-red-500 appearance-none"
+                >
+                  {['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'].map((m, i) => (
+                    <option key={i + 1} value={String(i + 1)}>{m}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Tahun</label>
+                <input
+                  type="number"
+                  value={cancelForm.tahun}
+                  onChange={(e) => setCancelForm({ ...cancelForm, tahun: e.target.value })}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-red-500"
+                />
+              </div>
+            </div>
+
+            <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex gap-3 mb-6">
+              <div className="text-red-500 flex-shrink-0 mt-0.5">
+                <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <p className="text-[13px] text-red-700 leading-relaxed">
+                Hanya tagihan dengan status <strong>'Belum Lunas'</strong> yang akan dihapus. Tagihan yang sudah lunas tidak akan terpengaruh. Tindakan ini tidak dapat dibatalkan.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowCancelMonthModal(false)}
+                disabled={isCanceling}
+                className="flex-1 bg-white border border-gray-200 hover:bg-gray-50 text-gray-500 py-3 rounded-xl text-[13px] font-bold cursor-pointer transition-all"
+              >
+                Kembali
+              </button>
+              <button
+                onClick={async () => {
+                  if (!cancelForm.bulan || !cancelForm.tahun) {
+                    triggerToast('Bulan dan tahun wajib diisi');
+                    return;
+                  }
+                  setIsCanceling(true);
+                  try {
+                    const result = await batalTagihanBulanan({
+                      bulan: parseInt(cancelForm.bulan),
+                      tahun: parseInt(cancelForm.tahun)
+                    });
+                    setShowCancelMonthModal(false);
+                    const canceledBulanNama = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][parseInt(cancelForm.bulan) - 1];
+                    triggerToast(`Berhasil membatalkan ${result.data?.deletedCount ?? 0} tagihan SPP bulan ${canceledBulanNama} ${cancelForm.tahun}!`);
+                    loadTagihan();
+                  } catch (e) {
+                    console.error(e);
+                    const msg = e?.response?.data?.message || 'Gagal membatalkan tagihan';
+                    triggerToast(msg);
+                  } finally {
+                    setIsCanceling(false);
+                  }
+                }}
+                disabled={isCanceling}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl text-[13px] font-bold cursor-pointer border-none shadow-sm transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+              >
+                {isCanceling ? (
+                  <>
+                    <svg className="animate-spin" width="16" height="16" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" /></svg>
+                    Membatalkan...
+                  </>
+                ) : 'Hapus Tagihan'}
               </button>
             </div>
           </div>

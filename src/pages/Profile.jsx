@@ -32,7 +32,7 @@ const Profile = ({ user }) => {
   const [showToast, setShowToast] = useState(false);
 
   const [profileData, setProfileData] = useState({
-    fullName: user?.fullName || "Siti Aminah",
+    fullName: user?.nama || "Siti Aminah",
     email: "siti.keuangan@siakad.id",
     phone: "+62 812-3456-7890",
     address: "Jl. Pendidikan No. 1, Kel. Menteng, Kec. Menteng, Jakarta Pusat, DKI Jakarta 10310",
@@ -101,7 +101,7 @@ const Profile = ({ user }) => {
             {
               /* Name & Role */
             }
-            <h2 className="text-[20px] font-bold text-[#1F2937] mb-1">{user?.fullName || "Siti Aminah"}</h2>
+            <h2 className="text-[20px] font-bold text-[#1F2937] mb-1">{user?.nama || "Siti Aminah"}</h2>
             <p className="text-[13px] text-gray-500">Bendahara</p>
 
             <div className="w-full h-px bg-gray-100 mb-6" />

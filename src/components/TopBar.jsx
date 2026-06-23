@@ -60,14 +60,14 @@ const TopBar = ({ user, onToggle, onLogout, onProfileClick }) => {
           >
             <div className="hidden md:flex flex-col items-end">
               <span className="text-[13px] font-black leading-tight text-white">
-                {user?.role === "Bendahara" ? "Siti Aminah" : (user?.fullName || user?.name || "Guest")}
+                {user?.role === "Bendahara" ? "Siti Aminah" : (user?.nama || "Guest")}
               </span>
               <span className="text-[10px] font-bold opacity-60 uppercase tracking-widest mt-0.5 text-white">{user?.role || "Visitor"}</span>
             </div>
             <div className="relative">
               <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-white font-black text-xs border border-white/10 shadow-sm overflow-hidden">
                  <div className="w-full h-full bg-[#7C8FA9] flex items-center justify-center text-white font-bold text-xs">
-                   {getInitials(user?.fullName || user?.name, user?.role)}
+                   {getInitials(user?.nama, user?.role)}
                  </div>
               </div>
             </div>

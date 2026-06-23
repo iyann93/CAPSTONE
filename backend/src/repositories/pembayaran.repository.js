@@ -21,10 +21,12 @@ const PembayaranRepository = {
       SELECT tp.*, 
              t.bulan, t.tahun, t.nominal_akhir AS tagihan_nominal,
              s.nama_lengkap AS siswa_nama, s.nis,
+             k.nama_kelas,
              u.nama AS pencatat_nama
       FROM finance.transaksi_pembayaran tp
       INNER JOIN finance.tagihan_spp t ON tp.tagihan_id = t.id
       INNER JOIN academic.siswa s ON t.siswa_id = s.id
+      LEFT JOIN academic.kelas k ON s.kelas_id = k.id
       LEFT JOIN shared.users u ON tp.dicatat_oleh = u.id
       ${where}
       ${orderBy}
@@ -45,10 +47,11 @@ const PembayaranRepository = {
 
   findById: async (id) => {
     const sql = `
-      SELECT tp.*, t.bulan, t.tahun, t.nominal_akhir, s.nama_lengkap AS siswa_nama, s.nis
+      SELECT tp.*, t.bulan, t.tahun, t.nominal_akhir, s.nama_lengkap AS siswa_nama, s.nis, k.nama_kelas
       FROM finance.transaksi_pembayaran tp
       INNER JOIN finance.tagihan_spp t ON tp.tagihan_id = t.id
       INNER JOIN academic.siswa s ON t.siswa_id = s.id
+      LEFT JOIN academic.kelas k ON s.kelas_id = k.id
       WHERE tp.id = $1
     `;
     const res = await query(sql, [id]);

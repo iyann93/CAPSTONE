@@ -47,6 +47,13 @@ const SystemController = {
     } catch (err) { next(err); }
   },
 
+  getSiswaList: async (req, res, next) => {
+    try {
+      const siswa = await SystemService.getSiswaList();
+      return response.success(res, 200, 'Berhasil mengambil daftar siswa', siswa);
+    } catch (err) { next(err); }
+  },
+
   createUser: async (req, res, next) => {
     try {
       const user = await SystemService.createUser(req.body);

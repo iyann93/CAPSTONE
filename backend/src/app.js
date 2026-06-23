@@ -41,6 +41,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(httpLogger);
 
+// Serve static files (like uploaded images)
+const path = require('path');
+app.use('/public', express.static(path.join(__dirname, '../public')));
+
 // ─── Health Check ─────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => {
   res.status(200).json({ success: true, message: 'Server is running', timestamp: new Date().toISOString() });

@@ -1,26 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { getTagihan, uploadBuktiSpp } from "../../api/finance";
 
-const initTagihan = [
-  { id: 1, bulan: "Januari 2026", nominal: 1250000, jatuhTempo: "10 Jan 2026", status: "Belum Lunas", denda: 0 },
-  { id: 2, bulan: "Desember 2025", nominal: 1250000, jatuhTempo: "10 Des 2025", status: "Menunggu", tglBayar: "9 Des 2025", denda: 0, bukti: "https://via.placeholder.com/300x200?text=Bukti+Transfer" },
-  { id: 3, bulan: "November 2025", nominal: 1250000, jatuhTempo: "10 Nov 2025", status: "Lunas", tglBayar: "7 Nov 2025", denda: 0, bukti: "https://via.placeholder.com/300x200?text=Bukti+Transfer" },
-  { id: 4, bulan: "Oktober 2025", nominal: 1250000, jatuhTempo: "10 Okt 2025", status: "Lunas", tglBayar: "5 Okt 2025", denda: 0 },
-  { id: 5, bulan: "September 2025", nominal: 1250000, jatuhTempo: "10 Sep 2025", status: "Lunas", tglBayar: "9 Sep 2025", denda: 0 },
-  { id: 6, bulan: "Agustus 2025", nominal: 1250000, jatuhTempo: "10 Agu 2025", status: "Lunas", tglBayar: "8 Agu 2025", denda: 0 },
-  { id: 7, bulan: "Juli 2025", nominal: 1250000, jatuhTempo: "10 Jul 2025", status: "Lunas", tglBayar: "5 Jul 2025", denda: 0 },
-];
-
-const fmt = (n) => "Rp " + n.toLocaleString("id-ID");
+const fmt = (n) => "Rp " + Number(n).toLocaleString("id-ID");
+const getBulanNama = (b) => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][b-1];
 
 const TagihanSPP = ({ onNavigate }) => {
-  const [tagihan, setTagihan] = useState(() => {
-    const saved = localStorage.getItem("orangtua_tagihan_v3");
-    return saved ? JSON.parse(saved) : initTagihan;
-  });
+  const [tagihan, setTagihan] = useState([]);
+  const [loadingData, setLoadingData] = useState(true);
 
   // States untuk Upload Bukti
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [selectedTagihanId, setSelectedTagihanId] = useState("");
+
+  const loadData = async () => {
+    try {
+      setLoadingData(true);
+      const res = await getTagihan({ limit: 100 });
+      setTagihan(res);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -28,24 +35,40 @@ const TagihanSPP = ({ onNavigate }) => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!selectedTagihanId) {
+      alert("Silakan pilih tagihan yang ingin dibayar.");
+      return;
+    }
     if (!file) {
       alert("Silakan unggah bukti transfer terlebih dahulu.");
       return;
     }
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      alert("Bukti pembayaran berhasil diunggah!");
+    try {
+      const formData = new FormData();
+      formData.append("bukti", file);
+      await uploadBuktiSpp(selectedTagihanId, formData);
+      alert("Bukti pembayaran berhasil diunggah! Menunggu konfirmasi bendahara.");
       setFile(null);
-    }, 2000);
+      setSelectedTagihanId("");
+      loadData();
+    } catch (err) {
+      console.error(err);
+      alert(err?.response?.data?.message || "Gagal mengunggah bukti pembayaran");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const lunas = tagihan.filter(t => t.status === "Lunas").length;
-  const belumLunas = tagihan.filter(t => t.status === "Belum Lunas").length;
-  const totalLunas = tagihan.filter(t => t.status === "Lunas").reduce((a, c) => a + c.nominal, 0);
-  const totalBelum = tagihan.filter(t => t.status === "Belum Lunas").reduce((a, c) => a + c.nominal, 0);
+  const lunas = tagihan.filter(t => t.status === "lunas").length;
+  const belumLunas = tagihan.filter(t => t.status === "belum_bayar").length;
+  const menunggu = tagihan.filter(t => t.status === "menunggu_konfirmasi").length;
+  const totalLunas = tagihan.filter(t => t.status === "lunas").reduce((a, c) => a + Number(c.nominal), 0);
+  const totalBelum = tagihan.filter(t => t.status === "belum_bayar" || t.status === "menunggu_konfirmasi").reduce((a, c) => a + Number(c.nominal), 0);
+
+  const tagihanBelumBayar = tagihan.filter(t => t.status === "belum_bayar");
 
   return (
     <div className="p-6 md:p-8 space-y-6 animate-fadeIn bg-[#F4F6FA] min-h-full">
@@ -56,35 +79,28 @@ const TagihanSPP = ({ onNavigate }) => {
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
           <h1 className="text-[26px] font-bold text-[#1e293b]">Tagihan SPP</h1>
-          <p className="text-[14px] text-gray-500 mt-1">Ahmad Fauzi · Kelas VIII A · Tahun Ajaran 2025/2026</p>
+          <p className="text-[14px] text-gray-500 mt-1">Pembayaran SPP dan Konfirmasi</p>
         </div>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { label: "Total Tagihan", val: fmt(totalBelum), sub: `${belumLunas} bulan belum dibayar` },
-          { label: "Total Sudah Dibayar", val: fmt(totalLunas), sub: `Total keseluruhan dana` },
-          { label: "Jatuh Tempo Terdekat", val: belumLunas > 0 ? tagihan.find(t => t.status === "Belum Lunas")?.jatuhTempo || "10 Jul 2025" : "Tidak ada tagihan", sub: "Segera lunasi sebelum tanggal ini", highlight: true },
+          { label: "Total Tagihan Aktif", val: fmt(totalBelum), sub: `${belumLunas + menunggu} bulan tagihan` },
+          { label: "Total Sudah Dibayar", val: fmt(totalLunas), sub: `Total tagihan lunas` },
+          { label: "Proses Verifikasi", val: menunggu + " Tagihan", sub: "Menunggu konfirmasi bendahara", highlight: menunggu > 0 },
         ].map((card, i) => (
           <div key={i} className={`rounded-2xl p-5 shadow-sm flex flex-col justify-between transition-all ${
-            card.highlight ? "bg-red-50 border border-red-100 ring-1 ring-red-100" : "bg-white border border-gray-100"
+            card.highlight ? "bg-amber-50 border border-amber-100 ring-1 ring-amber-100" : "bg-white border border-gray-100"
           }`}>
             <div className="flex items-center gap-1.5 mb-2">
-              {card.highlight && (
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" className="text-red-500">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              )}
-              <p className={`text-[11px] font-bold uppercase tracking-wider ${card.highlight ? "text-red-600" : "text-gray-400"}`}>{card.label}</p>
+              <p className={`text-[11px] font-bold uppercase tracking-wider ${card.highlight ? "text-amber-600" : "text-gray-400"}`}>{card.label}</p>
             </div>
-            <p className={`text-[26px] font-black leading-tight ${card.highlight ? "text-red-600" : "text-[#1e293b]"}`}>{card.val}</p>
-            {card.sub && <p className={`text-[12px] mt-1 font-medium ${card.highlight ? "text-red-500" : "text-gray-500"}`}>{card.sub}</p>}
+            <p className={`text-[26px] font-black leading-tight ${card.highlight ? "text-amber-600" : "text-[#1e293b]"}`}>{card.val}</p>
+            {card.sub && <p className={`text-[12px] mt-1 font-medium ${card.highlight ? "text-amber-500" : "text-gray-500"}`}>{card.sub}</p>}
           </div>
         ))}
       </div>
-
-
 
       {/* Pembayaran Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -114,8 +130,24 @@ const TagihanSPP = ({ onNavigate }) => {
 
         {/* Upload Proof */}
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col h-full space-y-4">
-          <h3 className="text-[16px] font-bold text-gray-800">Unggah Bukti Pembayaran</h3>
+          <h3 className="text-[16px] font-bold text-gray-800">Konfirmasi Pembayaran</h3>
           
+          <div>
+            <label className="block text-[12px] font-bold text-gray-500 mb-1.5 uppercase">Pilih Tagihan <span className="text-red-500">*</span></label>
+            <select
+              value={selectedTagihanId}
+              onChange={(e) => setSelectedTagihanId(e.target.value)}
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] focus:outline-none focus:border-blue-400"
+            >
+              <option value="">-- Pilih Bulan Tagihan --</option>
+              {tagihanBelumBayar.map(t => (
+                <option key={t.id} value={t.id}>
+                  Bulan {getBulanNama(t.bulan)} {t.tahun} - {fmt(t.nominal)}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="flex-1 border-2 border-dashed border-gray-200 hover:border-blue-400 rounded-2xl p-6 flex flex-col justify-center items-center text-center cursor-pointer transition-colors relative bg-gray-50/50">
             <input
               type="file"
@@ -131,16 +163,16 @@ const TagihanSPP = ({ onNavigate }) => {
               </div>
               <div>
                 <p className="text-[13px] font-bold text-gray-700">{file ? file.name : "Pilih File Bukti Bayar"}</p>
-                <p className="text-[11px] text-gray-400 mt-1">Format JPG, PNG, atau PDF (Max 2MB)</p>
+                <p className="text-[11px] text-gray-400 mt-1">Format JPG, PNG, atau PDF (Max 5MB)</p>
               </div>
             </div>
           </div>
 
           <button
             type="submit"
-            disabled={loading || !file}
+            disabled={loading || !file || !selectedTagihanId}
             className={`w-full py-3.5 text-[14px] font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 ${
-              loading ? "bg-blue-100 text-blue-400 cursor-not-allowed" : !file ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700 text-white"
+              loading ? "bg-blue-100 text-blue-400 cursor-not-allowed" : (!file || !selectedTagihanId) ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-green-600 hover:bg-green-700 text-white"
             }`}
           >
             {loading ? "Mengunggah Bukti..." : "Kirim Konfirmasi Pembayaran"}

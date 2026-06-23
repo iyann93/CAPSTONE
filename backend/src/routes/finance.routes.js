@@ -12,8 +12,13 @@ router.post('/komponen-spp',       verifyToken, authorize('spp.manage'), Finance
 router.put('/komponen-spp/:id',    verifyToken, authorize('spp.manage'), FinanceController.updateKomponenSpp);
 router.delete('/komponen-spp/:id', verifyToken, authorize('spp.manage'), FinanceController.deleteKomponenSpp);
 
+const upload = require('../middleware/upload');
+
 // ==== SPP (Tagihan) ====
 router.post('/spp/generate-bulanan', verifyToken, authorize('spp.create'), FinanceController.generateTagihanBulanan);
+router.delete('/spp/batal-bulanan', verifyToken, authorize('spp.manage'), FinanceController.deleteTagihanBulanan);
+router.post('/spp/upload-bukti/:id', verifyToken, authorize('spp.read'), upload.single('bukti'), FinanceController.uploadBuktiSpp);
+router.post('/spp/konfirmasi-bukti/:id', verifyToken, authorize('spp.manage'), FinanceController.konfirmasiBuktiSpp);
 router.post('/spp',  verifyToken, authorize('spp.create'),  createTagihanValidator, FinanceController.createTagihan);
 router.get('/spp',   verifyToken, authorize('spp.read'),    FinanceController.getAllTagihan);
 
