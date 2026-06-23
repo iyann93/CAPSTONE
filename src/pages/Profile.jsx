@@ -35,7 +35,7 @@ const Profile = ({ user }) => {
 
   const [profileData, setProfileData] = useState({
     fullName: user?.fullName || (isWali ? "Asih Kinanti, S.Pd" : "Siti Aminah"),
-    email: isWali ? "asih.kinanti@siakad.id" : "siti.keuangan@siakad.id",
+    email: isWali ? "asihkinanti@siakad.id" : "siti.keuangan@siakad.id",
     phone: isWali ? "+62 856-1234-9988" : "+62 812-3456-7890",
     address: isWali ? "Jl. Pramuka No. 45, Sleman, DI Yogyakarta 55281" : "Jl. Pendidikan No. 1, Kel. Menteng, Jakarta Pusat 10310",
     nip: isWali ? "198807152010012015" : "198507232010011015"

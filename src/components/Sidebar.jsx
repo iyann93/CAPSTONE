@@ -310,6 +310,7 @@ const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) =>
             <div className="flex flex-col min-w-0">
               <span className="text-[13px] font-bold text-[#1A3D63] truncate leading-tight">{user?.role === "Bendahara" ? "Siti Aminah" : user?.role === "Wali Kelas" ? "Asih Kinanti, S.Pd" : (user?.fullName || "Dr.Wahyu")}</span>
               <span className="text-[11px] text-[#4A7FA7] font-medium leading-tight mt-0.5">{user?.role || "Admin TU"}</span>
+            </div>
           </div>
         </div>
       )}
