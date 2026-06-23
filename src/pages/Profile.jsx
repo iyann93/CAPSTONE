@@ -32,7 +32,7 @@ const Profile = ({ user }) => {
   const [showToast, setShowToast] = useState(false);
 
   const isWali = user?.role === "Wali Kelas";
-  
+
   const [profileData, setProfileData] = useState({
     fullName: user?.fullName || (isWali ? "Asih Kinanti, S.Pd" : "Siti Aminah"),
     email: isWali ? "asih.kinanti@siakad.id" : "siti.keuangan@siakad.id",

@@ -113,51 +113,58 @@ const KomponenSppRepository = {
 
       let generated = 0;
       let skipped = 0;
+      let updated = 0;
 
       // 1. Pre-fetch existing tagihan for this period to avoid N+1 queries
-      let existingQuery = `SELECT siswa_id, komponen_spp_id FROM finance.tagihan_spp WHERE bulan = $1 AND tahun = $2`;
-      const existingParams = [bulan, tahun];
-      const existingRes = await client.query(existingQuery, existingParams);
-      const existingSet = new Set(existingRes.rows.map(r => `${r.siswa_id}-${r.komponen_spp_id}`));
+      const existingRes = await client.query(
+        `SELECT id, siswa_id, komponen_spp_id, nominal, status FROM finance.tagihan_spp WHERE bulan = $1 AND tahun = $2`,
+        [bulan, tahun]
+      );
+      // Map key -> existing row
+      const existingMap = new Map(existingRes.rows.map(r => [`${r.siswa_id}-${r.komponen_spp_id}`, r]));
 
-      // 2. Prepare bulk insert data
+      // 2. Prepare bulk insert and update data
       const insertValues = [];
       const queryParams = [];
+      const updateCases = []; // rows to update nominal
 
       for (const siswa of siswaList) {
-        // Find applicable komponen for this student's kelas
         const applicableKomponen = komponenList.filter(k =>
           k.kelas_id === null || k.kelas_id === siswa.kelas_id
         );
 
         for (const komp of applicableKomponen) {
           const key = `${siswa.id}-${komp.id}`;
-          if (existingSet.has(key)) {
-            skipped++;
+          const existing = existingMap.get(key);
+
+          if (existing) {
+            // If nominal changed and tagihan not yet paid → update
+            if (existing.status === 'belum_bayar' && parseFloat(existing.nominal) !== parseFloat(komp.nominal)) {
+              updateCases.push({ id: existing.id, nominal: komp.nominal });
+              updated++;
+            } else {
+              skipped++;
+            }
             continue;
           }
 
           const jatuhTempo = new Date(tahun, bulan - 1, komp.default_jatuh_tempo || 10);
-          
           insertValues.push(`($$, $$, $$, $$, $$, 0, 'belum_bayar', $$, NOW(), NOW(), $$)`);
           queryParams.push(siswa.id, komp.id, bulan, tahun, komp.nominal, jatuhTempo, userId);
           generated++;
         }
       }
 
-      // 3. Execute bulk insert in chunks (max 1000 rows per chunk to avoid parameter limits)
+      // 3. Execute bulk insert in chunks
       if (insertValues.length > 0) {
-        const CHUNK_SIZE = 500; // 500 rows = 3500 params per query
+        const CHUNK_SIZE = 500;
         for (let i = 0; i < insertValues.length; i += CHUNK_SIZE) {
           const chunkValues = insertValues.slice(i, i + CHUNK_SIZE);
           const chunkParams = queryParams.slice(i * 7, (i + CHUNK_SIZE) * 7);
-          
-          // Re-index $1, $2, $3, etc. for each chunk
           let paramIdx = 1;
-          const formattedChunk = chunkValues.map(valStr => {
-            return valStr.replace(/\$\$/g, () => `$${paramIdx++}`);
-          });
-
+          const formattedChunk = chunkValues.map(valStr =>
+            valStr.replace(/\$\$/g, () => `$${paramIdx++}`)
+          );
           await client.query(`
             INSERT INTO finance.tagihan_spp 
               (siswa_id, komponen_spp_id, bulan, tahun, nominal, potongan, status, jatuh_tempo, created_at, updated_at, updated_by)
@@ -166,14 +173,37 @@ const KomponenSppRepository = {
         }
       }
 
+      // 4. Update nominal for changed belum_bayar tagihan
+      for (const upd of updateCases) {
+        await client.query(
+          `UPDATE finance.tagihan_spp SET nominal = $1, updated_at = NOW(), updated_by = $2 WHERE id = $3`,
+          [upd.nominal, userId, upd.id]
+        );
+      }
+
       await client.query('COMMIT');
-      return { generated, skipped, total_siswa: siswaList.length };
+      return { generated, skipped, updated, total_siswa: siswaList.length };
     } catch (err) {
       await client.query('ROLLBACK');
       throw err;
     } finally {
       client.release();
     }
+  },
+
+  /**
+   * Hapus tagihan SPP massal untuk bulan dan tahun tertentu (hanya yang belum_bayar)
+   * @param {number} bulan
+   * @param {number} tahun
+   */
+  deleteBulanan: async (bulan, tahun) => {
+    const sql = `
+      DELETE FROM finance.tagihan_spp
+      WHERE bulan = $1 AND tahun = $2 AND status = 'belum_bayar'
+      RETURNING id
+    `;
+    const res = await require('../config/db').query(sql, [bulan, tahun]);
+    return res.rows.length;
   }
 };
 

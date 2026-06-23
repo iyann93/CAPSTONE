@@ -25,6 +25,22 @@ export const generateTagihanBulanan = (payload) =>
   // payload: { bulan, tahun, jatuh_tempo }
   api.post('/finance/spp/generate-bulanan', payload).then((r) => r.data);
 
+/** Batalkan tagihan SPP bulanan untuk bulan dan tahun tertentu (hanya yang belum lunas) */
+export const batalTagihanBulanan = (payload) =>
+  // payload: { bulan, tahun }
+  api.delete('/finance/spp/batal-bulanan', { data: payload }).then((r) => r.data);
+
+/** Upload Bukti Pembayaran SPP (Multipart/form-data) */
+export const uploadBuktiSpp = (id, formData) =>
+  api.post(`/finance/spp/upload-bukti/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }).then((r) => r.data);
+
+/** Konfirmasi Bukti Pembayaran SPP (action: 'terima' atau 'tolak') */
+export const konfirmasiBuktiSpp = (id, payload) =>
+  // payload: { action: 'terima' | 'tolak' }
+  api.post(`/finance/spp/konfirmasi-bukti/${id}`, payload).then((r) => r.data);
+
 /** Ambil daftar tagihan (opsional: search, kelasId, bulan, tahun, status) */
 export const getTagihan = (params = {}) =>
   api.get('/finance/spp', { params }).then((r) => r.data.data);

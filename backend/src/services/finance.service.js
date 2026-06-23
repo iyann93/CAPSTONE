@@ -31,6 +31,10 @@ const FinanceService = {
     return KomponenSppRepository.generateBulanan(bulan, tahun, userId, kelasId);
   },
 
+  deleteTagihanBulanan: async (bulan, tahun) => {
+    return KomponenSppRepository.deleteBulanan(bulan, tahun);
+  },
+
   // === SPP TAGIHAN ===
   getAllTagihan: async (query) => {
     const { page, limit, offset } = paginate(query);
@@ -41,6 +45,34 @@ const FinanceService = {
   
   createTagihan: async (body, userId) => {
     return SppRepository.createTagihan(body, userId);
+  },
+
+  uploadBuktiSpp: async (tagihanId, fileUrl) => {
+    const tagihan = await SppRepository.findById(tagihanId);
+    if (!tagihan) throw Object.assign(new Error('Tagihan tidak ditemukan'), { statusCode: 404 });
+    if (tagihan.status === 'lunas') throw Object.assign(new Error('Tagihan sudah lunas'), { statusCode: 400 });
+    return SppRepository.updateBuktiUrl(tagihanId, fileUrl);
+  },
+
+  konfirmasiBuktiSpp: async (tagihanId, action, userId) => {
+    const tagihan = await SppRepository.findById(tagihanId);
+    if (!tagihan) throw Object.assign(new Error('Tagihan tidak ditemukan'), { statusCode: 404 });
+    if (tagihan.status !== 'menunggu_konfirmasi') throw Object.assign(new Error('Status tagihan bukan menunggu konfirmasi'), { statusCode: 400 });
+
+    if (action === 'tolak') {
+      return SppRepository.tolakBukti(tagihanId);
+    } else if (action === 'terima') {
+      // Process payment (this will update tagihan status to lunas and create transaksi)
+      const dataPembayaran = {
+        tagihan_id: tagihanId,
+        jumlah_bayar: tagihan.nominal,
+        metode: 'Transfer Bank',
+        keterangan: 'Pembayaran via upload bukti (dikonfirmasi bendahara)'
+      };
+      return FinanceService.processPembayaran(dataPembayaran, userId);
+    } else {
+      throw Object.assign(new Error('Aksi tidak valid'), { statusCode: 400 });
+    }
   },
 
   // === PEMBAYARAN ===

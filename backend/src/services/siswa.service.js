@@ -17,21 +17,34 @@ const SiswaService = {
     return data;
   },
 
-  create: async (body) => {
-    const { nis, nama_lengkap, jenisKelamin, tanggalLahir, alamat, status, kelasId } = body;
+  create: async ({ nis, nisn, nama_lengkap, jenisKelamin, tempatLahir, tanggalLahir, alamat, status, kelasId }) => {
+    // Check if NIS already exists
     const existing = await SiswaRepository.findByNis(nis);
-    if (existing) { const e = new Error('NIS sudah terdaftar'); e.statusCode = 409; throw e; }
-    return SiswaRepository.create({ nis, nama_lengkap, jenisKelamin, tanggalLahir, alamat, status, kelasId });
+    if (existing) {
+      const err = new Error('NIS sudah terdaftar');
+      err.statusCode = 400;
+      throw err;
+    }
+    return await SiswaRepository.create({ nis, nisn, nama_lengkap, jenisKelamin, tempatLahir, tanggalLahir, alamat, status, kelasId });
   },
 
-  update: async (id, body) => {
-    await SiswaService.getById(id);
-    const { nis, nama_lengkap, jenisKelamin, tanggalLahir, alamat, status, kelasId } = body;
-    if (nis) {
-      const dup = await SiswaRepository.findByNis(nis, id);
-      if (dup) { const e = new Error('NIS sudah digunakan'); e.statusCode = 409; throw e; }
+  update: async (id, { nis, nisn, nama_lengkap, jenisKelamin, tempatLahir, tanggalLahir, alamat, status, kelasId }) => {
+    const existing = await SiswaRepository.findById(id);
+    if (!existing) {
+      const err = new Error('Data siswa tidak ditemukan');
+      err.statusCode = 404;
+      throw err;
     }
-    return SiswaRepository.update(id, { nis, nama_lengkap, jenisKelamin, tanggalLahir, alamat, status, kelasId });
+    // Check NIS conflict
+    if (nis) {
+      const nisConflict = await SiswaRepository.findByNis(nis, id);
+      if (nisConflict) {
+        const err = new Error('NIS sudah terdaftar untuk siswa lain');
+        err.statusCode = 400;
+        throw err;
+      }
+    }
+    return await SiswaRepository.update(id, { nis, nama_lengkap, jenisKelamin, tempatLahir, tanggalLahir, alamat, status, kelasId });
   },
 
   delete: async (id) => {

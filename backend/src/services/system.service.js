@@ -9,7 +9,6 @@ const SystemService = {
 
   getAllRoles: async () => {
     const roles = await SystemRepository.getAllRoles();
-    // For each role, fetch permissions
     for (const role of roles) {
       role.permissions = await SystemRepository.getPermissionsForRole(role.id);
     }
@@ -32,24 +31,42 @@ const SystemService = {
     return SystemRepository.getAllUsers(filters);
   },
 
+  getSiswaList: async () => {
+    return SystemRepository.getSiswaList();
+  },
+
   createUser: async (data) => {
     const bcrypt = require('bcrypt');
     const passwordHash = await bcrypt.hash(data.password, 10);
-    return SystemRepository.createUserWithRole({
+    const user = await SystemRepository.createUserWithRole({
       nama: data.nama,
       email: data.email,
       passwordHash: passwordHash,
       roleId: data.roleId
     });
+
+    // Jika role Orang Tua dan ada siswaId, simpan relasi
+    if (data.siswaId) {
+      await SystemRepository.linkOrangTuaSiswa(user.id, data.siswaId);
+    }
+
+    return user;
   },
 
   updateUser: async (userId, data) => {
-    return SystemRepository.updateUserWithRole(userId, {
+    await SystemRepository.updateUserWithRole(userId, {
       nama: data.nama,
       email: data.email,
       roleId: data.roleId,
       isActive: data.isActive
     });
+
+    // Jika ada siswaId baru (update relasi orang tua)
+    if (data.siswaId) {
+      await SystemRepository.linkOrangTuaSiswa(userId, data.siswaId);
+    }
+
+    return { id: userId };
   },
 
   deleteUser: async (userId) => {

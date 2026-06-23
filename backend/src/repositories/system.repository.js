@@ -162,6 +162,41 @@ const SystemRepository = {
     } finally {
       client.release();
     }
+  },
+
+  // Ambil semua siswa untuk dropdown pilih anak orang tua
+  getSiswaList: async () => {
+    const sql = `
+      SELECT s.id, s.nama_lengkap, s.nis, k.nama_kelas,
+             ot.user_id as linked_user_id
+      FROM academic.siswa s
+      LEFT JOIN academic.kelas k ON s.kelas_id = k.id
+      LEFT JOIN academic.orang_tua ot ON ot.siswa_id = s.id
+      ORDER BY s.nama_lengkap ASC
+    `;
+    const res = await query(sql);
+    return res.rows;
+  },
+
+  // Simpan / update relasi orang tua - siswa di academic.orang_tua
+  linkOrangTuaSiswa: async (userId, siswaId) => {
+    // Cek dulu apakah user ini sudah ada di tabel orang_tua
+    const checkRes = await query('SELECT id FROM academic.orang_tua WHERE user_id = $1', [userId]);
+    if (checkRes.rows.length > 0) {
+      // Update siswa_id saja
+      const updateSql = `UPDATE academic.orang_tua SET siswa_id = $1 WHERE user_id = $2 RETURNING *`;
+      const res = await query(updateSql, [siswaId, userId]);
+      return res.rows[0];
+    } else {
+      // Insert baru dengan field minimal yang NOT NULL
+      const insertSql = `
+        INSERT INTO academic.orang_tua (user_id, siswa_id, hubungan, nama_ayah, nama_ibu, no_telepon)
+        VALUES ($1, $2, 'ayah', '-', '-', '-')
+        RETURNING *
+      `;
+      const res = await query(insertSql, [userId, siswaId]);
+      return res.rows[0];
+    }
   }
 };
 

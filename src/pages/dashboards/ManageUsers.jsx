@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { getAllSystemUsers, createSystemUser, updateSystemUser, deleteSystemUser, getRoles } from "../../api/system";
+import { getAllSystemUsers, createSystemUser, updateSystemUser, deleteSystemUser, getRoles, getSiswaDropdown } from "../../api/system";
 
 const SearchIcon = () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-gray-400"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>;
 const UserPlusIcon = () => <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" className="mr-1.5"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /><line x1="20" y1="8" x2="20" y2="14" /><line x1="17" y1="11" x2="23" y2="11" /></svg>;
@@ -34,8 +34,10 @@ const ManageUsers = () => {
     email: '',
     password: '',
     roleId: '',
+    siswaId: '',
     isActive: true
   });
+  const [siswaList, setSiswaList] = useState([]);
 
   const triggerToast = (msg, type = 'success') => {
     setToast({ msg, type });
@@ -45,12 +47,14 @@ const ManageUsers = () => {
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const [usersData, rolesData] = await Promise.all([
+      const [usersData, rolesData, siswaData] = await Promise.all([
         getAllSystemUsers(),
-        getRoles()
+        getRoles(),
+        getSiswaDropdown()
       ]);
       setUsers(Array.isArray(usersData) ? usersData : []);
       setRoles(Array.isArray(rolesData) ? rolesData : []);
+      setSiswaList(Array.isArray(siswaData) ? siswaData : []);
     } catch (e) {
       console.error(e);
       triggerToast('Gagal memuat data pengguna', 'error');
@@ -122,6 +126,7 @@ const ManageUsers = () => {
       email: user.email || '',
       password: '', // blank on edit
       roleId: roles.find(r => r.nama_role === user.role)?.id || '',
+      siswaId: '',
       isActive: user.is_active
     });
     setView("edit");
@@ -130,7 +135,7 @@ const ManageUsers = () => {
   const handleAddClick = () => {
     setSelectedUser(null);
     setFormData({
-      nama: '', email: '', password: '', roleId: '', isActive: true
+      nama: '', email: '', password: '', roleId: '', siswaId: '', isActive: true
     });
     setView("add");
   };
@@ -209,7 +214,7 @@ const ManageUsers = () => {
                 <div className="relative">
                   <select 
                     value={formData.roleId}
-                    onChange={(e) => setFormData({...formData, roleId: e.target.value})}
+                    onChange={(e) => setFormData({...formData, roleId: e.target.value, siswaId: ''})}
                     className="w-full appearance-none px-4 py-3 bg-white border border-gray-200 focus:border-[#1A3D63] rounded-xl text-sm font-semibold text-gray-800 outline-none transition-all cursor-pointer focus:ring-1 focus:ring-[#1A3D63]"
                   >
                     <option value="" disabled>Pilih peran/role...</option>
@@ -222,6 +227,34 @@ const ManageUsers = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Pilih Anak — muncul hanya saat role Orang Tua */}
+              {roles.find(r => r.id === formData.roleId)?.nama_role === 'Orang Tua' && (
+                <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <svg width="16" height="16" fill="none" stroke="#d97706" strokeWidth="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <label className="block text-sm font-bold text-amber-700">Hubungkan ke Siswa/Anak <span className="text-red-500">*</span></label>
+                  </div>
+                  <p className="text-xs text-amber-600">Pilih nama siswa yang merupakan anak dari orang tua ini. Data tagihan SPP dan informasi anak akan ditampilkan di dashboard orang tua.</p>
+                  <div className="relative">
+                    <select
+                      value={formData.siswaId}
+                      onChange={(e) => setFormData({...formData, siswaId: e.target.value})}
+                      className="w-full appearance-none px-4 py-3 bg-white border border-amber-200 focus:border-amber-400 rounded-xl text-sm font-semibold text-gray-800 outline-none transition-all cursor-pointer focus:ring-1 focus:ring-amber-300"
+                    >
+                      <option value="">-- Pilih nama siswa --</option>
+                      {siswaList.map(s => (
+                        <option key={s.id} value={s.id} disabled={!!s.linked_user_id && s.linked_user_id !== selectedUser?.id}>
+                          {s.nama_lengkap} ({s.nis}) {s.nama_kelas ? `— ${s.nama_kelas}` : ''}{s.linked_user_id && s.linked_user_id !== selectedUser?.id ? ' ✗ Sudah terhubung' : ''}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-amber-400">
+                      <ChevronDownIcon />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

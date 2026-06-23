@@ -100,22 +100,33 @@ const App = () => {
       const savedUser = localStorage.getItem("siakad_user");
       if (savedUser) {
         try {
-          // Tetap pasang user dari cache biar UI cepat render
+          // Pasang user dari cache biar UI cepat render
           const parsedUser = JSON.parse(savedUser);
           if (parsedUser.role === "Bendahara") parsedUser.fullName = "Siti Aminah";
           setUser(parsedUser);
-          
-          // Verifikasi ke backend apakah session/cookie masih valid
+
+          // Minta token baru via refresh (cookie httpOnly)
+          try {
+            const refreshRes = await api.post('/auth/refresh', {}, { withCredentials: true });
+            if (refreshRes.data?.data?.accessToken) {
+              parsedUser.accessToken = refreshRes.data.data.accessToken;
+              localStorage.setItem("siakad_user", JSON.stringify(parsedUser));
+              setUser({ ...parsedUser });
+            }
+          } catch (_) {
+            // refresh gagal, lanjut dengan token lama
+          }
+
+          // Verifikasi ke backend
           const res = await api.get('/auth/me');
           if (res.data.success) {
-            // Update dengan data terbaru dari server (termasuk role)
             const freshUser = res.data.data;
+            freshUser.accessToken = parsedUser.accessToken;
             if (freshUser.role === "Bendahara") freshUser.fullName = "Siti Aminah";
             setUser(freshUser);
             localStorage.setItem("siakad_user", JSON.stringify(freshUser));
           }
         } catch (e) {
-          // Jika 401 (Unauthorized) atau token hilang, paksa logout
           console.warn("Sesi tidak valid / Token expired. Memaksa logout...");
           localStorage.removeItem("siakad_user");
           setUser(null);

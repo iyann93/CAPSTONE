@@ -5,7 +5,7 @@
  */
 const paginate = (q = {}) => {
   const page = Math.max(parseInt(q.page, 10) || 1, 1);
-  const limit = Math.min(parseInt(q.limit, 10) || 20, 100);
+  const limit = Math.min(parseInt(q.limit, 10) || 20, 1000);
   const offset = (page - 1) * limit;
   return { page, limit, offset };
 };

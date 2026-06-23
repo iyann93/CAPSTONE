@@ -45,7 +45,7 @@ const Dashboard = ({ user }) => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fadeIn">
         <div>
           <h2 className="text-xl md:text-2xl font-bold text-gray-800 tracking-tight">
-            {getGreeting()}, {user.fullName.split(" ")[0]}!
+            {getGreeting()}, {user?.nama ? user.nama.split(" ")[0] : "User"}!
           </h2>
           <p className="text-xs md:text-sm text-gray-500 mt-1">
             {user.role === "Admin" && "Selamat datang di panel kontrol sistem SIAKAD."}

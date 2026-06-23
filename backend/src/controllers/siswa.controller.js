@@ -25,8 +25,8 @@ const SiswaController = {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) return next(Object.assign(new Error('Validation failed'), { type: 'validation', errors: errors.array() }));
-      const { nis, nama_lengkap, jenis_kelamin, tanggal_lahir, alamat, status, kelas_id } = req.body;
-      const data = await SiswaService.create({ nis, nama_lengkap, jenisKelamin: jenis_kelamin, tanggalLahir: tanggal_lahir, alamat, status, kelasId: kelas_id });
+      const { nis, nisn, nama_lengkap, jenis_kelamin, tempat_lahir, tanggal_lahir, alamat, status, kelas_id } = req.body;
+      const data = await SiswaService.create({ nis, nisn, nama_lengkap, jenisKelamin: jenis_kelamin, tempatLahir: tempat_lahir, tanggalLahir: tanggal_lahir, alamat, status, kelasId: kelas_id });
       return response.success(res, 201, 'Siswa berhasil ditambahkan', data);
     } catch (err) { next(err); }
   },
@@ -34,9 +34,12 @@ const SiswaController = {
   update: async (req, res, next) => {
     try {
       const errors = validationResult(req);
-      if (!errors.isEmpty()) return next(Object.assign(new Error('Validation failed'), { type: 'validation', errors: errors.array() }));
-      const { nis, nama_lengkap, jenis_kelamin, tanggal_lahir, alamat, status, kelas_id } = req.body;
-      const data = await SiswaService.update(req.params.id, { nis, nama_lengkap, jenisKelamin: jenis_kelamin, tanggalLahir: tanggal_lahir, alamat, status, kelasId: kelas_id });
+      if (!errors.isEmpty()) {
+        require('fs').appendFileSync('error.log', new Date().toISOString() + ' VALIDATION ERRORS: ' + JSON.stringify(errors.array()) + '\n');
+        return next(Object.assign(new Error('Validation failed'), { type: 'validation', errors: errors.array() }));
+      }
+      const { nis, nisn, nama_lengkap, jenis_kelamin, tempat_lahir, tanggal_lahir, alamat, status, kelas_id } = req.body;
+      const data = await SiswaService.update(req.params.id, { nis, nisn, nama_lengkap, jenisKelamin: jenis_kelamin, tempatLahir: tempat_lahir, tanggalLahir: tanggal_lahir, alamat, status, kelasId: kelas_id });
       return response.success(res, 200, 'Data siswa berhasil diperbarui', data);
     } catch (err) { next(err); }
   },

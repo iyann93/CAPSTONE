@@ -55,25 +55,54 @@ const criteriaData = [
 
 const GradePromotionCriteria = ({ setView }) => {
   const [editMode, setEditMode] = useState(false);
-  const [values, setValues] = useState(() => {
-    const saved = localStorage.getItem("grade_promotion_criteria");
-    return saved ? JSON.parse(saved) : {
-      "Nilai Minimum Per Mata Pelajaran": "75",
-      "Nilai Rata-rata Minimal": "70",
-      "Mata Pelajaran Tidak Boleh Remedial": "3",
-      "Persentase Kehadiran Minimal": "85",
-      "Maksimal Alpa (Tanpa Keterangan)": "10",
-      "Maksimal Total Ketidakhadiran": "20",
-    };
+  const [values, setValues] = useState({
+    "Nilai Minimum Per Mata Pelajaran": "75",
+    "Nilai Rata-rata Minimal": "70",
+    "Mata Pelajaran Tidak Boleh Remedial": "3",
+    "Persentase Kehadiran Minimal": "85",
+    "Maksimal Alpa (Tanpa Keterangan)": "10",
+    "Maksimal Total Ketidakhadiran": "20",
   });
+
+  React.useEffect(() => {
+    const fetchState = async () => {
+      try {
+        const { default: api } = await import('../../api/axios');
+        const res = await api.get('/system/frontend-state');
+        if (res.data?.data?.grade_promotion_criteria) {
+          setValues(res.data.data.grade_promotion_criteria);
+          localStorage.setItem("grade_promotion_criteria", JSON.stringify(res.data.data.grade_promotion_criteria));
+        } else {
+          const saved = localStorage.getItem("grade_promotion_criteria");
+          if (saved) setValues(JSON.parse(saved));
+        }
+      } catch (err) {
+        const saved = localStorage.getItem("grade_promotion_criteria");
+        if (saved) setValues(JSON.parse(saved));
+      }
+    };
+    fetchState();
+  }, []);
 
   const handleChange = (label, val) => {
     setValues(prev => ({ ...prev, [label]: val }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     localStorage.setItem("grade_promotion_criteria", JSON.stringify(values));
     setEditMode(false);
+    
+    try {
+      const { default: api } = await import('../../api/axios');
+      const res = await api.get('/system/frontend-state');
+      const currentState = res.data?.data || {};
+      await api.put('/system/frontend-state', {
+        ...currentState,
+        grade_promotion_criteria: values
+      });
+    } catch (err) {
+      console.error("Gagal menyimpan kriteria ke database", err);
+    }
   };
 
   return (
