@@ -342,6 +342,39 @@ const PayrollRepository = {
     }
   },
 
+  // ── REVERT SLIP (Dibayar/Disetujui → Draft) ─────────────────────────────────
+  revertSlip: async (slipGajiId) => {
+    const client = await getClient();
+    try {
+      await client.query('BEGIN');
+
+      const checkRes = await client.query(
+        `SELECT id, status FROM finance.slip_gaji WHERE id = $1 FOR UPDATE`,
+        [slipGajiId]
+      );
+      if (checkRes.rows.length === 0) {
+        const err = new Error('Slip gaji tidak ditemukan'); err.statusCode = 404; throw err;
+      }
+      
+      // Delete transfer record if exists
+      await client.query(`DELETE FROM finance.transfer_gaji WHERE slip_gaji_id = $1`, [slipGajiId]);
+
+      // Update status back to draft
+      const res = await client.query(
+        `UPDATE finance.slip_gaji SET status = 'draft' WHERE id = $1 RETURNING *`,
+        [slipGajiId]
+      );
+
+      await client.query('COMMIT');
+      return res.rows[0];
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  },
+
   // ── TRANSFER GAJI (Approved → Transferred) ─────────────────────────────────
   transferGaji: async (data) => {
     const client = await getClient();

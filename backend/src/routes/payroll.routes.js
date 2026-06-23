@@ -94,6 +94,14 @@ router.post(
   PayrollController.approve
 );
 
+// POST /api/v1/payroll/revert   — Revert slip gaji (Dibayar → Draft)
+router.post(
+  '/revert',
+  verifyToken,
+  authorize('gaji.approve'),
+  PayrollController.revert
+);
+
 // POST /api/v1/payroll/transfer  — Transfer gaji (Approved → Transferred)
 router.post(
   '/transfer',

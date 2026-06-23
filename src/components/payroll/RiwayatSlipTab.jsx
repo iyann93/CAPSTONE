@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getAllSlips, approveSlip, transferSlip, getSlipDetail } from '../../api/payroll';
+import { getAllSlips, approveSlip, transferSlip, getSlipDetail, revertSlip } from '../../api/payroll';
 
 const RiwayatSlipTab = ({ triggerToast }) => {
   const [slips, setSlips] = useState([]);
@@ -70,28 +70,33 @@ const RiwayatSlipTab = ({ triggerToast }) => {
 
   const handleApprove = async (id) => {
     try {
+      // 1. Approve (draft -> disetujui)
       await approveSlip(id);
-      triggerToast("Slip gaji berhasil disetujui!");
-      fetchSlips();
-    } catch (error) {
-      console.error(error);
-      triggerToast(`Gagal menyetujui: ${error.response?.data?.message || error.message}`, "error");
-    }
-  };
-
-  const handleTransfer = async (id) => {
-    try {
+      
+      // 2. Langsung Transfer (disetujui -> dibayar)
       const payload = {
         slipGajiId: id,
         noReferensi: `TRX-${Date.now()}`,
         rekeningId: null
       };
       await transferSlip(payload);
-      triggerToast("Gaji berhasil ditransfer!");
+
+      triggerToast("Slip gaji berhasil dibayar!");
       fetchSlips();
     } catch (error) {
       console.error(error);
-      triggerToast(`Gagal transfer: ${error.response?.data?.message || error.message}`, "error");
+      triggerToast(`Gagal memproses gaji: ${error.response?.data?.message || error.message}`, "error");
+    }
+  };
+
+  const handleRevert = async (id) => {
+    try {
+      await revertSlip(id);
+      triggerToast("Status berhasil dibatalkan ke Draft!");
+      fetchSlips();
+    } catch (error) {
+      console.error(error);
+      triggerToast(`Gagal membatalkan: ${error.response?.data?.message || error.message}`, "error");
     }
   };
 
@@ -130,6 +135,20 @@ const RiwayatSlipTab = ({ triggerToast }) => {
         <p className="text-sm text-gray-500">Lihat histori slip gaji, setujui (Approve), dan proses transfer gaji pegawai.</p>
       </div>
 
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        {[
+          { label: "TOTAL PEGAWAI", value: "87 Orang" },
+          { label: "SUDAH DIBAYAR", value: "62" },
+          { label: "BELUM DIBAYAR", value: "25" }
+        ].map((card, idx) => (
+          <div key={idx} className="bg-[#1A3D63] rounded-[20px] p-5 shadow-sm flex flex-col justify-between h-[104px]">
+            <div className="text-[10px] font-bold text-blue-200 mt-1 uppercase tracking-wider">{card.label}</div>
+            <div className="text-3xl font-black text-white leading-none">{card.value}</div>
+          </div>
+        ))}
+      </div>
+
       {/* Filter Section */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="flex-1 relative">
@@ -153,7 +172,6 @@ const RiwayatSlipTab = ({ triggerToast }) => {
         <select value={status} onChange={(e) => setStatus(e.target.value)} className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A3D63] bg-white">
           <option value="">Semua Status</option>
           <option value="draft">Draft</option>
-          <option value="disetujui">Disetujui</option>
           <option value="dibayar">Dibayar</option>
         </select>
       </div>
@@ -167,14 +185,15 @@ const RiwayatSlipTab = ({ triggerToast }) => {
               <th className="py-3 px-4 text-[11px] font-bold text-gray-500 uppercase">Pegawai</th>
               <th className="py-3 px-4 text-[11px] font-bold text-gray-500 uppercase">Gaji Bersih</th>
               <th className="py-3 px-4 text-[11px] font-bold text-gray-500 uppercase">Status</th>
+              <th className="py-3 px-4 text-[11px] font-bold text-gray-500 uppercase text-center">Detail</th>
               <th className="py-3 px-4 text-[11px] font-bold text-gray-500 uppercase text-center">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
             {loading ? (
-              <tr><td colSpan="5" className="py-12 text-center"><div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#1A3D63]"></div></td></tr>
+              <tr><td colSpan="6" className="py-12 text-center"><div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#1A3D63]"></div></td></tr>
             ) : slips.length === 0 ? (
-              <tr><td colSpan="5" className="py-12 text-center text-sm text-gray-500">Tidak ada data riwayat gaji.</td></tr>
+              <tr><td colSpan="6" className="py-12 text-center text-sm text-gray-500">Tidak ada data riwayat gaji.</td></tr>
             ) : (
               slips.map((slip) => (
                 <tr key={slip.id} className="hover:bg-blue-50/20 transition-colors">
@@ -192,7 +211,7 @@ const RiwayatSlipTab = ({ triggerToast }) => {
                     {renderStatusBadge(slip.status)}
                   </td>
                   <td className="py-3 px-4">
-                    <div className="flex justify-center gap-2">
+                    <div className="flex justify-center">
                       {/* Tombol Detail */}
                       <button
                         onClick={() => handleViewDetail(slip.id)}
@@ -201,22 +220,26 @@ const RiwayatSlipTab = ({ triggerToast }) => {
                       >
                         <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
                       </button>
-                      {/* Tombol Approve */}
+                    </div>
+                  </td>
+                  <td className="py-3 px-4">
+                    <div className="flex justify-center gap-2">
+                      {/* Tombol Approve (sekarang Konfirmasi) */}
                       {slip.status === 'draft' && (
                         <button
                           onClick={() => handleApprove(slip.id)}
-                          className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-xs font-bold transition-colors border border-blue-200 cursor-pointer"
+                          className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-xs font-bold transition-colors border border-blue-200 cursor-pointer whitespace-nowrap"
                         >
-                          Approve
+                          Konfirmasi
                         </button>
                       )}
-                      {/* Tombol Transfer */}
-                      {slip.status === 'disetujui' && (
+                      {/* Tombol Batal Konfirmasi */}
+                      {slip.status === 'dibayar' && (
                         <button
-                          onClick={() => handleTransfer(slip.id)}
-                          className="px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg text-xs font-bold transition-colors border border-green-200 cursor-pointer"
+                          onClick={() => handleRevert(slip.id)}
+                          className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-bold transition-colors border border-red-200 cursor-pointer whitespace-nowrap"
                         >
-                          Transfer
+                          Batal Konfirmasi
                         </button>
                       )}
                     </div>

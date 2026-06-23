@@ -164,8 +164,7 @@ const menuSections = [
       { label: "Pengaturan Gaji Pegawai", icon: <UsersIcon /> },
       { label: "Generate Slip Gaji", icon: <FileChartIcon /> },
       { label: "Riwayat Slip Gaji", icon: <CalendarIcon /> },
-      { label: "Status Bayar Gaji", icon: <WalletIcon /> },
-      { label: "Transfer Gaji", icon: <WalletIcon /> }
+      { label: "Data Rekening", icon: <WalletIcon /> }
     ],
     roles: ["Bendahara"]
   },
