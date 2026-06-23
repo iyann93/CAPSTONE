@@ -63,7 +63,7 @@ const menuSections = [
     items: [
       { label: "Dashboard", icon: <BarChartIcon /> }
     ],
-    roles: ["Admin", "Kepala Sekolah", "Wakil Kepsek", "Guru", "Super Admin", "Bendahara", "Admin TU", "Orang Tua"]
+    roles: ["Admin", "Kepala Sekolah", "Wakil Kepsek", "Guru", "Super Admin", "Bendahara", "Admin TU", "Orang Tua", "Wakil Kepala"]
   },
   {
     section: "KELOLA AKADEMIK",
@@ -207,6 +207,21 @@ const menuSections = [
       { label: "Pengumuman Sekolah", icon: <ChatIcon /> }
     ],
     roles: ["Orang Tua"]
+  },
+  {
+    section: "KURIKULUM & JADWAL",
+    items: [
+      { label: "Kelola Kurikulum", icon: <BookIcon /> },
+      { label: "Jadwal Pelajaran", icon: <CalendarIcon /> }
+    ],
+    roles: ["Wakil Kepala"]
+  },
+  {
+    section: "MONITORING",
+    items: [
+      { label: "Monitoring Pembayaran", icon: <ReceiptIcon /> }
+    ],
+    roles: ["Wakil Kepala"]
   }
 ];
 const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) => {
