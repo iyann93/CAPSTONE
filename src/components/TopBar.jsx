@@ -25,6 +25,7 @@ const TopBar = ({ user, onToggle, onLogout, onProfileClick }) => {
 
   const getInitials = (name, role) => {
     if (role === "Bendahara") return "SA";
+    if (role === "Wali Kelas") return "AK";
     if (!name) return "??";
     const parts = name.split(" ");
     if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
@@ -60,7 +61,7 @@ const TopBar = ({ user, onToggle, onLogout, onProfileClick }) => {
           >
             <div className="hidden md:flex flex-col items-end">
               <span className="text-[13px] font-black leading-tight text-white">
-                {user?.role === "Bendahara" ? "Siti Aminah" : (user?.fullName || user?.name || "Guest")}
+                {user?.role === "Bendahara" ? "Siti Aminah" : user?.role === "Wali Kelas" ? "Asih Kinanti, S.Pd" : (user?.fullName || user?.name || "Guest")}
               </span>
               <span className="text-[10px] font-bold opacity-60 uppercase tracking-widest mt-0.5 text-white">{user?.role || "Visitor"}</span>
             </div>

@@ -11,6 +11,7 @@ import BendaharaDashboard from "./pages/dashboards/BendaharaDashboard";
 import AdminTUDashboard from "./pages/dashboards/AdminTUDashboard";
 import OrangTuaDashboard from "./pages/dashboards/OrangTuaDashboard";
 import WakilKepalaDashboard from "./pages/dashboards/WakilKepalaDashboard";
+import WaliKelasDashboard from "./pages/dashboards/WaliKelasDashboard";
 const App = () => {
   const [user, setUser] = useState(null);
   const [collapsed, setCollapsed] = useState(true);
@@ -137,21 +138,22 @@ const App = () => {
   };
   const renderDashboard = () => {
     if (!user) return null;
-    switch (user.role) {
-      case "Admin TU":
-      case "Admin":
-        return <AdminTUDashboard user={user} activeMenu={activeMenu} />;
-      case "Super Admin":
-        return <SuperAdminDashboard user={user} activeMenu={activeMenu} />;
-
-      case "Bendahara":
-        return <BendaharaDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
-      case "Orang Tua":
-        return <OrangTuaDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
-      case "Wakil Kepala":
-        return <WakilKepalaDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
-      default:
-        return <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
+    const roleStr = user.role ? user.role.trim().toLowerCase() : "";
+    
+    if (roleStr === "admin tu" || roleStr === "admin") {
+      return <AdminTUDashboard user={user} activeMenu={activeMenu} />;
+    } else if (roleStr === "super admin") {
+      return <SuperAdminDashboard user={user} activeMenu={activeMenu} />;
+    } else if (roleStr === "bendahara") {
+      return <BendaharaDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
+    } else if (roleStr === "orang tua") {
+      return <OrangTuaDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
+    } else if (roleStr === "wakil kepala") {
+      return <WakilKepalaDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
+    } else if (roleStr === "wali kelas") {
+      return <WaliKelasDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
+    } else {
+      return <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
     }
   };
   if (!user) {
