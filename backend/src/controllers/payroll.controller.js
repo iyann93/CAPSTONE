@@ -60,6 +60,17 @@ const PayrollController = {
     } catch (err) { next(err); }
   },
 
+  // POST /payroll/revert  — Revert slip gaji (Dibayar/Disetujui → Draft)
+  revert: async (req, res, next) => {
+    try {
+      if (!req.body.slipGajiId) {
+        return next(Object.assign(new Error('Validation failed'), { type: 'validation', errors: [{ msg: 'slipGajiId is required' }] }));
+      }
+      const data = await PayrollService.revert(req.body);
+      return response.success(res, 200, 'Slip gaji berhasil dibatalkan', data);
+    } catch (err) { next(err); }
+  },
+
   // POST /payroll/transfer  — Transfer gaji (Approved → Transferred)
   transfer: async (req, res, next) => {
     try {

@@ -66,6 +66,12 @@ const PayrollService = {
     return PayrollRepository.approveSlip(slipGajiId);
   },
 
+  // ── REVERT SLIP ────────────────────────────────────────────────────────────
+  revert: async (body) => {
+    const { slipGajiId } = body;
+    return PayrollRepository.revertSlip(slipGajiId);
+  },
+
   // ── TRANSFER GAJI ───────────────────────────────────────────────────────────
   transfer: async (body) => {
     const { slipGajiId, noReferensi, rekeningId } = body;

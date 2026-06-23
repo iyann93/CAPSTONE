@@ -66,6 +66,11 @@ export const approveSlip = async (slipGajiId) => {
   return response.data?.data;
 };
 
+export const revertSlip = async (slipGajiId) => {
+  const response = await api.post('/payroll/revert', { slipGajiId });
+  return response.data?.data;
+};
+
 export const transferSlip = async (data) => {
   const response = await api.post('/payroll/transfer', data);
   return response.data?.data;

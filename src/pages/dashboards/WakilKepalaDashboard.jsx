@@ -1,0 +1,27 @@
+import React from "react";
+import WakilKepalaHome from "./WakilKepalaHome";
+import KurikulumWakil from "./KurikulumWakil";
+import JadwalPelajaranWakil from "./JadwalPelajaranWakil";
+import MonitoringPembayaran from "./MonitoringPembayaran";
+import PlaceholderDashboard from "./PlaceholderDashboard";
+
+const WakilKepalaDashboard = ({ user, activeMenu, onViewChange }) => {
+  const handleNavigate = (menuName) => {
+    if (onViewChange) onViewChange(menuName);
+  };
+
+  switch (activeMenu) {
+    case "Dashboard":
+      return <WakilKepalaHome user={user} onNavigate={handleNavigate} />;
+    case "Kelola Kurikulum":
+      return <KurikulumWakil />;
+    case "Jadwal Pelajaran":
+      return <JadwalPelajaranWakil />;
+    case "Monitoring Pembayaran":
+      return <MonitoringPembayaran />;
+    default:
+      return <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
+  }
+};
+
+export default WakilKepalaDashboard;
