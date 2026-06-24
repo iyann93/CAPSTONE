@@ -15,8 +15,11 @@ const mockBeasiswa = [
   }
 ];
 
-const BeasiswaSiswa = () => {
+const BeasiswaSiswa = ({ user }) => {
   const [selectedProgram, setSelectedProgram] = useState(mockBeasiswa[0]);
+
+  const studentName = user?.anak?.nama || "Siswa";
+  const studentClass = user?.anak?.kelas || "-";
 
   return (
     <div className="p-6 md:p-8 space-y-6 animate-fadeIn bg-[#F4F6FA] min-h-full">
@@ -28,7 +31,7 @@ const BeasiswaSiswa = () => {
       {/* Header */}
       <div>
         <h1 className="text-[26px] font-bold text-[#1e293b]">Program Beasiswa</h1>
-        <p className="text-[14px] text-gray-500 mt-1">Ahmad Fauzi · Kelas VIII A · Rincian program beasiswa yang sedang berjalan</p>
+        <p className="text-[14px] text-gray-500 mt-1">{studentName} · Kelas {studentClass} · Rincian program beasiswa yang sedang berjalan</p>
       </div>
 
 

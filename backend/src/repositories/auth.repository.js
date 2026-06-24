@@ -10,7 +10,20 @@ const AuthRepository = {
     const sql = `
       SELECT u.id, u.nama, u.email, u.password_hash, u.no_telepon, u.alamat_lengkap,
              u.is_active, u.last_login_at, u.created_at,
-             (SELECT r.nama_role FROM shared.user_roles ur JOIN shared.roles r ON ur.role_id = r.id WHERE ur.user_id = u.id LIMIT 1) AS role
+             (SELECT r.nama_role FROM shared.user_roles ur JOIN shared.roles r ON ur.role_id = r.id WHERE ur.user_id = u.id LIMIT 1) AS role,
+             (SELECT json_build_object(
+                 'id', s.id,
+                 'nama', s.nama_lengkap,
+                 'nisn', s.nisn,
+                 'nis', s.nis,
+                 'kelas', k.nama_kelas,
+                 'wali', w.nama
+               )
+              FROM academic.orang_tua o
+              JOIN academic.siswa s ON o.siswa_id = s.id
+              LEFT JOIN academic.kelas k ON s.kelas_id = k.id
+              LEFT JOIN shared.users w ON k.wali_kelas_id = w.id
+              WHERE o.user_id = u.id LIMIT 1) AS anak
       FROM shared.users u
       WHERE u.email = $1
       LIMIT 1
@@ -26,7 +39,20 @@ const AuthRepository = {
     const sql = `
       SELECT u.id, u.nama, u.email, u.no_telepon, u.alamat_lengkap,
              u.is_active, u.last_login_at, u.created_at,
-             (SELECT r.nama_role FROM shared.user_roles ur JOIN shared.roles r ON ur.role_id = r.id WHERE ur.user_id = u.id LIMIT 1) AS role
+             (SELECT r.nama_role FROM shared.user_roles ur JOIN shared.roles r ON ur.role_id = r.id WHERE ur.user_id = u.id LIMIT 1) AS role,
+             (SELECT json_build_object(
+                 'id', s.id,
+                 'nama', s.nama_lengkap,
+                 'nisn', s.nisn,
+                 'nis', s.nis,
+                 'kelas', k.nama_kelas,
+                 'wali', w.nama
+               )
+              FROM academic.orang_tua o
+              JOIN academic.siswa s ON o.siswa_id = s.id
+              LEFT JOIN academic.kelas k ON s.kelas_id = k.id
+              LEFT JOIN shared.users w ON k.wali_kelas_id = w.id
+              WHERE o.user_id = u.id LIMIT 1) AS anak
       FROM shared.users u
       WHERE u.id = $1
       LIMIT 1

@@ -15,10 +15,13 @@ const semesters = ["Ganjil 2025/2026", "Genap 2025/2026"];
 
 const getAvg = (arr) => (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1);
 
-const AkademikSiswa = () => {
+const AkademikSiswa = ({ user }) => {
   const [semester, setSemester] = useState("Ganjil 2025/2026");
   const [search, setSearch] = useState("");
   const [selectedMapel, setSelectedMapel] = useState(null);
+
+  const studentName = user?.anak?.nama || "Siswa";
+  const studentClass = user?.anak?.kelas || "-";
 
   const filtered = mockSubjects.filter(s =>
     s.mapel.toLowerCase().includes(search.toLowerCase())
@@ -41,7 +44,7 @@ const AkademikSiswa = () => {
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
           <h1 className="text-[26px] font-bold text-[#1e293b]">Perkembangan Akademik</h1>
-          <p className="text-[14px] text-gray-500 mt-1">Ahmad Fauzi · Kelas VIII A</p>
+          <p className="text-[14px] text-gray-500 mt-1">{studentName} · Kelas {studentClass}</p>
         </div>
         <div className="flex items-center gap-2">
           <label className="text-[13px] text-gray-500 font-medium">Semester:</label>

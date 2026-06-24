@@ -14,14 +14,15 @@ const mockAnnouncements = [
 
 const OrangTuaHome = ({ user, onNavigate }) => {
   const [showAllNotif, setShowAllNotif] = useState(false);
+  console.log("OrangTuaHome user prop:", user);
 
   const studentData = {
-    nama: "Ahmad Fauzi",
-    kelas: "VIII A",
-    nisn: "0012345678",
+    nama: user?.anak?.nama || "Siswa",
+    kelas: user?.anak?.kelas || "-",
+    nisn: user?.anak?.nisn || "-",
     tahunAjaran: "2025/2026",
-    wali: "Ibu Dewi Rahayu, S.Pd",
-    avatar: "AF",
+    wali: user?.anak?.wali ? `Bapak/Ibu ${user.anak.wali}` : "Ibu Dewi Rahayu, S.Pd",
+    avatar: user?.anak?.nama ? user.anak.nama.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() : "SW",
   };
 
   const akademikStats = {

@@ -1,24 +1,53 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { getTagihan } from "../../api/finance";
 
-const initTagihan = [
-  { id: 1, bulan: "Januari 2026", nominal: 1250000, jatuhTempo: "10 Jan 2026", status: "Belum Lunas", denda: 0 },
-  { id: 2, bulan: "Desember 2025", nominal: 1250000, jatuhTempo: "10 Des 2025", status: "Menunggu", tglBayar: "9 Des 2025", denda: 0, bukti: "https://via.placeholder.com/300x200?text=Bukti+Transfer" },
-  { id: 3, bulan: "November 2025", nominal: 1250000, jatuhTempo: "10 Nov 2025", status: "Lunas", tglBayar: "7 Nov 2025", denda: 0, bukti: "https://via.placeholder.com/300x200?text=Bukti+Transfer" },
-  { id: 4, bulan: "Oktober 2025", nominal: 1250000, jatuhTempo: "10 Okt 2025", status: "Lunas", tglBayar: "5 Okt 2025", denda: 0 },
-  { id: 5, bulan: "September 2025", nominal: 1250000, jatuhTempo: "10 Sep 2025", status: "Lunas", tglBayar: "9 Sep 2025", denda: 0 },
-  { id: 6, bulan: "Agustus 2025", nominal: 1250000, jatuhTempo: "10 Agu 2025", status: "Lunas", tglBayar: "8 Agu 2025", denda: 0 },
-  { id: 7, bulan: "Juli 2025", nominal: 1250000, jatuhTempo: "10 Jul 2025", status: "Lunas", tglBayar: "5 Jul 2025", denda: 0 },
-];
+const fmt = (n) => "Rp " + Number(n).toLocaleString("id-ID");
 
-const fmt = (n) => "Rp " + n.toLocaleString("id-ID");
+const getBulanNama = (b) => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][b-1];
 
-const RiwayatPembayaranSiswa = ({ onNavigate }) => {
-  const [tagihan, setTagihan] = useState(() => {
-    const saved = localStorage.getItem("orangtua_tagihan_v3");
-    return saved ? JSON.parse(saved) : initTagihan;
-  });
+const mapStatus = (status) => {
+  if (status === "lunas") return "Lunas";
+  if (status === "menunggu_konfirmasi") return "Menunggu";
+  return "Belum Lunas";
+};
+
+const RiwayatPembayaranSiswa = ({ user, onNavigate }) => {
+  const [tagihan, setTagihan] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("Semua");
   const [detail, setDetail] = useState(null);
+
+  const studentData = {
+    nama: user?.anak?.nama || "Siswa",
+    kelas: user?.anak?.kelas || "-",
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const res = await getTagihan({ limit: 100 });
+        const mapped = res.map(t => {
+          const d = t.created_at ? new Date(t.created_at) : new Date();
+          return {
+            id: t.id,
+            bulan: `${getBulanNama(t.bulan)} ${t.tahun}`,
+            nominal: t.nominal,
+            jatuhTempo: t.jatuh_tempo ? new Date(t.jatuh_tempo).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : "10 " + getBulanNama(t.bulan).substring(0,3) + " " + t.tahun,
+            status: mapStatus(t.status),
+            tglBayar: t.status === 'lunas' && t.updated_at ? new Date(t.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : null,
+            denda: 0,
+            bukti: t.bukti_url
+          };
+        });
+        setTagihan(mapped);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
 
   const baseTagihan = tagihan.filter(t => t.status !== "Belum Lunas");
   const filtered = filter === "Semua" ? baseTagihan : baseTagihan.filter(t => t.status === filter);
@@ -32,7 +61,7 @@ const RiwayatPembayaranSiswa = ({ onNavigate }) => {
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
           <h1 className="text-[26px] font-bold text-[#1e293b]">Riwayat Pembayaran</h1>
-          <p className="text-[14px] text-gray-500 mt-1">Ahmad Fauzi · Kelas VIII A · Tahun Ajaran 2025/2026</p>
+          <p className="text-[14px] text-gray-500 mt-1">{studentData.nama} · Kelas {studentData.kelas} · Tahun Ajaran 2025/2026</p>
         </div>
       </div>
 
