@@ -126,7 +126,7 @@ const menuSections = [
       { label: "Data Siswa", icon: <UsersIcon /> },
       { label: "Data Guru & Karyawan", icon: <BriefcaseIcon /> }
     ],
-    roles: ["Kepala Sekolah"]
+    roles: ["Super Admin"]
   },
   {
     section: "MODUL AKADEMIK",
@@ -136,7 +136,7 @@ const menuSections = [
       { label: "Kelas & Penjadwalan", icon: <GridIcon /> },
       { label: "E-Rapor & Input Nilai", icon: <GraduationIcon /> }
     ],
-    roles: ["Kepala Sekolah", "Wakil Kepsek", "Guru"]
+    roles: ["Wakil Kepsek", "Guru"]
   },
   {
     section: "MODUL KEUANGAN",
@@ -145,7 +145,7 @@ const menuSections = [
       { label: "Beasiswa & Potongan", icon: <AwardIcon /> },
       { label: "Penggajian (Payroll)", icon: <WalletIcon /> }
     ],
-    roles: ["Kepala Sekolah", "Wakil Kepsek"]
+    roles: ["Wakil Kepsek"]
   },
   {
     section: "SPP SISWA",
@@ -182,7 +182,7 @@ const menuSections = [
       { label: "Laporan Integrasi", icon: <FileChartIcon /> },
       { label: "Pengaturan Sistem", icon: <SettingsIcon /> }
     ],
-    roles: ["Kepala Sekolah"]
+    roles: ["Super Admin"]
   },
   {
     section: "AKADEMIK SISWA",
@@ -237,6 +237,23 @@ const menuSections = [
       { label: "Riwayat Terima Gaji", icon: <CalendarIcon /> }
     ],
     roles: ["Wali Kelas"]
+  },
+  {
+    section: "PERSETUJUAN & VALIDASI",
+    items: [
+      { label: "Persetujuan Kurikulum", icon: <BookIcon /> },
+      { label: "Validasi Kelulusan", icon: <GraduationIcon /> }
+    ],
+    roles: ["Kepala Sekolah"]
+  },
+  {
+    section: "LAPORAN & MONITORING",
+    items: [
+      { label: "Laporan Akademik", icon: <FileChartIcon /> },
+      { label: "Monitoring Siswa", icon: <UsersIcon /> },
+      { label: "Monitoring Keuangan", icon: <WalletIcon /> }
+    ],
+    roles: ["Kepala Sekolah"]
   }
 ];
 const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) => {
