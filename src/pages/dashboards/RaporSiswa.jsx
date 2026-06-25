@@ -7,7 +7,7 @@ const mockRapor = [
   { id: 4, semester: "Ganjil 2025/2026", tanggal: "—", status: "Belum Tersedia", rataRata: null, peringkat: null },
 ];
 
-const RaporSiswa = () => {
+const RaporSiswa = ({ user }) => {
   const [downloading, setDownloading] = useState(null);
   const [downloaded, setDownloaded] = useState([]);
   const [preview, setPreview] = useState(null);
