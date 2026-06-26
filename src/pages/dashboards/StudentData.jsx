@@ -43,7 +43,7 @@ const mapSiswa = (s, index) => {
     // Keep legacy fields for StudentDetail/Edit compatibility
     name:         s.nama_lengkap,
     gender:       s.jenis_kelamin,
-    email:        `${s.nis}@student.sman1.sch.id`,
+    email:        `${s.nis}@student.mbsprambanan.sch.id`,
     nisn:         s.nisn || (s.nis + "000"),
     jurusan:      s.nama_jurusan || "-",
     nilaiRataRata:80 + (index % 15),

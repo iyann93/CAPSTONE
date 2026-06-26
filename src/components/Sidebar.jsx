@@ -217,9 +217,11 @@ const menuSections = [
     roles: ["Wakil Kepala"]
   },
   {
-    section: "MONITORING",
+    section: "MONITORING KEUANGAN",
     items: [
-      { label: "Monitoring Pembayaran", icon: <ReceiptIcon /> }
+      { label: "Monitoring SPP", icon: <ReceiptIcon /> },
+      { label: "Monitoring Gaji", icon: <WalletIcon /> },
+      { label: "Laporan", icon: <FileChartIcon /> }
     ],
     roles: ["Wakil Kepala"]
   },

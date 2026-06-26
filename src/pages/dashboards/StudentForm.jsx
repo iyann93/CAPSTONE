@@ -87,7 +87,7 @@ const StudentForm = ({ onBack, onSave }) => {
     const newStudent = {
       id: Date.now(),
       name: formData.namaLengkap,
-      email: formData.email || `${formData.namaLengkap.toLowerCase().replace(/\s+/g, ".")}@student.sman1.sch.id`,
+      email: formData.email || `${formData.namaLengkap.toLowerCase().replace(/\s+/g, ".")}@student.mbsprambanan.sch.id`,
       nis: formData.nis,
       nisn: formData.nisn,
       kelas: formData.kelas,

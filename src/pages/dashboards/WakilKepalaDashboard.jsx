@@ -17,8 +17,12 @@ const WakilKepalaDashboard = ({ user, activeMenu, onViewChange }) => {
       return <KurikulumWakil />;
     case "Jadwal Pelajaran":
       return <JadwalPelajaranWakil />;
+    case "Monitoring SPP":
     case "Monitoring Pembayaran":
       return <MonitoringPembayaran />;
+    case "Monitoring Gaji":
+    case "Laporan":
+      return <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
     default:
       return <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
   }
