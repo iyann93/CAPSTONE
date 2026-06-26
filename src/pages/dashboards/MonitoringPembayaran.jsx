@@ -60,20 +60,20 @@ const MonitoringPembayaran = () => {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { label: "Siswa Lunas", val: totalLunas, sub: "dari " + filtered.length + " siswa", bg: "bg-[#1A3D63]", valColor: "text-green-300", subColor: "text-blue-300" },
-          { label: "Siswa Tunggak", val: totalTunggak, sub: "perlu perhatian", bg: "bg-[#1A3D63]", valColor: "text-red-300", subColor: "text-blue-300" },
-          { label: "Total Tunggakan", val: fmt(totalNominal), sub: semester, bg: "bg-[#1A3D63]", valColor: "text-amber-300", subColor: "text-blue-300" },
+          { label: "Siswa Lunas", val: totalLunas, sub: "dari " + filtered.length + " siswa", bg: "bg-[#1A3D63]" },
+          { label: "Siswa Menunggak", val: totalTunggak, sub: "perlu perhatian", bg: "bg-[#1A3D63]" },
+          { label: "Total Tunggakan", val: fmt(totalNominal), sub: semester, bg: "bg-[#1A3D63]" },
         ].map((c, i) => (
           <div key={i} className={`${c.bg} rounded-2xl p-5 shadow-sm`}>
-            <p className="text-[11px] font-bold text-blue-300 uppercase tracking-wider mb-2">{c.label}</p>
-            <p className={`text-[26px] font-black leading-tight ${c.valColor}`}>{c.val}</p>
-            <p className={`text-[12px] mt-1 ${c.subColor}`}>{c.sub}</p>
+            <p className="text-[11px] font-bold text-white/70 uppercase tracking-wider mb-2">{c.label}</p>
+            <p className="text-[26px] font-black leading-tight text-white">{c.val}</p>
+            <p className="text-[12px] mt-1 text-white/60">{c.sub}</p>
           </div>
         ))}
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-wrap gap-3 items-center">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-wrap gap-4 items-end">
         <div>
           <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Semester</label>
           <select value={semester} onChange={e => setSemester(e.target.value)} className="px-3 py-2 border border-gray-200 rounded-xl text-[12px] font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-100">
@@ -89,14 +89,17 @@ const MonitoringPembayaran = () => {
         <div>
           <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Status</label>
           <div className="flex gap-2">
-            {["Semua", "Tunggak", "Lunas"].map(f => (
-              <button key={f} onClick={() => setStatusFilter(f)} className={`px-3 py-2 rounded-xl text-[12px] font-semibold transition-colors ${statusFilter === f ? "bg-[#1A3D63] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>{f}</button>
+            {[["Semua", "Semua"], ["Tunggak", "Menunggak"], ["Lunas", "Lunas"]].map(([val, label]) => (
+              <button key={val} onClick={() => setStatusFilter(val)} className={`px-3 py-2 rounded-xl text-[12px] font-semibold transition-colors ${statusFilter === val ? "bg-[#1A3D63] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>{label}</button>
             ))}
           </div>
         </div>
-        <div className="ml-auto relative">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" placeholder="Cari nama / NIS..." value={search} onChange={e => setSearch(e.target.value)} className="pl-8 pr-4 py-2 text-[13px] border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-100 w-48 mt-5"/>
+        <div className="ml-auto">
+          <label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Pencarian</label>
+          <div className="relative">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" placeholder="Cari nama / NIS..." value={search} onChange={e => setSearch(e.target.value)} className="pl-8 pr-4 py-2 text-[13px] border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-100 w-52"/>
+          </div>
         </div>
       </div>
 
@@ -117,7 +120,7 @@ const MonitoringPembayaran = () => {
                   <td className="px-4 py-3.5"><span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-lg text-[11px] font-bold">{s.kelas}</span></td>
                   <td className="px-4 py-3.5">
                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${s.status === "Lunas" ? "bg-green-50 text-green-600 border-green-100" : "bg-red-50 text-red-500 border-red-100"}`}>
-                      {s.status === "Tunggak" ? "⚠ Tunggak" : "✓ Lunas"}
+                      {s.status === "Tunggak" ? "⚠ Menunggak" : "✓ Lunas"}
                     </span>
                   </td>
                   <td className="px-4 py-3.5 text-[13px] font-bold text-center">{s.bulanTunggak > 0 ? <span className="text-red-500">{s.bulanTunggak} bulan</span> : <span className="text-gray-400">—</span>}</td>
@@ -141,50 +144,74 @@ const MonitoringPembayaran = () => {
 
       {/* Detail Modal */}
       {detail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fadeIn">
-          <div className="bg-white rounded-2xl w-full max-w-[440px] shadow-2xl">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="text-[17px] font-bold text-[#1e293b]">Detail Pembayaran Siswa</h3>
-              <button onClick={() => setDetail(null)} className="text-gray-400 hover:text-gray-600">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn">
+          <div className="bg-white rounded-2xl w-full max-w-[460px] shadow-2xl overflow-hidden">
+
+            {/* Header Gradient */}
+            <div className={`relative px-6 pt-6 pb-7 ${detail.status === "Lunas" ? "bg-gradient-to-br from-[#1A3D63] to-[#1d6a3a]" : "bg-gradient-to-br from-[#1A3D63] to-[#7f1d1d]"}`}>
+              <button
+                onClick={() => setDetail(null)}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-colors"
+              >
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
-            </div>
-            <div className="p-6 space-y-4">
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-[#1A3D63] rounded-2xl flex items-center justify-center text-white font-black text-[20px]">
+                <div className="w-16 h-16 rounded-2xl bg-white/20 border-2 border-white/30 flex items-center justify-center text-white font-black text-[22px] shadow-lg">
                   {detail.nama.split(" ").map(w => w[0]).slice(0, 2).join("")}
                 </div>
                 <div>
-                  <p className="text-[16px] font-bold text-gray-800">{detail.nama}</p>
-                  <p className="text-[13px] text-gray-400">{detail.nis} · {detail.kelas}</p>
+                  <p className="text-white font-bold text-[18px] leading-tight">{detail.nama}</p>
+                  <p className="text-white/65 text-[13px] mt-0.5">{detail.nis} · {detail.kelas}</p>
+                  <span className={`inline-flex items-center gap-1 mt-2 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${detail.status === "Lunas" ? "bg-green-400/30 text-green-100" : "bg-red-400/30 text-red-100"}`}>
+                    {detail.status === "Lunas" ? "✓ Lunas" : "⚠ Menunggak"}
+                  </span>
                 </div>
               </div>
-              <div className={`p-4 rounded-xl border ${detail.status === "Lunas" ? "bg-green-50 border-green-100" : "bg-red-50 border-red-100"}`}>
-                <p className="text-[12px] font-bold uppercase tracking-wider mb-1 ${detail.status === 'Lunas' ? 'text-green-600' : 'text-red-500'}">Status Pembayaran</p>
-                <p className={`text-[20px] font-black ${detail.status === "Lunas" ? "text-green-600" : "text-red-500"}`}>{detail.status === "Lunas" ? "✓ Lunas" : "⚠ Tunggakan Aktif"}</p>
-              </div>
-              <div className="space-y-2">
+            </div>
+
+            {/* Body */}
+            <div className="px-6 pt-5 pb-4 space-y-4">
+
+              {/* Info Rows */}
+              <div className="bg-gray-50 rounded-xl divide-y divide-gray-100 overflow-hidden border border-gray-100">
                 {[
-                  ["Semester", semester],
-                  ["Terakhir Bayar", detail.lastBayar],
-                  ["Bulan Tunggak", detail.bulanTunggak > 0 ? `${detail.bulanTunggak} bulan` : "Tidak ada"],
-                  ["Total Tunggakan", detail.nominal > 0 ? fmt(detail.nominal) : "Rp 0"],
-                ].map(([k, v]) => (
-                  <div key={k} className="flex justify-between py-2 border-b border-gray-50">
-                    <span className="text-[13px] text-gray-500">{k}</span>
-                    <span className={`text-[13px] font-bold ${k === "Total Tunggakan" && detail.nominal > 0 ? "text-red-600" : "text-gray-800"}`}>{v}</span>
+                  { icon: "📅", label: "Semester", value: semester, extra: "" },
+                  { icon: "💳", label: "Terakhir Bayar", value: detail.lastBayar, extra: "" },
+                  { icon: "📆", label: "Bulan Menunggak", value: detail.bulanTunggak > 0 ? `${detail.bulanTunggak} bulan` : "—", extra: detail.bulanTunggak > 0 ? "text-red-600 font-bold" : "text-gray-400" },
+                  { icon: "💰", label: "Total Tunggakan", value: detail.nominal > 0 ? fmt(detail.nominal) : "—", extra: detail.nominal > 0 ? "text-red-600 font-bold" : "text-gray-400" },
+                ].map(({ icon, label, value, extra }) => (
+                  <div key={label} className="flex items-center justify-between px-4 py-3">
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-[15px]">{icon}</span>
+                      <span className="text-[13px] text-gray-500">{label}</span>
+                    </div>
+                    <span className={`text-[13px] font-semibold text-gray-800 ${extra}`}>{value}</span>
                   </div>
                 ))}
               </div>
+
+              {/* Alert Menunggak */}
               {detail.status === "Tunggak" && (
-                <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-[12px] text-amber-700 flex gap-2">
-                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" className="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
-                  Monitoring tunggakan perlu ditindaklanjuti. Koordinasikan dengan Bendahara untuk verifikasi pembayaran.
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex gap-3 items-start">
+                  <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#d97706" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                  </div>
+                  <div>
+                    <p className="text-[12px] font-bold text-amber-700 mb-0.5">Perlu Tindak Lanjut</p>
+                    <p className="text-[12px] text-amber-600 leading-relaxed">Koordinasikan dengan Bendahara untuk verifikasi dan penyelesaian tunggakan pembayaran siswa ini.</p>
+                  </div>
                 </div>
               )}
             </div>
-            <div className="px-6 pb-6">
-              <button onClick={() => setDetail(null)} className="w-full py-3 bg-[#1A3D63] hover:bg-[#163256] text-white rounded-xl font-bold">Tutup</button>
+
+            {/* Footer */}
+            <div className="px-6 pb-5">
+              <button
+                onClick={() => setDetail(null)}
+                className="w-full py-3 bg-gradient-to-r from-[#1A3D63] to-[#2563a8] hover:from-[#163256] hover:to-[#1d5490] text-white rounded-xl font-bold text-[14px] transition-all shadow-sm"
+              >
+                Tutup
+              </button>
             </div>
           </div>
         </div>

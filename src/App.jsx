@@ -11,12 +11,8 @@ import BendaharaDashboard from "./pages/dashboards/BendaharaDashboard";
 import AdminTUDashboard from "./pages/dashboards/AdminTUDashboard";
 import OrangTuaDashboard from "./pages/dashboards/OrangTuaDashboard";
 import WakilKepalaDashboard from "./pages/dashboards/WakilKepalaDashboard";
-<<<<<<< HEAD
-import GuruDashboard from "./pages/dashboards/GuruDashboard";
-
-=======
 import WaliKelasDashboard from "./pages/dashboards/WaliKelasDashboard";
->>>>>>> 0fb21c7351f8e8b371ec1de3207197c6a9068cb5
+import GuruDashboard from "./pages/dashboards/GuruDashboard";
 const App = () => {
   const [user, setUser] = useState(null);
   const [collapsed, setCollapsed] = useState(true);
@@ -49,7 +45,7 @@ const App = () => {
     if (user) {
       // Listen for user activity
       const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
-      
+
       events.forEach(event => {
         window.addEventListener(event, resetTimer, { passive: true });
       });
@@ -154,44 +150,55 @@ const App = () => {
   };
   const renderDashboard = () => {
     if (!user) return null;
-<<<<<<< HEAD
-    switch (user.role) {
-      case "Admin TU":
-      case "Admin":
-        return <AdminTUDashboard user={user} activeMenu={activeMenu} />;
-      case "Super Admin":
-        return <SuperAdminDashboard user={user} activeMenu={activeMenu} />;
 
-      case "Bendahara":
-        return <BendaharaDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
-      case "Orang Tua":
-        return <OrangTuaDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
-      case "Wakil Kepala":
-        return <WakilKepalaDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
-      case "Guru":
-      case "Guru Mapel":
-      case "Wali Kelas":
-        return <GuruDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
-      default:
-        return <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
-=======
     const roleStr = user.role ? user.role.trim().toLowerCase() : "";
-    
+
     if (roleStr === "admin tu" || roleStr === "admin") {
       return <AdminTUDashboard user={user} activeMenu={activeMenu} />;
     } else if (roleStr === "super admin") {
       return <SuperAdminDashboard user={user} activeMenu={activeMenu} />;
     } else if (roleStr === "bendahara") {
-      return <BendaharaDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
+      return (
+        <BendaharaDashboard
+          user={user}
+          activeMenu={activeMenu}
+          onViewChange={setActiveMenu}
+        />
+      );
     } else if (roleStr === "orang tua") {
-      return <OrangTuaDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
+      return (
+        <OrangTuaDashboard
+          user={user}
+          activeMenu={activeMenu}
+          onViewChange={setActiveMenu}
+        />
+      );
     } else if (roleStr === "wakil kepala") {
-      return <WakilKepalaDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
+      return (
+        <WakilKepalaDashboard
+          user={user}
+          activeMenu={activeMenu}
+          onViewChange={setActiveMenu}
+        />
+      );
+    } else if (roleStr === "guru" || roleStr === "guru mapel") {
+      return (
+        <GuruDashboard
+          user={user}
+          activeMenu={activeMenu}
+          onViewChange={setActiveMenu}
+        />
+      );
     } else if (roleStr === "wali kelas") {
-      return <WaliKelasDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
+      return (
+        <WaliKelasDashboard
+          user={user}
+          activeMenu={activeMenu}
+          onViewChange={setActiveMenu}
+        />
+      );
     } else {
       return <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
->>>>>>> 0fb21c7351f8e8b371ec1de3207197c6a9068cb5
     }
   };
   if (!user) {
@@ -264,7 +271,5 @@ const App = () => {
     </div>
   </div>;
 };
-var App_default = App;
-export {
-  App_default as default
-};
+
+export default App;
