@@ -260,24 +260,35 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
 
         {/* Status Penggajian */}
         <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col">
-          <h3 className="text-[16px] font-bold text-gray-800">Status Pembayaran Gaji</h3>
-          <p className="text-[12px] text-gray-500 mt-1 mb-6">Status administrasi gaji guru & tenaga kependidikan</p>
-          <div className="grid grid-cols-2 gap-4 mt-auto">
-            <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-50">
-              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total Pegawai</div>
-              <div className="text-[16px] font-black text-gray-800">185 Orang</div>
+          <h3 className="text-[16px] font-bold text-gray-800">Status Realisasi Anggaran Gaji</h3>
+          <p className="text-[12px] text-gray-500 mt-1 mb-8">Monitoring realisasi pembayaran gaji guru dan tenaga kependidikan.</p>
+          
+          <div className="mt-auto space-y-6">
+            <div>
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-[12px] font-medium text-gray-500">Persentase Realisasi</span>
+                <span className="px-2.5 py-1 bg-green-50 text-green-600 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-green-100">
+                  95,6% Terealisasi
+                </span>
+              </div>
+              <div className="w-full bg-gray-50 rounded-full h-3 overflow-hidden border border-gray-100">
+                <div className="bg-[#1A3D63] h-full rounded-full" style={{ width: '95.6%' }}></div>
+              </div>
             </div>
-            <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-50">
-              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Anggaran Gaji</div>
-              <div className="text-[16px] font-black text-gray-800">Rp 640 Jt</div>
-            </div>
-            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tuntas Bayar</div>
-              <div className="text-[16px] font-black text-gray-800">178 Pegawai</div>
-            </div>
-            <div className="bg-amber-50/50 rounded-xl p-4 border border-amber-50">
-              <div className="text-[10px] font-bold text-amber-500 uppercase tracking-wider mb-1">DIPROSES</div>
-              <div className="text-[16px] font-black text-amber-600">7 Pegawai</div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Anggaran Gaji</div>
+                <div className="text-[16px] font-black text-gray-800">Rp 640 Jt</div>
+              </div>
+              <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-50">
+                <div className="text-[10px] font-bold text-[#1A3D63] uppercase tracking-wider mb-1">Realisasi Gaji</div>
+                <div className="text-[16px] font-black text-[#1A3D63]">Rp 612 Jt</div>
+              </div>
+              <div className="col-span-2 flex justify-between items-center pt-2 border-t border-gray-50">
+                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Sisa Anggaran</span>
+                <span className="text-[15px] font-black text-amber-500">Rp 28 Jt</span>
+              </div>
             </div>
           </div>
         </div>

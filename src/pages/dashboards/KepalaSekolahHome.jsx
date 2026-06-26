@@ -155,7 +155,7 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
         <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col justify-between animate-fadeIn" style={{ animationDelay: "400ms" }}>
           <div>
             <div className="mb-6">
-              <h3 className="text-[16px] font-bold text-gray-800">Perlu Perhatian Anda</h3>
+              <h3 className="text-[16px] font-bold text-gray-800">Perlu Ditindaklanjuti</h3>
               <p className="text-[12px] text-gray-500 mt-0.5">Tugas persetujuan dan validasi yang tertunda</p>
             </div>
             
@@ -166,7 +166,7 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
                 </div>
                 <div className="pt-0.5">
                   <h4 className="text-[13px] font-bold text-gray-800">3 Pengajuan Kurikulum</h4>
-                  <p className="text-[11px] text-gray-500 mt-1 leading-relaxed">Rencana pembelajaran semester ganjil dari Wakil Kepala Sekolah menunggu persetujuan Anda.</p>
+                  <p className="text-[11px] text-gray-500 mt-1 leading-relaxed">Rencana pembelajaran semester ganjil dari Wakil Kepala Sekolah menunggu persetujuan Kepala Sekolah.</p>
                 </div>
               </div>
               
