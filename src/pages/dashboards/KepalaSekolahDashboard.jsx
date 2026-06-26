@@ -5,6 +5,8 @@ import ValidasiKelulusan from "./ValidasiKelulusan";
 import LaporanAkademik from "./LaporanAkademik";
 import MonitoringSiswaKepsek from "./MonitoringSiswaKepsek";
 import MonitoringKeuanganKepsek from "./MonitoringKeuanganKepsek";
+import LogAktivitasKepsek from "./LogAktivitasKepsek";
+import LaporanHarianKepsek from "./LaporanHarianKepsek";
 import PlaceholderDashboard from "./PlaceholderDashboard";
 
 const KepalaSekolahDashboard = ({ user, activeMenu, onViewChange }) => {
@@ -26,7 +28,11 @@ const KepalaSekolahDashboard = ({ user, activeMenu, onViewChange }) => {
     case "Monitoring Siswa":
       return <MonitoringSiswaKepsek user={user} />;
     case "Monitoring Keuangan":
-      return <MonitoringKeuanganKepsek user={user} />;
+      return <MonitoringKeuanganKepsek user={user} onNavigate={handleNavigate} />;
+    case "Log Aktivitas":
+      return <LogAktivitasKepsek user={user} onNavigate={handleNavigate} />;
+    case "Laporan Harian":
+      return <LaporanHarianKepsek user={user} onNavigate={handleNavigate} />;
       
     default:
       if (activeMenu !== "Dashboard" && activeMenu) {
