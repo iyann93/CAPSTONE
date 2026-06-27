@@ -2520,7 +2520,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                               <h3 className="text-lg font-bold text-gray-800">Daftar Penerima Beasiswa</h3>
                               <p className="text-xs text-gray-400 mt-1">Siswa yang terdaftar dalam program {activeProgram.title}.</p>
                             </div>
-                            <div className="flex items-center gap-3 w-full sm:w-auto">
+                            <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap">
                               <div className="relative w-full sm:w-48">
                                 <span className="absolute left-3 top-2.5 text-gray-400">
                                   <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-4.35-4.35" /></svg>
@@ -2542,6 +2542,29 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                 <option value="Aktif">Aktif</option>
                                 <option value="Non-Aktif">Non-Aktif</option>
                               </select>
+                              <button
+                                onClick={() => {
+                                  setSelectedBeasiswa(null);
+                                  setSiswaSearchQuery("");
+                                  setBeasiswaForm({
+                                    siswaId: "",
+                                    namaBeasiswa: activeProgram?.title || "",
+                                    nominal: activeProgram?.amount
+                                      ? String(activeProgram.amount).replace(/[^0-9]/g, "")
+                                      : "",
+                                    periode: "2025/2026",
+                                    status: "Aktif",
+                                    tanggalMulai: new Date().toISOString().split("T")[0],
+                                    tanggalSelesai: "",
+                                  });
+                                  setIsBeasiswaFormDirty(false);
+                                  setShowAddPenerimaModal(true);
+                                }}
+                                className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-4 py-2 text-xs font-bold cursor-pointer transition-all active:scale-95 shadow-sm whitespace-nowrap"
+                              >
+                                <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                                Tambah Penerima
+                              </button>
                             </div>
                           </div>
 
@@ -2549,6 +2572,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                             <table className="w-full text-left border-collapse">
                               <thead>
                                 <tr className="bg-white text-gray-400 font-bold text-[10px] tracking-wider border-b border-gray-100">
+                                  <th className="py-4 px-4 text-center">#</th>
                                   <th className="py-4 px-5">NAMA SISWA</th>
                                   <th className="py-4 px-4 text-center">NIS</th>
                                   <th className="py-4 px-4 text-center">KELAS</th>
@@ -2560,32 +2584,59 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-gray-50 text-xs">
-                                {(activeProgram.penerima?.length || 0) > 0 ? (
-                                  (activeProgram.penerima || []).map((row, idx) => (
-                                    <tr key={idx} className="hover:bg-[#F8FAFC] transition-colors">
-                                      <td className="py-4 px-4 text-center text-gray-400 font-semibold text-xs">{idx + 1}</td>
-                                      <td className="py-4 px-6 font-bold text-gray-800">{row.siswa_nama}</td>
-                                      <td className="py-4 px-6">
-                                        <span className="text-blue-500 bg-blue-50 px-2.5 py-1 rounded-md text-[10px] font-bold">{row.nama_kelas}</span>
+                                {(() => {
+                                  const filtered = (activeProgram.penerima || []).filter(row => {
+                                    const matchSearch = !penerimaSearchQuery ||
+                                      (row.siswa_nama || '').toLowerCase().includes(penerimaSearchQuery.toLowerCase()) ||
+                                      (row.nis || '').includes(penerimaSearchQuery);
+                                    const matchStatus = penerimaStatusFilter === 'Semua' || row.status === penerimaStatusFilter;
+                                    return matchSearch && matchStatus;
+                                  });
+                                  if (filtered.length === 0) {
+                                    return (
+                                      <tr>
+                                        <td colSpan="9" className="py-16 text-center">
+                                          <div className="flex flex-col items-center gap-2 text-gray-400">
+                                            <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>
+                                            <div className="text-sm font-semibold">
+                                              {penerimaSearchQuery || penerimaStatusFilter !== 'Semua'
+                                                ? 'Tidak ada penerima yang sesuai filter'
+                                                : 'Belum Ada Penerima Beasiswa'}
+                                            </div>
+                                            {!penerimaSearchQuery && penerimaStatusFilter === 'Semua' && (
+                                              <p className="text-xs text-gray-300">Klik tombol "Tambah Penerima" untuk menambahkan siswa</p>
+                                            )}
+                                          </div>
+                                        </td>
+                                      </tr>
+                                    );
+                                  }
+                                  return filtered.map((row, idx) => (
+                                    <tr key={row.id || idx} className="hover:bg-[#F8FAFC] transition-colors">
+                                      <td className="py-4 px-5 text-gray-400 font-semibold text-xs">{idx + 1}</td>
+                                      <td className="py-4 px-5 font-bold text-gray-800">{row.siswa_nama}</td>
+                                      <td className="py-4 px-4 text-center text-gray-500 font-medium">{row.nis || '-'}</td>
+                                      <td className="py-4 px-4 text-center">
+                                        <span className="text-blue-500 bg-blue-50 px-2.5 py-1 rounded-md text-[10px] font-bold">{row.nama_kelas || '-'}</span>
                                       </td>
-                                      <td className="py-4 px-6">
+                                      <td className="py-4 px-5 text-gray-700 font-medium truncate max-w-[140px]">{row.nama_beasiswa}</td>
+                                      <td className="py-4 px-5">
                                         <span className="text-[#137333] bg-[#E6F4EA] px-2.5 py-1 rounded-md text-[10px] font-bold">
-                                          Rp {Number(row.nominal).toLocaleString('id-ID')}
+                                          Rp {Number(row.nominal || 0).toLocaleString('id-ID')}
                                         </span>
                                       </td>
-                                      <td className="py-4 px-6 text-gray-600 font-medium">
-                                        {row.periode}
-                                      </td>
-                                      <td className="py-4 px-6">
+                                      <td className="py-4 px-4 text-center text-gray-600 font-medium">{row.periode}</td>
+                                      <td className="py-4 px-4 text-center">
                                         <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold ${row.status === 'Aktif' ? 'bg-[#E8FDF5] text-[#059669] border border-[#A7F3D0]' : 'bg-gray-100 text-gray-500 border border-gray-200'}`}>
                                           {row.status}
                                         </span>
                                       </td>
-                                      <td className="py-4 px-6 text-right">
+                                      <td className="py-4 px-5 text-right">
                                         <div className="flex items-center justify-end gap-1.5">
                                           <button
                                             onClick={() => {
                                               setSelectedBeasiswa(row);
+                                              setSiswaSearchQuery(row.siswa_nama || "");
                                               setBeasiswaForm({
                                                 siswaId: row.siswa_id,
                                                 namaBeasiswa: row.nama_beasiswa,
@@ -2595,9 +2646,11 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                                 tanggalMulai: row.tanggal_mulai ? new Date(row.tanggal_mulai).toISOString().split('T')[0] : "",
                                                 tanggalSelesai: row.tanggal_selesai ? new Date(row.tanggal_selesai).toISOString().split('T')[0] : ""
                                               });
+                                              setIsBeasiswaFormDirty(false);
                                               setShowAddPenerimaModal(true);
                                             }}
                                             className="w-8 h-8 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 flex items-center justify-center text-blue-500 transition-colors cursor-pointer"
+                                            title="Edit"
                                           >
                                             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" /></svg>
                                           </button>
@@ -2607,20 +2660,15 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                               setShowDeleteBeasiswaModal(true);
                                             }}
                                             className="w-8 h-8 rounded-lg border border-red-100 bg-red-50 hover:bg-red-100 flex items-center justify-center text-red-500 transition-colors cursor-pointer"
+                                            title="Hapus"
                                           >
                                             <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>
                                           </button>
                                         </div>
                                       </td>
                                     </tr>
-                                  ))
-                                ) : (
-                                  <tr>
-                                    <td colSpan="6" className="py-16 text-center">
-                                      <div className="text-sm font-semibold text-gray-400">Belum Ada Penerima Beasiswa</div>
-                                    </td>
-                                  </tr>
-                                )}
+                                  ));
+                                })()}
                               </tbody>
                             </table>
                           </div>

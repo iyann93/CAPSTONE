@@ -1,82 +1,85 @@
 'use strict';
 require('dotenv').config();
-const axios = require('axios');
+const http = require('http');
 
-const BASE_URL = `http://localhost:${process.env.PORT || 5000}/api/v1`;
+// Test: Login sebagai bendahara dulu, lalu coba create beasiswa
+const BENDAHARA_EMAIL = 'siti.keuangan@siakad.id';
+const SAMPLE_SISWA_ID = '00000005-0000-0000-0000-000000000001'; // Ahmad F
+
+function doRequest(options, body = null) {
+  return new Promise((resolve, reject) => {
+    const req = http.request(options, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try { resolve({ status: res.statusCode, headers: res.headers, body: JSON.parse(data) }); }
+        catch { resolve({ status: res.statusCode, body: data }); }
+      });
+    });
+    req.on('error', reject);
+    if (body) req.write(JSON.stringify(body));
+    req.end();
+  });
+}
 
 async function main() {
-  // 1. Login dulu
-  console.log('1. Login...');
-  let token;
-  try {
-    const loginRes = await axios.post(`${BASE_URL}/auth/login`, {
-      email: process.env.TEST_EMAIL || 'bendahara@school.com',
-      password: process.env.TEST_PASSWORD || 'password123'
-    });
-    token = loginRes.data?.data?.accessToken || loginRes.data?.accessToken;
-    if (!token) {
-      // Try to get from cookie or different structure
-      console.log('Login response:', JSON.stringify(loginRes.data, null, 2));
-    }
-    console.log('Login berhasil, token:', token ? token.substring(0,30) + '...' : 'NOT FOUND');
-  } catch (e) {
-    console.error('Login gagal:', e.response?.data || e.message);
+  // 1. Login
+  console.log('1. Login sebagai bendahara...');
+  const loginRes = await doRequest({
+    hostname: 'localhost', port: 5000, path: '/api/v1/auth/login',
+    method: 'POST', headers: { 'Content-Type': 'application/json' }
+  }, { email: BENDAHARA_EMAIL, password: 'password123' });
+
+  console.log('   Status:', loginRes.status);
+  const token = loginRes.body?.data?.accessToken;
+  if (!token) {
+    console.error('   ❌ Login gagal:', JSON.stringify(loginRes.body));
+    // Coba password lain
+    const loginRes2 = await doRequest({
+      hostname: 'localhost', port: 5000, path: '/api/v1/auth/login',
+      method: 'POST', headers: { 'Content-Type': 'application/json' }
+    }, { email: BENDAHARA_EMAIL, password: 'Password123!' });
+    console.log('   Status (password2):', loginRes2.status);
+    console.log('   Body:', JSON.stringify(loginRes2.body));
     return;
   }
+  console.log('   ✅ Token diperoleh');
 
-  const headers = { Authorization: `Bearer ${token}` };
-
-  // 2. GET beasiswa
+  // 2. Coba GET beasiswa
   console.log('\n2. GET /beasiswa...');
-  try {
-    const res = await axios.get(`${BASE_URL}/beasiswa`, { headers });
-    console.log('GET beasiswa OK, total:', res.data?.data?.total || res.data?.data?.length || JSON.stringify(res.data?.data).substring(0, 100));
-  } catch (e) {
-    console.error('GET beasiswa gagal:', e.response?.status, e.response?.data || e.message);
-  }
+  const getRes = await doRequest({
+    hostname: 'localhost', port: 5000, path: '/api/v1/beasiswa?limit=5',
+    method: 'GET', headers: { 'Authorization': `Bearer ${token}` }
+  });
+  console.log('   Status:', getRes.status);
+  console.log('   Body:', JSON.stringify(getRes.body).substring(0, 200));
 
-  // 3. GET siswa untuk cari ID valid
-  console.log('\n3. GET /siswa untuk cari ID...');
-  let siswaId;
-  try {
-    const res = await axios.get(`${BASE_URL}/siswa?limit=1`, { headers });
-    const rows = res.data?.data?.rows || res.data?.data || [];
-    siswaId = rows[0]?.id;
-    console.log('Siswa pertama ID:', siswaId, '| Nama:', rows[0]?.nama_lengkap);
-  } catch (e) {
-    console.error('GET siswa gagal:', e.response?.status, e.response?.data || e.message);
-    return;
-  }
-
-  if (!siswaId) {
-    console.log('Tidak ada siswa ditemukan, skip test create beasiswa');
-    return;
-  }
-
-  // 4. POST beasiswa
-  console.log('\n4. POST /beasiswa...');
+  // 3. Coba POST beasiswa
+  console.log('\n3. POST /beasiswa...');
   const payload = {
-    siswaId,
-    namaBeasiswa: 'Test Beasiswa Script',
-    nominal: 500000,
+    siswaId: SAMPLE_SISWA_ID,
+    namaBeasiswa: 'Beasiswa Test',
+    nominal: 250000,
     periode: '2025/2026',
     status: 'Aktif',
     tanggalMulai: '2025-07-01',
-    tanggalSelesai: '2026-06-30'
+    tanggalSelesai: '2026-06-30',
   };
-  console.log('Payload:', payload);
-  try {
-    const res = await axios.post(`${BASE_URL}/beasiswa`, payload, { headers });
-    console.log('POST beasiswa OK:', JSON.stringify(res.data?.data, null, 2));
+  console.log('   Payload:', JSON.stringify(payload));
+  const postRes = await doRequest({
+    hostname: 'localhost', port: 5000, path: '/api/v1/beasiswa',
+    method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+  }, payload);
+  console.log('   Status:', postRes.status);
+  console.log('   Body:', JSON.stringify(postRes.body));
 
-    // Cleanup: hapus data test
-    const createdId = res.data?.data?.id;
-    if (createdId) {
-      await axios.delete(`${BASE_URL}/beasiswa/${createdId}`, { headers });
-      console.log('\nCleanup: data test berhasil dihapus');
-    }
-  } catch (e) {
-    console.error('POST beasiswa GAGAL:', e.response?.status, JSON.stringify(e.response?.data, null, 2));
+  if (postRes.status === 201) {
+    // Hapus data test
+    const delRes = await doRequest({
+      hostname: 'localhost', port: 5000, path: `/api/v1/beasiswa/${postRes.body.data?.id}`,
+      method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` }
+    });
+    console.log('\n4. Cleanup DELETE:', delRes.status);
   }
 }
 

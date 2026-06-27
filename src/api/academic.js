@@ -1,4 +1,9 @@
 import api from './axios';
 
-export const getSiswa = (params = {}) => 
-  api.get('/siswa', { params }).then((r) => r.data.data);
+export const getSiswa = (params = {}) =>
+  api.get('/siswa', { params }).then((r) => {
+    const payload = r.data.data;
+    if (Array.isArray(payload)) return payload;
+    if (payload && Array.isArray(payload.data)) return payload.data;
+    return [];
+  });

@@ -117,16 +117,22 @@ const KomponenSppRepository = {
 
       // 1. Pre-fetch existing tagihan for this period to avoid N+1 queries
       const existingRes = await client.query(
-        `SELECT id, siswa_id, komponen_spp_id, nominal, status FROM finance.tagihan_spp WHERE bulan = $1 AND tahun = $2`,
+        `SELECT id, siswa_id, komponen_spp_id, nominal, potongan, status FROM finance.tagihan_spp WHERE bulan = $1 AND tahun = $2`,
         [bulan, tahun]
       );
       // Map key -> existing row
       const existingMap = new Map(existingRes.rows.map(r => [`${r.siswa_id}-${r.komponen_spp_id}`, r]));
 
+      // 1b. Pre-fetch active scholarships
+      const beasiswaRes = await client.query(
+        `SELECT id, siswa_id, nominal FROM finance.beasiswa WHERE status = 'aktif'`
+      );
+      const beasiswaMap = new Map(beasiswaRes.rows.map(b => [b.siswa_id, b]));
+
       // 2. Prepare bulk insert and update data
       const insertValues = [];
       const queryParams = [];
-      const updateCases = []; // rows to update nominal
+      const updateCases = []; // rows to update nominal/potongan
 
       for (const siswa of siswaList) {
         const applicableKomponen = komponenList.filter(k =>
@@ -136,11 +142,18 @@ const KomponenSppRepository = {
         for (const komp of applicableKomponen) {
           const key = `${siswa.id}-${komp.id}`;
           const existing = existingMap.get(key);
+          const beasiswa = beasiswaMap.get(siswa.id);
+          const beasiswaId = beasiswa ? beasiswa.id : null;
+          
+          // Potongan cannot exceed nominal SPP component
+          const potongan = beasiswa ? Math.min(parseFloat(beasiswa.nominal), parseFloat(komp.nominal)) : 0;
 
           if (existing) {
-            // If nominal changed and tagihan not yet paid → update
-            if (existing.status === 'belum_bayar' && parseFloat(existing.nominal) !== parseFloat(komp.nominal)) {
-              updateCases.push({ id: existing.id, nominal: komp.nominal });
+            // If nominal changed or potongan changed and tagihan not yet paid → update
+            if (existing.status === 'belum_bayar' && 
+                (parseFloat(existing.nominal) !== parseFloat(komp.nominal) || 
+                 parseFloat(existing.potongan || 0) !== potongan)) {
+              updateCases.push({ id: existing.id, nominal: komp.nominal, potongan, beasiswa_id: beasiswaId });
               updated++;
             } else {
               skipped++;
@@ -149,8 +162,8 @@ const KomponenSppRepository = {
           }
 
           const jatuhTempo = new Date(tahun, bulan - 1, komp.default_jatuh_tempo || 10);
-          insertValues.push(`($$, $$, $$, $$, $$, 0, 'belum_bayar', $$, NOW(), NOW(), $$)`);
-          queryParams.push(siswa.id, komp.id, bulan, tahun, komp.nominal, jatuhTempo, userId);
+          insertValues.push(`($$, $$, $$, $$, $$, $$, $$, 'belum_bayar', $$, NOW(), NOW(), $$)`);
+          queryParams.push(siswa.id, komp.id, bulan, tahun, komp.nominal, beasiswaId, potongan, jatuhTempo, userId);
           generated++;
         }
       }
@@ -160,24 +173,24 @@ const KomponenSppRepository = {
         const CHUNK_SIZE = 500;
         for (let i = 0; i < insertValues.length; i += CHUNK_SIZE) {
           const chunkValues = insertValues.slice(i, i + CHUNK_SIZE);
-          const chunkParams = queryParams.slice(i * 7, (i + CHUNK_SIZE) * 7);
+          const chunkParams = queryParams.slice(i * 9, (i + CHUNK_SIZE) * 9);
           let paramIdx = 1;
           const formattedChunk = chunkValues.map(valStr =>
             valStr.replace(/\$\$/g, () => `$${paramIdx++}`)
           );
           await client.query(`
             INSERT INTO finance.tagihan_spp 
-              (siswa_id, komponen_spp_id, bulan, tahun, nominal, potongan, status, jatuh_tempo, created_at, updated_at, updated_by)
+              (siswa_id, komponen_spp_id, bulan, tahun, nominal, beasiswa_id, potongan, status, jatuh_tempo, created_at, updated_at, updated_by)
             VALUES ${formattedChunk.join(', ')}
           `, chunkParams);
         }
       }
 
-      // 4. Update nominal for changed belum_bayar tagihan
+      // 4. Update nominal/potongan for changed belum_bayar tagihan
       for (const upd of updateCases) {
         await client.query(
-          `UPDATE finance.tagihan_spp SET nominal = $1, updated_at = NOW(), updated_by = $2 WHERE id = $3`,
-          [upd.nominal, userId, upd.id]
+          `UPDATE finance.tagihan_spp SET nominal = $1, potongan = $2, beasiswa_id = $3, updated_at = NOW(), updated_by = $4 WHERE id = $5`,
+          [upd.nominal, upd.potongan, upd.beasiswa_id, userId, upd.id]
         );
       }
 

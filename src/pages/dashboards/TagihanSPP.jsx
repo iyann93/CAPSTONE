@@ -65,8 +65,14 @@ const TagihanSPP = ({ onNavigate }) => {
   const lunas = tagihan.filter(t => t.status === "lunas").length;
   const belumLunas = tagihan.filter(t => t.status === "belum_bayar").length;
   const menunggu = tagihan.filter(t => t.status === "menunggu_konfirmasi").length;
-  const totalLunas = tagihan.filter(t => t.status === "lunas").reduce((a, c) => a + Number(c.nominal), 0);
-  const totalBelum = tagihan.filter(t => t.status === "belum_bayar" || t.status === "menunggu_konfirmasi").reduce((a, c) => a + Number(c.nominal), 0);
+  
+  const totalLunas = tagihan.filter(t => t.status === "lunas").reduce((a, c) => a + Number(c.nominal_akhir || c.nominal), 0);
+  
+  // Breakdown Tagihan Aktif
+  const tagihanAktif = tagihan.filter(t => t.status === "belum_bayar" || t.status === "menunggu_konfirmasi");
+  const totalOriginal = tagihanAktif.reduce((a, c) => a + Number(c.nominal), 0);
+  const totalPotongan = tagihanAktif.reduce((a, c) => a + Number(c.potongan || 0), 0);
+  const totalHarusDibayar = tagihanAktif.reduce((a, c) => a + Number(c.nominal_akhir || (c.nominal - (c.potongan || 0))), 0);
 
   const tagihanBelumBayar = tagihan.filter(t => t.status === "belum_bayar");
 
@@ -84,22 +90,46 @@ const TagihanSPP = ({ onNavigate }) => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {[
-          { label: "Total Tagihan Aktif", val: fmt(totalBelum), sub: `${belumLunas + menunggu} bulan tagihan` },
-          { label: "Total Sudah Dibayar", val: fmt(totalLunas), sub: `Total tagihan lunas` },
-          { label: "Proses Verifikasi", val: menunggu + " Tagihan", sub: "Menunggu konfirmasi bendahara", highlight: menunggu > 0 },
-        ].map((card, i) => (
-          <div key={i} className={`rounded-2xl p-5 shadow-sm flex flex-col justify-between transition-all ${
-            card.highlight ? "bg-amber-50 border border-amber-100 ring-1 ring-amber-100" : "bg-white border border-gray-100"
-          }`}>
-            <div className="flex items-center gap-1.5 mb-2">
-              <p className={`text-[11px] font-bold uppercase tracking-wider ${card.highlight ? "text-amber-600" : "text-gray-400"}`}>{card.label}</p>
-            </div>
-            <p className={`text-[26px] font-black leading-tight ${card.highlight ? "text-amber-600" : "text-[#1e293b]"}`}>{card.val}</p>
-            {card.sub && <p className={`text-[12px] mt-1 font-medium ${card.highlight ? "text-amber-500" : "text-gray-500"}`}>{card.sub}</p>}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Total Tagihan Aktif with Breakdown */}
+        <div className="bg-white border border-blue-100 ring-1 ring-blue-50 rounded-2xl p-5 shadow-sm flex flex-col justify-between transition-all md:col-span-1">
+          <div className="flex items-center gap-1.5 mb-2">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-blue-600">Total Tagihan Aktif</p>
           </div>
-        ))}
+          <p className="text-[26px] font-black leading-tight text-[#1e293b]">{fmt(totalHarusDibayar)}</p>
+          <p className="text-[12px] mt-1 font-medium text-blue-500">{belumLunas + menunggu} bulan belum lunas</p>
+          
+          {totalPotongan > 0 && (
+            <div className="mt-4 pt-3 border-t border-blue-50 space-y-1">
+              <div className="flex justify-between text-[11px] text-gray-500">
+                <span>Total Asli:</span>
+                <span>{fmt(totalOriginal)}</span>
+              </div>
+              <div className="flex justify-between text-[11px] font-bold text-green-600">
+                <span>Potongan Beasiswa:</span>
+                <span>- {fmt(totalPotongan)}</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Other Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:col-span-2">
+          {[
+            { label: "Total Sudah Dibayar", val: fmt(totalLunas), sub: `Total tagihan lunas` },
+            { label: "Proses Verifikasi", val: menunggu + " Tagihan", sub: "Menunggu konfirmasi bendahara", highlight: menunggu > 0 },
+          ].map((card, i) => (
+            <div key={i} className={`rounded-2xl p-5 shadow-sm flex flex-col justify-between transition-all ${
+              card.highlight ? "bg-amber-50 border border-amber-100 ring-1 ring-amber-100" : "bg-white border border-gray-100"
+            }`}>
+              <div className="flex items-center gap-1.5 mb-2">
+                <p className={`text-[11px] font-bold uppercase tracking-wider ${card.highlight ? "text-amber-600" : "text-gray-400"}`}>{card.label}</p>
+              </div>
+              <p className={`text-[26px] font-black leading-tight ${card.highlight ? "text-amber-600" : "text-[#1e293b]"}`}>{card.val}</p>
+              {card.sub && <p className={`text-[12px] mt-1 font-medium ${card.highlight ? "text-amber-500" : "text-gray-500"}`}>{card.sub}</p>}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Pembayaran Section */}
@@ -142,7 +172,7 @@ const TagihanSPP = ({ onNavigate }) => {
               <option value="">-- Pilih Bulan Tagihan --</option>
               {tagihanBelumBayar.map(t => (
                 <option key={t.id} value={t.id}>
-                  Bulan {getBulanNama(t.bulan)} {t.tahun} - {fmt(t.nominal)}
+                  Bulan {getBulanNama(t.bulan)} {t.tahun} - {fmt(t.nominal_akhir || (t.nominal - (t.potongan || 0)))}
                 </option>
               ))}
             </select>

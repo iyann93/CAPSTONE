@@ -1,20 +1,24 @@
-const { Pool } = require('pg');
+'use strict';
 require('dotenv').config();
-const p = new Pool({
-  database: process.env.DB_DATABASE,
+const { Pool } = require('pg');
+
+const pool = new Pool({
   user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
   host: process.env.DB_HOST,
-  port: process.env.DB_PORT
+  database: process.env.DB_DATABASE,
+  password: String(process.env.DB_PASSWORD),
+  port: parseInt(process.env.DB_PORT, 10),
 });
 
-p.query(`
-  SELECT p.nama_permission 
-  FROM shared.role_permissions rp 
-  JOIN shared.permissions p ON rp.permission_id = p.id 
-  JOIN shared.roles r ON rp.role_id = r.id 
-  WHERE r.nama_role = 'Bendahara'
-`)
-.then(r => console.table(r.rows))
-.catch(console.error)
-.finally(()=>p.end());
+async function main() {
+  const r = await pool.query(`
+    SELECT rp.role_id, r.nama_role 
+    FROM shared.role_permissions rp 
+    JOIN shared.permissions p ON p.id = rp.permission_id 
+    JOIN shared.roles r ON r.id = rp.role_id
+    WHERE p.modul = 'beasiswa' AND p.aksi = 'read'
+  `);
+  console.log('Roles with beasiswa.read:', r.rows);
+  pool.end();
+}
+main();

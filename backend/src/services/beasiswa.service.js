@@ -37,25 +37,39 @@ const BeasiswaService = {
   },
 
   create: async (data) => {
-    return await BeasiswaRepository.create({
+    const result = await BeasiswaRepository.create({
       ...data,
       nominal: parseFloat(data.nominal),
+      status: data.status ? data.status.toLowerCase() : 'aktif',
     });
+    
+    // Sinkronisasi tagihan belum_bayar dengan beasiswa yang baru
+    await require('../repositories/spp.repository').syncBeasiswaToTagihan(result.siswa_id);
+    return result;
   },
 
   update: async (id, data) => {
     // Check exist
     await BeasiswaService.getById(id);
     
-    return await BeasiswaRepository.update(id, {
+    const result = await BeasiswaRepository.update(id, {
       ...data,
       nominal: data.nominal ? parseFloat(data.nominal) : undefined,
+      status: data.status ? data.status.toLowerCase() : undefined,
     });
+    
+    // Sinkronisasi ulang tagihan jika ada perubahan
+    await require('../repositories/spp.repository').syncBeasiswaToTagihan(result.siswa_id);
+    return result;
   },
 
   delete: async (id) => {
-    await BeasiswaService.getById(id);
-    return await BeasiswaRepository.delete(id);
+    const old = await BeasiswaService.getById(id);
+    const result = await BeasiswaRepository.delete(id);
+    
+    // Hapus potongan beasiswa dari tagihan belum_bayar untuk siswa ini
+    await require('../repositories/spp.repository').syncBeasiswaToTagihan(old.siswa_id);
+    return result;
   }
 };
 
