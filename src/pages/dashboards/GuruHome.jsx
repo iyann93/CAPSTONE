@@ -43,7 +43,6 @@ const GuruHome = ({ user, onNavigate }) => {
               <p className="text-blue-200 text-[12px] font-semibold uppercase tracking-wider mb-0.5">Informasi Pengajar</p>
               <h2 className="text-[20px] font-bold">{guruData.nama}</h2>
               <div className="flex items-center gap-3 mt-1">
-                <span className="px-2.5 py-0.5 rounded-full bg-white/20 text-[12px] font-semibold">Guru Mapel</span>
                 <span className="px-2.5 py-0.5 rounded-full bg-white/20 text-[12px] font-semibold">{guruData.tahunAjaran}</span>
               </div>
             </div>
@@ -172,7 +171,6 @@ const GuruHome = ({ user, onNavigate }) => {
             <div className="p-4 rounded-xl bg-blue-50/50 border border-blue-100 relative overflow-hidden hover:bg-blue-50 transition-colors">
               <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>
               <div className="text-[10px] font-black px-2.5 py-1 rounded-md tracking-wide uppercase bg-blue-100 text-blue-600 mb-2 inline-flex items-center gap-1.5">
-                <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                 AKADEMIK
               </div>
               <div className="font-bold text-gray-800 text-[15px] mb-2 leading-snug">Rapat Evaluasi Semester</div>
@@ -182,7 +180,6 @@ const GuruHome = ({ user, onNavigate }) => {
             <div className="p-4 rounded-xl bg-emerald-50/50 border border-emerald-100 relative overflow-hidden hover:bg-emerald-50 transition-colors">
               <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500"></div>
               <div className="text-[10px] font-black px-2.5 py-1 rounded-md tracking-wide uppercase bg-emerald-100 text-emerald-600 mb-2 inline-flex items-center gap-1.5">
-                <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 KEUANGAN
               </div>
               <div className="font-bold text-gray-800 text-[15px] mb-2 leading-snug">Pencairan Gaji Mei</div>
