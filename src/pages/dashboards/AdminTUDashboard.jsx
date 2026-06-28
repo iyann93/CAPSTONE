@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Profile from "../Profile";
 import PlaceholderDashboard from "./PlaceholderDashboard";
 import Subjects from "./Subjects";
 import Semester from "./Semester";
@@ -76,6 +77,10 @@ const AdminTUDashboard = ({ user, activeMenu }) => {
 
   if (activeMenu === "Absensi Siswa") {
     return <StudentAttendance />;
+  }
+
+  if (activeMenu === "My Profile") {
+    return <Profile user={user} />;
   }
 
   if (activeMenu !== "Dashboard") {
