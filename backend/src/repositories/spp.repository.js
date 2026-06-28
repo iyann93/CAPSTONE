@@ -99,6 +99,40 @@ const SppRepository = {
     `;
     const res = await query(sql, [id]);
     return res.rows[0];
+  },
+
+  syncBeasiswaToTagihan: async (siswaId) => {
+    const client = await require('../config/db').getClient();
+    try {
+      await client.query('BEGIN');
+      
+      // Ambil beasiswa aktif untuk siswa ini
+      const beasiswaRes = await client.query(
+        `SELECT id, nominal FROM finance.beasiswa WHERE siswa_id = $1 AND status = 'aktif'`,
+        [siswaId]
+      );
+      const activeBeasiswa = beasiswaRes.rows[0];
+      
+      const beasiswaId = activeBeasiswa ? activeBeasiswa.id : null;
+      const beasiswaNominal = activeBeasiswa ? parseFloat(activeBeasiswa.nominal) : 0;
+
+      // Update tagihan_spp yang statusnya belum_bayar
+      const sql = `
+        UPDATE finance.tagihan_spp
+        SET beasiswa_id = $1,
+            potongan = CASE WHEN $2 > 0 THEN LEAST(nominal, $2::numeric) ELSE 0 END,
+            updated_at = NOW()
+        WHERE siswa_id = $3 AND status = 'belum_bayar'
+      `;
+      await client.query(sql, [beasiswaId, beasiswaNominal, siswaId]);
+
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      console.error('Error syncing beasiswa to tagihan:', err);
+    } finally {
+      client.release();
+    }
   }
 };
 

@@ -66,8 +66,14 @@ export const getLaporanBulanan = (bulan, tahun) =>
 
 // ── BEASISWA ────────────────────────────────────────────────────────────────
 
-export const getBeasiswa = () =>
-  api.get('/beasiswa').then((r) => r.data.data);
+export const getBeasiswa = (params = {}) =>
+  api.get('/beasiswa', { params: { limit: 1000, ...params } }).then((r) => {
+    // Backend returns { data: { data: [...], meta: {...} } } for paginated endpoints
+    const payload = r.data.data;
+    if (Array.isArray(payload)) return payload;
+    if (payload && Array.isArray(payload.data)) return payload.data;
+    return [];
+  });
 
 export const createBeasiswa = (payload) =>
   api.post('/beasiswa', payload).then((r) => r.data.data);
