@@ -34,6 +34,7 @@ import {
   getPembayaran,
 } from "../../api/finance";
 import { getSiswa } from "../../api/academic";
+import { getAllSlips } from "../../api/payroll";
 import Profile from "../Profile";
 import TemplateGajiTab from "../../components/payroll/TemplateGajiTab";
 import OverridePegawaiTab from "../../components/payroll/OverridePegawaiTab";
@@ -185,6 +186,7 @@ const payrollMockData = [
 
 const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const [sppPayments, setSppPayments] = useState([]);
+  const [paidSlips, setPaidSlips] = useState([]);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [selectedYear, setSelectedYear] = useState("2025/2026");
@@ -488,6 +490,18 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     }
   }, []);
 
+  const loadPaidSlips = useCallback(async () => {
+    try {
+      const res = await getAllSlips({ limit: 1000, status: 'dibayar' });
+      if (res && res.data) {
+        setPaidSlips(res.data);
+      }
+    } catch (e) {
+      console.error("loadPaidSlips:", e);
+    }
+  }, []);
+
+
   const [generateForm, setGenerateForm] = useState({
     bulan: String(new Date().getMonth() + 1),
     tahun: String(new Date().getFullYear()),
@@ -538,7 +552,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     loadBeasiswa();
     loadSiswa();
     loadPembayaran();
-  }, [loadKomponenSpp, loadKomponenGaji, loadTagihan, loadBeasiswa, loadSiswa, loadPembayaran]);
+    loadPaidSlips();
+  }, [loadKomponenSpp, loadKomponenGaji, loadTagihan, loadBeasiswa, loadSiswa, loadPembayaran, loadPaidSlips]);
 
   // Handlers
   const handleSaveKomponen = async () => {
@@ -1033,12 +1048,13 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
         });
 
         const formatRupiah = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
-        const totalPenggajian = payrollMockData.reduce((acc, curr) => {
-          const nominalStr = String(curr.salary || "").replace(/[^0-9]/g, '');
-          const nominalNum = parseInt(nominalStr, 10) || 0;
-          return acc + nominalNum;
+        const currentBulanNum = currentMonthIndex + 1;
+        const currentMonthSlips = paidSlips.filter(slip => String(slip.bulan) === String(currentBulanNum));
+        
+        const totalPenggajian = currentMonthSlips.reduce((acc, curr) => {
+          return acc + (Number(curr.gaji_bersih) || 0);
         }, 0);
-        const jumlahStaff = payrollMockData.length;
+        const jumlahStaff = currentMonthSlips.length;
 
         return (
           <div className="flex flex-col gap-6 animate-fadeIn font-sans">
@@ -1170,15 +1186,14 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50 text-xs">
-                      {payrollMockData.slice(0, 3).map((row) => (
+                      {paidSlips.slice(0, 3).map((row) => (
                         <tr key={row.id} className="hover:bg-gray-50/50 transition-colors">
-                          <td className="py-3 font-bold text-gray-800">{row.name}</td>
-                          <td className="py-3 text-gray-500">{row.role}</td>
-                          <td className="py-3 font-bold text-gray-700">{row.salary}</td>
+                          <td className="py-3 font-bold text-gray-800">{row.user_nama || row.user_email || row.user_id}</td>
+                          <td className="py-3 text-gray-500">{row.jabatan || 'Guru & Staf'}</td>
+                          <td className="py-3 font-bold text-gray-700">{formatRupiah(row.gaji_bersih)}</td>
                           <td className="py-3 text-right">
-                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold inline-block ${row.status === "Sudah Transfer" ? "bg-green-50 text-green-600" : "bg-yellow-50 text-yellow-600"
-                              }`}>
-                              {row.status}
+                            <span className="px-2 py-0.5 rounded-full text-[9px] font-bold inline-block bg-green-50 text-green-600">
+                              Sudah Transfer
                             </span>
                           </td>
                         </tr>
@@ -2200,14 +2215,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                   <div className="col-span-2">
                                     <div className="text-gray-400 font-semibold mb-1">Pengirim</div>
                                     <div className="font-bold text-gray-800">{item.payer}</div>
-                                  </div>
-                                  <div>
-                                    <div className="text-gray-400 font-semibold mb-1">Bank</div>
-                                    <div className="font-bold text-gray-800">{item.bank}</div>
-                                  </div>
-                                  <div>
-                                    <div className="text-gray-400 font-semibold mb-1">Rekening</div>
-                                    <div className="font-mono font-bold text-gray-800">{item.rekening}</div>
                                   </div>
                                 </div>
 
