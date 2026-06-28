@@ -268,7 +268,12 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const [isSavingBeasiswa, setIsSavingBeasiswa] = useState(false);
 
   // Dana Beasiswa States
-  const [danaBeasiswaList, setDanaBeasiswaList] = useState([]);
+  const [danaBeasiswaList, setDanaBeasiswaList] = useState(() => {
+    try {
+      const raw = localStorage.getItem('capstone_dana_beasiswa');
+      return raw ? JSON.parse(raw) : [];
+    } catch (_) { return []; }
+  });
   const [showAddDanaModal, setShowAddDanaModal] = useState(false);
   const [showKelolaDanaModal, setShowKelolaDanaModal] = useState(false);
   const [newDanaForm, setNewDanaForm] = useState({
@@ -622,11 +627,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     if (!newProgramForm.sumberDana) missingFields.push("Sumber Dana");
     if (!newProgramForm.nominal) missingFields.push("Nominal Bantuan");
     if (!newProgramForm.tahunAjaran) missingFields.push("Tahun Ajaran");
-    if (!newProgramForm.tanggalMulaiDaftar) missingFields.push("Tanggal Mulai Daftar");
-    if (!newProgramForm.tanggalSelesaiDaftar) missingFields.push("Tanggal Selesai Daftar");
 
     if (missingFields.length > 0) {
-      triggerToast(`Gagal: Field belum lengkap (${missingFields.join(', ')})`, "error");
+      triggerToast(`Gagal: Field belum lengkap (${missingFields.join(', ')})`);
       return;
     }
 
@@ -685,8 +688,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
       nominal: initialNom,
       kuota: prog.quota || "",
       tahunAjaran: prog.subtitle || "2025/2026",
-      tanggalMulaiDaftar: prog.periodePendaftaran ? prog.periodePendaftaran.split(' s/d ')[0] : "",
-      tanggalSelesaiDaftar: prog.periodePendaftaran ? prog.periodePendaftaran.split(' s/d ')[1] : "",
+      tanggalMulaiDaftar: (prog.periodePendaftaran && prog.periodePendaftaran !== "-" && prog.periodePendaftaran.includes(' s/d ')) ? prog.periodePendaftaran.split(' s/d ')[0] : "",
+      tanggalSelesaiDaftar: (prog.periodePendaftaran && prog.periodePendaftaran !== "-" && prog.periodePendaftaran.includes(' s/d ')) ? prog.periodePendaftaran.split(' s/d ')[1] : "",
       deskripsi: prog.description || "",
       persyaratan: prog.requirements || "",
       status: prog.status || "Aktif"
@@ -2333,7 +2336,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   const amountNum = parseInt(amountStr, 10) || 0;
                   
                   const disalurkan = (p.penerima || []).reduce((s, r) => {
-                    const rNominal = r.nominal ? parseInt(String(r.nominal).replace(/[^0-9]/g, ''), 10) : amountNum;
+                    const rNominal = r.nominal ? Number(r.nominal) : amountNum;
                     return s + (rNominal || 0);
                   }, 0);
                   
@@ -2441,7 +2444,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                         const qNum = parseInt(activeProgram.quota, 10) || 0;
                         const activePenerima = (activeProgram.penerima || []).filter(r => !r.status || String(r.status).toLowerCase() === 'aktif');
                         const disalurkan = activePenerima.reduce((s, r) => {
-                          const rNominal = r.nominal ? parseInt(String(r.nominal).replace(/[^0-9]/g, ''), 10) : amtNum;
+                          const rNominal = r.nominal ? Number(r.nominal) : amtNum;
                           return s + (rNominal || 0);
                         }, 0);
                         
@@ -2452,7 +2455,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                           const pAmountNum = parseInt(pAmtStr, 10) || 0;
                           const activePenerima = (p.penerima || []).filter(r => !r.status || String(r.status).toLowerCase() === 'aktif');
                           return sum + activePenerima.reduce((s, r) => {
-                            const rNominal = r.nominal ? parseInt(String(r.nominal).replace(/[^0-9]/g, ''), 10) : pAmountNum;
+                            const rNominal = r.nominal ? Number(r.nominal) : pAmountNum;
                             return s + (rNominal || 0);
                           }, 0);
                         }, 0);
@@ -3457,7 +3460,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
       {showAddProgramModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-6 md:p-10">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCancelProgram} />
-          <div className="bg-white rounded-[24px] p-5 sm:p-6 max-w-2xl w-full relative z-10 shadow-2xl animate-scaleUp font-sans border border-gray-100 flex flex-col max-h-[calc(100vh-100px)]">
+          <div className="bg-white rounded-[24px] p-5 sm:p-6 max-w-2xl w-full relative z-10 shadow-2xl animate-scaleUp font-sans border border-gray-100 flex flex-col max-h-[calc(100vh-100px)] overflow-hidden">
             <div className="flex justify-between items-center mb-4 shrink-0">
               <h2 className="text-lg font-bold text-gray-800">{editingProgramTitle ? "Edit Program Beasiswa" : "Tambah Program Baru"}</h2>
               <button onClick={handleCancelProgram} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors cursor-pointer border-none">
@@ -3568,7 +3571,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Periode Pendaftaran <span className="text-red-500">*</span></label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Periode Pendaftaran</label>
                     <div className="flex items-center gap-2">
                       <input
                         type="date"
@@ -3623,9 +3626,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               </div>
             </div>
 
-            <div className="mt-6 pt-3 border-t border-gray-100 flex justify-end gap-3 shrink-0">
-              <button onClick={handleCancelProgram} className="px-5 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer border-none bg-transparent">Batal</button>
-              <button type="button" onClick={handleSaveProgram} disabled={isSavingProgram} className={`${isSavingProgram ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#1A3D63] hover:bg-[#122A44] cursor-pointer'} text-white py-2 px-6 rounded-xl text-sm font-bold border-none shadow-md transition-all active:scale-95 flex items-center gap-2`}>
+            <div className="mt-4 pt-4 border-t border-gray-100 flex justify-end gap-3 shrink-0 bg-white relative z-10 pb-1">
+              <button onClick={handleCancelProgram} className="px-5 py-2.5 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer border-none bg-transparent">Batal</button>
+              <button type="button" onClick={handleSaveProgram} disabled={isSavingProgram} className={`${isSavingProgram ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#1A3D63] hover:bg-[#122A44] cursor-pointer'} text-white py-2.5 px-6 rounded-xl text-sm font-bold border-none shadow-md transition-all active:scale-95 flex items-center gap-2`}>
                 {isSavingProgram ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
