@@ -1,4 +1,5 @@
 import React from "react";
+import Profile from "../Profile";
 import WakilKepalaHome from "./WakilKepalaHome";
 import KurikulumWakil from "./KurikulumWakil";
 import JadwalPelajaranWakil from "./JadwalPelajaranWakil";
@@ -23,6 +24,8 @@ const WakilKepalaDashboard = ({ user, activeMenu, onViewChange }) => {
     case "Monitoring Gaji":
     case "Laporan":
       return <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
+    case "My Profile":
+      return <Profile user={user} />;
     default:
       return <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
   }

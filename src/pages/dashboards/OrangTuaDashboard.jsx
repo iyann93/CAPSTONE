@@ -1,4 +1,5 @@
 import React from "react";
+import Profile from "../Profile";
 import OrangTuaHome from "./OrangTuaHome";
 import AkademikSiswa from "./AkademikSiswa";
 import RaporSiswa from "./RaporSiswa";
@@ -36,6 +37,9 @@ const OrangTuaDashboard = ({ user, activeMenu, onViewChange }) => {
     
     case "Pengumuman Sekolah":
       return <PengumumanSekolah />;
+
+    case "My Profile":
+      return <Profile user={user} />;
 
     default:
       if (activeMenu !== "Dashboard") {

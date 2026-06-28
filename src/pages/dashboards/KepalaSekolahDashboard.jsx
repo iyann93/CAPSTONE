@@ -1,4 +1,5 @@
 import React from "react";
+import Profile from "../Profile";
 import KepalaSekolahHome from "./KepalaSekolahHome";
 import PersetujuanKurikulum from "./PersetujuanKurikulum";
 import ValidasiKelulusan from "./ValidasiKelulusan";
@@ -33,6 +34,8 @@ const KepalaSekolahDashboard = ({ user, activeMenu, onViewChange }) => {
       return <LogAktivitasKepsek user={user} onNavigate={handleNavigate} />;
     case "Laporan Harian":
       return <LaporanHarianKepsek user={user} onNavigate={handleNavigate} />;
+    case "My Profile":
+      return <Profile user={user} />;
       
     default:
       if (activeMenu !== "Dashboard" && activeMenu) {
