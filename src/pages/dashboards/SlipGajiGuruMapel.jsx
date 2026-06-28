@@ -119,22 +119,6 @@ const SlipGajiGuruMapel = ({ user, onNavigate, defaultData }) => {
 
       {/* Filter Row */}
       <div className="flex items-center gap-3 mt-2">
-        <span className="text-[13px] text-gray-500 font-medium">Periode:</span>
-        <div className="relative">
-          <select
-            value={selectedPeriode}
-            onChange={(e) => setSelectedPeriode(e.target.value)}
-            disabled={!!defaultData}
-            className={`appearance-none bg-white border border-gray-200 rounded-lg px-4 py-2 pr-10 text-[13px] font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 shadow-sm ${defaultData ? "opacity-70 cursor-not-allowed bg-gray-50" : "cursor-pointer"}`}
-          >
-            {periodeOptions.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
-          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
         <span className="bg-[#E8F5E9] text-[#2E7D32] px-3 py-1.5 rounded-md text-[12px] font-bold tracking-wide">
           Sudah Transfer
         </span>
