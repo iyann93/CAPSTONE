@@ -126,7 +126,7 @@ const menuSections = [
       { label: "Data Siswa", icon: <UsersIcon /> },
       { label: "Data Guru & Karyawan", icon: <BriefcaseIcon /> }
     ],
-    roles: ["Kepala Sekolah"]
+    roles: ["Super Admin"]
   },
   {
     section: "MODUL AKADEMIK",
@@ -136,7 +136,7 @@ const menuSections = [
       { label: "Kelas & Penjadwalan", icon: <GridIcon /> },
       { label: "E-Rapor & Input Nilai", icon: <GraduationIcon /> }
     ],
-    roles: ["Kepala Sekolah", "Wakil Kepsek"]
+    roles: ["Kepala Sekolah", "Wakil Kepsek", "Guru"]
   },
   {
     section: "MODUL KEUANGAN",
@@ -145,7 +145,7 @@ const menuSections = [
       { label: "Beasiswa & Potongan", icon: <AwardIcon /> },
       { label: "Penggajian (Payroll)", icon: <WalletIcon /> }
     ],
-    roles: ["Kepala Sekolah", "Wakil Kepsek"]
+    roles: ["Wakil Kepsek"]
   },
   {
     section: "SPP SISWA",
@@ -182,7 +182,7 @@ const menuSections = [
       { label: "Laporan Integrasi", icon: <FileChartIcon /> },
       { label: "Pengaturan Sistem", icon: <SettingsIcon /> }
     ],
-    roles: ["Kepala Sekolah"]
+    roles: ["Super Admin"]
   },
   {
     section: "AKADEMIK SISWA",
@@ -217,9 +217,11 @@ const menuSections = [
     roles: ["Wakil Kepala"]
   },
   {
-    section: "MONITORING",
+    section: "MONITORING KEUANGAN",
     items: [
-      { label: "Monitoring Pembayaran", icon: <ReceiptIcon /> }
+      { label: "Monitoring SPP", icon: <ReceiptIcon /> },
+      { label: "Monitoring Gaji", icon: <WalletIcon /> },
+      { label: "Laporan", icon: <FileChartIcon /> }
     ],
     roles: ["Wakil Kepala"]
   },
@@ -237,6 +239,23 @@ const menuSections = [
       { label: "Riwayat Terima Gaji", icon: <CalendarIcon /> }
     ],
     roles: ["Guru", "Guru Mapel", "Wali Kelas"]
+  },
+  {
+    section: "PERSETUJUAN & VALIDASI",
+    items: [
+      { label: "Persetujuan Kurikulum", icon: <BookIcon /> },
+      { label: "Validasi Kelulusan", icon: <GraduationIcon /> }
+    ],
+    roles: ["Kepala Sekolah"]
+  },
+  {
+    section: "LAPORAN & MONITORING",
+    items: [
+      { label: "Laporan Akademik", icon: <FileChartIcon /> },
+      { label: "Monitoring Siswa", icon: <UsersIcon /> },
+      { label: "Monitoring Keuangan", icon: <WalletIcon /> }
+    ],
+    roles: ["Kepala Sekolah"]
   }
 ];
 const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) => {
@@ -303,13 +322,13 @@ const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) =>
 
             <div className="relative">
               <div className="w-10 h-10 rounded-full bg-[#7C8FA9] flex items-center justify-center text-white font-bold text-sm shadow-sm border-2 border-white">
-                {user?.role === "Bendahara" ? "SA" : user?.role === "Wali Kelas" ? "AK" : (user?.fullName ? (user.fullName.split(" ").length >= 2 ? user.fullName.split(" ")[0][0] + user.fullName.split(" ")[1][0] : user.fullName.slice(0, 2)).toUpperCase() : "SW")}
+                {(user?.fullName || user?.nama || user?.name || "U")[0]?.toUpperCase()}
               </div>
               <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
             </div>
             <div className="flex flex-col min-w-0">
-              <span className="text-[13px] font-bold text-[#1A3D63] truncate leading-tight">{user?.role === "Bendahara" ? "Siti Aminah" : user?.role === "Wali Kelas" ? "Asih Kinanti, S.Pd" : (user?.fullName || "Dr.Wahyu")}</span>
-              <span className="text-[11px] text-[#4A7FA7] font-medium leading-tight mt-0.5">{user?.role || "Admin TU"}</span>
+              <span className="text-[13px] font-bold text-[#1A3D63] truncate leading-tight">{user?.fullName || user?.nama || user?.name || "User"}</span>
+              <span className="text-[11px] text-[#4A7FA7] font-medium leading-tight mt-0.5">{user?.role || "Pengguna"}</span>
             </div>
           </div>
         </div>

@@ -18,7 +18,7 @@ const mockAnnouncements = [
     author: "Ibu Indah Sari (Pembina OSIS)",
     category: "Kegiatan",
     importance: "Normal",
-    desc: "Undangan resmi menghadiri acara Pentas Seni Akhir Tahun SMAN 1 Contoh yang diselenggarakan pada Sabtu, 22 Juni 2024. Acara ini akan menampilkan kreativitas seni, musik, dan bazar produk kewirausahaan siswa kelas X dan XI. Kehadiran Bapak/Ibu sangat kami harapkan untuk memberikan apresiasi.",
+    desc: "Undangan resmi menghadiri acara Pentas Seni Akhir Tahun MBS Prambanan yang diselenggarakan pada Sabtu, 22 Juni 2024. Acara ini akan menampilkan kreativitas seni, musik, dan bazar produk kewirausahaan siswa kelas VIII dan IX. Kehadiran Bapak/Ibu sangat kami harapkan untuk memberikan apresiasi.",
     attachment: "Undangan_Pensi_2024.pdf"
   },
   {

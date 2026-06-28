@@ -1,20 +1,20 @@
 import React, { useState } from "react";
 
 const mockSiswa = [
-  { id: 1, nama: "Ahmad Fauzi", nis: "2022001", kelas: "XI IPA 2", bulanTunggak: 2, nominal: 1000000, lastBayar: "Mei 2024", status: "Tunggak" },
-  { id: 2, nama: "Budi Santosa", nis: "2022002", kelas: "X IPS 1", bulanTunggak: 1, nominal: 500000, lastBayar: "Jun 2024", status: "Tunggak" },
-  { id: 3, nama: "Citra Lestari", nis: "2021003", kelas: "XII IPA 1", bulanTunggak: 3, nominal: 1500000, lastBayar: "Apr 2024", status: "Tunggak" },
-  { id: 4, nama: "Dewi Rahayu", nis: "2022004", kelas: "XI IPA 1", bulanTunggak: 0, nominal: 0, lastBayar: "Jun 2024", status: "Lunas" },
-  { id: 5, nama: "Eko Prasetyo", nis: "2022005", kelas: "X IPA 1", bulanTunggak: 0, nominal: 0, lastBayar: "Jun 2024", status: "Lunas" },
-  { id: 6, nama: "Fitri Handayani", nis: "2021006", kelas: "XII IPA 2", bulanTunggak: 1, nominal: 500000, lastBayar: "Jun 2024", status: "Tunggak" },
-  { id: 7, nama: "Galih Kusuma", nis: "2022007", kelas: "XI IPS 1", bulanTunggak: 0, nominal: 0, lastBayar: "Jun 2024", status: "Lunas" },
-  { id: 8, nama: "Hana Safitri", nis: "2021008", kelas: "XII IPA 1", bulanTunggak: 2, nominal: 1000000, lastBayar: "Mei 2024", status: "Tunggak" },
-  { id: 9, nama: "Irfan Maulana", nis: "2022009", kelas: "X IPS 1", bulanTunggak: 0, nominal: 0, lastBayar: "Jun 2024", status: "Lunas" },
-  { id: 10, nama: "Julia Pratiwi", nis: "2021010", kelas: "XII IPA 2", bulanTunggak: 4, nominal: 2000000, lastBayar: "Mar 2024", status: "Tunggak" },
+  { id: 1, nama: "Ahmad Fauzi", nis: "2022001", kelas: "VIII-A", bulanTunggak: 2, nominal: 1000000, lastBayar: "Mei 2024", status: "Tunggak" },
+  { id: 2, nama: "Budi Santosa", nis: "2022002", kelas: "VII-B", bulanTunggak: 1, nominal: 500000, lastBayar: "Jun 2024", status: "Tunggak" },
+  { id: 3, nama: "Citra Lestari", nis: "2021003", kelas: "IX-A", bulanTunggak: 3, nominal: 1500000, lastBayar: "Apr 2024", status: "Tunggak" },
+  { id: 4, nama: "Dewi Rahayu", nis: "2022004", kelas: "VIII-B", bulanTunggak: 0, nominal: 0, lastBayar: "Jun 2024", status: "Lunas" },
+  { id: 5, nama: "Eko Prasetyo", nis: "2022005", kelas: "VII-A", bulanTunggak: 0, nominal: 0, lastBayar: "Jun 2024", status: "Lunas" },
+  { id: 6, nama: "Fitri Handayani", nis: "2021006", kelas: "IX-B", bulanTunggak: 1, nominal: 500000, lastBayar: "Jun 2024", status: "Tunggak" },
+  { id: 7, nama: "Galih Kusuma", nis: "2022007", kelas: "VIII-A", bulanTunggak: 0, nominal: 0, lastBayar: "Jun 2024", status: "Lunas" },
+  { id: 8, nama: "Hana Safitri", nis: "2021008", kelas: "IX-A", bulanTunggak: 2, nominal: 1000000, lastBayar: "Mei 2024", status: "Tunggak" },
+  { id: 9, nama: "Irfan Maulana", nis: "2022009", kelas: "VII-B", bulanTunggak: 0, nominal: 0, lastBayar: "Jun 2024", status: "Lunas" },
+  { id: 10, nama: "Julia Pratiwi", nis: "2021010", kelas: "IX-B", bulanTunggak: 4, nominal: 2000000, lastBayar: "Mar 2024", status: "Tunggak" },
 ];
 
 const fmt = (n) => "Rp " + n.toLocaleString("id-ID");
-const KELAS_FILTER = ["Semua", "X IPA 1", "X IPS 1", "XI IPA 1", "XI IPA 2", "XI IPS 1", "XII IPA 1", "XII IPA 2"];
+const KELAS_FILTER = ["Semua", "VII-A", "VII-B", "VIII-A", "VIII-B", "IX-A", "IX-B"];
 const SEMESTER_FILTER = ["Genap 2023/2024", "Ganjil 2023/2024", "Genap 2022/2023"];
 
 const MonitoringPembayaran = () => {
@@ -48,17 +48,16 @@ const MonitoringPembayaran = () => {
 
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
-          <h1 className="text-[26px] font-bold text-[#1e293b]">Monitoring Pembayaran & Tunggakan</h1>
+          <h1 className="text-[26px] font-bold text-[#1e293b]">Monitoring Pembayaran &amp; Tunggakan</h1>
           <p className="text-[14px] text-gray-500 mt-1">Pantau status SPP seluruh siswa dan tunggakan aktif</p>
         </div>
-        <button onClick={handleExport} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-bold shadow-sm transition-colors ${exported ? "bg-green-100 text-green-700" : "bg-[#1A3D63] hover:bg-[#163256] text-white"}`}>
-          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          {exported ? "Berhasil Diekspor!" : "Ekspor Laporan"}
+        <button onClick={handleExport} className={`px-4 py-2.5 rounded-xl text-[12px] font-bold shadow-sm transition-colors uppercase tracking-wider ${exported ? "bg-green-50 text-green-700 border border-green-100" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"}`}>
+          {exported ? "Berhasil Diekspor" : "Ekspor Laporan"}
         </button>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         {[
           { label: "Siswa Lunas", val: totalLunas, sub: "dari " + filtered.length + " siswa", bg: "bg-[#1A3D63]" },
           { label: "Siswa Menunggak", val: totalTunggak, sub: "perlu perhatian", bg: "bg-[#1A3D63]" },
@@ -104,7 +103,7 @@ const MonitoringPembayaran = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="border-b border-gray-100 bg-gray-50/50">
@@ -114,10 +113,10 @@ const MonitoringPembayaran = () => {
             </thead>
             <tbody className="divide-y divide-gray-50">
               {filtered.map(s => (
-                <tr key={s.id} className={`transition-colors ${s.status === "Tunggak" ? "hover:bg-red-50/20" : "hover:bg-gray-50/50"}`}>
+                <tr key={s.id} className="transition-colors hover:bg-gray-50/50">
                   <td className="px-4 py-3.5 text-[12px] text-gray-400 font-mono">{s.nis}</td>
                   <td className="px-4 py-3.5 text-[13px] font-bold text-gray-800">{s.nama}</td>
-                  <td className="px-4 py-3.5"><span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-lg text-[11px] font-bold">{s.kelas}</span></td>
+                  <td className="px-4 py-3.5"><span className="text-[12px] text-gray-500 font-medium">{s.kelas}</span></td>
                   <td className="px-4 py-3.5">
                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${s.status === "Lunas" ? "bg-green-50 text-green-600 border-green-100" : "bg-red-50 text-red-500 border-red-100"}`}>
                       {s.status === "Tunggak" ? "⚠ Menunggak" : "✓ Lunas"}
@@ -127,8 +126,7 @@ const MonitoringPembayaran = () => {
                   <td className="px-4 py-3.5 text-[13px] font-bold">{s.nominal > 0 ? <span className="text-red-600">{fmt(s.nominal)}</span> : <span className="text-gray-400">—</span>}</td>
                   <td className="px-4 py-3.5 text-[13px] text-gray-500">{s.lastBayar}</td>
                   <td className="px-4 py-3.5">
-                    <button onClick={() => setDetail(s)} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-lg text-[11px] font-bold hover:bg-gray-50">
-                      <svg width="11" height="11" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <button onClick={() => setDetail(s)} className="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-lg text-[10px] uppercase tracking-wider font-bold hover:bg-gray-50 transition-colors">
                       Detail
                     </button>
                   </td>

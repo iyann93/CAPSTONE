@@ -89,7 +89,7 @@ const AdminTUDashboard = ({ user, activeMenu }) => {
         <div>
           <h1 className="text-[26px] font-bold text-[#1e293b]">Dashboard</h1>
           <p className="text-gray-500 text-[15px] mt-1">
-            Selamat datang, {user?.name || "Siti Rahayu"} — Tata Usaha SMAN 1 Contoh
+            Selamat datang, {user?.name || "Siti Rahayu"} — Tata Usaha MBS Prambanan
           </p>
         </div>
         <div className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-4 py-2.5 rounded-xl text-sm font-medium shadow-sm">

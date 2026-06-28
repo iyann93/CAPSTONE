@@ -351,7 +351,7 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
                     <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
                   </div>
                   <div className="text-center mt-1">
-                    <h2 className="text-[17px] font-bold text-[#1e293b] tracking-[0.05em] m-0 leading-tight">SMAN 1 CONTOH</h2>
+                    <h2 className="text-[17px] font-bold text-[#1e293b] tracking-[0.05em] m-0 leading-tight">MBS PRAMBANAN</h2>
                     <p className="text-[11px] text-[#64748B] mt-0.5">Jl. Pendidikan No. 1, Kota Contoh</p>
                   </div>
                 </div>
@@ -368,7 +368,7 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
 
                 {/* Isi Surat */}
                 <div className="text-[14px] leading-relaxed px-4">
-                  <p className="mb-6">Yang bertanda tangan di bawah ini, Kepala SMAN 1 Contoh, menerangkan bahwa:</p>
+                  <p className="mb-6">Yang bertanda tangan di bawah ini, Kepala MBS Prambanan, menerangkan bahwa:</p>
                   
                   <div className="grid grid-cols-[120px_30px_1fr] gap-y-3.5 mb-10 ml-4">
                     <div className="text-[#64748B]">Nama</div><div className="text-[#64748B] text-center">:</div><div className="text-[#1e293b]">{printStudent.nama}</div>
@@ -380,7 +380,7 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
                   </div>
 
                   <p className="mb-14 leading-relaxed">
-                    <strong className="text-[#1e293b] font-bold">DINYATAKAN LULUS</strong> dari Satuan Pendidikan SMAN 1 Contoh Tahun Pelajaran 2023/2024.
+                    <strong className="text-[#1e293b] font-bold">DINYATAKAN LULUS</strong> dari Satuan Pendidikan MBS Prambanan Tahun Pelajaran 2023/2024.
                   </p>
 
                   <div className="flex justify-end pr-4">

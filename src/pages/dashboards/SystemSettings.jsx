@@ -114,7 +114,7 @@ const SystemSettings = () => {
             {renderInputRow("ALAMAT", "Jl. Pendidikan No. 1, Kota Contoh")}
             {renderInputRow("KODE POS", "12345")}
             {renderInputRow("NO. TELEPON", "(021) 555-1234")}
-            {renderInputRow("WEBSITE", "https://sman1contoh.sch.id")}
+            {renderInputRow("WEBSITE", "https://mbsprambanan.sch.id")}
           </div>
         </section>
 
@@ -130,8 +130,8 @@ const SystemSettings = () => {
           </div>
           <div className="space-y-2">
             {renderInputRow("KEPALA SEKOLAH", "Dr. H. Bambang Sutrisno")}
-            {renderInputRow("EMAIL RESMI", "info@sman1contoh.sch.id")}
-            {renderInputRow("EMAIL NOTIF.", "notif@sman1contoh.sch.id")}
+            {renderInputRow("EMAIL RESMI", "info@mbsprambanan.sch.id")}
+            {renderInputRow("EMAIL NOTIF.", "notif@mbsprambanan.sch.id")}
             {renderInputRow("AKREDITASI", "A (Unggul)")}
           </div>
         </section>

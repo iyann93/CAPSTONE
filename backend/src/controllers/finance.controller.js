@@ -60,18 +60,19 @@ const FinanceController = {
   // ─── SPP TAGIHAN ───────────────────────────────────────────────────────────
   getAllTagihan: async (req, res, next) => {
     try {
+      let queryParams = { ...req.query };
       // Jika login sebagai orang tua, hanya ambil tagihan untuk anaknya
       if (req.user.role === 'Orang Tua') {
         const { pool } = require('../config/db');
         const otRes = await pool.query('SELECT siswa_id FROM academic.orang_tua WHERE user_id = $1', [req.user.userId]);
         if (otRes.rows.length > 0) {
-          req.query.siswa_id = otRes.rows[0].siswa_id;
+          queryParams.siswa_id = otRes.rows[0].siswa_id;
         } else {
           // Jika belum ada data anak terkait, kembalikan kosong
           return response.success(res, 200, 'Data tagihan SPP berhasil diambil', [], { page: 1, limit: 10, total: 0, totalPages: 0 });
         }
       }
-      const { data, meta } = await FinanceService.getAllTagihan(req.query);
+      const { data, meta } = await FinanceService.getAllTagihan(queryParams);
       return response.success(res, 200, 'Data tagihan SPP berhasil diambil', data, meta);
     } catch (err) { next(err); }
   },

@@ -64,9 +64,9 @@ const FinanceService = {
     } else if (action === 'terima') {
       // Process payment (this will update tagihan status to lunas and create transaksi)
       const dataPembayaran = {
-        tagihan_id: tagihanId,
-        jumlah_bayar: tagihan.nominal,
-        metode: 'Transfer Bank',
+        tagihanId: tagihanId,
+        jumlahBayar: tagihan.nominal_akhir || tagihan.nominal,
+        metode: 'transfer',
         keterangan: 'Pembayaran via upload bukti (dikonfirmasi bendahara)'
       };
       return FinanceService.processPembayaran(dataPembayaran, userId);

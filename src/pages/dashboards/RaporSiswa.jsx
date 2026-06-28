@@ -7,10 +7,13 @@ const mockRapor = [
   { id: 4, semester: "Ganjil 2025/2026", tanggal: "—", status: "Belum Tersedia", rataRata: null, peringkat: null },
 ];
 
-const RaporSiswa = () => {
+const RaporSiswa = ({ user }) => {
   const [downloading, setDownloading] = useState(null);
   const [downloaded, setDownloaded] = useState([]);
   const [preview, setPreview] = useState(null);
+
+  const studentName = user?.anak?.nama || "Ahmad Fauzi";
+  const studentClass = user?.anak?.kelas || "VIII A";
 
   const handleDownload = (rapor) => {
     if (rapor.status !== "Tersedia") return;
@@ -32,7 +35,7 @@ const RaporSiswa = () => {
       {/* Header */}
       <div>
         <h1 className="text-[26px] font-bold text-[#1e293b]">Unduh Rapor Siswa</h1>
-        <p className="text-[14px] text-gray-500 mt-1">Ahmad Fauzi · Kelas VIII A · Daftar rapor yang tersedia untuk diunduh</p>
+        <p className="text-[14px] text-gray-500 mt-1">{studentName} · Kelas {studentClass} · Daftar rapor yang tersedia untuk diunduh</p>
       </div>
 
       {/* Info Banner */}
@@ -160,11 +163,11 @@ const RaporSiswa = () => {
                 <div className="mt-4 grid grid-cols-2 gap-3 text-left">
                   <div className="bg-white border border-gray-100 rounded-lg p-3">
                     <p className="text-[11px] text-gray-400">Nama Siswa</p>
-                    <p className="text-[13px] font-bold text-gray-800">Ahmad Fauzi</p>
+                    <p className="text-[13px] font-bold text-gray-800">{studentName}</p>
                   </div>
                   <div className="bg-white border border-gray-100 rounded-lg p-3">
                     <p className="text-[11px] text-gray-400">Kelas</p>
-                    <p className="text-[13px] font-bold text-gray-800">VIII A</p>
+                    <p className="text-[13px] font-bold text-gray-800">{studentClass}</p>
                   </div>
                   <div className="bg-white border border-gray-100 rounded-lg p-3">
                     <p className="text-[11px] text-gray-400">Rata-rata Nilai</p>

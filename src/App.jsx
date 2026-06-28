@@ -13,6 +13,7 @@ import OrangTuaDashboard from "./pages/dashboards/OrangTuaDashboard";
 import WakilKepalaDashboard from "./pages/dashboards/WakilKepalaDashboard";
 import WaliKelasDashboard from "./pages/dashboards/WaliKelasDashboard";
 import GuruDashboard from "./pages/dashboards/GuruDashboard";
+import KepalaSekolahDashboard from "./pages/dashboards/KepalaSekolahDashboard";
 const App = () => {
   const [user, setUser] = useState(null);
   const [collapsed, setCollapsed] = useState(true);
@@ -197,6 +198,8 @@ const App = () => {
           onViewChange={setActiveMenu}
         />
       );
+    } else if (roleStr === "kepala sekolah") {
+      return <KepalaSekolahDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
     } else {
       return <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
     }

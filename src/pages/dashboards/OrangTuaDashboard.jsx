@@ -20,19 +20,19 @@ const OrangTuaDashboard = ({ user, activeMenu, onViewChange }) => {
       return <OrangTuaHome user={user} onNavigate={handleNavigate} />;
     
     case "Perkembangan Akademik":
-      return <AkademikSiswa />;
+      return <AkademikSiswa user={user} />;
     
     case "Unduh Rapor":
-      return <RaporSiswa />;
+      return <RaporSiswa user={user} />;
     
     case "Tagihan SPP":
-      return <TagihanSPP onNavigate={handleNavigate} />;
+      return <TagihanSPP user={user} onNavigate={handleNavigate} />;
     
     case "Riwayat Pembayaran":
-      return <RiwayatPembayaranSiswa onNavigate={handleNavigate} />;
+      return <RiwayatPembayaranSiswa user={user} onNavigate={handleNavigate} />;
     
     case "Beasiswa":
-      return <BeasiswaSiswa />;
+      return <BeasiswaSiswa user={user} />;
     
     case "Pengumuman Sekolah":
       return <PengumumanSekolah />;
