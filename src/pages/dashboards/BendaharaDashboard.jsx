@@ -1425,7 +1425,16 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
                   {/* Generate Tagihan Button */}
                   <button
-                    onClick={() => setShowGenerateMonthModal(true)}
+                    onClick={() => {
+                      const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                      const selectedMonthIdx = months.indexOf(billMonthFilter) + 1;
+                      setGenerateForm({ 
+                        bulan: selectedMonthIdx, 
+                        tahun: parseInt(billYearFilter) || new Date().getFullYear(),
+                        jatuh_tempo: `${parseInt(billYearFilter) || new Date().getFullYear()}-${String(selectedMonthIdx).padStart(2, '0')}-10`
+                      });
+                      setShowGenerateMonthModal(true);
+                    }}
                     className="flex items-center gap-2 justify-center bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-5 py-2 text-xs font-bold cursor-pointer transition-all active:scale-95 shadow-sm"
                   >
                     Generate Tagihan
@@ -1433,7 +1442,12 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
                   {/* Batalkan Tagihan Button */}
                   <button
-                    onClick={() => setShowCancelMonthModal(true)}
+                    onClick={() => {
+                      const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                      const selectedMonthIdx = months.indexOf(billMonthFilter) + 1;
+                      setCancelForm({ bulan: selectedMonthIdx, tahun: parseInt(billYearFilter) || new Date().getFullYear() });
+                      setShowCancelMonthModal(true);
+                    }}
                     className="flex items-center gap-2 justify-center bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl px-4 py-2 text-xs font-bold cursor-pointer transition-all active:scale-95 shadow-sm"
                   >
                     <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -2568,17 +2582,25 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                 onClick={() => {
                                   setSelectedBeasiswa(null);
                                   let initialNom = "";
-                                  if (activeProgram.amount) {
-                                    const r = String(activeProgram.amount).replace(/[^0-9]/g, '');
-                                    if (r) initialNom = new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0 }).format(r);
+                                  let tglMulai = new Date().toISOString().split('T')[0];
+                                  let tglSelesai = "";
+                                  if (activeProgram) {
+                                    if (activeProgram.amount) {
+                                      const r = String(activeProgram.amount).replace(/[^0-9]/g, '');
+                                      if (r) initialNom = new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0 }).format(r);
+                                    }
+                                    if (activeProgram.periodePendaftaran && activeProgram.periodePendaftaran !== "-" && activeProgram.periodePendaftaran.includes(' s/d ')) {
+                                      tglMulai = activeProgram.periodePendaftaran.split(' s/d ')[0];
+                                      tglSelesai = activeProgram.periodePendaftaran.split(' s/d ')[1];
+                                    }
                                   }
                                   setBeasiswaForm({
                                     siswaId: "",
                                     namaBeasiswa: activeProgram.title,
                                     nominal: initialNom,
                                     periode: "2025/2026",
-                                    tanggalMulai: new Date().toISOString().split('T')[0],
-                                    tanggalSelesai: "",
+                                    tanggalMulai: tglMulai,
+                                    tanggalSelesai: tglSelesai,
                                     status: "Aktif"
                                   });
                                   setShowAddPenerimaModal(true);
@@ -3915,7 +3937,24 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     <div className="relative">
                       <select
                         value={beasiswaForm.namaBeasiswa}
-                        onChange={(e) => { setIsBeasiswaFormDirty(true); setBeasiswaForm({ ...beasiswaForm, namaBeasiswa: e.target.value }); }}
+                        onChange={(e) => { 
+                          setIsBeasiswaFormDirty(true); 
+                          const selectedProgram = programList.find(p => p.title === e.target.value);
+                          let initialNom = "";
+                          let tglMulai = new Date().toISOString().split('T')[0];
+                          let tglSelesai = "";
+                          if (selectedProgram) {
+                            if (selectedProgram.amount) {
+                              const r = String(selectedProgram.amount).replace(/[^0-9]/g, '');
+                              if (r) initialNom = new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0 }).format(r);
+                            }
+                            if (selectedProgram.periodePendaftaran && selectedProgram.periodePendaftaran !== "-" && selectedProgram.periodePendaftaran.includes(' s/d ')) {
+                              tglMulai = selectedProgram.periodePendaftaran.split(' s/d ')[0];
+                              tglSelesai = selectedProgram.periodePendaftaran.split(' s/d ')[1];
+                            }
+                          }
+                          setBeasiswaForm({ ...beasiswaForm, namaBeasiswa: e.target.value, nominal: initialNom, tanggalMulai: tglMulai, tanggalSelesai: tglSelesai }); 
+                        }}
                         className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700 appearance-none pr-10"
                       >
                         <option value="" disabled>-- Pilih Program --</option>
@@ -3928,24 +3967,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                       </span>
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Nominal Potongan (Rp) <span className="text-red-500">*</span></label>
-                    <div className="relative flex items-center">
-                      <span className="absolute left-4 text-gray-500 font-semibold text-sm">Rp</span>
-                      <input
-                        type="text"
-                        value={beasiswaForm.nominal}
-                        onChange={(e) => {
-                          setIsBeasiswaFormDirty(true);
-                          let val = e.target.value.replace(/[^0-9]/g, '');
-                          if (val) val = new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0 }).format(val);
-                          setBeasiswaForm({ ...beasiswaForm, nominal: val });
-                        }}
-                        placeholder="250.000"
-                        className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20"
-                      />
-                    </div>
-                  </div>
+
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Periode <span className="text-red-500">*</span></label>
                     <div className="relative group">
@@ -3975,24 +3997,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                       <option value="Non-Aktif">Non-Aktif</option>
                     </select>
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Tanggal Mulai <span className="text-red-500">*</span></label>
-                    <input
-                      type="date"
-                      value={beasiswaForm.tanggalMulai}
-                      onChange={(e) => { setIsBeasiswaFormDirty(true); setBeasiswaForm({ ...beasiswaForm, tanggalMulai: e.target.value }); }}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Tanggal Selesai <span className="text-red-500">*</span></label>
-                    <input
-                      type="date"
-                      value={beasiswaForm.tanggalSelesai}
-                      onChange={(e) => { setIsBeasiswaFormDirty(true); setBeasiswaForm({ ...beasiswaForm, tanggalSelesai: e.target.value }); }}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20"
-                    />
-                  </div>
+
                 </div>
               </div>
             </div>

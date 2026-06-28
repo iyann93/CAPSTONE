@@ -12,7 +12,7 @@ const BeasiswaSiswa = ({ user }) => {
 
   useEffect(() => {
     if (siswaId) {
-      getBeasiswa({ siswaId })
+      getBeasiswa({ siswa_id: siswaId })
         .then(data => {
           setBeasiswaList(data);
           if (data.length > 0) setSelectedProgram(data[0]);
