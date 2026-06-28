@@ -136,7 +136,7 @@ const menuSections = [
       { label: "Kelas & Penjadwalan", icon: <GridIcon /> },
       { label: "E-Rapor & Input Nilai", icon: <GraduationIcon /> }
     ],
-    roles: ["Kepala Sekolah", "Wakil Kepsek", "Guru"]
+    roles: ["Wakil Kepsek", "Guru"]
   },
   {
     section: "MODUL KEUANGAN",
