@@ -58,3 +58,5 @@ const start = async () => {
 };
 
 start();
+
+// Force nodemon restart to load updated .env configuration

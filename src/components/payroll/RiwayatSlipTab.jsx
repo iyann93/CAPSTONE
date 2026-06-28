@@ -20,6 +20,13 @@ const RiwayatSlipTab = ({ triggerToast }) => {
   const [detailData, setDetailData] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
+  // Confirmation modals
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showRevertModal, setShowRevertModal] = useState(false);
+  const [selectedSlipId, setSelectedSlipId] = useState(null);
+  const [isApproving, setIsApproving] = useState(false);
+  const [isReverting, setIsReverting] = useState(false);
+
   useEffect(() => {
     fetchSlips();
   }, [page, bulan, tahun, status]);
@@ -32,9 +39,9 @@ const RiwayatSlipTab = ({ triggerToast }) => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const fetchSlips = async () => {
+  const fetchSlips = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const res = await getAllSlips({
         page,
         limit: 10,
@@ -47,9 +54,9 @@ const RiwayatSlipTab = ({ triggerToast }) => {
       if (res.meta) setTotalPages(res.meta.totalPages);
     } catch (error) {
       console.error(error);
-      triggerToast("Gagal memuat riwayat slip gaji", "error");
+      if (!silent) triggerToast("Gagal memuat riwayat slip gaji", "error");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -68,35 +75,55 @@ const RiwayatSlipTab = ({ triggerToast }) => {
     }
   };
 
-  const handleApprove = async (id) => {
+  const executeApprove = async () => {
+    if (!selectedSlipId) return;
+    const slipId = selectedSlipId;
+    
+    // Optimistic UI Update
+    setSlips(prev => prev.map(s => s.id === slipId ? { ...s, status: 'dibayar' } : s));
+    setShowConfirmModal(false);
+    setSelectedSlipId(null);
+    triggerToast("Slip gaji berhasil dibayar!");
+
     try {
       // 1. Approve (draft -> disetujui)
-      await approveSlip(id);
+      await approveSlip(slipId);
       
       // 2. Langsung Transfer (disetujui -> dibayar)
       const payload = {
-        slipGajiId: id,
+        slipGajiId: slipId,
         noReferensi: `TRX-${Date.now()}`,
         rekeningId: null
       };
       await transferSlip(payload);
 
-      triggerToast("Slip gaji berhasil dibayar!");
-      fetchSlips();
+      // Sync with server data
+      fetchSlips(true);
     } catch (error) {
       console.error(error);
       triggerToast(`Gagal memproses gaji: ${error.response?.data?.message || error.message}`, "error");
+      // Revert optimistic update on failure
+      fetchSlips(true);
     }
   };
 
-  const handleRevert = async (id) => {
+  const executeRevert = async () => {
+    if (!selectedSlipId) return;
+    const slipId = selectedSlipId;
+    
+    // Optimistic UI Update
+    setSlips(prev => prev.map(s => s.id === slipId ? { ...s, status: 'draft' } : s));
+    setShowRevertModal(false);
+    setSelectedSlipId(null);
+    triggerToast("Status berhasil dibatalkan ke Draft!");
+
     try {
-      await revertSlip(id);
-      triggerToast("Status berhasil dibatalkan ke Draft!");
-      fetchSlips();
+      await revertSlip(slipId);
+      fetchSlips(true);
     } catch (error) {
       console.error(error);
       triggerToast(`Gagal membatalkan: ${error.response?.data?.message || error.message}`, "error");
+      fetchSlips(true);
     }
   };
 
@@ -227,7 +254,7 @@ const RiwayatSlipTab = ({ triggerToast }) => {
                       {/* Tombol Approve (sekarang Konfirmasi) */}
                       {slip.status === 'draft' && (
                         <button
-                          onClick={() => handleApprove(slip.id)}
+                          onClick={() => { setSelectedSlipId(slip.id); setShowConfirmModal(true); }}
                           className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-xs font-bold transition-colors border border-blue-200 cursor-pointer whitespace-nowrap"
                         >
                           Konfirmasi
@@ -236,7 +263,7 @@ const RiwayatSlipTab = ({ triggerToast }) => {
                       {/* Tombol Batal Konfirmasi */}
                       {slip.status === 'dibayar' && (
                         <button
-                          onClick={() => handleRevert(slip.id)}
+                          onClick={() => { setSelectedSlipId(slip.id); setShowRevertModal(true); }}
                           className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-bold transition-colors border border-red-200 cursor-pointer whitespace-nowrap"
                         >
                           Batal Konfirmasi
@@ -367,6 +394,68 @@ const RiwayatSlipTab = ({ triggerToast }) => {
             ) : (
               <div className="py-10 text-center text-gray-400 text-sm">Gagal memuat data.</div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal Konfirmasi Pembayaran */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl animate-scaleIn">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-4 text-blue-500">
+                <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              </div>
+              <h3 className="text-lg font-bold text-gray-800 mb-2">Konfirmasi Pembayaran Gaji</h3>
+              <p className="text-sm text-gray-500 mb-6">Apakah Anda mengonfirmasi bahwa gaji ini telah dibayarkan kepada pegawai? Status slip gaji akan diubah menjadi Dibayar.</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setShowConfirmModal(false); setSelectedSlipId(null); }}
+                  className="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-colors cursor-pointer border-none"
+                  disabled={isApproving}
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={executeApprove}
+                  className="flex-1 px-4 py-2.5 bg-[#1A3D63] hover:bg-[#122A44] text-white font-bold rounded-xl transition-colors cursor-pointer border-none shadow-sm"
+                  disabled={isApproving}
+                >
+                  {isApproving ? "Memproses..." : "Ya, Sudah Dibayar"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Batal Konfirmasi */}
+      {showRevertModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl animate-scaleIn">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4 text-red-500">
+                <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              </div>
+              <h3 className="text-lg font-bold text-gray-800 mb-2">Batalkan Konfirmasi?</h3>
+              <p className="text-sm text-gray-500 mb-6">Tindakan ini akan mengembalikan status slip gaji menjadi Draft dan menghapus riwayat transfer gaji ini.</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setShowRevertModal(false); setSelectedSlipId(null); }}
+                  className="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-colors cursor-pointer border-none"
+                  disabled={isReverting}
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={executeRevert}
+                  className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-colors cursor-pointer border-none shadow-sm"
+                  disabled={isReverting}
+                >
+                  {isReverting ? "Loading..." : "Ya, Batalkan"}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

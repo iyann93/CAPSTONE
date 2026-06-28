@@ -42,8 +42,7 @@ const generatePayrollValidator = [
  */
 const approvePayrollValidator = [
   body('slipGajiId')
-    .notEmpty().withMessage('slipGajiId wajib diisi')
-    .isUUID().withMessage('slipGajiId harus berformat UUID'),
+    .notEmpty().withMessage('slipGajiId wajib diisi'),
 ];
 
 /**
@@ -52,8 +51,7 @@ const approvePayrollValidator = [
  */
 const transferPayrollValidator = [
   body('slipGajiId')
-    .notEmpty().withMessage('slipGajiId wajib diisi')
-    .isUUID().withMessage('slipGajiId harus berformat UUID'),
+    .notEmpty().withMessage('slipGajiId wajib diisi'),
 
   body('noReferensi')
     .notEmpty().withMessage('noReferensi transfer wajib diisi')
@@ -61,15 +59,14 @@ const transferPayrollValidator = [
     .withMessage('noReferensi harus berupa string 3–100 karakter'),
 
   body('rekeningId')
-    .optional({ nullable: true })
-    .isUUID().withMessage('rekeningId harus berformat UUID'),
+    .optional({ nullable: true }),
 ];
 
 /**
  * Validator param :id (UUID)
  */
 const idParamValidator = [
-  param('id').isUUID().withMessage('ID harus berformat UUID'),
+  param('id').notEmpty().withMessage('ID wajib diisi'),
 ];
 
 /**
