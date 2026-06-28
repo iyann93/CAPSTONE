@@ -2210,14 +2210,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                   </div>
                                 </div>
 
-                                {/* Payment Method Info */}
-                                <div className="border-t border-gray-100 pt-3 grid grid-cols-2 gap-3 text-xs">
-                                  <div className="col-span-2">
-                                    <div className="text-gray-400 font-semibold mb-1">Pengirim</div>
-                                    <div className="font-bold text-gray-800">{item.payer}</div>
-                                  </div>
-                                </div>
-
                                 {/* Timestamp */}
                                 <div className="border-t border-gray-100 pt-3">
                                   <div className="flex items-start gap-2">
