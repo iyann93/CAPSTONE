@@ -12,7 +12,29 @@ import Profile from "../Profile";
 
 const GuruDashboard = ({ user, activeMenu, onViewChange }) => {
   // Shared attendance sessions state — flows from AbsensiSiswa → RekapAbsensiSiswa
-  const [attendanceSessions, setAttendanceSessions] = React.useState([]);
+  const [attendanceSessions, setAttendanceSessions] = React.useState([
+    {
+      attendanceClass: "X IPA 1",
+      date: "2026-06-30",
+      students: [
+        { id: "2023001", name: "Andi Pratama", gender: "Laki-laki", status: "Sakit", avatarBg: "bg-blue-500" },
+        { id: "2023002", name: "Dewi Sartika", gender: "Perempuan", status: "Hadir", avatarBg: "bg-slate-700" },
+        { id: "2023003", name: "Ricky Firmansyah", gender: "Laki-laki", status: "Sakit", avatarBg: "bg-amber-600" },
+        { id: "2023004", name: "Nurul Hidayah", gender: "Perempuan", status: "Hadir", avatarBg: "bg-red-500" },
+        { id: "2023005", name: "Fajar Setiawan", gender: "Laki-laki", status: "Izin", avatarBg: "bg-purple-600" },
+        { id: "2023006", name: "Ayu Lestari", gender: "Perempuan", status: "Hadir", avatarBg: "bg-pink-500" },
+      ]
+    },
+    {
+      attendanceClass: "X IPA 2",
+      date: "2026-06-30",
+      students: [
+        { id: "2023007", name: "Bagus Cahyo", gender: "Laki-laki", status: "Hadir", avatarBg: "bg-blue-500" },
+        { id: "2023008", name: "Citra Lestari", gender: "Perempuan", status: "Izin", avatarBg: "bg-pink-500" },
+        { id: "2023009", name: "Dimas Anggara", gender: "Laki-laki", status: "Sakit", avatarBg: "bg-amber-600" },
+      ]
+    }
+  ]);
 
   const handleNavigate = (menu) => {
     if (onViewChange) {

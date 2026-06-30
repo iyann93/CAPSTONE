@@ -10,27 +10,17 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
   // Mock student data grouped by class
   const [studentsData, setStudentsData] = useState({
     "X IPA 1": [
-      { id: "20201001", name: "Andi Pratama", gender: "Laki-laki", status: "Sakit", avatarBg: "bg-blue-500" },
-      { id: "20201002", name: "Bunga Sari", gender: "Perempuan", status: "Izin", avatarBg: "bg-teal-500" },
-      { id: "20201003", name: "Candra Wijaya", gender: "Laki-laki", status: "Sakit", avatarBg: "bg-slate-700" },
-      { id: "20201004", name: "Desi Santoso", gender: "Perempuan", status: "Sakit", avatarBg: "bg-red-500" },
-      { id: "20201005", name: "Eko Kusuma", gender: "Laki-laki", status: "Hadir", avatarBg: "bg-purple-500" },
-      { id: "20201006", name: "Hana Putra", gender: "Perempuan", status: "Hadir", avatarBg: "bg-pink-500" },
-      { id: "20201007", name: "Galih Dewi", gender: "Laki-laki", status: "Hadir", avatarBg: "bg-slate-600" },
-      // Padding students to reach "Total 32 siswa" or close to it
-      ...Array.from({ length: 25 }, (_, i) => ({
-        id: `202010${i + 8}`,
-        name: `Siswa Contoh ${i + 8}`,
-        gender: i % 2 === 0 ? "Laki-laki" : "Perempuan",
-        status: "Hadir",
-        avatarBg: "bg-gray-400"
-      }))
+      { id: "2023001", name: "Andi Pratama", gender: "Laki-laki", status: "Sakit", avatarBg: "bg-blue-500" },
+      { id: "2023002", name: "Dewi Sartika", gender: "Perempuan", status: "Hadir", avatarBg: "bg-slate-700" },
+      { id: "2023003", name: "Ricky Firmansyah", gender: "Laki-laki", status: "Sakit", avatarBg: "bg-amber-600" },
+      { id: "2023004", name: "Nurul Hidayah", gender: "Perempuan", status: "Hadir", avatarBg: "bg-red-500" },
+      { id: "2023005", name: "Fajar Setiawan", gender: "Laki-laki", status: "Izin", avatarBg: "bg-purple-600" },
+      { id: "2023006", name: "Ayu Lestari", gender: "Perempuan", status: "Hadir", avatarBg: "bg-pink-500" },
     ],
     "X IPA 2": [
-      { id: "20202001", name: "Beni Prasetyo", gender: "Laki-laki", status: "Hadir", avatarBg: "bg-blue-500" },
-      { id: "20202002", name: "Citra Kirana", gender: "Perempuan", status: "Hadir", avatarBg: "bg-pink-500" },
-      { id: "20202003", name: "Doni Salman", gender: "Laki-laki", status: "Izin", avatarBg: "bg-slate-700" },
-      { id: "20202004", name: "Elga Fitri", gender: "Perempuan", status: "Hadir", avatarBg: "bg-red-500" },
+      { id: "2023007", name: "Bagus Cahyo", gender: "Laki-laki", status: "Hadir", avatarBg: "bg-blue-500" },
+      { id: "2023008", name: "Citra Lestari", gender: "Perempuan", status: "Izin", avatarBg: "bg-pink-500" },
+      { id: "2023009", name: "Dimas Anggara", gender: "Laki-laki", status: "Sakit", avatarBg: "bg-amber-600" },
     ]
   });
 
