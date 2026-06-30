@@ -91,3 +91,15 @@ export const getSlipDetail = async (id) => {
   const response = await api.get(`/payroll/${id}`);
   return response.data?.data;
 };
+
+export const deleteSlip = async (id) => {
+  const response = await api.delete(`/payroll/${id}`);
+  return response.data;
+};
+
+export const bulkDeleteSlips = async (slipIds) => {
+  const response = await api.post('/payroll/bulk-delete', { slipIds });
+  return response.data;
+};
+
+

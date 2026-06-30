@@ -37,23 +37,39 @@ const BeasiswaService = {
   },
 
   create: async (data) => {
-    const result = await BeasiswaRepository.create({
-      ...data,
-      nominal: parseFloat(data.nominal),
-      status: data.status ? data.status.toLowerCase() : 'aktif',
-    });
+    const siswaIds = data.siswaIds || (data.siswaId ? [data.siswaId] : []);
     
-    // Sinkronisasi tagihan belum_bayar dengan beasiswa yang baru
-    await require('../repositories/spp.repository').syncBeasiswaToTagihan(result.siswa_id);
-    return result;
+    if (siswaIds.length === 0) {
+      throw new Error('Siswa tidak boleh kosong');
+    }
+
+    const results = [];
+    for (const sId of siswaIds) {
+      const result = await BeasiswaRepository.create({
+        ...data,
+        siswaId: sId,
+        nominal: parseFloat(data.nominal),
+        status: data.status ? data.status.toLowerCase() : 'aktif',
+      });
+      
+      // Sinkronisasi tagihan belum_bayar dengan beasiswa yang baru
+      await require('../repositories/spp.repository').syncBeasiswaToTagihan(result.siswa_id);
+      results.push(result);
+    }
+    
+    return results.length === 1 ? results[0] : results;
   },
 
   update: async (id, data) => {
     // Check exist
     await BeasiswaService.getById(id);
+
+    // Normalize siswaIds -> siswaId (update only changes one record)
+    const siswaId = data.siswaId || (data.siswaIds && data.siswaIds[0]) || undefined;
     
     const result = await BeasiswaRepository.update(id, {
       ...data,
+      siswaId,
       nominal: data.nominal ? parseFloat(data.nominal) : undefined,
       status: data.status ? data.status.toLowerCase() : undefined,
     });

@@ -73,17 +73,30 @@ const PayrollRepository = {
       LIMIT $${nextIdx} OFFSET $${nextIdx + 1}
     `;
     const countSql = `
-      SELECT COUNT(*) FROM finance.slip_gaji s
+      SELECT 
+        COUNT(*) as total,
+        COUNT(CASE WHEN s.status = 'dibayar' THEN 1 END) as dibayar,
+        COUNT(CASE WHEN s.status != 'dibayar' THEN 1 END) as belum_dibayar
+      FROM finance.slip_gaji s
       INNER JOIN shared.users u ON s.user_id = u.id
       ${where}
     `;
 
-    const [data, count] = await Promise.all([
+    const [data, countRes] = await Promise.all([
       query(sql, [...values, limit, offset]),
       query(countSql, values),
     ]);
-    return { rows: data.rows, total: parseInt(count.rows[0].count, 10) };
+    const total = parseInt(countRes.rows[0].total, 10) || 0;
+    const dibayar = parseInt(countRes.rows[0].dibayar, 10) || 0;
+    const belum_dibayar = parseInt(countRes.rows[0].belum_dibayar, 10) || 0;
+
+    return { 
+      rows: data.rows, 
+      total, 
+      summary: { total, dibayar, belum_dibayar } 
+    };
   },
+
 
   // ── DETAIL BY ID (dengan detail komponen & transfer) ───────────────────────
   findSlipById: async (id) => {
@@ -468,6 +481,60 @@ const PayrollRepository = {
     `;
     const res = await query(sql, [userId]);
     return res.rows;
+  },
+
+  // ── DELETE SLIP GAJI ────────────────────────────────────────────────────────
+  deleteSlip: async (id) => {
+    const client = await getClient();
+    try {
+      await client.query('BEGIN');
+      
+      // Delete details first
+      await client.query('DELETE FROM finance.detail_slip_gaji WHERE slip_gaji_id = $1', [id]);
+      
+      // Delete transfer if any
+      await client.query('DELETE FROM finance.transfer_gaji WHERE slip_gaji_id = $1', [id]);
+      
+      // Delete slip
+      const res = await client.query('DELETE FROM finance.slip_gaji WHERE id = $1 RETURNING *', [id]);
+      
+      await client.query('COMMIT');
+      return res.rows[0];
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  },
+
+  // ── BULK DELETE SLIP GAJI ───────────────────────────────────────────────────
+  bulkDeleteSlips: async (ids) => {
+    if (!ids || ids.length === 0) return 0;
+    
+    const client = await getClient();
+    try {
+      await client.query('BEGIN');
+      
+      const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
+      
+      // Delete details first
+      await client.query(`DELETE FROM finance.detail_slip_gaji WHERE slip_gaji_id IN (${placeholders})`, ids);
+      
+      // Delete transfer if any
+      await client.query(`DELETE FROM finance.transfer_gaji WHERE slip_gaji_id IN (${placeholders})`, ids);
+      
+      // Delete slips
+      const res = await client.query(`DELETE FROM finance.slip_gaji WHERE id IN (${placeholders}) RETURNING id`, ids);
+      
+      await client.query('COMMIT');
+      return res.rowCount;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   },
 };
 

@@ -85,6 +85,28 @@ const PayrollController = {
     } catch (err) { next(err); }
   },
 
+  // DELETE /payroll/:id — Hapus slip gaji
+  deleteSlip: async (req, res, next) => {
+    try {
+      await PayrollService.deleteSlip(req.params.id);
+      return response.success(res, 200, 'Slip gaji berhasil dihapus');
+    } catch (err) { next(err); }
+  },
+
+  // DELETE /payroll/bulk — Hapus slip gaji massal
+  bulkDeleteSlips: async (req, res, next) => {
+    try {
+      const { slipIds } = req.body;
+      if (!slipIds || !Array.isArray(slipIds) || slipIds.length === 0) {
+        return next(Object.assign(new Error('Validation failed'), {
+          type: 'validation', errors: [{ msg: 'slipIds is required and must be an array' }],
+        }));
+      }
+      const count = await PayrollService.bulkDeleteSlips(slipIds);
+      return response.success(res, 200, `${count} slip gaji berhasil dihapus`);
+    } catch (err) { next(err); }
+  },
+
   // ── KOMPONEN GAJI (Pengaturan) ───────────────────────────────────────────────
   getAllKomponen: async (req, res, next) => {
     try {

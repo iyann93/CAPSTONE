@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { getAllSlips, approveSlip, transferSlip, getSlipDetail, revertSlip } from '../../api/payroll';
+import { getAllSlips, approveSlip, transferSlip, getSlipDetail, revertSlip, deleteSlip, bulkDeleteSlips } from '../../api/payroll';
 
 const RiwayatSlipTab = ({ triggerToast }) => {
   const [slips, setSlips] = useState([]);
+  const [summary, setSummary] = useState({ total: 0, dibayar: 0, belum_dibayar: 0 });
   const [loading, setLoading] = useState(false);
   
   // Filter states
@@ -23,9 +24,32 @@ const RiwayatSlipTab = ({ triggerToast }) => {
   // Confirmation modals
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showRevertModal, setShowRevertModal] = useState(false);
-  const [selectedSlipId, setSelectedSlipId] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedSlipId, setSelectedSlipId] = useState(null); // Optional: keep for single actions if needed
+  const [selectedSlips, setSelectedSlips] = useState([]); // Array of IDs for bulk delete
   const [isApproving, setIsApproving] = useState(false);
   const [isReverting, setIsReverting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Checkbox handlers
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      // Only allow selecting draft slips for delete
+      const draftIds = slips.filter(s => s.status === 'draft').map(s => s.id);
+      setSelectedSlips(draftIds);
+    } else {
+      setSelectedSlips([]);
+    }
+  };
+
+  const handleSelectOne = (e, id) => {
+    if (e.target.checked) {
+      setSelectedSlips(prev => [...prev, id]);
+    } else {
+      setSelectedSlips(prev => prev.filter(item => item !== id));
+    }
+  };
+
 
   useEffect(() => {
     fetchSlips();
@@ -51,7 +75,11 @@ const RiwayatSlipTab = ({ triggerToast }) => {
         search: search || undefined
       });
       setSlips(res.data);
-      if (res.meta) setTotalPages(res.meta.totalPages);
+      setSelectedSlips([]); // Reset selection on page change
+      if (res.meta) {
+        setTotalPages(res.meta.totalPages);
+        if (res.meta.summary) setSummary(res.meta.summary);
+      }
     } catch (error) {
       console.error(error);
       if (!silent) triggerToast("Gagal memuat riwayat slip gaji", "error");
@@ -127,6 +155,31 @@ const RiwayatSlipTab = ({ triggerToast }) => {
     }
   };
 
+  const executeDelete = async () => {
+    const idsToDelete = selectedSlips.length > 0 ? selectedSlips : (selectedSlipId ? [selectedSlipId] : []);
+    if (idsToDelete.length === 0) return;
+    
+    setIsDeleting(true);
+    try {
+      if (idsToDelete.length === 1) {
+        await deleteSlip(idsToDelete[0]);
+      } else {
+        await bulkDeleteSlips(idsToDelete);
+      }
+      triggerToast(`Berhasil menghapus ${idsToDelete.length} slip gaji!`);
+      setShowDeleteModal(false);
+      setSelectedSlipId(null);
+      setSelectedSlips([]);
+      fetchSlips(); // Reload since total records changed
+    } catch (error) {
+      console.error(error);
+      triggerToast(`Gagal menghapus: ${error.response?.data?.message || error.message}`, "error");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+
   const formatRupiah = (num) =>
     new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num || 0);
 
@@ -165,9 +218,9 @@ const RiwayatSlipTab = ({ triggerToast }) => {
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         {[
-          { label: "TOTAL PEGAWAI", value: "87 Orang" },
-          { label: "SUDAH DIBAYAR", value: "62" },
-          { label: "BELUM DIBAYAR", value: "25" }
+          { label: "TOTAL PEGAWAI", value: `${summary.total} Orang` },
+          { label: "SUDAH DIBAYAR", value: summary.dibayar.toString() },
+          { label: "BELUM DIBAYAR", value: summary.belum_dibayar.toString() }
         ].map((card, idx) => (
           <div key={idx} className="bg-[#1A3D63] rounded-[20px] p-5 shadow-sm flex flex-col justify-between h-[104px]">
             <div className="text-[10px] font-bold text-blue-200 mt-1 uppercase tracking-wider">{card.label}</div>
@@ -203,11 +256,35 @@ const RiwayatSlipTab = ({ triggerToast }) => {
         </select>
       </div>
 
+      {/* Bulk Action Toolbar */}
+      {selectedSlips.length > 0 && (
+        <div className="mb-4 bg-red-50 border border-red-200 rounded-xl p-3 flex justify-between items-center animate-fadeIn">
+          <span className="text-red-700 text-sm font-bold ml-2">
+            {selectedSlips.length} slip gaji draft terpilih
+          </span>
+          <button
+            onClick={() => setShowDeleteModal(true)}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-colors border-none shadow-sm flex items-center gap-2 cursor-pointer"
+          >
+            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+            Hapus Terpilih
+          </button>
+        </div>
+      )}
+
       {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-gray-100 bg-white">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-gray-50/80 border-b border-gray-100">
+              <th className="py-3 px-4 w-10">
+                <input
+                  type="checkbox"
+                  onChange={handleSelectAll}
+                  checked={slips.length > 0 && slips.filter(s => s.status === 'draft').length > 0 && selectedSlips.length === slips.filter(s => s.status === 'draft').length}
+                  className="w-4 h-4 text-[#1A3D63] rounded border-gray-300 focus:ring-[#1A3D63]"
+                />
+              </th>
               <th className="py-3 px-4 text-[11px] font-bold text-gray-500 uppercase">Periode</th>
               <th className="py-3 px-4 text-[11px] font-bold text-gray-500 uppercase">Pegawai</th>
               <th className="py-3 px-4 text-[11px] font-bold text-gray-500 uppercase">Gaji Bersih</th>
@@ -218,12 +295,24 @@ const RiwayatSlipTab = ({ triggerToast }) => {
           </thead>
           <tbody className="divide-y divide-gray-50">
             {loading ? (
-              <tr><td colSpan="6" className="py-12 text-center"><div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#1A3D63]"></div></td></tr>
+              <tr><td colSpan="7" className="py-12 text-center"><div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#1A3D63]"></div></td></tr>
             ) : slips.length === 0 ? (
-              <tr><td colSpan="6" className="py-12 text-center text-sm text-gray-500">Tidak ada data riwayat gaji.</td></tr>
+              <tr><td colSpan="7" className="py-12 text-center text-sm text-gray-500">Tidak ada data riwayat gaji.</td></tr>
             ) : (
               slips.map((slip) => (
                 <tr key={slip.id} className="hover:bg-blue-50/20 transition-colors">
+                  <td className="py-3 px-4">
+                    {slip.status === 'draft' ? (
+                      <input
+                        type="checkbox"
+                        checked={selectedSlips.includes(slip.id)}
+                        onChange={(e) => handleSelectOne(e, slip.id)}
+                        className="w-4 h-4 text-[#1A3D63] rounded border-gray-300 focus:ring-[#1A3D63]"
+                      />
+                    ) : (
+                      <input type="checkbox" disabled className="w-4 h-4 rounded border-gray-200 bg-gray-100 opacity-50 cursor-not-allowed" />
+                    )}
+                  </td>
                   <td className="py-3 px-4 text-sm text-gray-800">
                     <span className="font-bold">{monthName(slip.bulan)} {slip.tahun}</span>
                   </td>
@@ -253,18 +342,28 @@ const RiwayatSlipTab = ({ triggerToast }) => {
                     <div className="flex justify-center gap-2">
                       {/* Tombol Approve (sekarang Konfirmasi) */}
                       {slip.status === 'draft' && (
-                        <button
-                          onClick={() => { setSelectedSlipId(slip.id); setShowConfirmModal(true); }}
-                          className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-xs font-bold transition-colors border border-blue-200 cursor-pointer whitespace-nowrap"
-                        >
-                          Konfirmasi
-                        </button>
+                        <>
+                          <button
+                            onClick={() => { setSelectedSlipId(slip.id); setShowConfirmModal(true); }}
+                            className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-xs font-bold transition-colors border border-blue-200 cursor-pointer whitespace-nowrap"
+                          >
+                            Konfirmasi
+                          </button>
+                          {/* Tombol Hapus */}
+                          <button
+                            onClick={() => { setSelectedSlips([]); setSelectedSlipId(slip.id); setShowDeleteModal(true); }}
+                            className="px-2 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors border border-red-200 cursor-pointer"
+                            title="Hapus Slip"
+                          >
+                            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                          </button>
+                        </>
                       )}
                       {/* Tombol Batal Konfirmasi */}
                       {slip.status === 'dibayar' && (
                         <button
                           onClick={() => { setSelectedSlipId(slip.id); setShowRevertModal(true); }}
-                          className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-bold transition-colors border border-red-200 cursor-pointer whitespace-nowrap"
+                          className="px-3 py-1.5 bg-orange-50 hover:bg-orange-100 text-orange-600 rounded-lg text-xs font-bold transition-colors border border-orange-200 cursor-pointer whitespace-nowrap"
                         >
                           Batal Konfirmasi
                         </button>
@@ -453,6 +552,36 @@ const RiwayatSlipTab = ({ triggerToast }) => {
                   disabled={isReverting}
                 >
                   {isReverting ? "Loading..." : "Ya, Batalkan"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Modal Hapus Slip */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl animate-scaleIn">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4 text-red-500">
+                <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+              </div>
+              <h3 className="text-lg font-bold text-gray-800 mb-2">Hapus Slip Gaji?</h3>
+              <p className="text-sm text-gray-500 mb-6">Tindakan ini akan menghapus {selectedSlips.length > 1 ? selectedSlips.length : ''} slip gaji secara permanen dan tidak dapat dikembalikan.</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setShowDeleteModal(false); setSelectedSlipId(null); setSelectedSlips([]); }}
+                  className="flex-1 px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition-colors cursor-pointer border-none"
+                  disabled={isDeleting}
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={executeDelete}
+                  className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-colors cursor-pointer border-none shadow-sm"
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? "Menghapus..." : "Ya, Hapus"}
                 </button>
               </div>
             </div>

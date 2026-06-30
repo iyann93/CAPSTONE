@@ -146,4 +146,22 @@ router.get(
   PayrollController.getById
 );
 
+// POST /api/v1/payroll/bulk-delete — Hapus slip gaji massal
+router.post(
+  '/bulk-delete',
+  verifyToken,
+  authorize('gaji.manage'),
+  PayrollController.bulkDeleteSlips
+);
+
+// DELETE /api/v1/payroll/:id      — Hapus slip gaji (hanya draft)
+router.delete(
+  '/:id',
+  verifyToken,
+  authorize('gaji.manage'),
+  idParamValidator,
+  PayrollController.deleteSlip
+);
+
 module.exports = router;
+

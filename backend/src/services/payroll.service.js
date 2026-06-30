@@ -18,15 +18,16 @@ const PayrollService = {
       bulan, tahun, status,
     } = queryParams;
 
-    const { rows, total } = await PayrollRepository.findAllSlips({
+    const { rows, total, summary } = await PayrollRepository.findAllSlips({
       limit, offset, search, sort,
       userId, bulan, tahun, status,
     });
 
     return {
       data: rows,
-      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit), summary },
     };
+
   },
 
   // ── GET DETAIL BY ID ────────────────────────────────────────────────────────
@@ -128,6 +129,44 @@ const PayrollService = {
 
   upsertOverride: async (data) => {
     return PengaturanGajiRepository.upsert(data);
+  },
+
+  deleteSlip: async (id) => {
+    const slip = await PayrollRepository.findSlipById(id);
+    if (!slip) {
+      const err = new Error('Data slip gaji tidak ditemukan');
+      err.statusCode = 404;
+      throw err;
+    }
+    
+    if (slip.status !== 'draft') {
+      const err = new Error('Hanya slip gaji dengan status draft yang dapat dihapus');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    return PayrollRepository.deleteSlip(id);
+  },
+
+  bulkDeleteSlips: async (ids) => {
+    if (!ids || ids.length === 0) return 0;
+    
+    // Check if all slips are in draft status
+    for (const id of ids) {
+      const slip = await PayrollRepository.findSlipById(id);
+      if (!slip) {
+        const err = new Error(`Data slip gaji dengan ID ${id} tidak ditemukan`);
+        err.statusCode = 404;
+        throw err;
+      }
+      if (slip.status !== 'draft') {
+        const err = new Error('Semua slip gaji yang dipilih harus berstatus draft');
+        err.statusCode = 400;
+        throw err;
+      }
+    }
+    
+    return PayrollRepository.bulkDeleteSlips(ids);
   },
 };
 

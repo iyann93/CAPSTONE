@@ -31,7 +31,7 @@ const RiwayatPembayaranSiswa = ({ user, onNavigate }) => {
           return {
             id: t.id,
             bulan: `${getBulanNama(t.bulan)} ${t.tahun}`,
-            nominal: t.nominal,
+            nominal: t.nominal_akhir, // <-- changed from t.nominal to t.nominal_akhir
             jatuhTempo: t.jatuh_tempo ? new Date(t.jatuh_tempo).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : "10 " + getBulanNama(t.bulan).substring(0,3) + " " + t.tahun,
             status: mapStatus(t.status),
             tglBayar: t.status === 'lunas' && t.updated_at ? new Date(t.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : null,
