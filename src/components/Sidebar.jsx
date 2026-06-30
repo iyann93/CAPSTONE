@@ -120,15 +120,7 @@ const menuSections = [
     ],
     roles: ["Super Admin"]
   },
-  {
-    section: "MASTER DATA (SHARED)",
-    items: [
-      { label: "Kelola Pengguna", icon: <UserSettingsIcon /> },
-      { label: "Data Siswa", icon: <UsersIcon /> },
-      { label: "Data Guru & Karyawan", icon: <BriefcaseIcon /> }
-    ],
-    roles: ["Super Admin"]
-  },
+
   {
     section: "MODUL AKADEMIK",
     items: [
@@ -178,6 +170,8 @@ const menuSections = [
     roles: ["Bendahara"]
   },
 
+<<<<<<< HEAD
+=======
   {
     section: "LAINNYA",
     items: [
@@ -186,6 +180,7 @@ const menuSections = [
     ],
     roles: ["Super Admin"]
   },
+>>>>>>> 605bb5b81b29f0b9dbe0b99e98df2989ee96dfa8
   {
     section: "AKADEMIK SISWA",
     items: [
@@ -218,7 +213,41 @@ const menuSections = [
     ],
     roles: ["Wakil Kepala"]
   },
-
+  {
+    section: "MONITORING KEUANGAN",
+    items: [
+      { label: "Monitoring SPP", icon: <ReceiptIcon /> },
+      { label: "Monitoring Gaji", icon: <WalletIcon /> },
+      { label: "Laporan", icon: <FileChartIcon /> }
+    ],
+    roles: ["Wakil Kepala"]
+  },
+  {
+    section: "KEUANGAN KELAS",
+    items: [
+      { label: "Monitoring SPP Siswa", icon: <ReceiptIcon /> }
+    ],
+    roles: ["Wali Kelas"]
+  },
+  {
+    section: "AKADEMIK",
+    items: [
+      { label: "Jadwal Mengajar", icon: <CalendarIcon /> },
+      { label: "Input Nilai", icon: <BookIcon /> },
+      { label: "Absensi Siswa", icon: <UsersIcon /> },
+      { label: "Rekap Absensi Siswa", icon: <BarChartIcon /> },
+      { label: "Catatan Siswa", icon: <ChatIcon /> }
+    ],
+    roles: ["Guru", "Guru Mapel", "Wali Kelas"]
+  },
+  {
+    section: "PRIBADI",
+    items: [
+      { label: "Slip Gaji", icon: <FileChartIcon /> },
+      { label: "Riwayat Terima Gaji", icon: <CalendarIcon /> }
+    ],
+    roles: ["Guru", "Guru Mapel", "Wali Kelas"]
+  },
   {
     section: "PERSETUJUAN & VALIDASI",
     items: [
