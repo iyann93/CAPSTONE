@@ -239,13 +239,7 @@ const menuSections = [
     ],
     roles: ["Wakil Kepala"]
   },
-  {
-    section: "KEUANGAN KELAS",
-    items: [
-      { label: "Monitoring SPP Siswa", icon: <ReceiptIcon /> }
-    ],
-    roles: ["Wali Kelas"]
-  },
+
   {
     section: "PRIBADI",
     items: [
