@@ -24,6 +24,61 @@ const StudentAttendance = () => {
   });
   const [searchQuery, setSearchQuery] = useState("");
 
+  React.useEffect(() => {
+    // Sinkronisasi otomatis dengan Data Siswa riil dari API
+    const syncWithRealData = async () => {
+      try {
+        const { default: api } = await import('../../api/axios');
+        const res = await api.get('/siswa?limit=1000');
+        const allStudents = res.data?.data || [];
+        
+        if (allStudents.length === 0) return; // Jika kosong, biarkan pakai mock/data yang ada
+
+        const classMap = {};
+        allStudents.forEach(s => {
+          const className = s.nama_kelas || "Tanpa Kelas";
+          if (!classMap[className]) {
+            classMap[className] = {
+              name: className,
+              students: 0,
+              wali: "Belum Ditentukan", // Default if not found
+              jurusan: className.includes('IPA') ? 'IPA' : className.includes('IPS') ? 'IPS' : className.includes('Bahasa') ? 'Bahasa' : '-',
+              tingkat: className.split(' ')[0] || '-',
+            };
+          }
+          classMap[className].students += 1;
+        });
+
+        setClasses(prevClasses => {
+          const newClasses = Object.values(classMap).map((cls, idx) => {
+            const existing = prevClasses.find(c => c.name === cls.name);
+            if (existing) {
+              return { ...existing, students: cls.students, jurusan: cls.jurusan, tingkat: cls.tingkat };
+            }
+            return {
+              id: Date.now() + idx,
+              name: cls.name,
+              students: cls.students,
+              tingkat: cls.tingkat,
+              jurusan: cls.jurusan,
+              wali: cls.wali,
+              hadir: null, sakit: null, izin: null, alpha: null, pct: null, waktu: null, admin: null,
+              status: "Belum Input"
+            };
+          });
+          
+          localStorage.setItem('attendance_classes', JSON.stringify(newClasses));
+          return newClasses;
+        });
+
+      } catch (err) {
+        console.error("Gagal sinkronisasi data kelas dari API:", err);
+      }
+    };
+
+    syncWithRealData();
+  }, []);
+
   const handleSaveAttendance = (classId, attendanceResults) => {
     const now = new Date();
     const formatTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');

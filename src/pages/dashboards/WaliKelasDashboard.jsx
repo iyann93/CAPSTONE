@@ -1,16 +1,12 @@
 import React from "react";
 import WaliKelasHome from "./WaliKelasHome";
-import MonitoringSPPWaliKelas from "./MonitoringSPPWaliKelas";
-import SlipGajiWaliKelas from "./SlipGajiWaliKelas";
-import RiwayatGajiWaliKelas from "./RiwayatGajiWaliKelas";
+
+import GuruRiwayatTerimaGaji from "../../components/payroll/GuruRiwayatTerimaGaji";
 import PlaceholderDashboard from "./PlaceholderDashboard";
 import Profile from "../Profile";
 
 const WaliKelasDashboard = ({ user, activeMenu, onViewChange }) => {
-  const [selectedSalary, setSelectedSalary] = React.useState(null);
-
-  const handleNavigate = (menu, data = null) => {
-    if (data) setSelectedSalary(data);
+  const handleNavigate = (menu) => {
     if (onViewChange) {
       onViewChange(menu);
     }
@@ -20,17 +16,9 @@ const WaliKelasDashboard = ({ user, activeMenu, onViewChange }) => {
     case "Dashboard":
       return <WaliKelasHome user={user} onNavigate={handleNavigate} />;
       
-    case "Monitoring SPP Siswa":
-      return <MonitoringSPPWaliKelas user={user} />;
-      
-    case "Slip Gaji":
-      return <SlipGajiWaliKelas user={user} />;
-      
-    case "Detail Slip Gaji":
-      return <SlipGajiWaliKelas user={user} onNavigate={handleNavigate} defaultData={selectedSalary} />;
-      
+
     case "Riwayat Terima Gaji":
-      return <RiwayatGajiWaliKelas user={user} onNavigate={handleNavigate} />;
+      return <GuruRiwayatTerimaGaji user={user} />;
       
     case "My Profile":
       return <Profile user={user} onUpdateProfile={(newProfile) => console.log('Profile updated', newProfile)} />;

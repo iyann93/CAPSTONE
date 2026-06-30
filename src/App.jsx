@@ -267,7 +267,7 @@ const App = () => {
           className="absolute bottom-0 left-0 w-[600px] opacity-[0.1] pointer-events-none mix-blend-multiply"
         />
 
-        <div className="relative z-10">
+        <div className="relative">
           {renderDashboard()}
         </div>
       </div>

@@ -10,6 +10,7 @@ import GraduationData from "./GraduationData";
 import StudentData from "./StudentData";
 import StudentAttendance from "./StudentAttendance";
 import api from "../../api/axios";
+import GuruRiwayatTerimaGaji from "../../components/payroll/GuruRiwayatTerimaGaji";
 
 const AdminTUDashboard = ({ user, activeMenu }) => {
   const [recentStudents, setRecentStudents] = useState([]);
@@ -117,6 +118,10 @@ const AdminTUDashboard = ({ user, activeMenu }) => {
 
   if (activeMenu === "My Profile") {
     return <Profile user={user} />;
+  }
+
+  if (activeMenu === "Riwayat Terima Gaji") {
+    return <GuruRiwayatTerimaGaji user={user} />;
   }
 
   if (activeMenu !== "Dashboard") {

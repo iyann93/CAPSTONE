@@ -1,16 +1,12 @@
 import React from "react";
 import GuruHome from "./GuruHome";
-import SlipGajiGuruMapel from "./SlipGajiGuruMapel";
-import RiwayatGajiGuruMapel from "./RiwayatGajiGuruMapel";
+import GuruRiwayatTerimaGaji from "../../components/payroll/GuruRiwayatTerimaGaji";
 import JadwalGuruMapel from "./JadwalGuruMapel";
 import PlaceholderDashboard from "./PlaceholderDashboard";
 import Profile from "../Profile";
 
 const GuruDashboard = ({ user, activeMenu, onViewChange }) => {
-  const [selectedSalary, setSelectedSalary] = React.useState(null);
-
-  const handleNavigate = (menu, data = null) => {
-    if (data) setSelectedSalary(data);
+  const handleNavigate = (menu) => {
     if (onViewChange) {
       onViewChange(menu);
     }
@@ -23,14 +19,8 @@ const GuruDashboard = ({ user, activeMenu, onViewChange }) => {
     case "Jadwal Seluruhnya":
       return <JadwalGuruMapel user={user} onNavigate={handleNavigate} />;
 
-    case "Slip Gaji":
-      return <SlipGajiGuruMapel user={user} />;
-
-    case "Detail Slip Gaji":
-      return <SlipGajiGuruMapel user={user} onNavigate={handleNavigate} defaultData={selectedSalary} />;
-
     case "Riwayat Terima Gaji":
-      return <RiwayatGajiGuruMapel user={user} onNavigate={handleNavigate} />;
+      return <GuruRiwayatTerimaGaji user={user} />;
 
     case "My Profile":
       return <Profile user={user} onUpdateProfile={(newProfile) => console.log("Profile updated", newProfile)} />;

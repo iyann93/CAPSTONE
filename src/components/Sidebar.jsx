@@ -66,6 +66,13 @@ const menuSections = [
     roles: ["Admin", "Kepala Sekolah", "Wakil Kepsek", "Super Admin", "Bendahara", "Admin TU", "Orang Tua", "Wakil Kepala", "Guru", "Guru Mapel", "Wali Kelas"]
   },
   {
+    section: "PRIBADI",
+    items: [
+      { label: "Riwayat Terima Gaji", icon: <CalendarIcon /> }
+    ],
+    roles: ["Admin TU", "Kepala Sekolah", "Wakil Kepala"]
+  },
+  {
     section: "KELOLA AKADEMIK",
     items: [
       { label: "Mata Pelajaran", icon: <BookIcon /> },
@@ -177,6 +184,13 @@ const menuSections = [
     roles: ["Bendahara"]
   },
   {
+    section: "PRIBADI",
+    items: [
+      { label: "Riwayat Terima Gaji", icon: <CalendarIcon /> }
+    ],
+    roles: ["Bendahara"]
+  },
+  {
     section: "LAINNYA",
     items: [
       { label: "Laporan Integrasi", icon: <FileChartIcon /> },
@@ -225,17 +239,10 @@ const menuSections = [
     ],
     roles: ["Wakil Kepala"]
   },
-  {
-    section: "KEUANGAN KELAS",
-    items: [
-      { label: "Monitoring SPP Siswa", icon: <ReceiptIcon /> }
-    ],
-    roles: ["Wali Kelas"]
-  },
+
   {
     section: "PRIBADI",
     items: [
-      { label: "Slip Gaji", icon: <FileChartIcon /> },
       { label: "Riwayat Terima Gaji", icon: <CalendarIcon /> }
     ],
     roles: ["Guru", "Guru Mapel", "Wali Kelas"]

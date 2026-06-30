@@ -40,6 +40,7 @@ import TemplateGajiTab from "../../components/payroll/TemplateGajiTab";
 import OverridePegawaiTab from "../../components/payroll/OverridePegawaiTab";
 import GenerateSlipTab from "../../components/payroll/GenerateSlipTab";
 import RiwayatSlipTab from "../../components/payroll/RiwayatSlipTab";
+import GuruRiwayatTerimaGaji from "../../components/payroll/GuruRiwayatTerimaGaji";
 
 // Icons Components
 const IconReceipt = () => (
@@ -1006,6 +1007,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
         return <GenerateSlipTab triggerToast={triggerToast} />;
       case "Riwayat Slip Gaji":
         return <RiwayatSlipTab triggerToast={triggerToast} />;
+      case "Riwayat Terima Gaji":
+        return <GuruRiwayatTerimaGaji user={user} />;
       case "Dashboard":
       case "Overview":
         // Dynamic Calculations based on Single Source of Truth
@@ -3862,86 +3865,95 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             <div className="p-6">
               <div className="flex flex-col gap-5">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Pilih Siswa (dapat lebih dari 1) <span className="text-red-500">*</span></label>
-                  <div className="relative" onBlur={(e) => {
-                    if (!e.currentTarget.contains(e.relatedTarget)) {
-                      setTimeout(() => setShowSiswaDropdown(false), 200);
-                    }
-                  }}>
-                    <div className="relative">
-                      <span className="absolute left-3 top-3.5 text-gray-400">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
-                      </span>
-                      <input
-                        type="text"
-                        placeholder={(!siswaSearchQuery && beasiswaForm.siswaIds && beasiswaForm.siswaIds.length > 0) ? `${beasiswaForm.siswaIds.length} siswa terpilih` : "Ketik nama atau NIS siswa..."}
-                        value={siswaSearchQuery}
-                        onChange={(e) => {
-                          setIsBeasiswaFormDirty(true);
-                          setSiswaSearchQuery(e.target.value);
-                          setShowSiswaDropdown(true);
-                        }}
-                        onFocus={() => setShowSiswaDropdown(true)}
-                        className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 bg-white text-gray-800"
-                      />
-                    </div>
-                    {beasiswaForm.siswaIds && beasiswaForm.siswaIds.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {beasiswaForm.siswaIds.map(id => {
-                          const s = siswaList.find(x => String(x.id) === String(id));
-                          if (!s) return null;
-                          return (
-                            <span key={id} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                              {s.nama_lengkap}
-                              <button type="button" onClick={() => {
-                                setBeasiswaForm(prev => ({...prev, siswaIds: prev.siswaIds.filter(x => x !== id)}));
-                              }} className="hover:text-blue-900">
-                                &times;
-                              </button>
-                            </span>
-                          );
-                        })}
-                      </div>
-                    )}
-                    {showSiswaDropdown && (
-                      <div className="absolute z-50 mt-1 w-full bg-white border border-gray-100 rounded-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] max-h-[200px] flex flex-col overflow-y-auto custom-scrollbar">
-                        <div className="p-1">
-                          {siswaList.filter(s => s.nama_lengkap.toLowerCase().includes(siswaSearchQuery.toLowerCase()) || s.nis.includes(siswaSearchQuery)).length === 0 ? (
-                            <div className="p-4 text-center text-sm text-gray-400">Siswa tidak ditemukan</div>
-                          ) : (
-                            siswaList.filter(s => s.nama_lengkap.toLowerCase().includes(siswaSearchQuery.toLowerCase()) || s.nis.includes(siswaSearchQuery)).map(s => {
-                              const isSelected = beasiswaForm.siswaIds && beasiswaForm.siswaIds.includes(s.id);
-                              return (
-                                <div
-                                  key={s.id}
-                                  className={"px-4 py-2.5 text-sm cursor-pointer rounded-lg hover:bg-blue-50 transition-colors flex items-center justify-between " + (isSelected ? "bg-blue-50/50" : "")}
-                                  onClick={() => {
-                                    setIsBeasiswaFormDirty(true);
-                                    let newIds = beasiswaForm.siswaIds ? [...beasiswaForm.siswaIds] : [];
-                                    if (isSelected) {
-                                      newIds = newIds.filter(id => id !== s.id);
-                                    } else {
-                                      newIds.push(s.id);
-                                    }
-                                    setBeasiswaForm({ ...beasiswaForm, siswaIds: newIds });
-                                  }}
-                                >
-                                  <div>
-                                    <div className={"font-medium " + (isSelected ? "text-[#1A3D63]" : "text-gray-700")}>{s.nama_lengkap}</div>
-                                    <div className="text-[11px] text-gray-400 mt-0.5">NIS: {s.nis}</div>
-                                  </div>
-                                  {isSelected && (
-                                    <svg width="16" height="16" fill="none" stroke="#1A3D63" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
-                                  )}
-                                </div>
-                              );
-                            })
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                   <label className="block text-sm font-semibold text-gray-700 mb-1">Pilih Siswa (dapat lebih dari 1) <span className="text-red-500">*</span></label>
+                   {beasiswaForm.siswaIds && beasiswaForm.siswaIds.length > 0 && (
+                     <div className="text-xs text-[#1A3D63] font-medium mb-2">{beasiswaForm.siswaIds.length} siswa terpilih</div>
+                   )}
+                   {/* Search bar */}
+                   <div className="relative mb-2">
+                     <span className="absolute left-3 top-3.5 text-gray-400">
+                       <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+                     </span>
+                     <input
+                       type="text"
+                       placeholder="Cari nama atau NIS siswa..."
+                       value={siswaSearchQuery}
+                       onChange={(e) => setSiswaSearchQuery(e.target.value)}
+                       className="w-full border border-gray-200 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 bg-white text-gray-800"
+                     />
+                     {siswaSearchQuery && (
+                       <button
+                         type="button"
+                         onClick={() => setSiswaSearchQuery('')}
+                         className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer p-0"
+                       >
+                         <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                       </button>
+                     )}
+                   </div>
+                   {/* Checkbox list */}
+                   <div className="border border-gray-200 rounded-xl overflow-y-auto max-h-[200px] custom-scrollbar bg-white">
+                     {(() => {
+                       const filtered = siswaList.filter(s =>
+                         s.nama_lengkap.toLowerCase().includes(siswaSearchQuery.toLowerCase()) ||
+                         s.nis.includes(siswaSearchQuery)
+                       );
+                       if (filtered.length === 0) {
+                         return <div className="p-4 text-center text-sm text-gray-400">Siswa tidak ditemukan</div>;
+                       }
+                       return filtered.map(s => {
+                         const isSelected = beasiswaForm.siswaIds && beasiswaForm.siswaIds.includes(s.id);
+                         return (
+                           <label
+                             key={s.id}
+                             className={"flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors hover:bg-blue-50/60 " + (isSelected ? "bg-blue-50" : "")}
+                             style={{ borderBottom: '1px solid #f1f5f9' }}
+                           >
+                             <input
+                               type="checkbox"
+                               checked={!!isSelected}
+                               onChange={() => {
+                                 setIsBeasiswaFormDirty(true);
+                                 let newIds = beasiswaForm.siswaIds ? [...beasiswaForm.siswaIds] : [];
+                                 if (isSelected) {
+                                   newIds = newIds.filter(id => id !== s.id);
+                                 } else {
+                                   newIds.push(s.id);
+                                 }
+                                 setBeasiswaForm({ ...beasiswaForm, siswaIds: newIds });
+                               }}
+                               className="w-4 h-4 rounded accent-[#1A3D63] cursor-pointer flex-shrink-0"
+                             />
+                             <div className="min-w-0">
+                               <div className={"text-sm font-medium truncate " + (isSelected ? "text-[#1A3D63]" : "text-gray-700")}>{s.nama_lengkap}</div>
+                               <div className="text-[11px] text-gray-400">NIS: {s.nis}</div>
+                             </div>
+                           </label>
+                         );
+                       });
+                     })()}
+                   </div>
+                   {/* Chips terpilih */}
+                   {beasiswaForm.siswaIds && beasiswaForm.siswaIds.length > 0 && (
+                     <div className="flex flex-wrap gap-1.5 mt-2">
+                       {beasiswaForm.siswaIds.map(id => {
+                         const s = siswaList.find(x => String(x.id) === String(id));
+                         if (!s) return null;
+                         return (
+                           <span key={id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                             {s.nama_lengkap}
+                             <button type="button" onClick={() => {
+                               setIsBeasiswaFormDirty(true);
+                               setBeasiswaForm(prev => ({...prev, siswaIds: prev.siswaIds.filter(x => x !== id)}));
+                             }} className="hover:text-blue-900 bg-transparent border-none cursor-pointer p-0 leading-none">
+                               &times;
+                             </button>
+                           </span>
+                         );
+                       })}
+                     </div>
+                   )}
+                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Nama Program Beasiswa <span className="text-red-500">*</span></label>
