@@ -119,15 +119,7 @@ const menuSections = [
     ],
     roles: ["Super Admin"]
   },
-  {
-    section: "MASTER DATA (SHARED)",
-    items: [
-      { label: "Kelola Pengguna", icon: <UserSettingsIcon /> },
-      { label: "Data Siswa", icon: <UsersIcon /> },
-      { label: "Data Guru & Karyawan", icon: <BriefcaseIcon /> }
-    ],
-    roles: ["Super Admin"]
-  },
+
   {
     section: "MODUL AKADEMIK",
     items: [
@@ -176,14 +168,7 @@ const menuSections = [
     ],
     roles: ["Bendahara"]
   },
-  {
-    section: "LAINNYA",
-    items: [
-      { label: "Laporan Integrasi", icon: <FileChartIcon /> },
-      { label: "Pengaturan Sistem", icon: <SettingsIcon /> }
-    ],
-    roles: ["Super Admin"]
-  },
+
   {
     section: "AKADEMIK SISWA",
     items: [
@@ -231,6 +216,17 @@ const menuSections = [
       { label: "Monitoring SPP Siswa", icon: <ReceiptIcon /> }
     ],
     roles: ["Wali Kelas"]
+  },
+  {
+    section: "AKADEMIK",
+    items: [
+      { label: "Jadwal Mengajar", icon: <CalendarIcon /> },
+      { label: "Input Nilai", icon: <BookIcon /> },
+      { label: "Absensi Siswa", icon: <UsersIcon /> },
+      { label: "Rekap Absensi Siswa", icon: <BarChartIcon /> },
+      { label: "Catatan Siswa", icon: <ChatIcon /> }
+    ],
+    roles: ["Guru", "Guru Mapel", "Wali Kelas"]
   },
   {
     section: "PRIBADI",
