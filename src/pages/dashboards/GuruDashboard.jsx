@@ -11,10 +11,29 @@ import PlaceholderDashboard from "./PlaceholderDashboard";
 import Profile from "../Profile";
 
 const GuruDashboard = ({ user, activeMenu, onViewChange }) => {
+  // Shared attendance sessions state — flows from AbsensiSiswa → RekapAbsensiSiswa
+  const [attendanceSessions, setAttendanceSessions] = React.useState([]);
+
   const handleNavigate = (menu) => {
     if (onViewChange) {
       onViewChange(menu);
     }
+  };
+
+  // Called by AbsensiSiswa when teacher clicks "Simpan Absensi"
+  const handleSaveAttendance = (sessionData) => {
+    setAttendanceSessions((prev) => {
+      // Replace existing session for same class + date, or add new one
+      const idx = prev.findIndex(
+        (s) => s.attendanceClass === sessionData.attendanceClass && s.date === sessionData.date
+      );
+      if (idx >= 0) {
+        const updated = [...prev];
+        updated[idx] = sessionData;
+        return updated;
+      }
+      return [...prev, sessionData];
+    });
   };
 
   switch (activeMenu) {
@@ -29,10 +48,10 @@ const GuruDashboard = ({ user, activeMenu, onViewChange }) => {
       return <InputNilai user={user} />;
 
     case "Absensi Siswa":
-      return <AbsensiSiswa user={user} />;
+      return <AbsensiSiswa user={user} onSaveAttendance={handleSaveAttendance} />;
 
     case "Rekap Absensi Siswa":
-      return <RekapAbsensiSiswa user={user} />;
+      return <RekapAbsensiSiswa user={user} attendanceSessions={attendanceSessions} />;
 
     case "Catatan Siswa":
       return <CatatanSiswa user={user} />;
@@ -49,3 +68,4 @@ const GuruDashboard = ({ user, activeMenu, onViewChange }) => {
 };
 
 export default GuruDashboard;
+

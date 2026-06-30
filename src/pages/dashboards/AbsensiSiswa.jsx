@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import ReactDOM from "react-dom";
 
-const AbsensiSiswa = ({ user }) => {
+const AbsensiSiswa = ({ user, onSaveAttendance }) => {
   const [selectedClass, setSelectedClass] = useState("X IPA 1");
   const [selectedDate, setSelectedDate] = useState("2026-06-30");
   const [searchQuery, setSearchQuery] = useState("");
@@ -77,6 +77,14 @@ const AbsensiSiswa = ({ user }) => {
   }, [currentStudents, searchQuery]);
 
   const handleSave = () => {
+    // Push session data up to GuruDashboard shared state
+    if (onSaveAttendance) {
+      onSaveAttendance({
+        attendanceClass: selectedClass,
+        date: selectedDate,
+        students: currentStudents
+      });
+    }
     setNotification(`Absensi kelas ${selectedClass} berhasil disimpan!`);
     setTimeout(() => setNotification(null), 4000);
   };
