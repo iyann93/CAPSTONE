@@ -32,6 +32,9 @@ import {
   updateKomponenSpp,
   deleteKomponenSpp,
   getPembayaran,
+  getDanaBeasiswa,
+  createDanaBeasiswa,
+  deleteDanaBeasiswa,
 } from "../../api/finance";
 import { getSiswa } from "../../api/academic";
 import { getAllSlips } from "../../api/payroll";
@@ -271,12 +274,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   const [isSavingBeasiswa, setIsSavingBeasiswa] = useState(false);
 
   // Dana Beasiswa States
-  const [danaBeasiswaList, setDanaBeasiswaList] = useState(() => {
-    try {
-      const raw = localStorage.getItem('capstone_dana_beasiswa');
-      return raw ? JSON.parse(raw) : [];
-    } catch (_) { return []; }
-  });
+  const [isSavingDana, setIsSavingDana] = useState(false);
+  const [danaBeasiswaList, setDanaBeasiswaList] = useState([]);
   const [showAddDanaModal, setShowAddDanaModal] = useState(false);
   const [showKelolaDanaModal, setShowKelolaDanaModal] = useState(false);
   const [newDanaForm, setNewDanaForm] = useState({
@@ -391,18 +390,14 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     } catch (_) { return []; }
   };
 
-  const LS_DANA_KEY = 'capstone_dana_beasiswa';
-  const saveDanaToStorage = (danaList) => {
+  const loadDanaBeasiswa = useCallback(async () => {
     try {
-      localStorage.setItem(LS_DANA_KEY, JSON.stringify(danaList));
-    } catch (_) {}
-  };
-  const loadDanaFromStorage = () => {
-    try {
-      const raw = localStorage.getItem(LS_DANA_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch (_) { return []; }
-  };
+      const data = await getDanaBeasiswa();
+      setDanaBeasiswaList(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.error("loadDanaBeasiswa:", e);
+    }
+  }, []);
 
   const loadBeasiswa = useCallback(async () => {
     try {
@@ -562,10 +557,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     if (stored.length > 0) {
       setProgramList(stored.map(p => ({ ...p, penerima: [] })));
     }
-    const storedDana = loadDanaFromStorage();
-    if (storedDana.length > 0) {
-      setDanaBeasiswaList(storedDana);
-    }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -576,7 +567,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     loadSiswa();
     loadPembayaran();
     loadPaidSlips();
-  }, [loadKomponenSpp, loadKomponenGaji, loadTagihan, loadBeasiswa, loadSiswa, loadPembayaran, loadPaidSlips]);
+    loadDanaBeasiswa();
+  }, [loadKomponenSpp, loadKomponenGaji, loadTagihan, loadBeasiswa, loadSiswa, loadPembayaran, loadPaidSlips, loadDanaBeasiswa]);
 
   // Handlers
   const handleSaveKomponen = async () => {
@@ -722,32 +714,38 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
       setEditingProgramTitle(null);
     }
   };
-
-  const handleSaveDana = () => {
+  const handleSaveDana = async () => {
     if (!newDanaForm.nominal) {
       triggerToast("Mohon isi nominal dana beasiswa", "error");
       return;
     }
     const nominalNum = parseInt(String(newDanaForm.nominal).replace(/[^0-9]/g, ''), 10);
-    const newDana = {
-      id: Date.now(),
-      sumber: newDanaForm.sumber,
-      nominal: nominalNum,
-      tanggal: newDanaForm.tanggal,
-      keterangan: newDanaForm.keterangan
-    };
-    const updatedDanaList = [newDana, ...danaBeasiswaList];
-    setDanaBeasiswaList(updatedDanaList);
-    saveDanaToStorage(updatedDanaList);
-    setShowAddDanaModal(false);
-    setIsDanaFormDirty(false);
-    triggerToast("Dana Beasiswa berhasil ditambahkan!");
-    setNewDanaForm({
-      sumber: "",
-      nominal: "",
-      tanggal: new Date().toISOString().split('T')[0],
-      keterangan: ""
-    });
+    
+    setIsSavingDana(true);
+    try {
+      await createDanaBeasiswa({
+        sumber: newDanaForm.sumber,
+        nominal: nominalNum,
+        tanggal: newDanaForm.tanggal,
+        keterangan: newDanaForm.keterangan
+      });
+      
+      await loadDanaBeasiswa();
+      setShowAddDanaModal(false);
+      setIsDanaFormDirty(false);
+      triggerToast("Dana Beasiswa berhasil ditambahkan!");
+      setNewDanaForm({
+        sumber: "",
+        nominal: "",
+        tanggal: new Date().toISOString().split('T')[0],
+        keterangan: ""
+      });
+    } catch (error) {
+      console.error(error);
+      triggerToast("Gagal menyimpan dana beasiswa", "error");
+    } finally {
+      setIsSavingDana(false);
+    }
   };
 
   const handleCancelDana = () => {
@@ -3836,9 +3834,16 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
             <div className="mt-6 pt-5 border-t border-gray-100 flex justify-end items-center gap-4 shrink-0">
               <button onClick={handleCancelDana} className="text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors cursor-pointer border-none bg-transparent">Batal</button>
-              <button onClick={handleSaveDana} className="bg-[#1A3D63] hover:bg-[#122A44] text-white py-2.5 px-6 rounded-xl text-sm font-bold cursor-pointer border-none shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
+              <button onClick={handleSaveDana} disabled={isSavingDana} className={`${isSavingDana ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#1A3D63] hover:bg-[#122A44] cursor-pointer'} text-white py-2.5 px-6 rounded-xl text-sm font-bold border-none shadow-md transition-all active:scale-95 flex items-center justify-center gap-2`}
               >
-                Simpan Dana
+                {isSavingDana ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Memproses...
+                  </>
+                ) : (
+                  "Simpan Dana"
+                )}
               </button>
             </div>
           </div>

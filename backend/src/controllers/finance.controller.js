@@ -1,6 +1,7 @@
 'use strict';
 
 const FinanceService = require('../services/finance.service');
+const DanaBeasiswaRepository = require('../repositories/dana_beasiswa.repository');
 const response = require('../utils/response');
 const { validationResult } = require('express-validator');
 
@@ -139,6 +140,39 @@ const FinanceController = {
       if (!errors.isEmpty()) return next(Object.assign(new Error('Validation failed'), { type: 'validation', errors: errors.array() }));
       const data = await FinanceService.getLaporanBulanan(req.query);
       return response.success(res, 200, 'Laporan keuangan bulanan berhasil diambil', data);
+    } catch (err) { next(err); }
+  },
+
+  // ─── DANA BEASISWA ──────────────────────────────────────────────────────────
+  getAllDanaBeasiswa: async (req, res, next) => {
+    try {
+      const data = await DanaBeasiswaRepository.findAll();
+      return response.success(res, 200, 'Dana beasiswa berhasil diambil', data);
+    } catch (err) { next(err); }
+  },
+
+  createDanaBeasiswa: async (req, res, next) => {
+    try {
+      const { sumber, nominal, tanggal, keterangan } = req.body;
+      if (!nominal) {
+        const err = new Error('Nominal dana tidak boleh kosong');
+        err.statusCode = 400;
+        return next(err);
+      }
+      const data = await DanaBeasiswaRepository.create({ sumber, nominal, tanggal, keterangan });
+      return response.success(res, 201, 'Dana beasiswa berhasil ditambahkan', data);
+    } catch (err) { next(err); }
+  },
+
+  deleteDanaBeasiswa: async (req, res, next) => {
+    try {
+      const deleted = await DanaBeasiswaRepository.delete(req.params.id);
+      if (!deleted) {
+        const err = new Error('Data dana beasiswa tidak ditemukan');
+        err.statusCode = 404;
+        return next(err);
+      }
+      return response.success(res, 200, 'Dana beasiswa berhasil dihapus', deleted);
     } catch (err) { next(err); }
   }
 };

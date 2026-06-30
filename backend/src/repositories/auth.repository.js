@@ -6,7 +6,7 @@ const AuthRepository = {
   /**
    * Find a user by email from shared.users
    */
-  findUserByEmail: async (email) => {
+  findUserByEmail: async (identifier) => {
     const sql = `
       SELECT u.id, u.nama, u.email, u.password_hash, u.no_telepon, u.alamat_lengkap,
              u.is_active, u.last_login_at, u.created_at,
@@ -25,10 +25,15 @@ const AuthRepository = {
               LEFT JOIN shared.users w ON k.wali_kelas_id = w.id
               WHERE o.user_id = u.id LIMIT 1) AS anak
       FROM shared.users u
-      WHERE u.email = $1
+      LEFT JOIN academic.orang_tua o ON o.user_id = u.id
+      LEFT JOIN academic.siswa s ON o.siswa_id = s.id
+      WHERE u.email = $1 
+         OR split_part(u.email, '@', 1) = $1
+         OR s.nisn = $1
+         OR s.nis = $1
       LIMIT 1
     `;
-    const result = await query(sql, [email]);
+    const result = await query(sql, [identifier]);
     return result.rows[0] || null;
   },
 

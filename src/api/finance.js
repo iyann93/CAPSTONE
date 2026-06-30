@@ -123,3 +123,14 @@ export const transferPayroll = (payload) =>
 
 export const getBendaharaDashboard = () =>
   api.get('/dashboard/bendahara').then((r) => r.data.data);
+
+// ── DANA BEASISWA ──────────────────────────────────────────────────────────
+
+export const getDanaBeasiswa = () =>
+  api.get('/finance/dana-beasiswa').then((r) => r.data.data);
+
+export const createDanaBeasiswa = (payload) =>
+  api.post('/finance/dana-beasiswa', payload).then((r) => r.data.data);
+
+export const deleteDanaBeasiswa = (id) =>
+  api.delete(`/finance/dana-beasiswa/${id}`).then((r) => r.data.data);

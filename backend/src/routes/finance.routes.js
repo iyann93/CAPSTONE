@@ -28,4 +28,9 @@ router.get('/pembayaran/laporan',   verifyToken, authorize('reports.read'),     
 router.get('/pembayaran',           verifyToken, authorize('pembayaran.read'),   FinanceController.getAllPembayaran);
 router.get('/pembayaran/:id',       verifyToken, authorize('pembayaran.read'),   FinanceController.getPembayaranById);
 
+// ==== DANA BEASISWA ====
+router.get('/dana-beasiswa',        verifyToken, FinanceController.getAllDanaBeasiswa);
+router.post('/dana-beasiswa',       verifyToken, FinanceController.createDanaBeasiswa);
+router.delete('/dana-beasiswa/:id', verifyToken, FinanceController.deleteDanaBeasiswa);
+
 module.exports = router;

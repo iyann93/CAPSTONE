@@ -3,7 +3,7 @@
 const { body } = require('express-validator');
 
 const loginValidator = [
-  body('email').isEmail().withMessage('Email tidak valid').normalizeEmail(),
+  body('email').notEmpty().withMessage('Username/NISN/Email tidak boleh kosong'),
   body('password').notEmpty().withMessage('Password tidak boleh kosong'),
 ];
 
