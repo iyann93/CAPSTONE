@@ -14,9 +14,45 @@ import api from "../../api/axios";
 const AdminTUDashboard = ({ user, activeMenu }) => {
   const [recentStudents, setRecentStudents] = useState([]);
   const [totalSiswa, setTotalSiswa] = useState(0);
+  const [absensiPct, setAbsensiPct] = useState(null);
+  const [totalTidakHadir, setTotalTidakHadir] = useState(0);
+  const [totalMapel, setTotalMapel] = useState(0);
+  const [totalMapelAktif, setTotalMapelAktif] = useState(0);
 
   useEffect(() => {
     if (activeMenu === "Dashboard" || !activeMenu) {
+      // ── Absensi dari localStorage ────────────────────────────
+      const savedAttendance = localStorage.getItem('attendance_classes');
+      if (savedAttendance) {
+        try {
+          const classes = JSON.parse(savedAttendance);
+          const finished = classes.filter(c => c.status === 'Selesai');
+          const totalStudentsFinished = finished.reduce((a, c) => a + c.students, 0);
+          const totalHadir = finished.reduce((a, c) => a + (c.hadir || 0), 0);
+          const totalTidak = finished.reduce((a, c) => a + (c.sakit || 0) + (c.izin || 0) + (c.alpha || 0), 0);
+          const pct = totalStudentsFinished > 0
+            ? Math.round((totalHadir / totalStudentsFinished) * 100)
+            : 0;
+          setAbsensiPct(pct);
+          setTotalTidakHadir(totalTidak);
+        } catch (e) { console.error('Parse attendance error', e); }
+      }
+
+      // ── Mata Pelajaran dari localStorage ────────────────────
+      const savedSubjects = localStorage.getItem('subjects_data');
+      if (savedSubjects) {
+        try {
+          const subjects = JSON.parse(savedSubjects);
+          setTotalMapel(subjects.length);
+          setTotalMapelAktif(subjects.filter(s => s.status === 'Aktif').length);
+        } catch (e) { console.error('Parse subjects error', e); }
+      } else {
+        // Default dari data awal Subjects.jsx (12 mapel, 11 aktif)
+        setTotalMapel(12);
+        setTotalMapelAktif(11);
+      }
+
+      // ── Siswa dari API ───────────────────────────────────────
       const fetchDashboardData = async () => {
         try {
           const res = await api.get('/siswa?limit=5');
@@ -26,8 +62,8 @@ const AdminTUDashboard = ({ user, activeMenu }) => {
           const colors = ["bg-[#E8EEF2]", "bg-[#F3E8FF]", "bg-[#E0E7FF]", "bg-[#FFEDD5]", "bg-[#D1FAE5]"];
           const fetched = res.data.data.slice(0, 5).map((s, idx) => {
             const nameParts = s.nama_lengkap ? s.nama_lengkap.split(' ') : ['?'];
-            const initial = nameParts.length > 1 
-              ? (nameParts[0][0] + nameParts[1][0]).toUpperCase() 
+            const initial = nameParts.length > 1
+              ? (nameParts[0][0] + nameParts[1][0]).toUpperCase()
               : (nameParts[0][0] || 'U').toUpperCase();
             return {
               name: s.nama_lengkap,
@@ -110,39 +146,50 @@ const AdminTUDashboard = ({ user, activeMenu }) => {
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
-        {/* Card 1 */}
+        {/* Card 1: Total Siswa — dari API */}
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
             <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Siswa Aktif</div>
-            <div className="text-3xl font-black text-white">{totalSiswa}</div>
+            <div className="text-3xl font-black text-white">{totalSiswa || "…"}</div>
             <div className="text-xs font-medium text-blue-300 mt-2">Siswa terdaftar</div>
           </div>
         </div>
 
-        {/* Card 2 */}
+        {/* Card 2: Mata Pelajaran — dari Subjects localStorage */}
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
-            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Guru</div>
-            <div className="text-3xl font-black text-white">86</div>
-            <div className="text-xs font-medium text-blue-300 mt-2">3 baru semester ini</div>
+            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Mata Pelajaran</div>
+            <div className="text-3xl font-black text-white">{totalMapel || "…"}</div>
+            <div className="text-xs font-medium text-blue-300 mt-2">{totalMapelAktif} aktif</div>
           </div>
         </div>
 
-        {/* Card 3 */}
+        {/* Card 3: Kelas Aktif — dari Absensi Siswa (jumlah kelas) */}
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
             <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Kelas Aktif</div>
-            <div className="text-3xl font-black text-white">32</div>
-            <div className="text-xs font-medium text-blue-300 mt-2">3 tingkat, 10 rombel</div>
+            <div className="text-3xl font-black text-white">
+              {(() => {
+                try {
+                  const att = localStorage.getItem('attendance_classes');
+                  return att ? JSON.parse(att).length : 12;
+                } catch { return 12; }
+              })()}
+            </div>
+            <div className="text-xs font-medium text-blue-300 mt-2">Total rombel belajar</div>
           </div>
         </div>
 
-        {/* Card 4 */}
+        {/* Card 4: Absensi — dari Absensi Siswa localStorage */}
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
             <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Absensi Hari Ini</div>
-            <div className="text-3xl font-black text-white">94.2%</div>
-            <div className="text-xs font-medium text-blue-300 mt-2">73 siswa tidak hadir</div>
+            <div className="text-3xl font-black text-white">
+              {absensiPct !== null ? `${absensiPct}%` : "…"}
+            </div>
+            <div className="text-xs font-medium text-blue-300 mt-2">
+              {totalTidakHadir} siswa tidak hadir
+            </div>
           </div>
         </div>
       </div>

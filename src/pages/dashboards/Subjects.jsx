@@ -144,7 +144,8 @@ const Subjects = () => {
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
             <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Mata Pelajaran</div>
-            <div className="text-3xl font-black text-white">48</div>
+            <div className="text-3xl font-black text-white">{subjects.length}</div>
+            <div className="text-xs font-medium text-blue-300 mt-2">{subjects.filter(s => s.status === 'Aktif').length} aktif</div>
           </div>
         </div>
 
@@ -152,7 +153,9 @@ const Subjects = () => {
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
             <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Sudah Ada Guru</div>
-            <div className="text-3xl font-black text-white">45</div>
+            <div className="text-3xl font-black text-white">
+              {subjects.filter(s => s.teacher && s.teacher !== 'Belum Ditentukan').length}
+            </div>
           </div>
         </div>
 
@@ -160,7 +163,9 @@ const Subjects = () => {
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
             <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Belum Ada Guru</div>
-            <div className="text-3xl font-black text-white">3</div>
+            <div className="text-3xl font-black text-white">
+              {subjects.filter(s => !s.teacher || s.teacher === 'Belum Ditentukan').length}
+            </div>
           </div>
         </div>
 
@@ -168,7 +173,9 @@ const Subjects = () => {
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
             <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Jam / Minggu</div>
-            <div className="text-3xl font-black text-white">168</div>
+            <div className="text-3xl font-black text-white">
+              {subjects.reduce((acc, s) => acc + (Number(s.hours) || 0), 0)}
+            </div>
           </div>
         </div>
       </div>

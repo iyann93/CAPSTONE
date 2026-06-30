@@ -325,23 +325,25 @@ const Classes = () => {
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
             <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Kelas</div>
-            <div className="text-3xl font-black text-white">13</div>
-            <div className="text-xs font-medium text-blue-300 mt-2">12 kelas aktif</div>
+            <div className="text-3xl font-black text-white">{classes.length}</div>
+            <div className="text-xs font-medium text-blue-300 mt-2">{classes.filter(c => c.status === 'Aktif').length} kelas aktif</div>
           </div>
         </div>
 
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
             <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Kelas Aktif</div>
-            <div className="text-3xl font-black text-white">12</div>
-            <div className="text-xs font-medium text-blue-300 mt-2">1 tidak aktif</div>
+            <div className="text-3xl font-black text-white">{classes.filter(c => c.status === 'Aktif').length}</div>
+            <div className="text-xs font-medium text-blue-300 mt-2">{classes.filter(c => c.status !== 'Aktif').length} tidak aktif</div>
           </div>
         </div>
 
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
             <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Siswa</div>
-            <div className="text-3xl font-black text-white">390</div>
+            <div className="text-3xl font-black text-white">
+              {classes.reduce((acc, c) => acc + (Number(c.students) || 0), 0)}
+            </div>
             <div className="text-xs font-medium text-blue-300 mt-2">Seluruh kelas</div>
           </div>
         </div>
@@ -349,7 +351,11 @@ const Classes = () => {
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
             <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Rata-rata Siswa/Kelas</div>
-            <div className="text-3xl font-black text-white">30</div>
+            <div className="text-3xl font-black text-white">
+              {classes.length > 0 
+                ? Math.round(classes.reduce((acc, c) => acc + (Number(c.students) || 0), 0) / classes.length)
+                : 0}
+            </div>
             <div className="text-xs font-medium text-blue-300 mt-2">siswa per kelas</div>
           </div>
         </div>
