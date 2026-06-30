@@ -170,8 +170,6 @@ const menuSections = [
     roles: ["Bendahara"]
   },
 
-<<<<<<< HEAD
-=======
   {
     section: "LAINNYA",
     items: [
@@ -180,7 +178,7 @@ const menuSections = [
     ],
     roles: ["Super Admin"]
   },
->>>>>>> 605bb5b81b29f0b9dbe0b99e98df2989ee96dfa8
+
   {
     section: "AKADEMIK SISWA",
     items: [
