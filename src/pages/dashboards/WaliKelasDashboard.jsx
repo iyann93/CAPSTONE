@@ -1,6 +1,6 @@
 import React from "react";
 import WaliKelasHome from "./WaliKelasHome";
-import MonitoringSPPWaliKelas from "./MonitoringSPPWaliKelas";
+
 import GuruRiwayatTerimaGaji from "../../components/payroll/GuruRiwayatTerimaGaji";
 import PlaceholderDashboard from "./PlaceholderDashboard";
 import Profile from "../Profile";
@@ -16,9 +16,7 @@ const WaliKelasDashboard = ({ user, activeMenu, onViewChange }) => {
     case "Dashboard":
       return <WaliKelasHome user={user} onNavigate={handleNavigate} />;
       
-    case "Monitoring SPP Siswa":
-      return <MonitoringSPPWaliKelas user={user} />;
-      
+
     case "Riwayat Terima Gaji":
       return <GuruRiwayatTerimaGaji user={user} />;
       

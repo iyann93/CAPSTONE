@@ -408,37 +408,82 @@ const Semester = () => {
 
         {/* Top Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
-          {/* Card 1 */}
-          <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
-            <div>
-              <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Semester Aktif</div>
-              <div className="text-2xl lg:text-3xl font-black text-white">Ganjil 23/24</div>
-            </div>
-          </div>
+          {(() => {
+            const aktivSemester = semesters.find(s => s.status === 'Aktif');
+            const totalRiwayat = semesters.length;
 
-          {/* Card 2 */}
-          <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
-            <div>
-              <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Durasi Berjalan</div>
-              <div className="text-3xl font-black text-white">100 Hari</div>
-            </div>
-          </div>
+            // Hitung durasi dan sisa hari dari semester aktif
+            let durasiHari = '-';
+            let sisaHari = '-';
+            let semesterAktifLabel = aktivSemester?.name || 'Tidak Ada';
 
-          {/* Card 3 */}
-          <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
-            <div>
-              <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Sisa Hari</div>
-              <div className="text-3xl font-black text-white">58 Hari</div>
-            </div>
-          </div>
+            if (aktivSemester) {
+              const parseDate = (str) => {
+                if (!str) return null;
+                const months = { Jan:0,Feb:1,Mar:2,Apr:3,Mei:4,Jun:5,Jul:6,Agu:7,Sep:8,Okt:9,Nov:10,Des:11 };
+                const parts = str.split(' ');
+                if (parts.length === 3) {
+                  return new Date(parseInt(parts[2]), months[parts[1]] ?? 0, parseInt(parts[0]));
+                }
+                return new Date(str);
+              };
+              const startDate = parseDate(aktivSemester.start);
+              const endDate = parseDate(aktivSemester.end);
+              const today = new Date();
+              if (startDate && endDate) {
+                const totalMs = endDate - startDate;
+                const passedMs = today - startDate;
+                const totalDays = Math.round(totalMs / (1000 * 60 * 60 * 24));
+                const passedDays = Math.max(0, Math.round(passedMs / (1000 * 60 * 60 * 24)));
+                const remaining = Math.max(0, totalDays - passedDays);
+                durasiHari = `${Math.min(passedDays, totalDays)} Hari`;
+                sisaHari = `${remaining} Hari`;
+              }
+              // Buat label singkat (misal: "Ganjil 23/24")
+              const yearShort = aktivSemester.year?.replace(/20(\d{2})\/(20)(\d{2})/, '$1/$3') || aktivSemester.year;
+              const tipe = aktivSemester.name?.split(' ')[0] || '';
+              semesterAktifLabel = `${tipe} ${yearShort}`;
+            }
 
-          {/* Card 4 */}
-          <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
-            <div>
-              <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Riwayat</div>
-              <div className="text-3xl font-black text-white">6 Semester</div>
-            </div>
-          </div>
+            return (
+              <>
+                {/* Card 1: Semester Aktif */}
+                <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
+                  <div>
+                    <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Semester Aktif</div>
+                    <div className="text-2xl lg:text-3xl font-black text-white">{semesterAktifLabel}</div>
+                    {aktivSemester && (
+                      <div className="text-xs font-medium text-blue-300 mt-2">{aktivSemester.start} — {aktivSemester.end}</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Card 2: Durasi Berjalan */}
+                <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
+                  <div>
+                    <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Durasi Berjalan</div>
+                    <div className="text-3xl font-black text-white">{durasiHari}</div>
+                  </div>
+                </div>
+
+                {/* Card 3: Sisa Hari */}
+                <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
+                  <div>
+                    <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Sisa Hari</div>
+                    <div className="text-3xl font-black text-white">{sisaHari}</div>
+                  </div>
+                </div>
+
+                {/* Card 4: Total Riwayat */}
+                <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
+                  <div>
+                    <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Riwayat</div>
+                    <div className="text-3xl font-black text-white">{totalRiwayat} Semester</div>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
         </div>
 
         {/* Progress Bar Section */}

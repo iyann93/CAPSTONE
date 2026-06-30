@@ -65,13 +65,7 @@ const menuSections = [
     ],
     roles: ["Admin", "Kepala Sekolah", "Wakil Kepsek", "Super Admin", "Bendahara", "Admin TU", "Orang Tua", "Wakil Kepala", "Guru", "Guru Mapel", "Wali Kelas"]
   },
-  {
-    section: "PRIBADI",
-    items: [
-      { label: "Riwayat Terima Gaji", icon: <CalendarIcon /> }
-    ],
-    roles: ["Admin TU", "Kepala Sekolah", "Wakil Kepala"]
-  },
+
   {
     section: "KELOLA AKADEMIK",
     items: [
@@ -126,15 +120,7 @@ const menuSections = [
     ],
     roles: ["Super Admin"]
   },
-  {
-    section: "MASTER DATA (SHARED)",
-    items: [
-      { label: "Kelola Pengguna", icon: <UserSettingsIcon /> },
-      { label: "Data Siswa", icon: <UsersIcon /> },
-      { label: "Data Guru & Karyawan", icon: <BriefcaseIcon /> }
-    ],
-    roles: ["Super Admin"]
-  },
+
   {
     section: "MODUL AKADEMIK",
     items: [
@@ -183,13 +169,7 @@ const menuSections = [
     ],
     roles: ["Bendahara"]
   },
-  {
-    section: "PRIBADI",
-    items: [
-      { label: "Riwayat Terima Gaji", icon: <CalendarIcon /> }
-    ],
-    roles: ["Bendahara"]
-  },
+
   {
     section: "LAINNYA",
     items: [
@@ -198,6 +178,7 @@ const menuSections = [
     ],
     roles: ["Super Admin"]
   },
+
   {
     section: "AKADEMIK SISWA",
     items: [
@@ -247,8 +228,20 @@ const menuSections = [
     roles: ["Wali Kelas"]
   },
   {
+    section: "AKADEMIK",
+    items: [
+      { label: "Jadwal Mengajar", icon: <CalendarIcon /> },
+      { label: "Input Nilai", icon: <BookIcon /> },
+      { label: "Absensi Siswa", icon: <UsersIcon /> },
+      { label: "Rekap Absensi Siswa", icon: <BarChartIcon /> },
+      { label: "Catatan Siswa", icon: <ChatIcon /> }
+    ],
+    roles: ["Guru", "Guru Mapel", "Wali Kelas"]
+  },
+  {
     section: "PRIBADI",
     items: [
+      { label: "Slip Gaji", icon: <FileChartIcon /> },
       { label: "Riwayat Terima Gaji", icon: <CalendarIcon /> }
     ],
     roles: ["Guru", "Guru Mapel", "Wali Kelas"]
@@ -269,6 +262,13 @@ const menuSections = [
       { label: "Monitoring Keuangan", icon: <WalletIcon /> }
     ],
     roles: ["Kepala Sekolah"]
+  },
+  {
+    section: "PRIBADI",
+    items: [
+      { label: "Riwayat Terima Gaji", icon: <CalendarIcon /> }
+    ],
+    roles: ["Admin TU", "Kepala Sekolah", "Wakil Kepala", "Bendahara", "Guru", "Guru Mapel", "Wali Kelas"]
   }
 ];
 const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) => {

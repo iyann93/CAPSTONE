@@ -202,8 +202,8 @@ const GradePromotion = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
         {[
           { label: "Total Siswa", value: totalSiswa, subText: "Seluruh kelas" },
-          { label: "Naik Kelas", value: totalNaik, subText: `${Math.round((totalNaik/totalSiswa)*100)}% dari total` },
-          { label: "Tidak Naik", value: totalTidakNaik, subText: `${Math.round((totalTidakNaik/totalSiswa)*100)}% dari total` },
+          { label: "Naik Kelas", value: totalNaik, subText: `${totalSiswa > 0 ? Math.round((totalNaik/totalSiswa)*100) : 0}% dari total` },
+          { label: "Tidak Naik", value: totalTidakNaik, subText: `${totalSiswa > 0 ? Math.round((totalTidakNaik/totalSiswa)*100) : 0}% dari total` },
           { label: "Belum Diproses", value: totalBelum, subText: "Menunggu keputusan" },
         ].map((card, i) => (
           <div key={i} className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">

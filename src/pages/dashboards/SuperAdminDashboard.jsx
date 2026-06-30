@@ -2,6 +2,10 @@ import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import ManageUsers from "./ManageUsers";
 import Profile from "../Profile";
+import StudentData from "./StudentData";
+import EmployeeData from "./EmployeeData";
+import SystemSettings from "./SystemSettings";
+import PlaceholderDashboard from "./PlaceholderDashboard";
 import { getPendingUsers, activateUser, deactivateUser, getAuditLogs } from "../../api/system";
 
 // Icons
@@ -3247,6 +3251,7 @@ const SuperAdminDashboard = ({ user, activeMenu }) => {
   const content = () => {
     switch (activeMenu) {
       case "Mengelola Akun User":
+      case "Kelola Pengguna":
         return <ManageUsers />;
       case "Aktivasi & Nonaktif":
         return <ActivationModule />;
@@ -3258,6 +3263,14 @@ const SuperAdminDashboard = ({ user, activeMenu }) => {
         return <AksesSeluruhDataModule />;
       case "Backup & Maintenance":
         return <BackupMaintenanceModule />;
+      case "Data Siswa":
+        return <StudentData />;
+      case "Data Guru & Karyawan":
+        return <EmployeeData />;
+      case "Laporan Integrasi":
+        return <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
+      case "Pengaturan Sistem":
+        return <SystemSettings />;
       case "My Profile":
         return <Profile user={user} />;
       default:
