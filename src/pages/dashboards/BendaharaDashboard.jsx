@@ -518,8 +518,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
   const [generateForm, setGenerateForm] = useState({
     bulan: String(new Date().getMonth() + 1),
-    tahun: String(new Date().getFullYear()),
-    jatuh_tempo: `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-10`
+    tahun: String(new Date().getFullYear())
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [showCancelMonthModal, setShowCancelMonthModal] = useState(false);
@@ -1444,17 +1443,13 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                         onClick={() => {
                           setGenerateForm({
                             bulan: selectedMonthIdx,
-                            tahun: selectedYear,
-                            jatuh_tempo: `${selectedYear}-${String(selectedMonthIdx).padStart(2, '0')}-10`
+                            tahun: selectedYear
                           });
                           setShowGenerateMonthModal(true);
                         }}
                         className="flex items-center gap-2 justify-center bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-5 py-2 text-xs font-bold cursor-pointer transition-all active:scale-95 shadow-sm"
                         title={`Generate tagihan ${billMonthFilter} ${selectedYear}`}
                       >
-                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                        </svg>
                         Generate Tagihan
                       </button>
                     );
@@ -2465,6 +2460,24 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                         
                         const formatRupiah = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
                         
+                        const formatDateID = (dateStr) => {
+                          if (!dateStr || dateStr === "-") return "-";
+                          const dateObj = new Date(dateStr);
+                          if (isNaN(dateObj)) return dateStr;
+                          return new Intl.DateTimeFormat('id-ID', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                          }).format(dateObj);
+                        };
+                        
+                        let tglBerlaku = "-";
+                        let jatuhTempo = "-";
+                        if (activeProgram.periodePendaftaran && activeProgram.periodePendaftaran !== "-" && activeProgram.periodePendaftaran.includes(' s/d ')) {
+                          tglBerlaku = formatDateID(activeProgram.periodePendaftaran.split(' s/d ')[0]);
+                          jatuhTempo = formatDateID(activeProgram.periodePendaftaran.split(' s/d ')[1]);
+                        }
+                        
                         return (
                       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm xl:sticky xl:top-6 flex flex-col">
                         {/* Header Section */}
@@ -2491,6 +2504,14 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                           <div>
                             <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Sumber Dana</div>
                             <div className="text-sm font-bold text-gray-800">{activeProgram.sumberDana || '-'}</div>
+                          </div>
+                          <div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Tanggal Berlaku</div>
+                            <div className="text-sm font-bold text-gray-800">{tglBerlaku}</div>
+                          </div>
+                          <div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Jatuh Tempo</div>
+                            <div className="text-sm font-bold text-[#e11d48]">{jatuhTempo}</div>
                           </div>
                           <div>
                             <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Kuota Tersedia</div>
@@ -3300,16 +3321,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               </div>
             </div>
 
-            <div className="mb-5">
-              <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Jatuh Tempo</label>
-              <input
-                type="date"
-                value={generateForm.jatuh_tempo}
-                onChange={(e) => setGenerateForm({ ...generateForm, jatuh_tempo: e.target.value })}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63]"
-              />
-            </div>
-
             <div className="bg-[#FFFDF5] border border-[#FEF3C7] rounded-xl p-4 flex gap-3 mb-6">
               <div className="text-[#F59E0B] flex-shrink-0 mt-0.5">
                 <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -3339,8 +3350,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   try {
                     const result = await generateTagihanBulanan({
                       bulan: parseInt(generateForm.bulan),
-                      tahun: parseInt(generateForm.tahun),
-                      jatuh_tempo: generateForm.jatuh_tempo
+                      tahun: parseInt(generateForm.tahun)
                     });
                     setShowGenerateMonthModal(false);
                     const generatedBulanNama = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][parseInt(generateForm.bulan) - 1];
@@ -3581,7 +3591,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Periode Pendaftaran</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Periode Berlaku</label>
                     <div className="flex items-center gap-2">
                       <input
                         type="date"
