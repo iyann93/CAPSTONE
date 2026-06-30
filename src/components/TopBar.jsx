@@ -46,9 +46,9 @@ const TopBar = ({ user, onToggle, onLogout, onProfileClick }) => {
         
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-white rounded flex items-center justify-center">
-            <span className="text-[#1A3D63] font-black text-lg leading-none">S</span>
+            <span className="text-[#1A3D63] font-black text-lg leading-none">M</span>
           </div>
-          <span className="font-bold text-lg tracking-tight hidden sm:block">SIAKAD Terintegrasi</span>
+          <span className="font-bold text-lg tracking-tight hidden sm:block">MBS Prambanan</span>
         </div>
       </div>
 
