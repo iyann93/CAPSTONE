@@ -9,6 +9,7 @@ import MonitoringKeuanganKepsek from "./MonitoringKeuanganKepsek";
 import LogAktivitasKepsek from "./LogAktivitasKepsek";
 import LaporanHarianKepsek from "./LaporanHarianKepsek";
 import PlaceholderDashboard from "./PlaceholderDashboard";
+import GuruRiwayatTerimaGaji from "../../components/payroll/GuruRiwayatTerimaGaji";
 
 const KepalaSekolahDashboard = ({ user, activeMenu, onViewChange }) => {
   const handleNavigate = (menuName) => {
@@ -36,6 +37,8 @@ const KepalaSekolahDashboard = ({ user, activeMenu, onViewChange }) => {
       return <LaporanHarianKepsek user={user} onNavigate={handleNavigate} />;
     case "My Profile":
       return <Profile user={user} />;
+    case "Riwayat Terima Gaji":
+      return <GuruRiwayatTerimaGaji user={user} />;
       
     default:
       if (activeMenu !== "Dashboard" && activeMenu) {

@@ -6,7 +6,6 @@ const GuruRiwayatTerimaGaji = ({ user }) => {
   const [loading, setLoading] = useState(false);
   
   // Filter states
-  const [bulan, setBulan] = useState('');
   const [tahun, setTahun] = useState('');
   const [status, setStatus] = useState('');
   
@@ -21,7 +20,7 @@ const GuruRiwayatTerimaGaji = ({ user }) => {
 
   useEffect(() => {
     fetchSlips();
-  }, [page, bulan, tahun, status]);
+  }, [page, tahun, status]);
 
   const fetchSlips = async () => {
     try {
@@ -29,7 +28,6 @@ const GuruRiwayatTerimaGaji = ({ user }) => {
       const res = await getAllSlips({
         page,
         limit: 10,
-        bulan: bulan || undefined,
         tahun: tahun || undefined,
         status: status || undefined,
         user_id: user?.id
@@ -97,9 +95,6 @@ const GuruRiwayatTerimaGaji = ({ user }) => {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 animate-fadeIn">
         {/* Filter Section */}
         <div className="flex flex-col md:flex-row gap-4 mb-6">
-          <select value={bulan} onChange={(e) => setBulan(e.target.value)} className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A3D63] bg-white">
-            {months.map(m => <option key={m.label} value={m.value}>{m.label}</option>)}
-          </select>
           <select value={tahun} onChange={(e) => setTahun(e.target.value)} className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A3D63] bg-white">
             <option value="">Semua Tahun</option>
             <option value="2026">2026</option>
