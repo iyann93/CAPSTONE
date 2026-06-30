@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import ReactDOM from "react-dom";
 
 const RekapAbsensiSiswa = ({ user }) => {
   const [selectedClass, setSelectedClass] = useState("X IPA 1");
@@ -90,16 +91,17 @@ const RekapAbsensiSiswa = ({ user }) => {
 
   return (
     <div className="p-6 md:p-8 space-y-6 animate-fadeIn bg-[#F8FAFC] min-h-screen relative">
-      {/* Toast Notification */}
-      {notification && (
-        <div className="fixed top-6 right-6 z-50 flex items-center gap-3 bg-slate-900 text-white px-5 py-4 rounded-2xl shadow-xl animate-slideIn">
+      {/* Toast Notification — portal */}
+      {notification && ReactDOM.createPortal(
+        <div style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 9999 }} className="flex items-center gap-3 bg-slate-900 text-white px-5 py-4 rounded-2xl shadow-xl animate-slideIn">
           <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
               <polyline points="20 6 9 17 4 12" />
             </svg>
           </div>
           <span className="text-xs font-black tracking-tight">{notification}</span>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Header */}
