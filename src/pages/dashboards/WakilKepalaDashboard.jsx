@@ -5,6 +5,7 @@ import KurikulumWakil from "./KurikulumWakil";
 import JadwalPelajaranWakil from "./JadwalPelajaranWakil";
 import MonitoringPembayaran from "./MonitoringPembayaran";
 import PlaceholderDashboard from "./PlaceholderDashboard";
+import GuruRiwayatTerimaGaji from "../../components/payroll/GuruRiwayatTerimaGaji";
 
 const WakilKepalaDashboard = ({ user, activeMenu, onViewChange }) => {
   const handleNavigate = (menuName) => {
@@ -26,6 +27,8 @@ const WakilKepalaDashboard = ({ user, activeMenu, onViewChange }) => {
       return <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
     case "My Profile":
       return <Profile user={user} />;
+    case "Riwayat Terima Gaji":
+      return <GuruRiwayatTerimaGaji user={user} />;
     default:
       return <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
   }

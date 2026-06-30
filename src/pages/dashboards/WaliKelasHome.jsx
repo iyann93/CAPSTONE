@@ -146,18 +146,18 @@ const WaliKelasHome = ({ user, onNavigate }) => {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col justify-center items-center text-center">
           <div className="w-16 h-16 bg-green-50 text-green-500 rounded-full flex items-center justify-center mb-4">
             <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
             </svg>
           </div>
-          <h3 className="text-[18px] font-bold text-gray-800 mb-2">Slip Gaji Bulanan</h3>
+          <h3 className="text-[18px] font-bold text-gray-800 mb-2">Riwayat Terima Gaji</h3>
           <p className="text-[13px] text-gray-500 mb-6 max-w-sm">
-            Akses slip gaji pribadi Anda dan lihat riwayat penerimaan honorarium wali kelas.
+            Lihat seluruh riwayat penerimaan honorarium wali kelas dan gaji bulanan Anda.
           </p>
           <button 
-            onClick={() => onNavigate("Slip Gaji")}
+            onClick={() => onNavigate("Riwayat Terima Gaji")}
             className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white text-[13px] font-bold rounded-xl transition-colors"
           >
-            Cek Slip Gaji
+            Lihat Riwayat
           </button>
         </div>
       </div>
