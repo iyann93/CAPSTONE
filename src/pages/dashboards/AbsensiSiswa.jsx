@@ -10,7 +10,7 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
   // Mock student data grouped by class
   const [studentsData, setStudentsData] = useState({
     "X IPA 1": [
-      { id: "2023001", name: "Andi Pratama", gender: "Laki-laki", status: "Sakit", avatarBg: "bg-blue-500" },
+      { id: "2023001", name: "Andi Pratama", gender: "Laki-laki", status: "Hadir", avatarBg: "bg-blue-500" },
       { id: "2023002", name: "Dewi Sartika", gender: "Perempuan", status: "Hadir", avatarBg: "bg-slate-700" },
       { id: "2023003", name: "Ricky Firmansyah", gender: "Laki-laki", status: "Sakit", avatarBg: "bg-amber-600" },
       { id: "2023004", name: "Nurul Hidayah", gender: "Perempuan", status: "Hadir", avatarBg: "bg-red-500" },
