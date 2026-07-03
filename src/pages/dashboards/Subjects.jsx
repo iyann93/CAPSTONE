@@ -32,6 +32,15 @@ const Subjects = () => {
     localStorage.setItem("subjects_data", JSON.stringify(subjects));
   }, [subjects]);
 
+  const generateKode = (nama) => {
+    // Auto-generate kode dari nama: ambil huruf pertama setiap kata, maks 4 huruf kapital
+    const words = nama.trim().split(/\s+/);
+    if (words.length === 1) {
+      return words[0].substring(0, 4).toUpperCase();
+    }
+    return words.map(w => w[0]).join("").substring(0, 4).toUpperCase();
+  };
+
   const handleSaveSubject = (data) => {
     const groupColors = {
       "Wajib": "bg-gray-100 text-gray-600",
@@ -40,14 +49,19 @@ const Subjects = () => {
       "Lintas Minat": "bg-purple-50 text-purple-600",
     };
     
+    // Gunakan kode yang ada (edit mode) atau auto-generate dari nama
+    const kode = data.kode || generateKode(data.nama);
+
     const newSubject = {
-      code: data.kode,
+      code: kode,
       name: data.nama,
       group: data.kelompok,
       groupColor: groupColors[data.kelompok] || "bg-gray-100 text-gray-600",
       levels: data.jenjang.map(l => l.replace("Kelas ", "")).join(", "),
       hours: data.jam,
-      teacher: data.guru ? data.guru.name : "Belum Ditentukan",
+      teacher: Array.isArray(data.guru) && data.guru.length > 0
+        ? data.guru.join("; ")
+        : (data.guru?.name || "Belum Ditentukan"),
       status: data.aktif ? "Aktif" : "Nonaktif",
       statusColor: data.aktif ? "text-emerald-500" : "text-gray-400",
       dotColor: data.aktif ? "bg-emerald-500" : "bg-gray-300"
@@ -234,7 +248,6 @@ const Subjects = () => {
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-gray-100">
-                <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Kode</th>
                 <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Nama Mata Pelajaran</th>
                 <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Kelompok</th>
                 <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Jenjang</th>
@@ -251,9 +264,6 @@ const Subjects = () => {
                 item.teacher.toLowerCase().includes(searchTerm.toLowerCase())
               ).map((item, idx) => (
                 <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <span className="text-[13px] font-bold text-gray-800 tracking-wide font-mono">{item.code}</span>
-                  </td>
                   <td className="px-6 py-4 text-[14px] font-bold text-[#1e293b]">{item.name}</td>
                   <td className="px-6 py-4">
                     <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide ${
