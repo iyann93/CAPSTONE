@@ -1338,7 +1338,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                 <div className="flex justify-between items-center mb-5">
                   <h3 className="text-sm font-bold text-gray-800">Status Penggajian Guru &amp; Staf</h3>
                   <button
-                    onClick={() => onViewChange && onViewChange("Status Bayar Gaji")}
+                    onClick={() => onViewChange && onViewChange("Riwayat Slip Gaji")}
                     className="text-xs font-bold text-[#1A3D63] hover:underline bg-transparent border-none cursor-pointer flex items-center gap-1"
                   >
                     Lihat Semua <span className="font-bold">→</span>

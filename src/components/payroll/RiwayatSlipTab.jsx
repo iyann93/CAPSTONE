@@ -252,6 +252,7 @@ const RiwayatSlipTab = ({ triggerToast }) => {
         <select value={status} onChange={(e) => setStatus(e.target.value)} className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A3D63] bg-white">
           <option value="">Semua Status</option>
           <option value="draft">Draft</option>
+          <option value="disetujui">Disetujui</option>
           <option value="dibayar">Dibayar</option>
         </select>
       </div>
@@ -352,7 +353,7 @@ const RiwayatSlipTab = ({ triggerToast }) => {
                         </>
                       )}
                       {/* Tombol Batal Konfirmasi */}
-                      {slip.status === 'dibayar' && (
+                      {['dibayar', 'disetujui'].includes(slip.status) && (
                         <button
                           onClick={() => { setSelectedSlipId(slip.id); setShowRevertModal(true); }}
                           className="px-3 py-1.5 bg-orange-50 hover:bg-orange-100 text-orange-600 rounded-lg text-xs font-bold transition-colors border border-orange-200 cursor-pointer whitespace-nowrap"
