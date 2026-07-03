@@ -1,14 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { generateSlip, getEmployees } from '../../api/payroll';
 
-const GenerateSlipTab = ({ triggerToast }) => {
+const GenerateSlipTab = ({ triggerToast, onGeneratingChange, cancelRef }) => {
   const [bulan, setBulan] = useState(String(new Date().getMonth() + 1));
   const [tahun, setTahun] = useState(String(new Date().getFullYear()));
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [logs, setLogs] = useState([]);
+  const cancelledRef = useRef(false);
+
+  // Notify parent when generating state changes
+  useEffect(() => {
+    if (onGeneratingChange) onGeneratingChange(isGenerating);
+  }, [isGenerating, onGeneratingChange]);
+
+  // Expose a cancel function to parent via cancelRef
+  useEffect(() => {
+    if (cancelRef) {
+      cancelRef.current = () => {
+        cancelledRef.current = true;
+        setIsGenerating(false);
+        setProgress(0);
+        setLogs(prev => [...prev, { status: 'error', message: 'Proses generate slip gaji dibatalkan oleh pengguna.' }]);
+      };
+    }
+  }, [cancelRef]);
 
   const handleGenerateAll = async () => {
+    cancelledRef.current = false;
     setIsGenerating(true);
     setProgress(0);
     setLogs([{ status: 'info', message: 'Memulai proses generate slip gaji...' }]);
@@ -30,6 +49,9 @@ const GenerateSlipTab = ({ triggerToast }) => {
       let failCount = 0;
 
       for (let i = 0; i < employees.length; i++) {
+        // Check if cancelled
+        if (cancelledRef.current) break;
+
         const emp = employees[i];
         try {
           await generateSlip({

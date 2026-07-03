@@ -27,8 +27,8 @@ const FinanceService = {
     return data;
   },
 
-  generateTagihanBulanan: async (bulan, tahun, userId, kelasId = null) => {
-    return KomponenSppRepository.generateBulanan(bulan, tahun, userId, kelasId);
+  generateTagihanBulanan: async (bulan, tahun, userId, kelasId = null, jatuhTempo, tanggalDibuat) => {
+    return KomponenSppRepository.generateBulanan(bulan, tahun, userId, kelasId, jatuhTempo, tanggalDibuat);
   },
 
   deleteTagihanBulanan: async (bulan, tahun) => {

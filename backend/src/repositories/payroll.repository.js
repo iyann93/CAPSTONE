@@ -432,7 +432,7 @@ const PayrollRepository = {
       const inSql = `
         INSERT INTO finance.transfer_gaji
           (slip_gaji_id, jumlah, status, tanggal_transfer, no_referensi, rekening_id)
-        VALUES ($1, $2, 'Sukses', NOW(), $3, $4)
+        VALUES ($1, $2, 'berhasil', NOW(), $3, $4)
         RETURNING *
       `;
       const transRes = await client.query(inSql, [
