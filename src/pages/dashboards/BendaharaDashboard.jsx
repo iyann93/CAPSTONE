@@ -1,10 +1,6 @@
-<<<<<<< HEAD
 import React, { useState, useEffect, useCallback, useRef } from "react";
-=======
-import React, { useState, useEffect, useCallback } from "react";
 import { jsPDF } from "jspdf";
 import * as htmlToImage from "html-to-image";
->>>>>>> 2dfa0de3a04efcc93041f4b3fcbdc6948efb1ad1
 import {
   BarChart,
   Bar,
