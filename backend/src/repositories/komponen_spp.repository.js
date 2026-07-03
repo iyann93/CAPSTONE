@@ -78,7 +78,7 @@ const KomponenSppRepository = {
    * @param {string} userId  - user who triggers generation
    * @param {string|null} kelasId - optional filter by class
    */
-  generateBulanan: async (bulan, tahun, userId, kelasId = null) => {
+  generateBulanan: async (bulan, tahun, userId, kelasId = null, jatuhTempo, tanggalDibuat) => {
     const client = await require('../config/db').getClient();
     try {
       await client.query('BEGIN');
@@ -161,9 +161,14 @@ const KomponenSppRepository = {
             continue;
           }
 
-          const jatuhTempo = new Date(tahun, bulan - 1, komp.default_jatuh_tempo || 10);
-          insertValues.push(`($$, $$, $$, $$, $$, $$, $$, 'belum_bayar', $$, NOW(), NOW(), $$)`);
-          queryParams.push(siswa.id, komp.id, bulan, tahun, komp.nominal, beasiswaId, potongan, jatuhTempo, userId);
+          // Use jatuh_tempo from caller; fallback to day 10 of the month if not provided
+          const resolvedJatuhTempo = jatuhTempo
+            ? new Date(jatuhTempo)
+            : new Date(tahun, bulan - 1, komp.default_jatuh_tempo || 10);
+          // Always pass created_at as a value so param count is consistent (10 per row)
+          const resolvedCreatedAt = tanggalDibuat ? new Date(tanggalDibuat) : new Date();
+          insertValues.push(`($$, $$, $$, $$, $$, $$, $$, 'belum_bayar', $$, $$, NOW(), $$)`);
+          queryParams.push(siswa.id, komp.id, bulan, tahun, komp.nominal, beasiswaId, potongan, resolvedJatuhTempo, resolvedCreatedAt, userId);
           generated++;
         }
       }
@@ -171,9 +176,10 @@ const KomponenSppRepository = {
       // 3. Execute bulk insert in chunks
       if (insertValues.length > 0) {
         const CHUNK_SIZE = 500;
+        const PARAMS_PER_ROW = 10; // siswa_id, komp_id, bulan, tahun, nominal, beasiswa_id, potongan, jatuh_tempo, created_at, updated_by
         for (let i = 0; i < insertValues.length; i += CHUNK_SIZE) {
           const chunkValues = insertValues.slice(i, i + CHUNK_SIZE);
-          const chunkParams = queryParams.slice(i * 9, (i + CHUNK_SIZE) * 9);
+          const chunkParams = queryParams.slice(i * PARAMS_PER_ROW, (i + CHUNK_SIZE) * PARAMS_PER_ROW);
           let paramIdx = 1;
           const formattedChunk = chunkValues.map(valStr =>
             valStr.replace(/\$\$/g, () => `$${paramIdx++}`)

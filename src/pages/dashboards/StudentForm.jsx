@@ -49,7 +49,7 @@ const StudentForm = ({ onBack, onSave }) => {
     if (!formData.jenisKelamin) newErrors.jenisKelamin = "Jenis kelamin wajib dipilih";
     if (!formData.agama) newErrors.agama = "Agama wajib dipilih";
     if (!formData.tanggalLahir) newErrors.tanggalLahir = "Tanggal lahir wajib diisi";
-    if (!formData.kelas) newErrors.kelas = "Kelas wajib dipilih";
+    if (!formData.kelas_id) newErrors.kelas = "Kelas wajib dipilih";
     if (!formData.namaAyah) newErrors.namaAyah = "Nama ayah wajib diisi";
     if (!formData.namaIbu) newErrors.namaIbu = "Nama ibu wajib diisi";
 
@@ -61,8 +61,8 @@ const StudentForm = ({ onBack, onSave }) => {
 
     // Determine tingkat and jurusan
     let tingkat = "Kelas X";
-    if (formData.kelas.startsWith("XI ")) tingkat = "Kelas XI";
-    if (formData.kelas.startsWith("XII ")) tingkat = "Kelas XII";
+    if (formData.kelas.startsWith("XI ") || formData.kelas.startsWith("XI")) tingkat = "Kelas XI";
+    if (formData.kelas.startsWith("XII ") || formData.kelas.startsWith("XII")) tingkat = "Kelas XII";
 
     let jurusan = "IPA";
     if (formData.kelas.includes("IPS")) jurusan = "IPS";
@@ -80,9 +80,7 @@ const StudentForm = ({ onBack, onSave }) => {
     const colors = ["bg-[#3B82F6]", "bg-[#10B981]", "bg-[#F59E0B]", "bg-[#EF4444]", "bg-[#8B5CF6]", "bg-[#EC4899]"];
     const avatarColor = colors[Math.floor(Math.random() * colors.length)];
 
-    // Find ID from classes list
-    const foundClass = classes.find(c => c.nama_kelas.toLowerCase() === formData.kelas.toLowerCase().trim());
-    const matchedKelasId = foundClass ? foundClass.id : null;
+    const matchedKelasId = formData.kelas_id;
 
     const newStudent = {
       id: Date.now(),
@@ -357,13 +355,24 @@ const StudentForm = ({ onBack, onSave }) => {
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
               <div className="space-y-2">
                 <label className="text-[13px] font-bold text-gray-700">Kelas<span className="text-red-500">*</span></label>
-                <input 
-                  type="text" 
-                  value={formData.kelas}
-                  onChange={(e) => setFormData({ ...formData, kelas: e.target.value })}
-                  placeholder="Misal: X IPA 1"
+                <select 
+                  value={formData.kelas_id}
+                  onChange={(e) => {
+                    const selectedId = e.target.value;
+                    const found = classes.find(c => c.id === selectedId);
+                    setFormData({ 
+                      ...formData, 
+                      kelas_id: selectedId,
+                      kelas: found ? found.nama_kelas : "" 
+                    });
+                  }}
                   className={`w-full px-4 py-2.5 border ${errors.kelas ? 'border-red-500' : 'border-gray-200'} rounded-xl text-[14px] text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-colors bg-white`}
-                />
+                >
+                  <option value="">Pilih Kelas</option>
+                  {classes.map(c => (
+                    <option key={c.id} value={c.id}>{c.nama_kelas}</option>
+                  ))}
+                </select>
                 {errors.kelas && <p className="text-red-500 text-xs mt-0.5">{errors.kelas}</p>}
               </div>
               <div className="space-y-2">

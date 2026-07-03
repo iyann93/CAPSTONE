@@ -38,11 +38,16 @@ const FinanceController = {
   // ─── GENERATE TAGIHAN BULANAN ──────────────────────────────────────────────
   generateTagihanBulanan: async (req, res, next) => {
     try {
-      const { bulan, tahun, kelas_id: kelasId } = req.body;
+      const { bulan, tahun, kelas_id: kelasId, jatuh_tempo, tanggal_dibuat } = req.body;
       if (!bulan || !tahun) {
         return response.error(res, 400, 'Parameter bulan dan tahun wajib diisi');
       }
-      const data = await FinanceService.generateTagihanBulanan(parseInt(bulan), parseInt(tahun), req.user.userId, kelasId);
+      if (!jatuh_tempo) {
+        return response.error(res, 400, 'Parameter jatuh_tempo wajib diisi');
+      }
+      const data = await FinanceService.generateTagihanBulanan(
+        parseInt(bulan), parseInt(tahun), req.user.userId, kelasId, jatuh_tempo, tanggal_dibuat
+      );
       return response.success(res, 201, `Berhasil men-generate ${data.generated} tagihan SPP`, data);
     } catch (err) { next(err); }
   },

@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { jsPDF } from "jspdf";
+import * as htmlToImage from "html-to-image";
 import {
   BarChart,
   Bar,
@@ -44,6 +46,7 @@ import OverridePegawaiTab from "../../components/payroll/OverridePegawaiTab";
 import GenerateSlipTab from "../../components/payroll/GenerateSlipTab";
 import RiwayatSlipTab from "../../components/payroll/RiwayatSlipTab";
 import GuruRiwayatTerimaGaji from "../../components/payroll/GuruRiwayatTerimaGaji";
+import PengeluaranOperasionalTab, { initialPengeluaranData } from "../../components/finance/PengeluaranOperasionalTab";
 
 // Icons Components
 const IconReceipt = () => (
@@ -188,9 +191,46 @@ const payrollMockData = [
   { id: 4, name: "Dra. Sri Wahyuni", role: "Guru IPA", salary: "Rp 4.250.000", status: "Sudah Transfer" }
 ];
 
-const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
+const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => {
+  // ── Navigation Guard for Generate Slip ──────────────────────────────────
+  const [isSlipGenerating, setIsSlipGenerating] = useState(false);
+  const [showNavConfirmModal, setShowNavConfirmModal] = useState(false);
+  const [pendingNavMenu, setPendingNavMenu] = useState(null);
+  const cancelSlipRef = useRef(null);
+
+  // Intercepts any navigation request while slip is being generated
+  const handleNavRequest = useCallback((menu) => {
+    if (isSlipGenerating) {
+      setPendingNavMenu(menu);
+      setShowNavConfirmModal(true);
+    } else {
+      if (onViewChange) onViewChange(menu);
+    }
+  }, [isSlipGenerating, onViewChange]);
+
+  // Register/unregister the nav guard in the parent ref when generating
+  useEffect(() => {
+    if (navGuardRef) {
+      if (isSlipGenerating && activeMenu === "Generate Slip Gaji") {
+        navGuardRef.current = handleNavRequest;
+      } else {
+        navGuardRef.current = null;
+      }
+    }
+    // Cleanup on unmount
+    return () => {
+      if (navGuardRef) navGuardRef.current = null;
+    };
+  }, [isSlipGenerating, activeMenu, handleNavRequest, navGuardRef]);
+
   const [sppPayments, setSppPayments] = useState([]);
   const [paidSlips, setPaidSlips] = useState([]);
+  
+  // Laporan States
+  const [laporanType, setLaporanType] = useState("Laporan Pembayaran SPP (Pemasukan)");
+  const [laporanPeriode, setLaporanPeriode] = useState("Tahun Ajaran 2025/2026");
+  const [laporanKelasFilter, setLaporanKelasFilter] = useState("Semua Kelas");
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [selectedYear, setSelectedYear] = useState("2025/2026");
@@ -479,14 +519,23 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
       if (Array.isArray(rows)) {
         const mapped = rows.map(p => {
           const d = p.tanggal_bayar ? new Date(p.tanggal_bayar) : new Date();
+          const getBulanName = (bln) => {
+            const num = Number(bln);
+            if (num >= 1 && num <= 12) {
+              const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+              return months[num - 1];
+            }
+            return bln || '';
+          };
+          const bulanName = getBulanName(p.bulan);
           return {
             id: p.id,
             name: p.siswa_nama || '-',
             kelas: p.nama_kelas ? p.nama_kelas.replace('Kelas ', '') : '-',
             amount: `Rp ${Number(p.jumlah_bayar || 0).toLocaleString('id-ID')}`,
             method: p.metode || 'Transfer Bank',
-            period: `${p.bulan || ''} ${p.tahun || ''}`,
-            month: p.bulan || '',
+            period: `${bulanName} ${p.tahun || ''}`.trim(),
+            month: bulanName,
             nis: p.nis || '-',
             status: 'Lunas',
             payer: 'Siswa/Orang Tua',
@@ -518,7 +567,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
   const [generateForm, setGenerateForm] = useState({
     bulan: String(new Date().getMonth() + 1),
-    tahun: String(new Date().getFullYear())
+    tahun: String(new Date().getFullYear()),
+    tanggal_dibuat: new Date().toISOString().split('T')[0],
+    jatuh_tempo: ''
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [showCancelMonthModal, setShowCancelMonthModal] = useState(false);
@@ -570,6 +621,59 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   }, [loadKomponenSpp, loadKomponenGaji, loadTagihan, loadBeasiswa, loadSiswa, loadPembayaran, loadPaidSlips, loadDanaBeasiswa]);
 
   // Handlers
+  const handleDownloadLaporan = async () => {
+    if (isGeneratingPdf) return;
+
+    // Validasi data kosong
+    let hasData = false;
+    if (laporanType.includes("SPP")) {
+      const filteredSpp = laporanKelasFilter === "Semua Kelas" 
+        ? sppPayments 
+        : sppPayments.filter(p => {
+            const targetRoman = laporanKelasFilter.replace("Kelas ", "");
+            const romanPart = p.kelas ? p.kelas.replace(/[^IVX]/g, '') : '';
+            return romanPart === targetRoman;
+          });
+      hasData = filteredSpp.length > 0;
+    } else if (laporanType.includes("Penggajian")) {
+      hasData = paidSlips.length > 0;
+    } else if (laporanType.includes("Operasional")) {
+      hasData = initialPengeluaranData.length > 0;
+    }
+
+    if (!hasData) {
+      triggerToast("Gagal: Tidak ada data pada laporan/periode ini.", "error");
+      return;
+    }
+
+    setIsGeneratingPdf(true);
+    triggerToast("Membuat dokumen laporan PDF...");
+    
+    try {
+      const element = document.getElementById("pdf-report-template");
+      if (!element) throw new Error("Template laporan tidak ditemukan.");
+      
+      const imgData = await htmlToImage.toPng(element, { quality: 1, backgroundColor: "#ffffff", pixelRatio: 2 });
+      
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (element.offsetHeight * pdfWidth) / element.offsetWidth;
+      
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      
+      const rawTitle = laporanType.split(" (")[0].replace(/ /g, "_");
+      const rawPeriode = laporanPeriode.replace(/ /g, "_").replace(/\//g, "-");
+      pdf.save(`${rawTitle}_${rawPeriode}.pdf`);
+      
+      triggerToast("Laporan PDF berhasil diunduh!", "success");
+    } catch (e) {
+      console.error(e);
+      triggerToast("Gagal mengunduh laporan PDF", "error");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
   const handleSaveKomponen = async () => {
     if (!editKomponenForm.name) {
       triggerToast("Nama komponen wajib diisi", "error");
@@ -994,6 +1098,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   // Rendering dashboard based on activeMenu selection
   const renderContent = () => {
     switch (activeMenu) {
+      case "Pengeluaran Operasional":
+        return <PengeluaranOperasionalTab triggerToast={triggerToast} />;
       case "My Profile":
         return <Profile user={user} />;
       case "Template Gaji Jabatan":
@@ -1001,7 +1107,11 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
       case "Pengaturan Gaji Pegawai":
         return <OverridePegawaiTab triggerToast={triggerToast} />;
       case "Generate Slip Gaji":
-        return <GenerateSlipTab triggerToast={triggerToast} />;
+        return <GenerateSlipTab
+          triggerToast={triggerToast}
+          onGeneratingChange={setIsSlipGenerating}
+          cancelRef={cancelSlipRef}
+        />;
       case "Riwayat Slip Gaji":
         return <RiwayatSlipTab triggerToast={triggerToast} />;
       case "Riwayat Terima Gaji":
@@ -1051,6 +1161,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
         }, 0);
         const jumlahStaff = currentMonthSlips.length;
 
+        const totalPengeluaranTahunan = initialPengeluaranData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+
         return (
           <div className="flex flex-col gap-6 animate-fadeIn font-sans">
             {/* Header Area */}
@@ -1079,7 +1191,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             </div>
 
             {/* Stat Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 mb-5">
               {[
                 {
                   title: "Total SPP Terkumpul",
@@ -1100,6 +1212,11 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   title: "Penggajian Bulan Ini",
                   value: formatRupiah(totalPenggajian),
                   subText: `${jumlahStaff} guru & staf`,
+                },
+                {
+                  title: "Total Operasional Tahunan",
+                  value: formatRupiah(totalPengeluaranTahunan),
+                  subText: `Akumulasi ${selectedYear}`,
                 }
               ].map((card, i) => (
                 <div key={i} className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
@@ -1480,6 +1597,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                       <th className="pb-3 px-3">KELAS</th>
                       <th className="pb-3 px-3">NOMINAL SPP</th>
                       <th className="pb-3 px-3">BULAN</th>
+                      <th className="pb-3 px-3">TANGGAL MULAI</th>
                       <th className="pb-3 px-3">JATUH TEMPO</th>
                       <th className="pb-3 px-3">STATUS</th>
                       <th className="pb-3 px-3 text-center">AKSI</th>
@@ -1488,7 +1606,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                               <tbody className="divide-y divide-gray-50 text-xs">
                                 {filteredBills.length === 0 ? (
                                   <tr>
-                                    <td colSpan="8" className="py-8 text-center text-gray-400 font-medium">Belum ada data tagihan.</td>
+                                    <td colSpan="9" className="py-8 text-center text-gray-400 font-medium">Belum ada data tagihan.</td>
                                   </tr>
                                 ) : (
                                   filteredBills.map((row, idx) => (
@@ -1501,7 +1619,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                         Rp {Number(row.nominal || 0).toLocaleString('id-ID')}
                                       </td>
                                       <td className="py-4 px-3 font-semibold text-gray-700">{formatBulan(row.bulan, row.tahun) || "-"}</td>
-                                      <td className="py-4 px-3 text-gray-500">{formatTanggal(globalSppJatuhTempo)}</td>
+                                      <td className="py-4 px-3 text-gray-500">{formatTanggal(row.created_at)}</td>
+                                      <td className="py-4 px-3 text-gray-500">{formatTanggal(row.jatuh_tempo)}</td>
                                       <td className="py-4 px-3">
                                         <span className={`px-2.5 py-1 rounded-md font-bold inline-block text-[10px] no-underline ${
                                           (row.status === "Lunas" || row.status?.toLowerCase() === "lunas") ? "bg-emerald-50 text-emerald-600" :
@@ -1749,7 +1868,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div>
                 <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Pengaturan SPP</h1>
-                <p className="text-sm text-gray-500 mt-1">Atur nominal SPP, diskon, dan jadwal pembayaran per kelas (Kelas VII, VIII, IX).</p>
+                <p className="text-sm text-gray-500 mt-1">Atur nominal SPP dan diskon per kelas (Kelas VII, VIII, IX).</p>
               </div>
               <div className="flex gap-2 sm:gap-3 items-center flex-wrap sm:ml-auto">
                 <div className="relative group w-full sm:w-auto">
@@ -1770,21 +1889,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               </div>
             </div>
 
-            {/* Tab Navigation */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-1 flex gap-1 shadow-sm">
-              {[
-                { key: "nominal", label: "Nominal SPP per Kelas" },
-                { key: "kalender", label: "Jadwal Pembayaran" }
-              ].map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setSppSettingTab(tab.key)}
-                  className={`flex-1 flex items-center justify-center py-3 px-4 rounded-xl text-xs sm:text-[13px] font-bold transition-all cursor-pointer border-none ${sppSettingTab === tab.key ? "bg-[#1A3D63] text-white shadow-sm" : "text-gray-500 hover:text-gray-800 bg-transparent"}`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+
 
             {/* Tab: Nominal SPP per Kelas */}
             {sppSettingTab === "nominal" && (
@@ -1812,7 +1917,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                           </div>
                           <div className="text-3xl font-black text-gray-800 mb-2">{item.amount}</div>
                         </div>
-                        <div className="text-[11px] text-gray-400 mt-2">Berlaku: {formatTanggal(globalSppBerlaku)} · Jatuh tempo: {formatTanggal(globalSppJatuhTempo)}</div>
                       </div>
                     ));
                   })()}
@@ -1856,11 +1960,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                 })()}
                                 <span className="text-[11px] font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded ml-2">TA {item.ta}</span>
                               </div>
-                              {!isEditing && (
-                                <div className="text-[11px] text-gray-400 mt-0.5">
-                                  Berlaku: {formatTanggal(globalSppBerlaku)} · Jatuh tempo: {formatTanggal(globalSppJatuhTempo)}
-                                </div>
-                              )}
+
                             </div>
 
                             {/* Actions */}
@@ -1974,111 +2074,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               </div>
             )}
 
-            {/* Tab: Kalender Pembayaran */}
-            {sppSettingTab === "kalender" && (
-              <div className="flex flex-col gap-6">
-                {/* Card 1: Pengaturan Jadwal SPP */}
-                <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                  <div className={`rounded-2xl border transition-all ${isEditingGlobalJadwal ? "bg-blue-50/30 border-blue-100 p-5 sm:p-6 shadow-sm" : "bg-transparent border-gray-100 p-5"}`}>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div>
-                        <h3 className="text-sm font-bold text-gray-800">Pengaturan Jadwal SPP</h3>
-                        {!isEditingGlobalJadwal && (
-                          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-2">
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">Berlaku:</span>
-                              <span className="text-xs font-semibold text-gray-700">{formatTanggal(globalSppBerlaku)}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">Jatuh Tempo:</span>
-                              <span className="text-xs font-semibold text-gray-700">{formatTanggal(globalSppJatuhTempo)}</span>
-                            </div>
-                          </div>
-                        )}
-                        {isEditingGlobalJadwal && (
-                          <p className="text-[11px] text-gray-500 mt-1">Ubah tanggal berlaku dan jatuh tempo bulanan untuk seluruh tagihan kelas.</p>
-                        )}
-                      </div>
 
-                      {!isEditingGlobalJadwal && (
-                        <button
-                          onClick={() => {
-                            setEditGlobalSppBerlaku(globalSppBerlaku);
-                            setEditGlobalSppJatuhTempo(globalSppJatuhTempo);
-                            setIsEditingGlobalJadwal(true);
-                          }}
-                          className="flex items-center gap-1.5 bg-white hover:bg-gray-50 border border-gray-200 text-gray-600 px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all border-solid shadow-sm"
-                        >
-                          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
-                          </svg>
-                          Edit Jadwal
-                        </button>
-                      )}
-                    </div>
-
-                    {isEditingGlobalJadwal && (
-                      <div className="mt-5 pt-5 border-t border-blue-100/50">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                          <div>
-                            <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Tanggal Berlaku</label>
-                            <div className="relative">
-                              <input
-                                type="date"
-                                value={editGlobalSppBerlaku}
-                                onChange={(e) => setEditGlobalSppBerlaku(e.target.value)}
-                                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#1A3D63] transition-colors"
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Jatuh Tempo Bulanan</label>
-                            <div className="relative">
-                              <input
-                                type="date"
-                                value={editGlobalSppJatuhTempo}
-                                onChange={(e) => setEditGlobalSppJatuhTempo(e.target.value)}
-                                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#1A3D63] transition-colors"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex justify-end gap-3 mt-2 pt-5 border-t border-gray-200/60">
-                          <button
-                            onClick={() => {
-                              setEditGlobalSppBerlaku(globalSppBerlaku);
-                              setEditGlobalSppJatuhTempo(globalSppJatuhTempo);
-                              setIsEditingGlobalJadwal(false);
-                              triggerToast("Perubahan dibatalkan.");
-                            }}
-                            className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-600 px-6 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer border-solid shadow-sm"
-                          >
-                            Batal
-                          </button>
-                          <button
-                            onClick={() => {
-                              setGlobalSppBerlaku(editGlobalSppBerlaku);
-                              setGlobalSppJatuhTempo(editGlobalSppJatuhTempo);
-                              localStorage.setItem("globalSppBerlaku", editGlobalSppBerlaku);
-                              localStorage.setItem("globalSppJatuhTempo", editGlobalSppJatuhTempo);
-                              setIsEditingGlobalJadwal(false);
-                              triggerToast("Jadwal SPP berhasil disimpan!");
-                            }}
-                            className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 border-none cursor-pointer"
-                          >
-                            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z" />
-                            </svg>
-                            Simpan
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-              </div>
-            )}
           </div>
         );
 
@@ -3146,53 +3142,65 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
       case "Cetak Laporan Keuangan":
         return (
-          <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm animate-fadeIn">
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Cetak Laporan Keuangan</h2>
-            <p className="text-sm text-gray-500 mb-6">Pilih jenis laporan dan periode pembukuan untuk dicetak atau diekspor.</p>
+          <div className="bg-white rounded-[24px] border border-gray-100 p-8 shadow-sm animate-fadeIn max-w-2xl mx-auto mt-4">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">Cetak Laporan Keuangan</h2>
+            <p className="text-sm text-gray-500 mb-8 text-center">Pilih jenis laporan dan periode pembukuan untuk diunduh.</p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div className="space-y-4">
+            <div className="space-y-6">
+              <div>
+                <label className="block text-[11px] font-bold text-gray-500 mb-2 uppercase">Jenis Laporan</label>
+                <select 
+                  value={laporanType}
+                  onChange={(e) => setLaporanType(e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all bg-gray-50 hover:bg-gray-100/50 cursor-pointer"
+                >
+                  <option>Laporan Pembayaran SPP (Pemasukan)</option>
+                  <option>Laporan Penggajian Pegawai (Pengeluaran)</option>
+                  <option>Laporan Pengeluaran Operasional (Pengeluaran)</option>
+                </select>
+              </div>
+              
+              {laporanType.includes("SPP") && (
                 <div>
-                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase">Jenis Laporan</label>
-                  <select className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none">
-                    <option>Laporan Buku Jurnal Kas Masuk (SPP)</option>
-                    <option>Laporan Pengeluaran Operasional Sekolah</option>
-                    <option>Laporan Arus Kas (Cash Flow)</option>
-                    <option>Laporan Laba Rugi Sekolah</option>
+                  <label className="block text-[11px] font-bold text-gray-500 mb-2 uppercase">Filter Kelas</label>
+                  <select 
+                    value={laporanKelasFilter}
+                    onChange={(e) => setLaporanKelasFilter(e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all bg-gray-50 hover:bg-gray-100/50 cursor-pointer"
+                  >
+                    <option>Semua Kelas</option>
+                    <option>Kelas VII</option>
+                    <option>Kelas VIII</option>
+                    <option>Kelas IX</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase">Periode</label>
-                  <select className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none">
-                    <option>Juni 2026 (Berjalan)</option>
-                    <option>Mei 2026</option>
-                    <option>Triwulan I 2026</option>
-                    <option>Tahunan 2025</option>
-                  </select>
-                </div>
+              )}
+              
+              <div>
+                <label className="block text-[11px] font-bold text-gray-500 mb-2 uppercase">Periode</label>
+                <select 
+                  value={laporanPeriode}
+                  onChange={(e) => setLaporanPeriode(e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all bg-gray-50 hover:bg-gray-100/50 cursor-pointer"
+                >
+                  <option>Tahun Ajaran 2025/2026</option>
+                  <option>Tahun Ajaran 2024/2025</option>
+                </select>
               </div>
 
-              <div className="border border-gray-100 rounded-xl p-5 bg-gray-50/50 flex flex-col justify-between h-full">
-                <div>
-                  <h3 className="text-xs font-bold text-gray-700 mb-2">Ringkasan Pratinjau</h3>
-                  <p className="text-[11px] text-gray-400 leading-relaxed">
-                    Mencakup ringkasan data transaksi kas terkumpul sebesar <strong>Rp 16,1 Jt</strong> dari modul SPP, serta total pengeluaran payroll gaji senilai <strong>Rp 13,5 Jt</strong>.
-                  </p>
-                </div>
-                <div className="flex gap-3 mt-4">
-                  <button
-                    onClick={() => triggerToast("Mengirimkan file cetak ke printer partner...")}
-                    className="flex-1 bg-[#1A3D63] hover:bg-[#122A44] text-white py-2 rounded-lg font-bold text-xs border-none cursor-pointer flex items-center justify-center gap-1.5"
-                  >
-                    <IconPrinter /> Cetak Fisik
-                  </button>
-                  <button
-                    onClick={() => triggerToast("Mengunduh ekspor laporan PDF...")}
-                    className="flex-1 bg-[#10B981] hover:bg-[#059669] text-white py-2 rounded-lg font-bold text-xs border-none cursor-pointer flex items-center justify-center gap-1.5"
-                  >
-                    Export PDF
-                  </button>
-                </div>
+              <div className="pt-2">
+                <button
+                  onClick={handleDownloadLaporan}
+                  disabled={isGeneratingPdf}
+                  className="w-full bg-[#1A3D63] hover:bg-[#122A44] text-white py-3.5 rounded-xl font-bold text-[14px] border-none cursor-pointer flex items-center justify-center gap-2 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isGeneratingPdf ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                  )}
+                  {isGeneratingPdf ? "Memproses PDF..." : "Unduh Laporan"}
+                </button>
               </div>
             </div>
           </div>
@@ -3297,7 +3305,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               <p className="text-[13px] text-gray-400 mt-1">Buat tagihan SPP bulanan untuk semua siswa</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-5">
+            {/* Bulan & Tahun */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Bulan</label>
                 <select
@@ -3316,6 +3325,28 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   type="number"
                   value={generateForm.tahun}
                   onChange={(e) => setGenerateForm({ ...generateForm, tahun: e.target.value })}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63]"
+                />
+              </div>
+            </div>
+
+            {/* Tanggal Dibuat & Jatuh Tempo */}
+            <div className="grid grid-cols-2 gap-4 mb-5">
+              <div>
+                <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Tanggal Dibuat</label>
+                <input
+                  type="date"
+                  value={generateForm.tanggal_dibuat}
+                  onChange={(e) => setGenerateForm({ ...generateForm, tanggal_dibuat: e.target.value })}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63]"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Jatuh Tempo</label>
+                <input
+                  type="date"
+                  value={generateForm.jatuh_tempo}
+                  onChange={(e) => setGenerateForm({ ...generateForm, jatuh_tempo: e.target.value })}
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63]"
                 />
               </div>
@@ -3346,11 +3377,17 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     triggerToast('Bulan dan tahun wajib diisi');
                     return;
                   }
+                  if (!generateForm.jatuh_tempo) {
+                    triggerToast('Jatuh tempo wajib diisi');
+                    return;
+                  }
                   setIsGenerating(true);
                   try {
                     const result = await generateTagihanBulanan({
                       bulan: parseInt(generateForm.bulan),
-                      tahun: parseInt(generateForm.tahun)
+                      tahun: parseInt(generateForm.tahun),
+                      tanggal_dibuat: generateForm.tanggal_dibuat || undefined,
+                      jatuh_tempo: generateForm.jatuh_tempo
                     });
                     setShowGenerateMonthModal(false);
                     const generatedBulanNama = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][parseInt(generateForm.bulan) - 1];
@@ -4593,6 +4630,183 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
           </div>
         </div>
       )}
+
+      {/* ── Modal: Konfirmasi Pindah Fitur saat Generate Slip Sedang Berjalan ── */}
+      {showNavConfirmModal && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-scaleUp">
+            {/* Header strip */}
+            <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-4 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                <svg width="20" height="20" fill="none" stroke="white" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                </svg>
+              </div>
+              <h3 className="text-white font-bold text-base">Proses Sedang Berjalan</h3>
+            </div>
+
+            <div className="p-6">
+              <p className="text-sm text-gray-600 mb-1">
+                Generate slip gaji sedang dalam proses. Jika Anda pindah ke fitur lain sekarang,
+              </p>
+              <p className="text-sm font-bold text-red-600 mb-5">
+                proses generate akan dibatalkan dan tidak dapat dilanjutkan.
+              </p>
+              <p className="text-sm text-gray-500">Apakah Anda yakin ingin meninggalkan halaman ini?</p>
+            </div>
+
+            <div className="px-6 pb-6 flex gap-3">
+              <button
+                onClick={() => { setShowNavConfirmModal(false); setPendingNavMenu(null); }}
+                className="flex-1 py-2.5 border border-gray-200 text-gray-700 text-sm font-bold rounded-xl hover:bg-gray-50 transition-colors cursor-pointer bg-white"
+              >
+                Tetap di Sini
+              </button>
+              <button
+                onClick={() => {
+                  // Cancel the generation
+                  if (cancelSlipRef.current) cancelSlipRef.current();
+                  setShowNavConfirmModal(false);
+                  // Navigate to the requested menu
+                  if (pendingNavMenu && onViewChange) onViewChange(pendingNavMenu);
+                  setPendingNavMenu(null);
+                }}
+                className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-bold rounded-xl transition-colors cursor-pointer border-none shadow-sm"
+              >
+                Ya, Batalkan & Pindah
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hidden PDF Report Template */}
+      <div style={{ position: 'absolute', top: 0, left: 0, zIndex: -100, opacity: 0.01, pointerEvents: 'none' }}>
+        <div id="pdf-report-template" className="bg-white p-10" style={{ width: '800px', minHeight: '1122px', color: 'black', fontFamily: 'serif' }}>
+          {/* Header */}
+          <div className="flex items-center border-b-4 border-black pb-4 mb-6">
+            <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mr-6">
+              <span className="text-[10px] font-bold text-gray-500">LOGO</span>
+            </div>
+            <div className="text-center flex-1">
+              <h1 className="text-2xl font-bold uppercase tracking-widest">Muhammadiyah Boarding School (MBS) Prambanan</h1>
+              <p className="text-sm mt-1">Jl. Raya Piyungan - Prambanan Km 4.5, Sleman, DI Yogyakarta</p>
+              <p className="text-sm">Telp: (0274) 123456 | Email: info@mbsprambanan.sch.id</p>
+            </div>
+            <div className="w-24 h-24 invisible"></div>
+          </div>
+          
+          {/* Title */}
+          <div className="text-center mb-8">
+            <h2 className="text-xl font-bold uppercase underline">{laporanType.split(" (")[0]}</h2>
+            <p className="text-sm mt-1">Periode: {laporanPeriode}</p>
+          </div>
+          
+          {/* Data Table */}
+          <table className="w-full text-left border-collapse mb-8 text-sm">
+            <thead>
+              <tr className="border-b-2 border-t-2 border-black bg-gray-50">
+                <th className="py-2 px-3">No.</th>
+                {laporanType.includes("SPP") && (
+                  <>
+                    <th className="py-2 px-3">NIS</th>
+                    <th className="py-2 px-3">Nama Siswa</th>
+                    <th className="py-2 px-3">Kelas</th>
+                    <th className="py-2 px-3">Bulan</th>
+                    <th className="py-2 px-3">Nominal</th>
+                  </>
+                )}
+                {laporanType.includes("Penggajian") && (
+                  <>
+                    <th className="py-2 px-3">Nama Pegawai</th>
+                    <th className="py-2 px-3">Bulan</th>
+                    <th className="py-2 px-3">Gaji Bersih</th>
+                  </>
+                )}
+                {laporanType.includes("Operasional") && (
+                  <>
+                    <th className="py-2 px-3">Tanggal</th>
+                    <th className="py-2 px-3">Keterangan</th>
+                    <th className="py-2 px-3">Kategori</th>
+                    <th className="py-2 px-3">Nominal</th>
+                  </>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {laporanType.includes("SPP") && (
+                (() => {
+                  let filteredSpp = laporanKelasFilter === "Semua Kelas" 
+                    ? [...sppPayments]
+                    : sppPayments.filter(p => {
+                        const targetRoman = laporanKelasFilter.replace("Kelas ", "");
+                        const romanPart = p.kelas ? p.kelas.replace(/[^IVX]/g, '') : '';
+                        return romanPart === targetRoman;
+                      });
+                      
+                  const classOrder = { 'VII': 1, 'VIII': 2, 'IX': 3 };
+                  filteredSpp.sort((a, b) => {
+                    const romanA = a.kelas ? a.kelas.replace(/[^IVX]/g, '') : '';
+                    const romanB = b.kelas ? b.kelas.replace(/[^IVX]/g, '') : '';
+                    const orderA = classOrder[romanA] || 99;
+                    const orderB = classOrder[romanB] || 99;
+                    
+                    if (orderA !== orderB) return orderA - orderB;
+                    return (a.name || "").localeCompare(b.name || "");
+                  });
+                  return filteredSpp.length > 0 ? filteredSpp.map((p, i) => (
+                    <tr key={i} className="border-b border-gray-300">
+                      <td className="py-2 px-3">{i + 1}</td>
+                      <td className="py-2 px-3">{p.nis || "-"}</td>
+                      <td className="py-2 px-3">{p.name}</td>
+                      <td className="py-2 px-3">{p.kelas}</td>
+                      <td className="py-2 px-3">{p.month}</td>
+                      <td className="py-2 px-3">{p.amount}</td>
+                    </tr>
+                  )) : (
+                    <tr><td colSpan="6" className="py-4 text-center text-gray-500">Tidak ada data pembayaran.</td></tr>
+                  );
+                })()
+              )}
+              
+              {laporanType.includes("Penggajian") && (paidSlips.length > 0 ? paidSlips.map((s, i) => (
+                <tr key={i} className="border-b border-gray-300">
+                  <td className="py-2 px-3">{i + 1}</td>
+                  <td className="py-2 px-3">{s.nama_pegawai}</td>
+                  <td className="py-2 px-3">{s.bulan_nama || s.bulan} {s.tahun}</td>
+                  <td className="py-2 px-3">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(s.gaji_bersih)}</td>
+                </tr>
+              )) : (
+                <tr><td colSpan="4" className="py-4 text-center text-gray-500">Tidak ada data penggajian.</td></tr>
+              ))}
+              
+              {laporanType.includes("Operasional") && (initialPengeluaranData.length > 0 ? initialPengeluaranData.map((o, i) => (
+                <tr key={i} className="border-b border-gray-300">
+                  <td className="py-2 px-3">{i + 1}</td>
+                  <td className="py-2 px-3">{o.tanggal}</td>
+                  <td className="py-2 px-3">{o.nama}</td>
+                  <td className="py-2 px-3">{o.kategori}</td>
+                  <td className="py-2 px-3">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(o.nominal)}</td>
+                </tr>
+              )) : (
+                <tr><td colSpan="5" className="py-4 text-center text-gray-500">Tidak ada data operasional.</td></tr>
+              ))}
+            </tbody>
+          </table>
+          
+          {/* Signature */}
+          <div className="flex justify-end mt-16 text-sm">
+            <div className="text-center">
+              <p>Sleman, {new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+              <p className="font-bold mt-1">Bendahara Sekolah</p>
+              <br/><br/><br/><br/>
+              <p className="font-bold underline">{user?.name || "Siti Aminah"}</p>
+              <p>NIP. {user?.nip || "19800101 200501 2 001"}</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
     </main>
   );

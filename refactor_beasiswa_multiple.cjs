@@ -157,7 +157,7 @@ if (content.includes(oldFormUI)) {
   // Let's just find the input and replace until the end of showSiswaDropdown
   const startIdx = content.indexOf('value={siswaSearchQuery || (beasiswaForm.siswaId ?');
   const endStr = ')}';
-  
+
   if (startIdx !== -1) {
     // we need to find the correct ending brace for showSiswaDropdown...
     // Actually regex is safer if we find specific parts.

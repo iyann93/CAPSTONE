@@ -24,8 +24,41 @@ const SubjectForm = ({ mode = "add", initialData = null, onBack, onSave, onDelet
     kkm: initialData?.kkm || 75,
     aktif: initialData?.aktif !== undefined ? initialData.aktif : true,
     masukRapor: initialData?.masukRapor !== undefined ? initialData.masukRapor : true,
-    guru: initialData?.guru || { id: "DH", name: "Drs. Hendra, M.Pd.", role: "Guru Matematika", status: "Aktif" }
+    // guru: array of teacher names (multi-select)
+    guru: initialData?.guru
+      ? (Array.isArray(initialData.guru) ? initialData.guru : [initialData.guru?.name || initialData.guru].filter(Boolean))
+      : []
   });
+
+  const ALL_TEACHERS = [
+    "Drs. Hendra, M.Pd.",
+    "Ibu Nuraini, S.Pd.",
+    "Mr. Andrian, M.A.",
+    "Ibu Sari, S.Pd.",
+    "Bpk. Rudi, M.Si.",
+    "Ibu Dewi, S.Pd.",
+    "Ibu Kartika, S.E.",
+    "Bpk. Suherman, M.Pd.",
+    "Ibu Ratna, S.Pd.",
+    "Bpk. Wahyu, M.Pd.",
+    "Ibu Marlina, S.Pd.",
+    "Bpk. Eko, S.Pd.",
+  ];
+
+  const [teacherSearch, setTeacherSearch] = useState("");
+
+  const toggleTeacher = (name) => {
+    setFormData(prev => ({
+      ...prev,
+      guru: prev.guru.includes(name)
+        ? prev.guru.filter(g => g !== name)
+        : [...prev.guru, name]
+    }));
+  };
+
+  const filteredTeachers = ALL_TEACHERS.filter(t =>
+    t.toLowerCase().includes(teacherSearch.toLowerCase())
+  );
 
   const toggleJenjang = (kelas) => {
     setFormData(prev => ({
@@ -95,40 +128,18 @@ const SubjectForm = ({ mode = "add", initialData = null, onBack, onSave, onDelet
               <h2 className="text-[15px] font-bold text-[#1e293b]">Identitas Mata Pelajaran</h2>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-              <div>
-                <label className="block text-[13px] font-bold text-gray-700 mb-2">
-                  Kode Mata Pelajaran <span className="text-red-500">*</span>
-                </label>
-                <div className="relative">
-                  <input 
-                    type="text" 
-                    value={formData.kode}
-                    onChange={(e) => setFormData({...formData, kode: e.target.value})}
-                    disabled={mode === 'edit'}
-                    className={`w-full px-4 py-2.5 border border-gray-200 rounded-xl text-[14px] font-medium focus:outline-none focus:border-gray-400 transition-colors ${mode === 'edit' ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'text-gray-800'}`}
-                    placeholder="M T K"
-                  />
-                  {mode === 'edit' && (
-                    <span className="absolute right-3 top-3 text-[11px] font-medium text-gray-400">Tidak dapat diubah</span>
-                  )}
-                </div>
-                {mode === 'add' && <p className="text-[12px] text-gray-400 mt-1.5">Kode unik 2-4 huruf kapital, misal: MTK, BIN, FIS.</p>}
-                {mode === 'edit' && <p className="text-[12px] text-gray-400 mt-1.5">Kode mata pelajaran bersifat permanen setelah dibuat.</p>}
-              </div>
-              <div>
-                <label className="block text-[13px] font-bold text-gray-700 mb-2">
-                  Nama Mata Pelajaran <span className="text-red-500">*</span>
-                </label>
-                <input 
-                  type="text" 
-                  value={formData.nama}
-                  onChange={(e) => setFormData({...formData, nama: e.target.value})}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-[14px] font-medium text-gray-800 focus:outline-none focus:border-gray-400 transition-colors"
-                  placeholder="Matematika Wajib"
-                />
-                <p className="text-[12px] text-gray-400 mt-1.5">Nama lengkap sesuai kurikulum yang berlaku.</p>
-              </div>
+            <div className="mb-5">
+              <label className="block text-[13px] font-bold text-gray-700 mb-2">
+                Nama Mata Pelajaran <span className="text-red-500">*</span>
+              </label>
+              <input 
+                type="text" 
+                value={formData.nama}
+                onChange={(e) => setFormData({...formData, nama: e.target.value})}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-[14px] font-medium text-gray-800 focus:outline-none focus:border-gray-400 transition-colors"
+                placeholder="contoh: Matematika, Bahasa Indonesia, Fisika..."
+              />
+              <p className="text-[12px] text-gray-400 mt-1.5">Nama lengkap sesuai kurikulum yang berlaku.</p>
             </div>
 
             <div>
@@ -315,69 +326,87 @@ const SubjectForm = ({ mode = "add", initialData = null, onBack, onSave, onDelet
         {/* Right Column (Sidebar Settings) */}
         <div className="lg:w-[340px] space-y-6">
           
-          {/* Guru Pengampu */}
+          {/* Guru Pengampu — Multi Checkbox */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <div className="flex items-center gap-2.5 mb-5">
+            <div className="flex items-center gap-2.5 mb-4">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
               <h2 className="text-[15px] font-bold text-[#1e293b]">Guru Pengampu</h2>
             </div>
-            
-            <label className="block text-[13px] font-bold text-gray-700 mb-2">Pilih Guru</label>
-            <div className="relative mb-2">
-              <select 
-                value={formData.guru?.name || ""}
-                onChange={(e) => {
-                  const name = e.target.value;
-                  if (!name) {
-                    setFormData(prev => ({ ...prev, guru: null }));
-                    return;
-                  }
-                  const id = name.substring(0, 2).toUpperCase();
-                  setFormData(prev => ({
-                    ...prev,
-                    guru: { id, name, role: "Guru Mapel", status: "Aktif" }
-                  }));
-                }}
-                className="w-full appearance-none px-4 py-2.5 border border-gray-200 rounded-xl text-[14px] font-medium text-gray-800 focus:outline-none focus:border-gray-400 transition-colors bg-white"
-              >
-                <option value="">-- Pilih Guru Pengampu --</option>
-                <option value="Drs. Hendra, M.Pd.">Drs. Hendra, M.Pd.</option>
-                <option value="Ibu Nuraini, S.Pd.">Ibu Nuraini, S.Pd.</option>
-                <option value="Mr. Andrian, M.A.">Mr. Andrian, M.A.</option>
-                <option value="Ibu Sari, S.Pd.">Ibu Sari, S.Pd.</option>
-                <option value="Bpk. Rudi, M.Si.">Bpk. Rudi, M.Si.</option>
-                <option value="Ibu Dewi, S.Pd.">Ibu Dewi, S.Pd.</option>
-                <option value="Ibu Kartika, S.E.">Ibu Kartika, S.E.</option>
-                <option value="Bpk. Suherman, M.Pd.">Bpk. Suherman, M.Pd.</option>
-                <option value="Ibu Ratna, S.Pd.">Ibu Ratna, S.Pd.</option>
-                <option value="Bpk. Wahyu, M.Pd.">Bpk. Wahyu, M.Pd.</option>
-                <option value="Ibu Marlina, S.Pd.">Ibu Marlina, S.Pd.</option>
-                <option value="Bpk. Eko, S.Pd.">Bpk. Eko, S.Pd.</option>
-              </select>
-              <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-              </div>
-            </div>
-            <p className="text-[12px] text-gray-400 mb-5">Guru utama yang mengampu mata pelajaran ini.</p>
 
-            {/* Selected Guru Card */}
-            {formData.guru && (
-              <div className="border border-gray-200 rounded-xl p-3.5 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-[#1e293b] flex items-center justify-center text-white text-[12px] font-bold shadow-sm">
-                    {formData.guru.id}
-                  </div>
-                  <div>
-                    <div className="text-[13px] font-bold text-gray-800">{formData.guru.name}</div>
-                    <div className="text-[11px] text-gray-500 font-medium">{formData.guru.role} — {formData.guru.status}</div>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setFormData(prev => ({ ...prev, guru: null }))}
-                  className="text-gray-400 hover:text-red-500 transition-colors"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
+            {/* Selected count badge */}
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[13px] text-gray-500">
+                Pilih satu atau lebih guru pengampu
+              </span>
+              {formData.guru.length > 0 && (
+                <span className="px-2 py-0.5 bg-[#1e293b] text-white rounded-full text-[11px] font-bold">
+                  {formData.guru.length} dipilih
+                </span>
+              )}
+            </div>
+
+            {/* Search teacher */}
+            <div className="relative mb-3">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="absolute left-3 top-[11px] text-gray-400"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <input
+                type="text"
+                placeholder="Cari guru..."
+                value={teacherSearch}
+                onChange={e => setTeacherSearch(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:border-gray-400"
+              />
+            </div>
+
+            {/* Checkbox list */}
+            <div className="border border-gray-100 rounded-xl overflow-hidden divide-y divide-gray-50 max-h-[260px] overflow-y-auto">
+              {filteredTeachers.length === 0 && (
+                <div className="px-4 py-3 text-[13px] text-gray-400 text-center">Guru tidak ditemukan</div>
+              )}
+              {filteredTeachers.map(teacher => {
+                const checked = formData.guru.includes(teacher);
+                return (
+                  <button
+                    key={teacher}
+                    type="button"
+                    onClick={() => toggleTeacher(teacher)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
+                      checked ? "bg-[#1e293b]/5" : "bg-white hover:bg-gray-50"
+                    }`}
+                  >
+                    {/* Custom checkbox */}
+                    <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
+                      checked ? "bg-[#1e293b] border-[#1e293b]" : "border-gray-300 bg-white"
+                    }`}>
+                      {checked && (
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                      <div className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-[11px] font-bold text-gray-600 shrink-0">
+                        {teacher.split(" ").find(w => w.length > 2)?.[0] || "G"}
+                      </div>
+                      <span className={`text-[13px] truncate ${checked ? "font-bold text-[#1e293b]" : "font-medium text-gray-700"}`}>
+                        {teacher}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Selected chips */}
+            {formData.guru.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {formData.guru.map(g => (
+                  <span key={g} className="flex items-center gap-1.5 px-2.5 py-1 bg-[#1e293b] text-white rounded-full text-[11px] font-bold">
+                    {g.split(" ")[0]} {g.split(" ")[1] || ""}
+                    <button onClick={() => toggleTeacher(g)} className="hover:text-red-300 transition-colors">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                  </span>
+                ))}
               </div>
             )}
           </div>
@@ -446,8 +475,8 @@ const SubjectForm = ({ mode = "add", initialData = null, onBack, onSave, onDelet
           <div className="space-y-3">
             <button 
               onClick={() => {
-                if (!formData.kode || !formData.nama) {
-                  alert("Kode dan Nama Mata Pelajaran harus diisi!");
+                if (!formData.nama) {
+                  alert("Nama Mata Pelajaran harus diisi!");
                   return;
                 }
                 onSave(formData);

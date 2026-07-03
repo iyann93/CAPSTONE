@@ -1,0 +1,690 @@
+import React, { useState } from 'react';
+
+// Icons
+const IconChevronDown = () => (
+  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+  </svg>
+);
+
+const IconSearch = () => (
+  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+  </svg>
+);
+
+const IconPlus = () => (
+  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+  </svg>
+);
+
+const IconTrash = () => (
+  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+  </svg>
+);
+
+const IconEye = () => (
+  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+  </svg>
+);
+
+const IconX = () => (
+  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+  </svg>
+);
+
+const IconUpload = () => (
+  <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+  </svg>
+);
+
+// Mock Data
+export const initialPengeluaranData = [
+  { id: 1, tanggal: "24 Juni 2026", nama: "Pembayaran Listrik PLN", kategori: "Listrik", nominal: 1800000, sumberDana: "Dana BOS", keterangan: "Pembayaran listrik bulan berjalan.", bukti: ["struk_listrik_juni.jpg", "struk_listrik_tambahan.jpg"] },
+  { id: 2, tanggal: "25 Juni 2026", nama: "Pembelian ATK", kategori: "ATK", nominal: 650000, sumberDana: "Dana Donatur", keterangan: "Kertas HVS, tinta printer.", bukti: ["nota_atk.pdf"] },
+  { id: 3, tanggal: "26 Juni 2026", nama: "Langganan Internet", kategori: "Internet", nominal: 850000, sumberDana: "Dana BOS", keterangan: "Indihome 100Mbps.", bukti: ["bukti_transfer_indihome.png"] }
+];
+
+const PengeluaranOperasionalTab = ({ triggerToast }) => {
+  const [selectedYear, setSelectedYear] = useState("2025/2026");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("Semua Kategori");
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  // Form State
+  const [formData, setFormData] = useState({
+    tanggal: "",
+    kategori: "",
+    nama: "",
+    nominal: "",
+    sumberDana: "",
+    keterangan: ""
+  });
+  const [isDirty, setIsDirty] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Table Selection & Modals State
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [selectedDetailItem, setSelectedDetailItem] = useState(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [selectedPreviewFile, setSelectedPreviewFile] = useState(null);
+
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedItems(filteredData.map(item => item.id));
+    } else {
+      setSelectedItems([]);
+    }
+  };
+
+  const handleSelectItem = (id) => {
+    if (selectedItems.includes(id)) {
+      setSelectedItems(selectedItems.filter(itemId => itemId !== id));
+    } else {
+      setSelectedItems([...selectedItems, id]);
+    }
+  };
+
+  const handleDelete = () => {
+    triggerToast ? triggerToast(`${selectedItems.length} data berhasil dihapus!`, "success") : alert(`${selectedItems.length} data berhasil dihapus!`);
+    setShowDeleteConfirm(false);
+    setSelectedItems([]);
+  };
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    setIsDirty(true);
+  };
+
+  const handleCancel = () => {
+    if (isDirty) {
+      setShowCancelConfirm(true);
+    } else {
+      setShowAddModal(false);
+    }
+  };
+
+  const handleConfirmCancel = () => {
+    setShowCancelConfirm(false);
+    setShowAddModal(false);
+    setFormData({ tanggal: "", kategori: "", nama: "", nominal: "", sumberDana: "", keterangan: "" });
+    setIsDirty(false);
+  };
+
+  const handleSave = () => {
+    if (!formData.tanggal || !formData.kategori || !formData.nama || !formData.nominal || !formData.sumberDana) {
+      triggerToast ? triggerToast("Mohon isi semua kolom yang wajib (*)", "error") : alert("Mohon isi semua kolom yang wajib (*)");
+      return;
+    }
+    
+    setIsSaving(true);
+    // Simulasi API call
+    setTimeout(() => {
+      setIsSaving(false);
+      setShowAddModal(false);
+      setFormData({ tanggal: "", kategori: "", nama: "", nominal: "", sumberDana: "", keterangan: "" });
+      setIsDirty(false);
+      triggerToast ? triggerToast("Pengeluaran operasional berhasil disimpan!", "success") : alert("Pengeluaran operasional berhasil disimpan!");
+    }, 800);
+  };
+  const currentMonth = "Juni";
+  const totalBulanIni = initialPengeluaranData
+    .filter(item => item.tanggal.includes(currentMonth))
+    .reduce((acc, curr) => acc + curr.nominal, 0);
+  const totalTahunAjaran = initialPengeluaranData.reduce((acc, curr) => acc + curr.nominal, 0);
+  const jumlahKategori = new Set(initialPengeluaranData.map(item => item.kategori)).size;
+  const filteredData = initialPengeluaranData.filter(item => {
+    const matchesSearch = item.nama.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = categoryFilter === "Semua Kategori" || item.kategori === categoryFilter;
+    return matchesSearch && matchesCategory;
+  }).sort((a, b) => b.id - a.id);
+
+  return (
+    <div className="flex flex-col gap-6 animate-fadeIn font-sans">
+      {/* Header Area */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+          <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Pengeluaran Operasional</h1>
+          <p className="text-sm text-gray-500 mt-1">Kelola seluruh transaksi pengeluaran operasional sekolah.</p>
+        </div>
+        <div className="flex gap-2 sm:gap-3 items-center flex-wrap">
+          <div className="relative group w-full sm:w-auto">
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+              <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
+            </div>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
+            >
+              <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
+            </select>
+            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+              <IconChevronDown />
+            </div>
+          </div>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 justify-center bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-5 py-2.5 text-xs font-bold cursor-pointer transition-all active:scale-95 shadow-sm w-full sm:w-auto"
+          >
+            Tambah Pengeluaran
+          </button>
+        </div>
+      </div>
+
+      {/* Stat Cards Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+        {/* Card 1 */}
+        <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
+          <div>
+            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Operasional Bulan Ini</div>
+            <div className="text-3xl font-black text-white">Rp {totalBulanIni.toLocaleString('id-ID')}</div>
+          </div>
+        </div>
+
+        {/* Card 2 */}
+        <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
+          <div>
+            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Operasional Tahunan</div>
+            <div className="text-3xl font-black text-white">Rp {totalTahunAjaran.toLocaleString('id-ID')}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filter and Table Container */}
+      <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+          {/* Search Input */}
+          <div className="relative flex-1 max-w-md">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari nama pengeluaran..."
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-[#1A3D63] font-medium"
+            />
+            <span className="absolute left-3.5 top-3.5 text-gray-400">
+              <IconSearch />
+            </span>
+          </div>
+
+          {/* Category Dropdown & Delete Button */}
+          <div className="flex items-center gap-3">
+            {selectedItems.length > 0 && (
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="flex items-center gap-1.5 px-4 py-2.5 bg-red-50 text-red-600 border border-red-200 rounded-xl text-xs font-bold hover:bg-red-100 transition-colors shadow-sm cursor-pointer"
+              >
+                <IconTrash />
+                Hapus ({selectedItems.length})
+              </button>
+            )}
+            <div className="relative group min-w-[180px]">
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
+              >
+                <option value="Semua Kategori">Semua Kategori</option>
+                <option value="Listrik">Listrik</option>
+                <option value="Air">Air</option>
+                <option value="Internet">Internet</option>
+                <option value="ATK">ATK</option>
+                <option value="Kebersihan">Kebersihan</option>
+                <option value="Perawatan Gedung">Perawatan Gedung</option>
+                <option value="Peralatan Sekolah">Peralatan Sekolah</option>
+                <option value="Transportasi">Transportasi</option>
+                <option value="Kegiatan Sekolah">Kegiatan Sekolah</option>
+                <option value="Lain-lain">Lain-lain</option>
+              </select>
+              <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+                <IconChevronDown />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="overflow-x-auto overflow-y-auto max-h-[500px] custom-scrollbar rounded-xl border border-gray-100">
+          <table className="w-full text-left border-collapse">
+            <thead className="sticky top-0 z-10">
+              <tr className="border-b border-gray-100 bg-gray-50 text-[10px] font-bold text-gray-500 uppercase tracking-wider shadow-sm">
+                <th className="py-4 px-4 w-12 text-center rounded-tl-xl bg-gray-50">
+                  <input 
+                    type="checkbox" 
+                    onChange={handleSelectAll}
+                    checked={selectedItems.length > 0 && selectedItems.length === filteredData.length}
+                    className="w-4 h-4 text-[#1A3D63] rounded border-gray-300 focus:ring-[#1A3D63] cursor-pointer"
+                  />
+                </th>
+                <th className="py-4 px-4 w-12 text-center bg-gray-50">NO</th>
+                <th className="py-4 px-4 bg-gray-50">TANGGAL</th>
+                <th className="py-4 px-4 bg-gray-50">NAMA PENGELUARAN</th>
+                <th className="py-4 px-4 bg-gray-50">KATEGORI</th>
+                <th className="py-4 px-4 bg-gray-50">NOMINAL</th>
+                <th className="py-4 px-4 text-center rounded-tr-xl bg-gray-50">AKSI</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50 text-xs">
+              {filteredData.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="py-8 text-center text-gray-400 font-medium">Data pengeluaran tidak ditemukan.</td>
+                </tr>
+              ) : (
+                filteredData.map((row, idx) => (
+                  <tr key={row.id} className="hover:bg-gray-50/80 transition-colors">
+                    <td className="py-4 px-4 text-center">
+                      <input 
+                        type="checkbox" 
+                        checked={selectedItems.includes(row.id)}
+                        onChange={() => handleSelectItem(row.id)}
+                        className="w-4 h-4 text-[#1A3D63] rounded border-gray-300 focus:ring-[#1A3D63] cursor-pointer"
+                      />
+                    </td>
+                    <td className="py-4 px-4 text-center text-gray-500 font-bold">{idx + 1}.</td>
+                    <td className="py-4 px-4 font-medium text-gray-600">{row.tanggal}</td>
+                    <td className="py-4 px-4 font-bold text-gray-800">{row.nama}</td>
+                    <td className="py-4 px-4">
+                      <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg font-semibold text-[10px]">{row.kategori}</span>
+                    </td>
+                    <td className="py-4 px-4 font-bold text-emerald-600">Rp {row.nominal.toLocaleString('id-ID')}</td>
+                    <td className="py-4 px-4 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => setSelectedDetailItem(row)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 text-[11px] font-bold rounded-lg transition-colors cursor-pointer border-none shadow-sm"
+                          title="Detail"
+                        >
+                          <IconEye />
+                          Detail
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+        
+        {filteredData.length > 0 && (
+          <div className="mt-4 px-2">
+            <span className="text-[11px] font-semibold text-gray-500">
+              Total {filteredData.length} data pengeluaran
+            </span>
+          </div>
+        )}
+      </div>
+      
+      {/* Modal Tambah Pengeluaran */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            {/* Header Modal */}
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-gray-800">Tambah Pengeluaran</h2>
+                <p className="text-[11px] text-gray-500 mt-1">Catat transaksi pengeluaran operasional sekolah.</p>
+              </div>
+              <button 
+                onClick={handleCancel}
+                className="text-gray-400 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 p-2 rounded-xl transition-colors border-none cursor-pointer"
+              >
+                <IconX />
+              </button>
+            </div>
+
+            {/* Body Modal */}
+            <div className="p-5 overflow-y-auto custom-scrollbar flex-1 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Tanggal Pengeluaran <span className="text-red-500">*</span></label>
+                  <input 
+                    type="date" 
+                    value={formData.tanggal}
+                    onChange={(e) => handleInputChange('tanggal', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] font-medium text-gray-700" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Kategori Pengeluaran <span className="text-red-500">*</span></label>
+                  <div className="relative">
+                    <select 
+                      value={formData.kategori}
+                      onChange={(e) => handleInputChange('kategori', e.target.value)}
+                      className="w-full pl-3 pr-8 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] appearance-none font-medium text-gray-700"
+                    >
+                      <option value="">Pilih kategori...</option>
+                      <option value="Listrik">Listrik</option>
+                      <option value="Air">Air</option>
+                      <option value="Internet">Internet</option>
+                      <option value="ATK">ATK</option>
+                      <option value="Kebersihan">Kebersihan</option>
+                      <option value="Perawatan Gedung">Perawatan Gedung</option>
+                      <option value="Peralatan Sekolah">Peralatan Sekolah</option>
+                      <option value="Transportasi">Transportasi</option>
+                      <option value="Kegiatan Sekolah">Kegiatan Sekolah</option>
+                      <option value="Lain-lain">Lain-lain</option>
+                    </select>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                      <IconChevronDown />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Nama Pengeluaran <span className="text-red-500">*</span></label>
+                <input 
+                  type="text" 
+                  value={formData.nama}
+                  onChange={(e) => handleInputChange('nama', e.target.value)}
+                  placeholder="Misal: Pembayaran Listrik Bulan Juni" 
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] font-medium text-gray-700 placeholder-gray-400" 
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Nominal Pengeluaran <span className="text-red-500">*</span></label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span className="text-gray-500 font-bold text-xs">Rp</span>
+                    </div>
+                    <input 
+                      type="text" 
+                      value={formData.nominal}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^0-9]/g, '');
+                        handleInputChange('nominal', val ? new Intl.NumberFormat('id-ID').format(val) : '');
+                      }}
+                      placeholder="0" 
+                      className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] font-medium text-gray-700" 
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Sumber Dana <span className="text-red-500">*</span></label>
+                  <div className="relative">
+                    <select 
+                      value={formData.sumberDana}
+                      onChange={(e) => handleInputChange('sumberDana', e.target.value)}
+                      className="w-full pl-3 pr-8 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] appearance-none font-medium text-gray-700"
+                    >
+                      <option value="">Pilih sumber...</option>
+                      <option value="Dana BOS">Dana BOS</option>
+                      <option value="Dana Donatur">Dana Donatur</option>
+                      <option value="Lainnya">Lainnya</option>
+                    </select>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                      <IconChevronDown />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Upload Bukti Pembayaran</label>
+                <label className="border-2 border-dashed border-gray-200 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-all text-center">
+                  <div className="text-gray-400 mb-2">
+                    <IconUpload />
+                  </div>
+                  <span className="text-[11px] font-bold text-[#1A3D63]">Klik untuk upload file</span>
+                  <span className="text-[10px] text-gray-400 mt-0.5">Maks. 2MB per file (JPG, PNG, PDF)</span>
+                  <input type="file" className="hidden" accept=".jpg,.jpeg,.png,.pdf" multiple />
+                </label>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Keterangan (Opsional)</label>
+                <textarea 
+                  rows="2" 
+                  value={formData.keterangan}
+                  onChange={(e) => handleInputChange('keterangan', e.target.value)}
+                  placeholder="Catatan tambahan..." 
+                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] font-medium text-gray-700 placeholder-gray-400"
+                ></textarea>
+              </div>
+            </div>
+
+            {/* Footer Modal */}
+            <div className="p-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
+              <button 
+                onClick={handleCancel}
+                disabled={isSaving}
+                className="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-xl text-xs font-bold hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button 
+                onClick={handleSave}
+                disabled={isSaving}
+                className="px-5 py-2 bg-[#1A3D63] text-white rounded-xl text-xs font-bold hover:bg-[#122A44] transition-colors shadow-sm cursor-pointer border-none disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isSaving ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Menyimpan...
+                  </>
+                ) : (
+                  "Simpan Pengeluaran"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Konfirmasi Batal */}
+      {showCancelConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden flex flex-col text-center">
+            <div className="p-6">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-red-500">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-gray-800 mb-2">Batalkan Pengisian?</h3>
+              <p className="text-sm text-gray-500">Data yang sudah Anda masukkan akan hilang dan tidak dapat dikembalikan.</p>
+            </div>
+            <div className="p-4 bg-gray-50 flex gap-3">
+              <button 
+                onClick={() => setShowCancelConfirm(false)}
+                className="flex-1 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-xs font-bold hover:bg-gray-50 transition-colors cursor-pointer"
+              >
+                Kembali Mengisi
+              </button>
+              <button 
+                onClick={handleConfirmCancel}
+                className="flex-1 px-4 py-2 bg-red-500 text-white rounded-xl text-xs font-bold hover:bg-red-600 transition-colors cursor-pointer border-none shadow-sm"
+              >
+                Ya, Batalkan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Detail Pengeluaran */}
+      {selectedDetailItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+              <div>
+                <h2 className="text-lg font-bold text-gray-800">Detail Pengeluaran</h2>
+                <p className="text-[11px] text-gray-500 mt-1">Informasi lengkap transaksi operasional.</p>
+              </div>
+              <button 
+                onClick={() => setSelectedDetailItem(null)}
+                className="text-gray-400 hover:text-gray-600 bg-white hover:bg-gray-100 p-2 rounded-xl transition-colors border border-gray-200 cursor-pointer"
+              >
+                <IconX />
+              </button>
+            </div>
+            
+            <div className="p-5 space-y-4">
+              <div className="flex justify-between items-start pb-4 border-b border-gray-100">
+                <div>
+                  <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Tanggal</div>
+                  <div className="text-sm font-semibold text-gray-800">{selectedDetailItem.tanggal}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Kategori</div>
+                  <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg font-bold text-xs">{selectedDetailItem.kategori}</span>
+                </div>
+              </div>
+
+              <div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Nama Pengeluaran</div>
+                <div className="text-sm font-bold text-gray-800">{selectedDetailItem.nama}</div>
+              </div>
+
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Nominal</div>
+                  <div className="text-lg font-black text-emerald-600">Rp {selectedDetailItem.nominal.toLocaleString('id-ID')}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Sumber Dana</div>
+                  <div className="text-sm font-semibold text-gray-700">{selectedDetailItem.sumberDana || "-"}</div>
+                </div>
+              </div>
+
+              <div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Bukti Pembayaran</div>
+                {selectedDetailItem.bukti && selectedDetailItem.bukti.length > 0 ? (
+                  <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
+                    {selectedDetailItem.bukti.map((file, idx) => (
+                      <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                          </svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-bold text-gray-800 truncate">{file}</div>
+                          <div className="text-[10px] text-gray-500">Klik untuk melihat lampiran</div>
+                        </div>
+                        <button 
+                          onClick={() => {
+                            setSelectedPreviewFile(file);
+                            setShowPreviewModal(true);
+                          }}
+                          className="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 text-[10px] font-bold rounded-lg hover:bg-gray-50 cursor-pointer shrink-0"
+                        >
+                          Lihat
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-xs text-gray-500 italic">Tidak ada bukti pembayaran yang dilampirkan.</div>
+                )}
+              </div>
+
+              <div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Keterangan</div>
+                <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded-xl border border-gray-100 min-h-[60px]">
+                  {selectedDetailItem.keterangan || "Tidak ada keterangan."}
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-4 border-t border-gray-100 flex justify-end bg-gray-50/50">
+              <button 
+                onClick={() => setSelectedDetailItem(null)}
+                className="px-5 py-2 bg-gray-100 text-gray-700 rounded-xl text-xs font-bold hover:bg-gray-200 transition-colors cursor-pointer border-none"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Konfirmasi Hapus */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden flex flex-col text-center">
+            <div className="p-6">
+              <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-red-100">
+                <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" className="text-red-500">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-black text-gray-800 mb-2">Hapus Data?</h3>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                Anda akan menghapus <span className="font-bold text-gray-800">{selectedItems.length} data</span> pengeluaran. Tindakan ini tidak dapat dibatalkan.
+              </p>
+            </div>
+            <div className="p-4 bg-gray-50 flex gap-3 border-t border-gray-100">
+              <button 
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-xs font-bold hover:bg-gray-50 transition-colors cursor-pointer shadow-sm"
+              >
+                Batal
+              </button>
+              <button 
+                onClick={handleDelete}
+                className="flex-1 px-4 py-2 bg-red-500 text-white rounded-xl text-xs font-bold hover:bg-red-600 transition-colors cursor-pointer border-none shadow-sm"
+              >
+                Ya, Hapus Data
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Preview Bukti Pembayaran */}
+      {showPreviewModal && selectedPreviewFile && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-bold text-gray-800 truncate max-w-[200px] sm:max-w-[300px]">{selectedPreviewFile}</h3>
+                  <p className="text-[10px] text-gray-500">Pratinjau Dokumen</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => {
+                  setShowPreviewModal(false);
+                  setSelectedPreviewFile(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 bg-white hover:bg-gray-100 p-2 rounded-xl transition-colors border border-gray-200 cursor-pointer shrink-0"
+              >
+                <IconX />
+              </button>
+            </div>
+            
+            <div className="bg-gray-100 p-8 flex flex-col items-center justify-center min-h-[300px]">
+              <div className="w-24 h-24 mb-4 text-gray-300">
+                <svg fill="none" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                </svg>
+              </div>
+              <p className="text-sm font-bold text-gray-400 text-center max-w-[80%] break-words">Menampilkan Pratinjau: {selectedPreviewFile}</p>
+              <p className="text-xs text-gray-400 mt-2 text-center">Mode Mockup: Gambar/dokumen sebenarnya akan tampil di sini saat terhubung API.</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default PengeluaranOperasionalTab;
