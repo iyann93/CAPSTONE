@@ -139,38 +139,48 @@ const KomponenSppRepository = {
           k.kelas_id === null || k.kelas_id === siswa.kelas_id
         );
 
-        for (const komp of applicableKomponen) {
-          const key = `${siswa.id}-${komp.id}`;
+        if (applicableKomponen.length === 0) continue;
+
+        // Urutkan agar komponen dengan kelas_id spesifik diprioritaskan di atas yang kelas_id = null
+        applicableKomponen.sort((a, b) => {
+          if (a.kelas_id && !b.kelas_id) return -1;
+          if (!a.kelas_id && b.kelas_id) return 1;
+          return 0;
+        });
+
+        // Ambil SATU saja komponen yang paling sesuai agar tidak terjadi duplikat tagihan SPP untuk satu siswa di bulan yang sama
+        const komp = applicableKomponen[0];
+
+        const key = `${siswa.id}-${komp.id}`;
           const existing = existingMap.get(key);
-          const beasiswa = beasiswaMap.get(siswa.id);
-          const beasiswaId = beasiswa ? beasiswa.id : null;
-          
-          // Potongan cannot exceed nominal SPP component
-          const potongan = beasiswa ? Math.min(parseFloat(beasiswa.nominal), parseFloat(komp.nominal)) : 0;
+        const beasiswa = beasiswaMap.get(siswa.id);
+        const beasiswaId = beasiswa ? beasiswa.id : null;
+        
+        // Potongan cannot exceed nominal SPP component
+        const potongan = beasiswa ? Math.min(parseFloat(beasiswa.nominal), parseFloat(komp.nominal)) : 0;
 
-          if (existing) {
-            // If nominal changed or potongan changed and tagihan not yet paid → update
-            if (existing.status === 'belum_bayar' && 
-                (parseFloat(existing.nominal) !== parseFloat(komp.nominal) || 
-                 parseFloat(existing.potongan || 0) !== potongan)) {
-              updateCases.push({ id: existing.id, nominal: komp.nominal, potongan, beasiswa_id: beasiswaId });
-              updated++;
-            } else {
-              skipped++;
-            }
-            continue;
+        if (existing) {
+          // If nominal changed or potongan changed and tagihan not yet paid → update
+          if (existing.status === 'belum_bayar' && 
+              (parseFloat(existing.nominal) !== parseFloat(komp.nominal) || 
+               parseFloat(existing.potongan || 0) !== potongan)) {
+            updateCases.push({ id: existing.id, nominal: komp.nominal, potongan, beasiswa_id: beasiswaId });
+            updated++;
+          } else {
+            skipped++;
           }
-
-          // Use jatuh_tempo from caller; fallback to day 10 of the month if not provided
-          const resolvedJatuhTempo = jatuhTempo
-            ? new Date(jatuhTempo)
-            : new Date(tahun, bulan - 1, komp.default_jatuh_tempo || 10);
-          // Always pass created_at as a value so param count is consistent (10 per row)
-          const resolvedCreatedAt = tanggalDibuat ? new Date(tanggalDibuat) : new Date();
-          insertValues.push(`($$, $$, $$, $$, $$, $$, $$, 'belum_bayar', $$, $$, NOW(), $$)`);
-          queryParams.push(siswa.id, komp.id, bulan, tahun, komp.nominal, beasiswaId, potongan, resolvedJatuhTempo, resolvedCreatedAt, userId);
-          generated++;
+          continue;
         }
+
+        // Use jatuh_tempo from caller; fallback to day 10 of the month if not provided
+        const resolvedJatuhTempo = jatuhTempo
+          ? new Date(jatuhTempo)
+          : new Date(tahun, bulan - 1, komp.default_jatuh_tempo || 10);
+        // Always pass created_at as a value so param count is consistent (10 per row)
+        const resolvedCreatedAt = tanggalDibuat ? new Date(tanggalDibuat) : new Date();
+        insertValues.push(`($$, $$, $$, $$, $$, $$, $$, 'belum_bayar', $$, $$, NOW(), $$)`);
+        queryParams.push(siswa.id, komp.id, bulan, tahun, komp.nominal, beasiswaId, potongan, resolvedJatuhTempo, resolvedCreatedAt, userId);
+        generated++;
       }
 
       // 3. Execute bulk insert in chunks
