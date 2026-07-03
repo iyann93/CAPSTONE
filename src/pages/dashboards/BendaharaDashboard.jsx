@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+﻿import React, { useState, useEffect, useCallback, useRef } from "react";
 import { jsPDF } from "jspdf";
 import * as htmlToImage from "html-to-image";
 import {
@@ -4054,14 +4054,14 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                    {beasiswaForm.siswaIds && beasiswaForm.siswaIds.length > 0 && (
                      <div className="flex flex-wrap gap-1.5 mt-2">
                        {beasiswaForm.siswaIds.map(id => {
-                         const s = siswaList.find(x => String(x.id) === String(id));
+                         const s = siswaList.find(VII => String(VII.id) === String(id));
                          if (!s) return null;
                          return (
                            <span key={id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
                              {s.nama_lengkap}
                              <button type="button" onClick={() => {
                                setIsBeasiswaFormDirty(true);
-                               setBeasiswaForm(prev => ({...prev, siswaIds: prev.siswaIds.filter(x => x !== id)}));
+                               setBeasiswaForm(prev => ({...prev, siswaIds: prev.siswaIds.filter(VII => VII !== id)}));
                              }} className="hover:text-blue-900 bg-transparent border-none cursor-pointer p-0 leading-none">
                                &times;
                              </button>
@@ -4882,6 +4882,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 };
 
 export default BendaharaDashboard;
+
+
+
 
 
 

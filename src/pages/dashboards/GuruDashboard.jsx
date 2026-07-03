@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import GuruHome from "./GuruHome";
 import GuruRiwayatTerimaGaji from "../../components/payroll/GuruRiwayatTerimaGaji";
 import JadwalGuruMapel from "./JadwalGuruMapel";
@@ -14,7 +14,7 @@ const GuruDashboard = ({ user, activeMenu, onViewChange }) => {
   // Shared attendance sessions state — flows from AbsensiSiswa → RekapAbsensiSiswa
   const [attendanceSessions, setAttendanceSessions] = React.useState([
     {
-      attendanceClass: "X IPA 1",
+      attendanceClass: "VII IPA 1",
       date: "2026-06-30",
       students: [
         { id: "2023001", name: "Andi Pratama", gender: "Laki-laki", status: "Hadir", avatarBg: "bg-blue-500" },
@@ -26,7 +26,7 @@ const GuruDashboard = ({ user, activeMenu, onViewChange }) => {
       ]
     },
     {
-      attendanceClass: "X IPA 2",
+      attendanceClass: "VII IPA 2",
       date: "2026-06-30",
       students: [
         { id: "2023007", name: "Bagus Cahyo", gender: "Laki-laki", status: "Hadir", avatarBg: "bg-blue-500" },
@@ -90,4 +90,6 @@ const GuruDashboard = ({ user, activeMenu, onViewChange }) => {
 };
 
 export default GuruDashboard;
+
+
 

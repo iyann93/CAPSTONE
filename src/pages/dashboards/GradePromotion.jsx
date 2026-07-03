@@ -3,21 +3,18 @@ import GradePromotionCriteria from "./GradePromotionCriteria";
 import GradePromotionDetail from "./GradePromotionDetail";
 
 const mockClasses = [
-  { no: 1, kelas: "Kelas X IPA 1", kode: "X-IPA-1", tingkat: "Kelas X", jurusan: "IPA", jurusanColor: "bg-blue-100 text-blue-700", wali: "Ibu Sari Dewi, S.Pd", naik: 30, total: 32, tidakNaik: 2, belum: 0, status: "Selesai" },
-  { no: 2, kelas: "Kelas X IPA 2", kode: "X-IPA-2", tingkat: "Kelas X", jurusan: "IPA", jurusanColor: "bg-blue-100 text-blue-700", wali: "Bpk. Ahmad Fauzi, M.Pd", naik: 28, total: 31, tidakNaik: 1, belum: 2, status: "Dalam Proses" },
-  { no: 3, kelas: "Kelas X IPS 1", kode: "X-IPS-1", tingkat: "Kelas X", jurusan: "IPS", jurusanColor: "bg-green-100 text-green-700", wali: "Ibu Dewi Anggraini, S.Pd", naik: 0, total: 30, tidakNaik: 0, belum: 30, status: "Belum Diproses" },
-  { no: 4, kelas: "Kelas X IPS 2", kode: "X-IPS-2", tingkat: "Kelas X", jurusan: "IPS", jurusanColor: "bg-green-100 text-green-700", wali: "Bpk. Rudi Hartono, S.Pd", naik: 0, total: 29, tidakNaik: 0, belum: 29, status: "Belum Diproses" },
-  { no: 5, kelas: "Kelas X Bahasa 1", kode: "X-BHS-1", tingkat: "Kelas X", jurusan: "Bahasa", jurusanColor: "bg-orange-100 text-orange-700", wali: "Ibu Nurdiana, S.Pd", naik: 0, total: 28, tidakNaik: 0, belum: 28, status: "Belum Diproses" },
-  { no: 6, kelas: "Kelas XI IPA 1", kode: "XI-IPA-1", tingkat: "Kelas XI", jurusan: "IPA", jurusanColor: "bg-blue-100 text-blue-700", wali: "Ibu Rani Kusuma, S.Pd", naik: 33, total: 33, tidakNaik: 0, belum: 0, status: "Selesai" },
-  { no: 7, kelas: "Kelas XI IPA 2", kode: "XI-IPA-2", tingkat: "Kelas XI", jurusan: "IPA", jurusanColor: "bg-blue-100 text-blue-700", wali: "Bpk. Hendra Wijaya, M.Pd", naik: 31, total: 32, tidakNaik: 1, belum: 0, status: "Selesai" },
-  { no: 8, kelas: "Kelas XI IPS 1", kode: "XI-IPS-1", tingkat: "Kelas XI", jurusan: "IPS", jurusanColor: "bg-green-100 text-green-700", wali: "Ibu Maya Sari, S.Pd", naik: 27, total: 30, tidakNaik: 2, belum: 1, status: "Dalam Proses" },
-  { no: 9, kelas: "Kelas XI IPS 2", kode: "XI-IPS-2", tingkat: "Kelas XI", jurusan: "IPS", jurusanColor: "bg-green-100 text-green-700", wali: "Bpk. Agus Santoso, S.Pd", naik: 0, total: 31, tidakNaik: 0, belum: 31, status: "Belum Diproses" },
-  { no: 10, kelas: "Kelas XII IPA 1", kode: "XII-IPA-1", tingkat: "Kelas XII", jurusan: "IPA", jurusanColor: "bg-blue-100 text-blue-700", wali: "Ibu Siti Aminah, M.Pd", naik: 28, total: 28, tidakNaik: 0, belum: 0, status: "Selesai" },
-  { no: 11, kelas: "Kelas XII IPA 2", kode: "XII-IPA-2", tingkat: "Kelas XII", jurusan: "IPA", jurusanColor: "bg-blue-100 text-blue-700", wali: "Bpk. Dodi Pratama, M.Pd", naik: 29, total: 30, tidakNaik: 1, belum: 0, status: "Selesai" },
-  { no: 12, kelas: "Kelas XII IPS 1", kode: "XII-IPS-1", tingkat: "Kelas XII", jurusan: "IPS", jurusanColor: "bg-green-100 text-green-700", wali: "Ibu Rina Wati, S.Pd", naik: 0, total: 29, tidakNaik: 0, belum: 29, status: "Belum Diproses" },
+  { no: 1, kelas: "Kelas VII A", kode: "VII-A", tingkat: "Kelas VII", jurusan: "Umum", jurusanColor: "bg-blue-100 text-blue-700", wali: "Ibu Sari Dewi, S.Pd", naik: 30, total: 32, tidakNaik: 2, belum: 0, status: "Selesai" },
+  { no: 2, kelas: "Kelas VII B", kode: "VII-B", tingkat: "Kelas VII", jurusan: "Umum", jurusanColor: "bg-blue-100 text-blue-700", wali: "Bpk. Ahmad Fauzi, M.Pd", naik: 28, total: 31, tidakNaik: 1, belum: 2, status: "Dalam Proses" },
+  { no: 3, kelas: "Kelas VII C", kode: "VII-C", tingkat: "Kelas VII", jurusan: "Umum", jurusanColor: "bg-blue-100 text-blue-700", wali: "Ibu Dewi Anggraini, S.Pd", naik: 0, total: 30, tidakNaik: 0, belum: 30, status: "Belum Diproses" },
+  { no: 4, kelas: "Kelas VIII A", kode: "VIII-A", tingkat: "Kelas VIII", jurusan: "Umum", jurusanColor: "bg-green-100 text-green-700", wali: "Ibu Rani Kusuma, S.Pd", naik: 33, total: 33, tidakNaik: 0, belum: 0, status: "Selesai" },
+  { no: 5, kelas: "Kelas VIII B", kode: "VIII-B", tingkat: "Kelas VIII", jurusan: "Umum", jurusanColor: "bg-green-100 text-green-700", wali: "Bpk. Hendra Wijaya, M.Pd", naik: 31, total: 32, tidakNaik: 1, belum: 0, status: "Selesai" },
+  { no: 6, kelas: "Kelas VIII C", kode: "VIII-C", tingkat: "Kelas VIII", jurusan: "Umum", jurusanColor: "bg-green-100 text-green-700", wali: "Ibu Maya Sari, S.Pd", naik: 27, total: 30, tidakNaik: 2, belum: 1, status: "Dalam Proses" },
+  { no: 7, kelas: "Kelas IX A", kode: "IX-A", tingkat: "Kelas IX", jurusan: "Umum", jurusanColor: "bg-purple-100 text-purple-700", wali: "Ibu Siti Aminah, M.Pd", naik: 28, total: 28, tidakNaik: 0, belum: 0, status: "Selesai" },
+  { no: 8, kelas: "Kelas IX B", kode: "IX-B", tingkat: "Kelas IX", jurusan: "Umum", jurusanColor: "bg-purple-100 text-purple-700", wali: "Bpk. Dodi Pratama, M.Pd", naik: 29, total: 30, tidakNaik: 1, belum: 0, status: "Selesai" },
+  { no: 9, kelas: "Kelas IX C", kode: "IX-C", tingkat: "Kelas IX", jurusan: "Umum", jurusanColor: "bg-purple-100 text-purple-700", wali: "Ibu Rina Wati, S.Pd", naik: 0, total: 29, tidakNaik: 0, belum: 29, status: "Belum Diproses" },
 ];
 
-const TABS = ["Semua Tingkat", "Kelas X", "Kelas XI", "Kelas XII"];
+const TABS = ["Semua Tingkat", "Kelas VII", "Kelas VIII", "Kelas IX"];
 
 const StatusBadge = ({ status }) => {
   if (status === "Selesai") return (
@@ -67,18 +64,18 @@ const GradePromotion = () => {
       try {
         const { default: api } = await import('../../api/axios');
         const res = await api.get('/system/frontend-state');
-        if (res.data?.data?.grade_promotion_classes) {
-          setClasses(res.data.data.grade_promotion_classes);
+        if (res.data?.data?.grade_promotion_classes_v2) {
+          setClasses(res.data.data.grade_promotion_classes_v2);
           // Also sync to local storage for offline fast load
-          localStorage.setItem("grade_promotion_classes", JSON.stringify(res.data.data.grade_promotion_classes));
+          localStorage.setItem("grade_promotion_classes_v2", JSON.stringify(res.data.data.grade_promotion_classes_v2));
         } else {
           // Fallback to local storage
-          const saved = localStorage.getItem("grade_promotion_classes");
+          const saved = localStorage.getItem("grade_promotion_classes_v2");
           if (saved) setClasses(JSON.parse(saved));
         }
       } catch (err) {
         console.error("Gagal memuat status kenaikan kelas dari backend", err);
-        const saved = localStorage.getItem("grade_promotion_classes");
+        const saved = localStorage.getItem("grade_promotion_classes_v2");
         if (saved) setClasses(JSON.parse(saved));
       }
     };
@@ -99,7 +96,7 @@ const GradePromotion = () => {
       return c;
     });
     setClasses(updated);
-    localStorage.setItem("grade_promotion_classes", JSON.stringify(updated));
+    localStorage.setItem("grade_promotion_classes_v2", JSON.stringify(updated));
     setView("list");
     
     // Save to backend database for persistent storage across logouts/sessions
@@ -109,7 +106,7 @@ const GradePromotion = () => {
       const currentState = res.data?.data || {};
       await api.put('/system/frontend-state', {
         ...currentState,
-        grade_promotion_classes: updated
+        grade_promotion_classes_v2: updated
       });
     } catch (err) {
       console.error("Gagal menyimpan ke database", err);
@@ -380,3 +377,7 @@ const GradePromotion = () => {
 };
 
 export default GradePromotion;
+
+
+
+// trigger HMR

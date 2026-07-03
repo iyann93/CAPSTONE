@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 
 const initialStudents = [
   { id: 1, name: "Andi Pratama", nis: "2023001", initials: "AP", color: "bg-[#3B82F6]", gender: "L", status: "Hadir", ket: "" },
@@ -59,9 +59,9 @@ const StudentAttendanceInput = ({ classData, onBack, onSave }) => {
         <div className="space-y-4">
           <div className="flex items-center text-[13px] text-gray-500 gap-2">
             <span>Dashboard</span>
-            <span>›</span>
+            <span>&rsaquo;</span>
             <span>Absensi Siswa</span>
-            <span>›</span>
+            <span>&rsaquo;</span>
             <span className="font-bold text-[#1e293b]">Input — {classData.name}</span>
           </div>
 
@@ -283,23 +283,23 @@ const StudentAttendanceInput = ({ classData, onBack, onSave }) => {
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-4">Kelas Lain</h3>
             <div className="space-y-4">
               <div className="flex justify-between items-center text-[13px]">
-                <span className="font-bold text-[#1e293b]">X IPA 2</span>
+                <span className="font-bold text-[#1e293b]">VII IPA 2</span>
                 <span className="text-emerald-500 font-bold flex items-center gap-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>Selesai</span>
               </div>
               <div className="flex justify-between items-center text-[13px]">
-                <span className="font-bold text-[#1e293b]">X IPS 1</span>
+                <span className="font-bold text-[#1e293b]">VII IPS 1</span>
                 <span className="text-emerald-500 font-bold flex items-center gap-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>Selesai</span>
               </div>
               <div className="flex justify-between items-center text-[13px]">
-                <span className="font-bold text-[#1e293b]">X IPS 2</span>
+                <span className="font-bold text-[#1e293b]">VII IPS 2</span>
                 <span className="text-orange-500 font-bold flex items-center gap-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Belum</span>
               </div>
               <div className="flex justify-between items-center text-[13px]">
-                <span className="font-bold text-[#1e293b]">X Bahasa 1</span>
+                <span className="font-bold text-[#1e293b]">VII Bahasa 1</span>
                 <span className="text-orange-500 font-bold flex items-center gap-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Belum</span>
               </div>
               <div className="flex justify-between items-center text-[13px]">
-                <span className="font-bold text-[#1e293b]">XI IPA 1</span>
+                <span className="font-bold text-[#1e293b]">VIII IPA 1</span>
                 <span className="text-emerald-500 font-bold flex items-center gap-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>Selesai</span>
               </div>
             </div>
@@ -320,3 +320,5 @@ const StudentAttendanceInput = ({ classData, onBack, onSave }) => {
 };
 
 export default StudentAttendanceInput;
+
+

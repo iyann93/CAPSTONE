@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 
 const gradesData = [
   { mapel: "Matematika", type: "MTK", color: "bg-blue-100 text-blue-600", harian: 85, uts: 88, uas: 90, akhir: 88, predikat: "A" },
@@ -27,9 +27,9 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
         <div className="space-y-4">
           <div className="flex items-center text-[13px] text-gray-500 gap-2">
             <span>Dashboard</span>
-            <span>›</span>
+            <span>&rsaquo;</span>
             <span>Data Siswa</span>
-            <span>›</span>
+            <span>&rsaquo;</span>
             <span className="font-bold text-[#1e293b]">{student.name}</span>
           </div>
 
@@ -403,3 +403,6 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
 };
 
 export default StudentDetail;
+
+
+

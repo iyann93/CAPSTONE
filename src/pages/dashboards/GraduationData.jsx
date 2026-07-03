@@ -2,13 +2,10 @@ import React, { useState } from "react";
 import GraduationDataDetail from "./GraduationDataDetail";
 
 const mockClasses = [
-  { no:1, kelas:"Kelas XII IPA 1", kode:"XII-IPA-1", jurusan:"IPA", wali:"Ibu Siti Aminah, M.Pd", total:28, lulus:27, tidakLulus:1, pending:0, pct:96, tgl:"3 Mei 2024", status:"Selesai" },
-  { no:2, kelas:"Kelas XII IPA 2", kode:"XII-IPA-2", jurusan:"IPA", wali:"Bpk. Budi Setiawan, S.", total:30, lulus:29, tidakLulus:1, pending:0, pct:97, tgl:"3 Mei 2024", status:"Selesai" },
-  { no:3, kelas:"Kelas XII IPS 1", kode:"XII-IPS-1", jurusan:"IPS", wali:"Ibu Retno Wulandari, S.", total:29, lulus:25, tidakLulus:2, pending:2, pct:86, tgl:"—", status:"Dalam Proses" },
-  { no:4, kelas:"Kelas XII IPS 2", kode:"XII-IPS-2", jurusan:"IPS", wali:"Bpk. Doni Pratama, S.", total:27, lulus:0, tidakLulus:0, pending:27, pct:0, tgl:"—", status:"Belum Diproses" },
+  { no:1, kelas:"Kelas IX", kode:"IX", jurusan:"Umum", wali:"Ibu Siti Aminah, M.Pd", total:5, lulus:5, tidakLulus:0, pending:0, pct:100, tgl:"3 Mei 2024", status:"Selesai" }
 ];
 
-const TABS = ["Semua Jurusan","IPA","IPS","Bahasa"];
+const TABS = ["Semua Jurusan","Umum"];
 
 const StatusBadge = ({ s }) => {
   if (s==="Selesai") return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-50 text-green-600 border border-green-100"><svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>Selesai</span>;
@@ -19,7 +16,11 @@ const StatusBadge = ({ s }) => {
 const GraduationData = () => {
   const [classes, setClasses] = useState(() => {
     const saved = localStorage.getItem("graduation_classes");
-    return saved ? JSON.parse(saved) : mockClasses;
+    const ver = localStorage.getItem("graduation_classes_ver");
+    if (saved && ver === "1.1") return JSON.parse(saved);
+    localStorage.setItem("graduation_classes_ver", "1.1");
+    localStorage.setItem("graduation_classes", JSON.stringify(mockClasses));
+    return mockClasses;
   });
   const [tab, setTab] = useState("Semua Jurusan");
   const [view, setView] = useState("list");
@@ -58,7 +59,7 @@ const GraduationData = () => {
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
           <h1 className="text-[26px] font-bold text-[#1e293b]">Data Kelulusan</h1>
-          <p className="text-[14px] text-gray-500 mt-1">Kelola data kelulusan siswa Kelas XII berdasarkan nilai sekolah dan ujian.</p>
+          <p className="text-[14px] text-gray-500 mt-1">Kelola data kelulusan siswa Kelas IX berdasarkan nilai sekolah dan ujian.</p>
         </div>
         <div className="flex items-center gap-2.5">
           <button onClick={() => setShowCriteria(true)} className="flex items-center gap-2 px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-[13px] font-bold text-gray-700 hover:bg-gray-50 shadow-sm">
@@ -100,7 +101,7 @@ const GraduationData = () => {
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
         {[
-          { label: "Total Siswa XII", val: totalSiswa, sub: "4 kelas" },
+          { label: "Total Siswa IX", val: totalSiswa, sub: `${classes.length} kelas` },
           { label: "Dinyatakan Lulus", val: totalLulus, sub: `${pctLulus}% tingkat kelulusan` },
           { label: "Tidak Lulus", val: totalTidakLulus, sub: "Perlu remedial/mengulang" },
           { label: "Belum Diproses", val: totalPending, sub: "Menunggu keputusan" },
@@ -305,7 +306,7 @@ const GraduationData = () => {
             <div className="p-4 bg-[#FAF5FF] border border-[#E9D5FF] rounded-[20px] flex gap-3 items-start mb-8">
               <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#A855F7" strokeWidth="2" className="flex-shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
               <p className="text-[13px] text-[#9333EA] leading-relaxed">
-                Pengumuman hanya dapat dilakukan setelah semua kelas selesai diproses. 2 kelas belum selesai.
+                Pengumuman hanya dapat dilakukan setelah semua kelas selesai diproses. {classes.length - selesai > 0 ? `${classes.length - selesai} kelas belum selesai.` : "Semua kelas selesai."}
               </p>
             </div>
 
@@ -327,3 +328,5 @@ const GraduationData = () => {
 };
 
 export default GraduationData;
+
+

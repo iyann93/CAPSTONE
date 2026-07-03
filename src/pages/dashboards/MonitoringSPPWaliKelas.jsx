@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 
 const mockDataSiswa = [
   { id: 1, nis: "0011223344", nama: "Ahmad Fauzi", kelas: "VII A", status: "Lunas", nominal: 1250000, tglBayar: "05 Jan 2026", jatuhTempo: "10 Jan 2026", bulan: "Januari", tahun: "2025/2026" },
@@ -137,3 +137,5 @@ const MonitoringSPPWaliKelas = () => {
 };
 
 export default MonitoringSPPWaliKelas;
+
+

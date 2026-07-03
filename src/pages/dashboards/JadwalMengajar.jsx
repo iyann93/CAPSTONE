@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 
 const JadwalMengajar = ({ user }) => {
   const guruInfo = {
@@ -12,7 +12,7 @@ const JadwalMengajar = ({ user }) => {
       day: "Senin",
       slot: "Jam 1-2",
       subject: "Matematika",
-      class: "X IPA 1",
+      class: "VII IPA 1",
       room: "Ruang 101",
       type: "wajib",
       time: "07:00",
@@ -21,7 +21,7 @@ const JadwalMengajar = ({ user }) => {
       day: "Senin",
       slot: "Jam 3-4",
       subject: "Matematika",
-      class: "X IPA 2",
+      class: "VII IPA 2",
       room: "Ruang 102",
       type: "wajib",
       time: "08:30",
@@ -30,7 +30,7 @@ const JadwalMengajar = ({ user }) => {
       day: "Senin",
       slot: "Jam 9-10",
       subject: "Mat. Peminatan",
-      class: "XII IPA 1",
+      class: "IX IPA 1",
       room: "Ruang 401",
       type: "peminatan",
       time: "13:05",
@@ -39,7 +39,7 @@ const JadwalMengajar = ({ user }) => {
       day: "Selasa",
       slot: "Jam 5-6",
       subject: "Matematika",
-      class: "XI IPA 1",
+      class: "VIII IPA 1",
       room: "Ruang 301",
       type: "wajib",
       time: "10:15",
@@ -48,7 +48,7 @@ const JadwalMengajar = ({ user }) => {
       day: "Rabu",
       slot: "Jam 5-6",
       subject: "Matematika",
-      class: "X IPS 1",
+      class: "VII IPS 1",
       room: "Ruang 201",
       type: "wajib",
       time: "10:15",
@@ -57,7 +57,7 @@ const JadwalMengajar = ({ user }) => {
       day: "Kamis",
       slot: "Jam 1-2",
       subject: "Mat. Peminatan",
-      class: "XII IPA 1",
+      class: "IX IPA 1",
       room: "Ruang 401",
       type: "peminatan",
       time: "07:00",
@@ -66,7 +66,7 @@ const JadwalMengajar = ({ user }) => {
       day: "Jumat",
       slot: "Jam 1-2",
       subject: "Matematika",
-      class: "XI IPA 2",
+      class: "VIII IPA 2",
       room: "Ruang 302",
       type: "wajib",
       time: "07:00",
@@ -95,7 +95,7 @@ const JadwalMengajar = ({ user }) => {
       <div className="flex flex-col gap-1.5">
         <h1 className="text-[26px] font-black text-[#1e293b] tracking-tight">Jadwal Mengajar</h1>
         <p className="text-sm text-gray-400 font-semibold">
-          Semester Ganjil 2023/2024 • SMAN 1 Contoh
+          Semester Ganjil 2023/2024 • SMPN 1 Contoh
         </p>
       </div>
 
@@ -302,3 +302,7 @@ const JadwalMengajar = ({ user }) => {
 };
 
 export default JadwalMengajar;
+
+
+
+

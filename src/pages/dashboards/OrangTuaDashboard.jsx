@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import Profile from "../Profile";
 import OrangTuaHome from "./OrangTuaHome";
 import AkademikSiswa from "./AkademikSiswa";
@@ -54,3 +54,5 @@ const OrangTuaDashboard = ({ user, activeMenu, onViewChange }) => {
 };
 
 export default OrangTuaDashboard;
+
+

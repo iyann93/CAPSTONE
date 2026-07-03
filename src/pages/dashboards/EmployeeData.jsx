@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import EmployeeDetail from "./EmployeeDetail";
 const SearchIcon = () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-gray-400">
     <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
@@ -85,7 +85,7 @@ const EmployeeData = () => {
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-[12px] text-gray-400 font-medium">
               <span className="cursor-pointer hover:text-[#1A3D63]" onClick={() => setIsAdding(false)}>Data Guru & Karyawan</span>
-              <span>›</span>
+              <span>&rsaquo;</span>
               <span className="text-[#1A3D63]">Tambah Pegawai</span>
             </div>
             <h1 className="text-[28px] font-bold text-[#1F2937] leading-tight">Tambah Pegawai Baru</h1>
@@ -293,9 +293,9 @@ const EmployeeData = () => {
                   <label className="text-[11px] font-bold text-gray-500 ml-1">Set Status Awal</label>
                   <div className="relative">
                     <select className="w-full appearance-none px-4 py-2.5 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[13px] font-semibold text-[#16A34A] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/5 transition-all">
-                      <option className="text-[#16A34A]">● Aktif</option>
-                      <option className="text-yellow-600">● Cuti</option>
-                      <option className="text-red-600">● Non-Aktif</option>
+                      <option className="text-[#16A34A]">â— Aktif</option>
+                      <option className="text-yellow-600">â— Cuti</option>
+                      <option className="text-red-600">â— Non-Aktif</option>
                     </select>
                     <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
                       <ChevronDownIcon />
@@ -317,7 +317,7 @@ const EmployeeData = () => {
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-[12px] text-gray-400 font-medium">
               <span className="cursor-pointer hover:text-[#1A3D63]" onClick={() => setIsEditing(false)}>Data Guru & Karyawan</span>
-              <span>›</span>
+              <span>&rsaquo;</span>
               <span className="text-[#1A3D63]">Edit Pegawai</span>
             </div>
             <h1 className="text-[28px] font-bold text-[#1F2937] leading-tight">Edit Pegawai: {selectedEmployee.name}</h1>
@@ -639,3 +639,6 @@ var EmployeeData_default = EmployeeData;
 export {
   EmployeeData_default as default
 };
+
+
+

@@ -23,9 +23,24 @@ const mapSiswa = (s, index) => {
     ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
     : (nameParts[0][0] || "U").toUpperCase();
 
-  const isX  = s.nama_kelas?.toUpperCase().startsWith("X ");
-  const isXI = s.nama_kelas?.toUpperCase().startsWith("XI ");
-  const tingkat = isX ? "Kelas X" : isXI ? "Kelas XI" : "Kelas XII";
+  // Convert SMA class names from backend to SMP class names for display
+  let displayKelas = s.nama_kelas || null;
+  if (displayKelas) {
+    // Handle full names first: "Kelas X" → "Kelas VII", etc.
+    displayKelas = displayKelas.replace(/^Kelas XII/, "Kelas IX");
+    displayKelas = displayKelas.replace(/^Kelas XI/, "Kelas VIII");
+    displayKelas = displayKelas.replace(/^Kelas X(?!\bI\b)/, "Kelas VII");
+    // Handle prefix-only: "XII ..." → "IX ...", "XI ..." → "VIII ...", "X ..." → "VII ..."
+    displayKelas = displayKelas.replace(/^XII\b/, "IX");
+    displayKelas = displayKelas.replace(/^XI\b/, "VIII");
+    displayKelas = displayKelas.replace(/^X\b/, "VII");
+  }
+  displayKelas = displayKelas || "-";
+
+  const isVIII = displayKelas.toUpperCase().includes("VIII");
+  const isVII  = !isVIII && displayKelas.toUpperCase().includes("VII");
+  const isIX   = displayKelas.toUpperCase().includes("IX");
+  const tingkat = isVII ? "Kelas VII" : isVIII ? "Kelas VIII" : isIX ? "Kelas IX" : "-";
 
   return {
     id:           s.id,
@@ -34,7 +49,7 @@ const mapSiswa = (s, index) => {
     tempat_lahir: s.tempat_lahir || null,
     tanggal_lahir:s.tanggal_lahir || null,
     jenis_kelamin:s.jenis_kelamin,
-    kelas:        s.nama_kelas || "-",
+    kelas:        displayKelas,
     kelas_id:     s.kelas_id,
     tingkat,
     status:       s.status || "aktif",
@@ -414,3 +429,5 @@ const StudentData = () => {
 };
 
 export default StudentData;
+
+

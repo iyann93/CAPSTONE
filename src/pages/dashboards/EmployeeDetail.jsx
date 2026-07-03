@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 
 const EmployeeDetail = ({ employee, onBack, onEdit }) => {
   return (
@@ -8,7 +8,7 @@ const EmployeeDetail = ({ employee, onBack, onEdit }) => {
         <div className="space-y-4">
           <div className="flex items-center text-[13px] text-gray-500 gap-2">
             <span className="cursor-pointer hover:text-[#1e293b] transition-colors" onClick={onBack}>Data Pegawai</span>
-            <span>›</span>
+            <span>&rsaquo;</span>
             <span className="font-bold text-[#1e293b]">{employee.name}</span>
           </div>
 
@@ -87,3 +87,6 @@ const EmployeeDetail = ({ employee, onBack, onEdit }) => {
 };
 
 export default EmployeeDetail;
+
+
+

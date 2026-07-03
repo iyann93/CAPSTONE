@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 
 const mockSiswaList = [
-  { id: 1, nama: "Ahmad Fauzi", nisn: "0012345678", kelas: "XII IPA 1", rataRata: 88.5, kehadiran: "98%", status: "Sangat Baik" },
-  { id: 2, nama: "Siti Aminah", nisn: "0012345679", kelas: "XII IPA 1", rataRata: 82.0, kehadiran: "95%", status: "Baik" },
-  { id: 3, nama: "Budi Santoso", nisn: "0012345680", kelas: "XII IPS 2", rataRata: 65.5, kehadiran: "75%", status: "Perlu Perhatian" },
-  { id: 4, nama: "Dina Mariana", nisn: "0012345681", kelas: "XI IPA 3", rataRata: 92.0, kehadiran: "100%", status: "Sangat Baik" },
+  { id: 1, nama: "Ahmad Fauzi", nisn: "0012345678", kelas: "IX IPA 1", rataRata: 88.5, kehadiran: "98%", status: "Sangat Baik" },
+  { id: 2, nama: "Siti Aminah", nisn: "0012345679", kelas: "IX IPA 1", rataRata: 82.0, kehadiran: "95%", status: "Baik" },
+  { id: 3, nama: "Budi Santoso", nisn: "0012345680", kelas: "IX IPS 2", rataRata: 65.5, kehadiran: "75%", status: "Perlu Perhatian" },
+  { id: 4, nama: "Dina Mariana", nisn: "0012345681", kelas: "VIII IPA 3", rataRata: 92.0, kehadiran: "100%", status: "Sangat Baik" },
 ];
 
 const MonitoringSiswaKepsek = () => {
@@ -68,9 +68,9 @@ const MonitoringSiswaKepsek = () => {
             className="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-[#1A3D63] focus:border-[#1A3D63] block p-2.5"
           >
             <option>Semua</option>
-            <option>XI IPA 3</option>
-            <option>XII IPA 1</option>
-            <option>XII IPS 2</option>
+            <option>VIII IPA 3</option>
+            <option>IX IPA 1</option>
+            <option>IX IPS 2</option>
           </select>
         </div>
       </div>
@@ -214,3 +214,5 @@ const MonitoringSiswaKepsek = () => {
 };
 
 export default MonitoringSiswaKepsek;
+
+

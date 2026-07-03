@@ -1,15 +1,15 @@
-import React, { useState, useMemo } from "react";
+﻿import React, { useState, useMemo } from "react";
 import ReactDOM from "react-dom";
 
 const CatatanSiswa = ({ user }) => {
-  const [selectedClass, setSelectedClass] = useState("X IPA 1");
+  const [selectedClass, setSelectedClass] = useState("VII IPA 1");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStudentId, setSelectedStudentId] = useState("2023001");
   const [notification, setNotification] = useState(null);
 
   // Mock student records
   const [studentsData, setStudentsData] = useState({
-    "X IPA 1": [
+    "VII IPA 1": [
       { id: "2023001", name: "Andi Pratama", gender: "Laki-laki", note: "Aktif dan rajin. Kemampuan aljabar meningkat pesat.", lastUpdated: "15 Nov 2023", avatarBg: "bg-blue-500" },
       { id: "2023002", name: "Dewi Sartika", gender: "Perempuan", note: "Nilai tertinggi di kelas. Sangat direkomendasikan mengikuti olimpiade.", lastUpdated: "12 Nov 2023", avatarBg: "bg-slate-700" },
       { id: "2023003", name: "Ricky Firmansyah", gender: "Laki-laki", note: "Perlu bimbingan tambahan. Kesulitan pada materi limit.", lastUpdated: "10 Nov 2023", avatarBg: "bg-amber-600" },
@@ -17,7 +17,7 @@ const CatatanSiswa = ({ user }) => {
       { id: "2023005", name: "Fajar Setiawan", gender: "Laki-laki", note: "Konsisten mengerjakan tugas.", lastUpdated: "08 Nov 2023", avatarBg: "bg-purple-600" },
       { id: "2023006", name: "Ayu Lestari", gender: "Perempuan", note: "Juara 2 olimpiade kota. Sangat berbakat.", lastUpdated: "05 Nov 2023", avatarBg: "bg-pink-500" },
     ],
-    "X IPA 2": [
+    "VII IPA 2": [
       { id: "2023007", name: "Bagus Cahyo", gender: "Laki-laki", note: "Paham materi matriks dengan baik.", lastUpdated: "18 Nov 2023", avatarBg: "bg-blue-500" },
       { id: "2023008", name: "Citra Lestari", gender: "Perempuan", note: "", lastUpdated: null, avatarBg: "bg-pink-500" },
       { id: "2023009", name: "Dimas Anggara", gender: "Laki-laki", note: "Perlu remedial materi trigonometri.", lastUpdated: "14 Nov 2023", avatarBg: "bg-amber-600" },
@@ -142,7 +142,7 @@ const CatatanSiswa = ({ user }) => {
           <div className="flex items-center text-xs font-semibold text-gray-400 gap-1.5">
             <span>Catatan Siswa</span>
             <span>•</span>
-            <span>Semester Ganjil 2023/2024 • SMAN 1 Contoh</span>
+            <span>Semester Ganjil 2023/2024 • SMPN 1 Contoh</span>
           </div>
           <h1 className="text-[26px] font-black text-[#1e293b] tracking-tight">Catatan Siswa</h1>
           <p className="text-xs text-gray-400 font-semibold mt-0.5">
@@ -360,3 +360,6 @@ const CatatanSiswa = ({ user }) => {
 };
 
 export default CatatanSiswa;
+
+
+

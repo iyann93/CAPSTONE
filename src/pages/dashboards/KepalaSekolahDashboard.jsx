@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import Profile from "../Profile";
 import KepalaSekolahHome from "./KepalaSekolahHome";
 import PersetujuanKurikulum from "./PersetujuanKurikulum";
@@ -49,3 +49,5 @@ const KepalaSekolahDashboard = ({ user, activeMenu, onViewChange }) => {
 };
 
 export default KepalaSekolahDashboard;
+
+

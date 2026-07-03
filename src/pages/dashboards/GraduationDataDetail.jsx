@@ -1,16 +1,11 @@
 import React, { useState } from "react";
 
 const initStudents = [
-  { no:1,nis:"2021001",nama:"Andi Firmansyah",init:"A",color:"bg-[#3B82F6]",nilaiSek:88.5,nilaiUS:84.2,nilaiAkhir:86.4,kehadiran:97,star:true,status:"Lulus",catatan:"" },
-  { no:2,nis:"2021002",nama:"Bunga Melati",init:"B",color:"bg-[#EC4899]",nilaiSek:92.1,nilaiUS:89.0,nilaiAkhir:90.6,kehadiran:99,star:true,status:"Lulus",catatan:"" },
-  { no:3,nis:"2021003",nama:"Candra Wijaya",init:"C",color:"bg-[#3B82F6]",nilaiSek:78.3,nilaiUS:72.5,nilaiAkhir:75.4,kehadiran:90,star:false,status:"Lulus",catatan:"" },
-  { no:4,nis:"2021004",nama:"Desi Rahayu",init:"D",color:"bg-[#EC4899]",nilaiSek:85.0,nilaiUS:80.1,nilaiAkhir:82.6,kehadiran:95,star:false,status:"Lulus",catatan:"" },
-  { no:5,nis:"2021005",nama:"Eko Santoso",init:"E",color:"bg-[#3B82F6]",nilaiSek:60.2,nilaiUS:52.8,nilaiAkhir:56.5,kehadiran:78,star:false,status:"Tidak Lulus",catatan:"Nilai ujian sekolah di baw..." },
-  { no:6,nis:"2021006",nama:"Fitri Handayani",init:"F",color:"bg-[#EC4899]",nilaiSek:90.5,nilaiUS:87.3,nilaiAkhir:88.9,kehadiran:98,star:false,status:"Lulus",catatan:"" },
-  { no:7,nis:"2021007",nama:"Galih Permana",init:"G",color:"bg-[#3B82F6]",nilaiSek:83.7,nilaiUS:79.4,nilaiAkhir:81.6,kehadiran:93,star:false,status:"Lulus",catatan:"" },
-  { no:8,nis:"2021008",nama:"Hana Kusuma",init:"H",color:"bg-[#EC4899]",nilaiSek:95.2,nilaiUS:92.0,nilaiAkhir:93.6,kehadiran:100,star:true,status:"Lulus",catatan:"" },
-  { no:9,nis:"2021009",nama:"Ivan Setiawan",init:"I",color:"bg-[#3B82F6]",nilaiSek:74.1,nilaiUS:68.9,nilaiAkhir:71.5,kehadiran:88,star:false,status:"Lulus",catatan:"" },
-  { no:10,nis:"2021010",nama:"Julia Anggraini",init:"J",color:"bg-[#EC4899]",nilaiSek:87.8,nilaiUS:83.5,nilaiAkhir:85.7,kehadiran:92,star:false,status:"Lulus",catatan:"" },
+  { no:1,nis:"2021001",nama:"Kevin Sanjaya",init:"K",color:"bg-[#3B82F6]",nilaiSek:88.5,nilaiUS:84.2,nilaiAkhir:86.4,kehadiran:97,star:true,status:"Lulus",catatan:"" },
+  { no:2,nis:"2021002",nama:"Larasati Putri",init:"L",color:"bg-[#EC4899]",nilaiSek:92.1,nilaiUS:89.0,nilaiAkhir:90.6,kehadiran:99,star:true,status:"Lulus",catatan:"" },
+  { no:3,nis:"2021003",nama:"Muhamad Rizky",init:"M",color:"bg-[#3B82F6]",nilaiSek:78.3,nilaiUS:72.5,nilaiAkhir:75.4,kehadiran:90,star:false,status:"Lulus",catatan:"" },
+  { no:4,nis:"2021004",nama:"Nadia Salsabila",init:"N",color:"bg-[#EC4899]",nilaiSek:85.0,nilaiUS:80.1,nilaiAkhir:82.6,kehadiran:95,star:false,status:"Lulus",catatan:"" },
+  { no:5,nis:"2021005",nama:"Oka Mahendra",init:"O",color:"bg-[#3B82F6]",nilaiSek:75.2,nilaiUS:72.8,nilaiAkhir:74.0,kehadiran:88,star:false,status:"Lulus",catatan:"" },
 ];
 
 const autoStatusGrad = (s) => {
@@ -23,7 +18,11 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
 
   const [students, setStudents] = useState(() => {
     const saved = localStorage.getItem(storageKey);
-    return saved ? JSON.parse(saved) : initStudents;
+    const ver = localStorage.getItem(`${storageKey}_ver`);
+    if (saved && ver === "1.1") return JSON.parse(saved);
+    localStorage.setItem(`${storageKey}_ver`, "1.1");
+    localStorage.setItem(storageKey, JSON.stringify(initStudents));
+    return initStudents;
   });
   const [tab, setTab] = useState("Semua");
   const [search, setSearch] = useState("");
@@ -69,8 +68,8 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
   const berprestasi = students.filter(s=>s.star).sort((a,b)=>b.nilaiAkhir-a.nilaiAkhir);
   const top3 = [...students].sort((a,b)=>b.nilaiAkhir-a.nilaiAkhir).slice(0,3);
 
-  const clsName = cls?.kelas || "Kelas XII IPA 1";
-  const clsKode = cls?.kode || "XII-IPA-1";
+  const clsName = cls?.kelas || "Kelas IX IPA 1";
+  const clsKode = cls?.kode || "IX-IPA-1";
   const clsWali = cls?.wali || "Ibu Siti Aminah, M.Pd";
 
   return (
@@ -413,3 +412,6 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
 };
 
 export default GraduationDataDetail;
+
+
+

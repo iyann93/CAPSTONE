@@ -3,24 +3,33 @@ import StudentAttendanceInput from "./StudentAttendanceInput";
 import StudentAttendanceRecap from "./StudentAttendanceRecap";
 
 const classData = [
-  { id: 1, name: "X IPA 1", students: 32, tingkat: "Kelas X", jurusan: "IPA", wali: "Ibu Sari Dewi, S.Pd", hadir: 30, sakit: 1, izin: 1, alpha: 0, pct: 94, waktu: "07:45", admin: "Siti Rahayu", status: "Selesai" },
-  { id: 2, name: "X IPA 2", students: 31, tingkat: "Kelas X", jurusan: "IPA", wali: "Bpk. Ahmad Fauzi, M.Pd", hadir: 29, sakit: 2, izin: 0, alpha: 0, pct: 94, waktu: "07:50", admin: "Siti Rahayu", status: "Selesai" },
-  { id: 3, name: "X IPS 1", students: 30, tingkat: "Kelas X", jurusan: "IPS", wali: "Ibu Dewi Anggraini, S.E", hadir: 28, sakit: 0, izin: 1, alpha: 1, pct: 93, waktu: "08:00", admin: "Siti Rahayu", status: "Selesai" },
-  { id: 4, name: "X IPS 2", students: 29, tingkat: "Kelas X", jurusan: "IPS", wali: "Bpk. Budi Hartono, S.Pd", hadir: null, sakit: null, izin: null, alpha: null, pct: null, waktu: null, admin: null, status: "Belum Input" },
-  { id: 5, name: "X Bahasa 1", students: 28, tingkat: "Kelas X", jurusan: "Bahasa", wali: "Ibu Nurdiana, S.Pd", hadir: null, sakit: null, izin: null, alpha: null, pct: null, waktu: null, admin: null, status: "Belum Input" },
-  { id: 6, name: "XI IPA 1", students: 33, tingkat: "Kelas XI", jurusan: "IPA", wali: "Ibu Rani Kusuma, S.Pd", hadir: 31, sakit: 1, izin: 1, alpha: 0, pct: 94, waktu: "07:48", admin: "Siti Rahayu", status: "Selesai" },
-  { id: 7, name: "XI IPA 2", students: 32, tingkat: "Kelas XI", jurusan: "IPA", wali: "Bpk. Hendra Wijaya, M.Si", hadir: 30, sakit: 0, izin: 2, alpha: 0, pct: 94, waktu: "07:55", admin: "Siti Rahayu", status: "Selesai" },
-  { id: 8, name: "XI IPS 1", students: 30, tingkat: "Kelas XI", jurusan: "IPS", wali: "Ibu Maya Sari, S.Pd", hadir: null, sakit: null, izin: null, alpha: null, pct: null, waktu: null, admin: null, status: "Belum Input" },
-  { id: 9, name: "XI IPS 2", students: 31, tingkat: "Kelas XI", jurusan: "IPS", wali: "Bpk. Agus Santoso, S.E", hadir: 29, sakit: 1, izin: 1, alpha: 0, pct: 94, waktu: "08:02", admin: "Siti Rahayu", status: "Selesai" },
-  { id: 10, name: "XII IPA 1", students: 28, tingkat: "Kelas XII", jurusan: "IPA", wali: "Ibu Siti Aminah, M.Pd", hadir: 27, sakit: 1, izin: 0, alpha: 0, pct: 96, waktu: "07:42", admin: "Siti Rahayu", status: "Selesai" },
-  { id: 11, name: "XII IPA 2", students: 30, tingkat: "Kelas XII", jurusan: "IPA", wali: "Bpk. Budi Setiawan, S.Pd", hadir: null, sakit: null, izin: null, alpha: null, pct: null, waktu: null, admin: null, status: "Belum Input" },
-  { id: 12, name: "XII IPS 1", students: 29, tingkat: "Kelas XII", jurusan: "IPS", wali: "Ibu Retno Wulandari, S.Pd", hadir: 28, sakit: 0, izin: 1, alpha: 0, pct: 97, waktu: "07:58", admin: "Siti Rahayu", status: "Selesai" },
+  { id: 1, name: "VII IPA 1", students: 32, tingkat: "Kelas VII", jurusan: "IPA", wali: "Ibu Sari Dewi, S.Pd", hadir: 30, sakit: 1, izin: 1, alpha: 0, pct: 94, waktu: "07:45", admin: "Siti Rahayu", status: "Selesai" },
+  { id: 2, name: "VII IPA 2", students: 31, tingkat: "Kelas VII", jurusan: "IPA", wali: "Bpk. Ahmad Fauzi, M.Pd", hadir: 29, sakit: 2, izin: 0, alpha: 0, pct: 94, waktu: "07:50", admin: "Siti Rahayu", status: "Selesai" },
+  { id: 3, name: "VII IPS 1", students: 30, tingkat: "Kelas VII", jurusan: "IPS", wali: "Ibu Dewi Anggraini, S.E", hadir: 28, sakit: 0, izin: 1, alpha: 1, pct: 93, waktu: "08:00", admin: "Siti Rahayu", status: "Selesai" },
+  { id: 4, name: "VII IPS 2", students: 29, tingkat: "Kelas VII", jurusan: "IPS", wali: "Bpk. Budi Hartono, S.Pd", hadir: null, sakit: null, izin: null, alpha: null, pct: null, waktu: null, admin: null, status: "Belum Input" },
+  { id: 5, name: "VII Bahasa 1", students: 28, tingkat: "Kelas VII", jurusan: "Bahasa", wali: "Ibu Nurdiana, S.Pd", hadir: null, sakit: null, izin: null, alpha: null, pct: null, waktu: null, admin: null, status: "Belum Input" },
+  { id: 6, name: "VIII IPA 1", students: 33, tingkat: "Kelas VIII", jurusan: "IPA", wali: "Ibu Rani Kusuma, S.Pd", hadir: 31, sakit: 1, izin: 1, alpha: 0, pct: 94, waktu: "07:48", admin: "Siti Rahayu", status: "Selesai" },
+  { id: 7, name: "VIII IPA 2", students: 32, tingkat: "Kelas VIII", jurusan: "IPA", wali: "Bpk. Hendra Wijaya, M.Si", hadir: 30, sakit: 0, izin: 2, alpha: 0, pct: 94, waktu: "07:55", admin: "Siti Rahayu", status: "Selesai" },
+  { id: 8, name: "VIII IPS 1", students: 30, tingkat: "Kelas VIII", jurusan: "IPS", wali: "Ibu Maya Sari, S.Pd", hadir: null, sakit: null, izin: null, alpha: null, pct: null, waktu: null, admin: null, status: "Belum Input" },
+  { id: 9, name: "VIII IPS 2", students: 31, tingkat: "Kelas VIII", jurusan: "IPS", wali: "Bpk. Agus Santoso, S.E", hadir: 29, sakit: 1, izin: 1, alpha: 0, pct: 94, waktu: "08:02", admin: "Siti Rahayu", status: "Selesai" },
+  { id: 10, name: "IX IPA 1", students: 28, tingkat: "Kelas IX", jurusan: "IPA", wali: "Ibu Siti Aminah, M.Pd", hadir: 27, sakit: 1, izin: 0, alpha: 0, pct: 96, waktu: "07:42", admin: "Siti Rahayu", status: "Selesai" },
+  { id: 11, name: "IX IPA 2", students: 30, tingkat: "Kelas IX", jurusan: "IPA", wali: "Bpk. Budi Setiawan, S.Pd", hadir: null, sakit: null, izin: null, alpha: null, pct: null, waktu: null, admin: null, status: "Belum Input" },
+  { id: 12, name: "IX IPS 1", students: 29, tingkat: "Kelas IX", jurusan: "IPS", wali: "Ibu Retno Wulandari, S.Pd", hadir: 28, sakit: 0, izin: 1, alpha: 0, pct: 97, waktu: "07:58", admin: "Siti Rahayu", status: "Selesai" },
 ];
 
 const StudentAttendance = () => {
   const [classes, setClasses] = useState(() => {
     const saved = localStorage.getItem('attendance_classes');
-    return saved ? JSON.parse(saved) : classData;
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      const hasOldData = parsed.some(s => {
+        if (!s.name) return false;
+        const n = s.name.toUpperCase();
+        return n.startsWith("X ") || n.startsWith("XI ") || n.startsWith("XII ");
+      });
+      if (!hasOldData) return parsed;
+    }
+    return classData;
   });
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -229,7 +238,7 @@ const StudentAttendance = () => {
               </div>
             </div>
 
-            {/* X Axis labels */}
+            {/* VII Axis labels */}
             <div className="flex justify-around pl-8 text-[12px] text-gray-500 font-medium pt-3">
               <span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sen</span>
             </div>
@@ -295,7 +304,7 @@ const StudentAttendance = () => {
       <div className="bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-hidden flex flex-col">
         <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex bg-gray-100 p-1 rounded-xl">
-            {["Semua Kelas", "Kelas X", "Kelas XI", "Kelas XII"].map((tab) => (
+            {["Semua Kelas", "Kelas VII", "Kelas VIII", "Kelas IX"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -448,3 +457,6 @@ const StudentAttendance = () => {
 };
 
 export default StudentAttendance;
+
+
+

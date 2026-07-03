@@ -7,21 +7,24 @@ const Semester = () => {
 
   const [semesters, setSemesters] = useState(() => {
     const saved = localStorage.getItem("semesters_data");
-    if (saved) {
+    const version = localStorage.getItem("semesters_data_version");
+    if (saved && version === "smp_v1") {
       try { return JSON.parse(saved); } catch(e){}
     }
+    localStorage.setItem("semesters_data_version", "smp_v1");
     return [
-      { name: "Ganjil 2023/2024", id: "SMT-2023-1", year: "2023/2024", start: "17 Jul 2023", end: "22 Des 2023", students: "1,248", classes: "32", status: "Aktif" },
-      { name: "Genap 2022/2023", id: "SMT-2022-2", year: "2022/2023", start: "9 Jan 2023", end: "16 Jun 2023", students: "1,190", classes: "31", status: "Selesai" },
-      { name: "Ganjil 2022/2023", id: "SMT-2022-1", year: "2022/2023", start: "18 Jul 2022", end: "23 Des 2022", students: "1,190", classes: "31", status: "Selesai" },
-      { name: "Genap 2021/2022", id: "SMT-2021-2", year: "2021/2022", start: "10 Jan 2022", end: "17 Jun 2022", students: "1,145", classes: "30", status: "Selesai" },
-      { name: "Ganjil 2021/2022", id: "SMT-2021-1", year: "2021/2022", start: "19 Jul 2021", end: "24 Des 2021", students: "1,145", classes: "30", status: "Selesai" },
-      { name: "Genap 2020/2021", id: "SMT-2020-2", year: "2020/2021", start: "11 Jan 2021", end: "18 Jun 2021", students: "1,102", classes: "29", status: "Selesai" }
+      { name: "Ganjil 2023/2024", id: "SMT-2023-1", year: "2023/2024", start: "17 Jul 2023", end: "22 Des 2023", students: "15", classes: "3", status: "Aktif" },
+      { name: "Genap 2022/2023", id: "SMT-2022-2", year: "2022/2023", start: "9 Jan 2023", end: "16 Jun 2023", students: "15", classes: "3", status: "Selesai" },
+      { name: "Ganjil 2022/2023", id: "SMT-2022-1", year: "2022/2023", start: "18 Jul 2022", end: "23 Des 2022", students: "15", classes: "3", status: "Selesai" },
+      { name: "Genap 2021/2022", id: "SMT-2021-2", year: "2021/2022", start: "10 Jan 2022", end: "17 Jun 2022", students: "15", classes: "3", status: "Selesai" },
+      { name: "Ganjil 2021/2022", id: "SMT-2021-1", year: "2021/2022", start: "19 Jul 2021", end: "24 Des 2021", students: "15", classes: "3", status: "Selesai" },
+      { name: "Genap 2020/2021", id: "SMT-2020-2", year: "2020/2021", start: "11 Jan 2021", end: "18 Jun 2021", students: "15", classes: "3", status: "Selesai" }
     ];
   });
 
   React.useEffect(() => {
     localStorage.setItem("semesters_data", JSON.stringify(semesters));
+    localStorage.setItem("semesters_data_version", "smp_v1");
   }, [semesters]);
 
   const [addForm, setAddForm] = useState({
@@ -77,7 +80,7 @@ const Semester = () => {
       <div className="p-6 md:p-8 animate-fadeIn space-y-6 bg-[#F4F6FA] min-h-full">
         {/* Breadcrumb */}
         <div className="text-[13px] text-gray-500 font-medium mb-2">
-          Dashboard <span className="mx-2">›</span> Kelola Akademik <span className="mx-2">›</span> <span className="cursor-pointer hover:text-[#1A3D63] hover:underline" onClick={() => setView("list")}>Semester</span> <span className="mx-2">›</span> <span className="text-[#1A3D63] font-semibold">Tambah Baru</span>
+          Dashboard <span className="mx-2">&rsaquo;</span> Kelola Akademik <span className="mx-2">&rsaquo;</span> <span className="cursor-pointer hover:text-[#1A3D63] hover:underline" onClick={() => setView("list")}>Semester</span> <span className="mx-2">&rsaquo;</span> <span className="text-[#1A3D63] font-semibold">Tambah Baru</span>
         </div>
 
         {/* Header */}
@@ -411,7 +414,7 @@ const Semester = () => {
         {/* Page Header */}
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
           <div>
-            <div className="text-[13px] font-medium text-gray-500 mb-1">Dashboard <span className="mx-2">›</span> Kelola Akademik <span className="mx-2">›</span> <span className="text-[#1e293b] font-bold">Semester</span></div>
+            <div className="text-[13px] font-medium text-gray-500 mb-1">Dashboard <span className="mx-2">&rsaquo;</span> Kelola Akademik <span className="mx-2">&rsaquo;</span> <span className="text-[#1e293b] font-bold">Semester</span></div>
             <h1 className="text-[26px] font-bold text-[#1e293b] leading-tight mt-1">Manajemen Semester</h1>
             <p className="text-[14px] text-gray-500 mt-1">Kelola tahun ajaran dan semester aktif yang berlaku di sekolah.</p>
           </div>
@@ -560,7 +563,7 @@ const Semester = () => {
                   <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">TAHUN AJARAN</th>
                   <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">PERIODE</th>
                   <th className="px-6 py-4 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider">SISWA</th>
-                  <th className="px-6 py-4 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider">KELAS</th>
+                  <th className="px-6 py-4 text-center text-[11px] font-bold text-gray-500 uppercase tracking-wider">JML. ROMBEL</th>
                   <th className="px-6 py-4 text-left text-[11px] font-bold text-gray-500 uppercase tracking-wider">STATUS</th>
                   <th className="px-6 py-4 text-right text-[11px] font-bold text-gray-500 uppercase tracking-wider">AKSI</th>
                 </tr>
@@ -588,8 +591,8 @@ const Semester = () => {
                       <div className="text-[13px] text-[#1e293b] font-semibold">{item.start}</div>
                       <div className="text-[11px] text-gray-400 mt-0.5">s/d {item.end}</div>
                     </td>
-                    <td className="px-6 py-4 text-center text-[14px] text-gray-600 font-semibold">{item.students}</td>
-                    <td className="px-6 py-4 text-center text-[14px] text-gray-600 font-semibold">{item.classes}</td>
+                    <td className="px-6 py-4 text-center text-[14px] text-gray-600 font-semibold">{item.students} Siswa</td>
+                    <td className="px-6 py-4 text-center text-[14px] text-gray-600 font-semibold">{item.classes} Kelas</td>
                     <td className="px-6 py-4">
                       {item.status === 'Aktif' ? (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-bold bg-[#ECFDF5] text-[#059669]">
@@ -679,8 +682,8 @@ const SemesterEdit = ({ setView, initialData, onSave }) => {
     start: "17 Jul 2023",
     end: "22 Des 2023",
     status: "Aktif",
-    students: 1248,
-    classes: 32
+    students: 15,
+    classes: 3
   });
 
   return (
@@ -689,7 +692,7 @@ const SemesterEdit = ({ setView, initialData, onSave }) => {
       <div className="flex flex-col md:flex-row justify-between md:items-start gap-4">
         <div>
           <div className="text-[13px] text-gray-500 font-medium mb-2">
-            Dashboard <span className="mx-2">›</span> Kelola Akademik <span className="mx-2">›</span> <span className="cursor-pointer hover:text-[#1A3D63] hover:underline" onClick={() => setView("list")}>Semester</span> <span className="mx-2">›</span> <span className="text-[#1A3D63] font-semibold">Edit</span>
+            Dashboard <span className="mx-2">&rsaquo;</span> Kelola Akademik <span className="mx-2">&rsaquo;</span> <span className="cursor-pointer hover:text-[#1A3D63] hover:underline" onClick={() => setView("list")}>Semester</span> <span className="mx-2">&rsaquo;</span> <span className="text-[#1A3D63] font-semibold">Edit</span>
           </div>
           <div className="flex items-center gap-3 mt-1">
             <h1 className="text-[26px] font-bold text-[#1e293b]">Edit Semester</h1>
@@ -1031,7 +1034,7 @@ const SemesterDetail = ({ setView }) => {
       <div className="flex flex-col md:flex-row justify-between md:items-start gap-4">
         <div>
           <div className="text-[13px] text-gray-500 font-medium mb-2">
-            Dashboard <span className="mx-2">›</span> Kelola Akademik <span className="mx-2">›</span> <span className="cursor-pointer hover:text-[#1A3D63] hover:underline" onClick={() => setView("list")}>Semester</span> <span className="mx-2">›</span> <span className="text-[#1A3D63] font-semibold">Detail</span>
+            Dashboard <span className="mx-2">&rsaquo;</span> Kelola Akademik <span className="mx-2">&rsaquo;</span> <span className="cursor-pointer hover:text-[#1A3D63] hover:underline" onClick={() => setView("list")}>Semester</span> <span className="mx-2">&rsaquo;</span> <span className="text-[#1A3D63] font-semibold">Detail</span>
           </div>
           <div className="flex items-center gap-3 mt-1">
             <h1 className="text-[26px] font-bold text-[#1e293b]">Ganjil 2023/2024</h1>
@@ -1192,7 +1195,7 @@ const SemesterDetail = ({ setView }) => {
             </div>
             <div className="p-6 space-y-6">
               <div className="flex items-center gap-4">
-                <div className="w-20 text-[13px] font-bold text-[#1e293b]">Kelas X</div>
+                <div className="w-20 text-[13px] font-bold text-[#1e293b]">Kelas VII</div>
                 <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden flex">
                   <div className="h-full bg-[#1A3D63]" style={{ width: '35%' }}></div>
                 </div>
@@ -1200,7 +1203,7 @@ const SemesterDetail = ({ setView }) => {
                 <div className="w-16 text-right text-[12px] text-gray-500">11 kelas</div>
               </div>
               <div className="flex items-center gap-4">
-                <div className="w-20 text-[13px] font-bold text-[#1e293b]">Kelas XI</div>
+                <div className="w-20 text-[13px] font-bold text-[#1e293b]">Kelas VIII</div>
                 <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden flex">
                   <div className="h-full bg-[#8B5CF6]" style={{ width: '33%' }}></div>
                 </div>
@@ -1208,7 +1211,7 @@ const SemesterDetail = ({ setView }) => {
                 <div className="w-16 text-right text-[12px] text-gray-500">11 kelas</div>
               </div>
               <div className="flex items-center gap-4">
-                <div className="w-20 text-[13px] font-bold text-[#1e293b]">Kelas XII</div>
+                <div className="w-20 text-[13px] font-bold text-[#1e293b]">Kelas IX</div>
                 <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden flex">
                   <div className="h-full bg-[#10B981]" style={{ width: '32%' }}></div>
                 </div>
@@ -1423,3 +1426,6 @@ const SemesterDetail = ({ setView }) => {
 };
 
 export default Semester;
+
+
+

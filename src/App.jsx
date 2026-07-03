@@ -159,7 +159,7 @@ const App = () => {
     const roleStr = user.role ? user.role.trim().toLowerCase() : "";
 
     if (roleStr === "admin tu" || roleStr === "admin") {
-      return <AdminTUDashboard user={user} activeMenu={activeMenu} />;
+      return <AdminTUDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
     } else if (roleStr === "super admin") {
       return <SuperAdminDashboard user={user} activeMenu={activeMenu} />;
     } else if (roleStr === "bendahara") {
