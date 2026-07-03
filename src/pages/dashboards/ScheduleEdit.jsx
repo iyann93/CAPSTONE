@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 
 const ScheduleEdit = ({ setView, handleEdit, handleDelete, currentSchedule }) => {
   const [selectedDay, setSelectedDay] = useState(currentSchedule?.day || "Senin");
@@ -10,6 +10,23 @@ const ScheduleEdit = ({ setView, handleEdit, handleDelete, currentSchedule }) =>
     teacher: currentSchedule?.teacher || "",
     room: currentSchedule?.room || "",
   });
+
+  // Ambil semester aktif dari localStorage secara dinamis (re-read on mount)
+  const [activeSemesterName, setActiveSemesterName] = useState(
+    currentSchedule?.semester || "Ganjil 2023/2024"
+  );
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("semesters_data");
+      if (saved) {
+        const list = JSON.parse(saved);
+        const active = list.find(s => s.status === "Aktif");
+        if (active) { setActiveSemesterName(active.name); return; }
+      }
+    } catch (e) {
+      console.error("Failed to parse semesters_data from localStorage", e);
+    }
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -205,7 +222,8 @@ const ScheduleEdit = ({ setView, handleEdit, handleDelete, currentSchedule }) =>
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-4">Semester</h3>
             <div>
               <label className="block text-[13px] font-bold text-gray-700 mb-2">Tahun Ajaran & Semester</label>
-              <input type="text" defaultValue="Ganjil 2023/2024" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-[#F8FAFC] text-gray-500" />
+              <input type="text" value={activeSemesterName} readOnly
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none bg-[#F8FAFC] text-gray-500 font-bold" />
             </div>
           </div>
 
@@ -244,7 +262,7 @@ const ScheduleEdit = ({ setView, handleEdit, handleDelete, currentSchedule }) =>
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-4">Pratinjau Jadwal</h3>
             <div className="bg-[#EFF6FF] border border-[#BFDBFE] rounded-2xl p-5 text-[#1e3a8a]">
               <div className="text-[13px] font-bold flex items-center justify-between">
-                <span>X IPA 1 · Ganjil 2023/2024</span>
+                <span>{formData.class || 'Kelas'} · {activeSemesterName}</span>
               </div>
               <div className="space-y-2 mt-4">
                 <div className="flex items-center gap-2 text-[12px] font-medium text-blue-800">

@@ -12,9 +12,9 @@ const pool = new Pool({
 });
 
 async function test() {
-  const r = await pool.query("SELECT email, full_name FROM shared.users ORDER BY created_at LIMIT 20");
+  const r = await pool.query("SELECT email, nama FROM shared.users ORDER BY created_at");
   console.log('All users:');
-  r.rows.forEach(u => console.log(' -', u.email, '|', u.full_name));
+  r.rows.forEach(u => console.log(' -', u.email, '|', u.nama));
   process.exit(0);
 }
 test().catch(e => { console.log('ERR:', e.message); process.exit(1); });

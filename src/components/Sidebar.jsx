@@ -162,6 +162,13 @@ const menuSections = [
     roles: ["Bendahara"]
   },
   {
+    section: "OPERASIONAL",
+    items: [
+      { label: "Pengeluaran Operasional", icon: <WalletIcon /> }
+    ],
+    roles: ["Bendahara"]
+  },
+  {
     section: "LAPORAN",
     items: [
       { label: "Cetak Laporan Keuangan", icon: <FileChartIcon /> }

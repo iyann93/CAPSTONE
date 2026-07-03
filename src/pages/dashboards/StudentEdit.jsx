@@ -57,9 +57,7 @@ const StudentEdit = ({ student, onBack, onSave, onDelete }) => {
       .substring(0, 2)
       .toUpperCase();
 
-    // Find ID from classes list
-    const foundClass = classes.find(c => c.nama_kelas.toLowerCase() === formData.kelas.toLowerCase().trim());
-    const matchedKelasId = foundClass ? foundClass.id : student.kelas_id;
+    const matchedKelasId = formData.kelas_id || student.kelas_id;
 
     const updatedStudent = {
       ...student,
@@ -242,13 +240,21 @@ const StudentEdit = ({ student, onBack, onSave, onDelete }) => {
               <div className="space-y-2">
                 <label className="text-[13px] font-bold text-gray-700">Kelas<span className="text-red-500">*</span></label>
                 <select 
-                  value={formData.kelas}
-                  onChange={(e) => setFormData({ ...formData, kelas: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-[14px] text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-colors bg-white"
+                  value={formData.kelas_id || ""}
+                  onChange={(e) => {
+                    const selectedId = e.target.value;
+                    const found = classes.find(c => c.id === selectedId);
+                    setFormData({ 
+                      ...formData, 
+                      kelas_id: selectedId,
+                      kelas: found ? found.nama_kelas : "" 
+                    });
+                  }}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-[14px] text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-colors bg-white appearance-none"
                 >
                   <option value="">Pilih Kelas</option>
-                  {classes.map((c) => (
-                    <option key={c.id} value={c.nama_kelas}>{c.nama_kelas}</option>
+                  {classes.map(c => (
+                    <option key={c.id} value={c.id}>{c.nama_kelas}</option>
                   ))}
                 </select>
               </div>

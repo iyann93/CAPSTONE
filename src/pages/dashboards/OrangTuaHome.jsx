@@ -22,7 +22,7 @@ const OrangTuaHome = ({ user, onNavigate }) => {
     kelas: user?.anak?.kelas || "-",
     nisn: user?.anak?.nisn || "-",
     tahunAjaran: "2025/2026",
-    wali: user?.anak?.wali ? `Bapak/Ibu ${user.anak.wali}` : "Ibu Dewi Rahayu, S.Pd",
+    wali: user?.anak?.wali ? user.anak.wali : "Dewi Rahayu, S.Pd",
     avatar: user?.anak?.nama ? user.anak.nama.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() : "SW",
   };
 
@@ -101,7 +101,7 @@ const OrangTuaHome = ({ user, onNavigate }) => {
         <div>
           <h1 className="text-[26px] font-bold text-[#1e293b]">Selamat Datang! 👋</h1>
           <p className="text-[14px] text-gray-500 mt-1">
-            {user?.fullName || "Bapak/Ibu Orang Tua"} · Pantau perkembangan putra/putri Anda
+            {user?.fullName || "Orang Tua"} · Pantau perkembangan putra/putri Anda
           </p>
         </div>
         <div className="flex items-center gap-2 text-[13px] text-gray-400">

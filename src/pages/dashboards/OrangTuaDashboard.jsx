@@ -37,7 +37,7 @@ const OrangTuaDashboard = ({ user, activeMenu, onViewChange }) => {
       return <BeasiswaSiswa user={user} />;
     
     case "Pengumuman Sekolah":
-      return <PengumumanSekolah />;
+      return <PengumumanSekolah user={user} />;
 
     case "Data Orang Tua":
       return <ParentData readOnly={true} />;
