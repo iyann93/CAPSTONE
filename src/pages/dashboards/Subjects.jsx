@@ -1,340 +1,331 @@
-import React, { useState } from "react";
-import SubjectForm from "./SubjectForm";
-import SubjectDetail from "./SubjectDetail";
+import React, { useState, useEffect } from "react";
+import api from "../../api/axios";
 
+const KELOMPOK_COLORS = {
+  "Wajib":         "bg-slate-100 text-slate-700",
+  "IPA":           "bg-blue-50 text-blue-700",
+  "IPS":           "bg-orange-50 text-orange-700",
+  "Muatan Lokal":  "bg-purple-50 text-purple-700",
+  "Lintas Minat":  "bg-green-50 text-green-700",
+};
+
+const KELOMPOK_LIST = ["Wajib", "IPA", "IPS", "Muatan Lokal", "Lintas Minat"];
+const TINGKAT_LIST  = ["VII", "VIII", "IX", "X", "XI", "XII"];
+
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
+const Skeleton = () => (
+  <tbody>
+    {[...Array(6)].map((_, i) => (
+      <tr key={i} className="border-b border-gray-50">
+        {[...Array(7)].map((__, j) => (
+          <td key={j} className="px-6 py-4">
+            <div className="h-4 bg-gray-100 rounded animate-pulse" />
+          </td>
+        ))}
+      </tr>
+    ))}
+  </tbody>
+);
+
+// ─── Modal Form ───────────────────────────────────────────────────────────────
+const MapelModal = ({ data, onClose, onSave }) => {
+  const [form, setForm] = useState(data || {
+    kode: "", nama: "", kelompok: "Wajib", kkm: 75, jumlah_jam: 2, tingkat: "X,XI,XII"
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.kode || !form.nama) { setError("Kode dan Nama wajib diisi."); return; }
+    setSaving(true);
+    try {
+      if (data?.id) {
+        await api.put(`/mapel/${data.id}`, {
+          kode: form.kode, nama: form.nama, kelompok: form.kelompok,
+          kkm: parseInt(form.kkm), jumlah_jam: parseInt(form.jumlah_jam), tingkat: form.tingkat
+        });
+      } else {
+        await api.post("/mapel", {
+          kode: form.kode, nama: form.nama, kelompok: form.kelompok,
+          kkm: parseInt(form.kkm), jumlah_jam: parseInt(form.jumlah_jam), tingkat: form.tingkat
+        });
+      }
+      onSave();
+    } catch (err) {
+      setError(err?.response?.data?.message || "Gagal menyimpan data.");
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-gray-900/50 p-4 overflow-y-auto">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-lg relative my-8">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white rounded-t-xl z-10">
+          <h2 className="text-lg font-bold text-gray-800">
+            {data?.id ? "Edit Mata Pelajaran" : "Tambah Mata Pelajaran"}
+          </h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 p-2 rounded-lg transition-colors">
+            ✕
+          </button>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">{error}</div>}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Kode <span className="text-red-500">*</span></label>
+              <input value={form.kode} onChange={e => setForm({...form, kode: e.target.value})} placeholder="cth: MTK" maxLength={20} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" required />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Kelompok</label>
+              <select value={form.kelompok} onChange={e => setForm({...form, kelompok: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
+                {KELOMPOK_LIST.map(k => <option key={k}>{k}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Nama Mata Pelajaran <span className="text-red-500">*</span></label>
+            <input value={form.nama} onChange={e => setForm({...form, nama: e.target.value})} placeholder="cth: Matematika" className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" required />
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Jenjang / Tingkat</label>
+            <div className="flex flex-wrap gap-2">
+              {TINGKAT_LIST.map(t => {
+                const active = (form.tingkat || "").split(",").map(x => x.trim()).includes(t);
+                return (
+                  <button key={t} type="button" onClick={() => {
+                    const curr = (form.tingkat || "").split(",").map(x => x.trim()).filter(Boolean);
+                    setForm({...form, tingkat: (active ? curr.filter(x => x !== t) : [...curr, t]).join(",")});
+                  }} className={`px-3 py-1.5 rounded-md text-sm font-medium border ${active ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"}`}>
+                    Kelas {t}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">KKM</label>
+              <input type="number" min={0} max={100} value={form.kkm} onChange={e => setForm({...form, kkm: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Jam / Minggu</label>
+              <input type="number" min={1} max={10} value={form.jumlah_jam} onChange={e => setForm({...form, jumlah_jam: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+            <button type="button" onClick={onClose} className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium">Batal</button>
+            <button type="submit" disabled={saving} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50">
+              {saving ? "Menyimpan..." : "Simpan"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// ─── Komponen Utama ───────────────────────────────────────────────────────────
 const Subjects = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [viewMode, setViewMode] = useState("list");
-  const [selectedSubject, setSelectedSubject] = useState(null);
+  const [subjects, setSubjects]       = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [searchTerm, setSearchTerm]   = useState("");
+  const [filterKelompok, setFilterKelompok] = useState("");
+  const [filterTingkat, setFilterTingkat]   = useState("");
+  const [modal, setModal]             = useState(null); // null | { data }
+  const [toast, setToast]             = useState(null);
 
-  const [subjects, setSubjects] = useState(() => {
-    const saved = localStorage.getItem("subjects_data");
-    if (saved) {
-      try { return JSON.parse(saved); } catch(e){}
+  const showToast = (msg, type = "success") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const fetchMapel = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get("/mapel?limit=100");
+      setSubjects(res.data.data || []);
+    } catch (err) {
+      console.error("Gagal memuat mapel", err);
+    } finally { setLoading(false); }
+  };
+
+  useEffect(() => { fetchMapel(); }, []);
+
+  const handleDelete = async (id, nama) => {
+    if (!window.confirm(`Hapus mata pelajaran "${nama}"?`)) return;
+    try {
+      await api.delete(`/mapel/${id}`);
+      showToast("Mata pelajaran berhasil dihapus.");
+      fetchMapel();
+    } catch (err) {
+      showToast("Gagal menghapus.", "error");
     }
-    return [
-      { code: "MTK", name: "Matematika", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 4, teacher: "Drs. Hendra, M.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-      { code: "BIN", name: "Bahasa Indonesia", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 4, teacher: "Ibu Nuraini, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-      { code: "BIG", name: "Bahasa Inggris", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 3, teacher: "Mr. Andrian, M.A.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-      { code: "FIS", name: "Fisika", group: "IPA", groupColor: "bg-emerald-50 text-emerald-600", levels: "X, XI, XII", hours: 4, teacher: "Ibu Sari, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-      { code: "KIM", name: "Kimia", group: "IPA", groupColor: "bg-emerald-50 text-emerald-600", levels: "X, XI, XII", hours: 4, teacher: "Bpk. Rudi, M.Si.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-      { code: "BIO", name: "Biologi", group: "IPA", groupColor: "bg-emerald-50 text-emerald-600", levels: "X, XI, XII", hours: 4, teacher: "Ibu Dewi, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-      { code: "EKO", name: "Ekonomi", group: "IPS", groupColor: "bg-orange-50 text-orange-500", levels: "X, XI, XII", hours: 4, teacher: "Ibu Kartika, S.E.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-      { code: "SEJ", name: "Sejarah", group: "IPS", groupColor: "bg-orange-50 text-orange-500", levels: "X, XI, XII", hours: 3, teacher: "Bpk. Suherman, M.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-      { code: "SOS", name: "Sosiologi", group: "IPS", groupColor: "bg-orange-50 text-orange-500", levels: "XI, XII", hours: 3, teacher: "Ibu Ratna, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-      { code: "GEO", name: "Geografi", group: "IPS", groupColor: "bg-orange-50 text-orange-500", levels: "X, XI, XII", hours: 3, teacher: "Bpk. Wahyu, M.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-      { code: "PKN", name: "PKn", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 2, teacher: "Ibu Marlina, S.Pd.", status: "Aktif", statusColor: "text-emerald-500", dotColor: "bg-emerald-500" },
-      { code: "PJK", name: "Penjaskes", group: "Wajib", groupColor: "bg-gray-100 text-gray-600", levels: "X, XI, XII", hours: 2, teacher: "Bpk. Eko, S.Pd.", status: "Nonaktif", statusColor: "text-gray-400", dotColor: "bg-gray-300" },
-    ];
+  };
+
+  const handleSave = () => {
+    setModal(null);
+    fetchMapel();
+    showToast("Data berhasil disimpan.");
+  };
+
+  const filtered = subjects.filter(s => {
+    const q = searchTerm.toLowerCase();
+    const matchSearch = (s.nama || "").toLowerCase().includes(q) || (s.kode || "").toLowerCase().includes(q);
+    const matchKelompok = filterKelompok ? s.kelompok === filterKelompok : true;
+    const matchTingkat  = filterTingkat  ? (s.tingkat || "").includes(filterTingkat) : true;
+    return matchSearch && matchKelompok && matchTingkat;
   });
 
-  React.useEffect(() => {
-    localStorage.setItem("subjects_data", JSON.stringify(subjects));
-  }, [subjects]);
-
-  const handleSaveSubject = (data) => {
-    const groupColors = {
-      "Wajib": "bg-gray-100 text-gray-600",
-      "IPA": "bg-emerald-50 text-emerald-600",
-      "IPS": "bg-orange-50 text-orange-500",
-      "Lintas Minat": "bg-purple-50 text-purple-600",
-    };
-    
-    const newSubject = {
-      code: data.kode,
-      name: data.nama,
-      group: data.kelompok,
-      groupColor: groupColors[data.kelompok] || "bg-gray-100 text-gray-600",
-      levels: data.jenjang.map(l => l.replace("Kelas ", "")).join(", "),
-      hours: data.jam,
-      teacher: data.guru ? data.guru.name : "Belum Ditentukan",
-      status: data.aktif ? "Aktif" : "Nonaktif",
-      statusColor: data.aktif ? "text-emerald-500" : "text-gray-400",
-      dotColor: data.aktif ? "bg-emerald-500" : "bg-gray-300"
-    };
-
-    if (viewMode === "add") {
-      setSubjects(prev => [newSubject, ...prev]);
-    } else {
-      setSubjects(prev => prev.map(s => s.code === selectedSubject.kode ? newSubject : s));
-    }
-    setViewMode("list");
-  };
-
-  const handleDeleteSubject = (code) => {
-    if(window.confirm("Apakah Anda yakin ingin menghapus mata pelajaran ini?")) {
-      setSubjects(prev => prev.filter(s => s.code !== code));
-      setViewMode("list");
-    }
-  };
-
-  if (viewMode === "add" || viewMode === "edit") {
-    return (
-      <div className="p-6 md:p-8 bg-[#F4F6FA] min-h-full">
-        <SubjectForm 
-          mode={viewMode} 
-          initialData={selectedSubject} 
-          onBack={() => {
-            setViewMode("list");
-            setSelectedSubject(null);
-          }}
-          onSave={handleSaveSubject}
-          onDelete={handleDeleteSubject}
-        />
-      </div>
-    );
-  }
-
-  if (viewMode === "detail") {
-    return (
-      <div className="p-6 md:p-8 bg-[#F4F6FA] min-h-full">
-        <SubjectDetail 
-          data={selectedSubject} 
-          onBack={() => {
-            setViewMode("list");
-            setSelectedSubject(null);
-          }}
-          onEdit={() => setViewMode("edit")}
-        />
-      </div>
-    );
-  }
+  const totalJam = subjects.reduce((acc, s) => acc + (Number(s.jumlah_jam) || 0), 0);
 
   return (
     <div className="p-6 md:p-8 animate-fadeIn space-y-6 bg-[#F4F6FA] min-h-full">
-      {/* Header section */}
+      {/* Toast */}
+      {toast && (
+        <div className={`fixed top-5 right-5 z-50 px-5 py-3 rounded-xl shadow-lg text-[13px] font-semibold text-white ${toast.type === "error" ? "bg-red-500" : "bg-emerald-500"}`}>
+          {toast.msg}
+        </div>
+      )}
+
+      {/* Modal */}
+      {modal && <MapelModal data={modal.data} onClose={() => setModal(null)} onSave={handleSave} />}
+
+      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <div className="text-[13px] font-medium text-gray-400 mb-1">
-            Dashboard <span className="mx-1">&gt;</span> Kelola Akademik <span className="mx-1">&gt;</span> <span className="text-gray-600 font-bold">Mata Pelajaran</span>
+            Dashboard <span className="mx-1">&gt;</span> Kelola Akademik <span className="mx-1">&gt;</span>
+            <span className="text-gray-600 font-bold">Mata Pelajaran</span>
           </div>
           <h1 className="text-[26px] font-bold text-[#1e293b]">Mata Pelajaran</h1>
           <p className="text-gray-500 text-[14px] mt-1">
-            Kelola daftar mata pelajaran, alokasi jam, dan penugasan guru pengampu.
+            Kelola daftar mata pelajaran SMP–SMA, alokasi jam, dan kelompok pelajaran.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:bg-gray-50 transition-all">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            Ekspor Daftar
-          </button>
-          <button 
-            onClick={() => {
-              setSelectedSubject(null);
-              setViewMode("add");
-            }}
-            className="flex items-center gap-2 bg-[#1e293b] text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-md hover:bg-[#0f172a] transition-all"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            Tambah Mata Pelajaran
-          </button>
-        </div>
+        <button
+          onClick={() => setModal({ data: null })}
+          className="flex items-center gap-2 bg-[#1A3D63] hover:bg-[#122A44] text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-md transition-all"
+        >
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Tambah Mata Pelajaran
+        </button>
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-5">
-        {/* Card 1 */}
-        <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
-          <div>
-            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Mata Pelajaran</div>
-            <div className="text-3xl font-black text-white">{subjects.length}</div>
-            <div className="text-xs font-medium text-blue-300 mt-2">{subjects.filter(s => s.status === 'Aktif').length} aktif</div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: "Total Mapel",   value: subjects.length, sub: `${filtered.length} ditampilkan` },
+          { label: "Kelompok Wajib", value: subjects.filter(s => s.kelompok === "Wajib").length },
+          { label: "Peminatan IPA/IPS", value: subjects.filter(s => s.kelompok === "IPA" || s.kelompok === "IPS").length },
+          { label: "Total Jam/Minggu", value: totalJam, sub: "jam" },
+        ].map((c, i) => (
+          <div key={i} className="bg-[#1A3D63] rounded-2xl p-5 shadow-sm">
+            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">{c.label}</div>
+            <div className="text-3xl font-black text-white">{c.value}</div>
+            {c.sub && <div className="text-xs text-blue-300 mt-1">{c.sub}</div>}
           </div>
-        </div>
-
-        {/* Card 2 */}
-        <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
-          <div>
-            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Sudah Ada Guru</div>
-            <div className="text-3xl font-black text-white">
-              {subjects.filter(s => s.teacher && s.teacher !== 'Belum Ditentukan').length}
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3 */}
-        <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
-          <div>
-            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Belum Ada Guru</div>
-            <div className="text-3xl font-black text-white">
-              {subjects.filter(s => !s.teacher || s.teacher === 'Belum Ditentukan').length}
-            </div>
-          </div>
-        </div>
-
-        {/* Card 4 */}
-        <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
-          <div>
-            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Jam / Minggu</div>
-            <div className="text-3xl font-black text-white">
-              {subjects.reduce((acc, s) => acc + (Number(s.hours) || 0), 0)}
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
-      {/* Main Content Area */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col">
-        {/* Filters Top */}
-        <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row justify-between md:items-center gap-4">
+      {/* Table Card */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
+        {/* Filters */}
+        <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row justify-between md:items-center gap-3">
           <div className="flex flex-col sm:flex-row gap-3">
             {/* Search */}
             <div className="relative">
               <div className="absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-gray-400">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               </div>
-              <input 
-                type="text" 
-                placeholder="Cari mata pelajaran..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm w-full sm:w-[240px] focus:outline-none focus:border-gray-300 transition-colors"
-              />
+              <input type="text" placeholder="Cari mata pelajaran..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm w-[220px] focus:outline-none focus:border-[#1A3D63] transition-colors" />
             </div>
-            
-            {/* Dropdown 1 */}
-            <div className="relative">
-              <select className="appearance-none pl-4 pr-10 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 focus:outline-none focus:border-gray-300 w-full sm:w-auto">
-                <option>Semua Kelompok</option>
-              </select>
-              <div className="absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-gray-400">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-              </div>
-            </div>
-
-            {/* Dropdown 2 */}
-            <div className="relative">
-              <select className="appearance-none pl-4 pr-10 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 focus:outline-none focus:border-gray-300 w-full sm:w-auto">
-                <option>Semua Jenjang</option>
-              </select>
-              <div className="absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-gray-400">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-              </div>
-            </div>
+            {/* Filter Kelompok */}
+            <select value={filterKelompok} onChange={e => setFilterKelompok(e.target.value)}
+              className="pl-3 pr-8 py-2 border border-gray-200 rounded-xl text-sm text-gray-600 focus:outline-none focus:border-[#1A3D63] bg-white">
+              <option value="">Semua Kelompok</option>
+              {KELOMPOK_LIST.map(k => <option key={k}>{k}</option>)}
+            </select>
+            {/* Filter Tingkat */}
+            <select value={filterTingkat} onChange={e => setFilterTingkat(e.target.value)}
+              className="pl-3 pr-8 py-2 border border-gray-200 rounded-xl text-sm text-gray-600 focus:outline-none focus:border-[#1A3D63] bg-white">
+              <option value="">Semua Jenjang</option>
+              {TINGKAT_LIST.map(t => <option key={t} value={t}>Kelas {t}</option>)}
+            </select>
           </div>
-
-          {/* Legend */}
-          <div className="flex items-center gap-4 text-[12px] font-bold text-gray-500">
-            <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Wajib</div>
-            <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[#1A3D63]"></span> IPA</div>
-            <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-gray-400"></span> IPS</div>
-            <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-zinc-400"></span> Lintas Minat</div>
-          </div>
+          <span className="text-[13px] text-gray-400">{filtered.length} dari {subjects.length} data</span>
         </div>
 
         {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="border-b border-gray-100">
-                <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Kode</th>
-                <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Nama Mata Pelajaran</th>
-                <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Kelompok</th>
-                <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Jenjang</th>
-                <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Jam / Minggu</th>
-                <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Guru Pengampu</th>
-                <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider text-right">Aksi</th>
+              <tr className="border-b border-gray-100 bg-gray-50">
+                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">No</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Kode</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Nama Mata Pelajaran</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Kelompok</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Jenjang</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">KKM</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Jam/Minggu</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Guru Pengampu</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
-              {subjects.filter((item) => 
-                item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                item.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                item.teacher.toLowerCase().includes(searchTerm.toLowerCase())
-              ).map((item, idx) => (
-                <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4">
-                    <span className="text-[13px] font-bold text-gray-800 tracking-wide font-mono">{item.code}</span>
-                  </td>
-                  <td className="px-6 py-4 text-[14px] font-bold text-[#1e293b]">{item.name}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide ${
-                      item.group === 'Wajib' ? 'bg-slate-100 text-slate-700' :
-                      item.group === 'IPA' ? 'bg-[#1A3D63]/10 text-[#1A3D63]' :
-                      item.group === 'IPS' ? 'bg-gray-100 text-gray-700' :
-                      'bg-slate-100 text-slate-600'
-                    }`}>
-                      {item.group}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-[13px] font-medium text-gray-500">{item.levels}</td>
-                  <td className="px-6 py-4 text-[13px]">
-                    <span className="font-bold text-gray-800">{item.hours}</span> <span className="text-gray-400">jam</span>
-                  </td>
-                  <td className="px-6 py-4 text-[13px] font-medium text-gray-500">{item.teacher}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-1.5">
-                      <span className={`w-1.5 h-1.5 rounded-full ${item.status === 'Aktif' ? 'bg-emerald-500' : 'bg-gray-300'}`}></span>
-                      <span className={`text-[12px] font-bold ${item.status === 'Aktif' ? 'text-emerald-600' : 'text-gray-400'}`}>{item.status}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2.5">
-                      <button 
-                        onClick={() => {
-                          setSelectedSubject({
-                            kode: item.code,
-                            nama: item.name,
-                            kelompok: item.group,
-                            jenjang: item.levels.split(", ").map(l => "Kelas " + l),
-                            jam: item.hours,
-                            guru: { id: item.teacher.substring(0, 2).toUpperCase(), name: item.teacher, role: "Guru Mapel", status: "Aktif" },
-                            aktif: item.status === "Aktif",
-                          });
-                          setViewMode("detail");
-                        }}
-                        className="text-gray-400 hover:text-[#1e293b] transition-colors"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setSelectedSubject({
-                            kode: item.code,
-                            nama: item.name,
-                            kelompok: item.group,
-                            jenjang: item.levels.split(", ").map(l => "Kelas " + l),
-                            jam: item.hours,
-                            guru: { id: item.teacher.substring(0, 2).toUpperCase(), name: item.teacher, role: "Guru Mapel", status: "Aktif" },
-                            aktif: item.status === "Aktif",
-                          });
-                          setViewMode("edit");
-                        }}
-                        className="text-gray-400 hover:text-[#1A3D63] transition-colors"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                      </button>
-                      <button onClick={() => { if(window.confirm('Hapus mata pelajaran ini?')) setSubjects(prev => prev.filter(s => s.code !== item.code)); }} className="text-gray-400 hover:text-red-500 transition-colors">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+            {loading ? <Skeleton /> : (
+              <tbody className="divide-y divide-gray-50">
+                {filtered.length === 0 ? (
+                  <tr><td colSpan={9} className="py-16 text-center text-gray-400 text-[14px]">Tidak ada data yang cocok.</td></tr>
+                ) : filtered.map((item, idx) => (
+                  <tr key={item.id} className="hover:bg-blue-50/30 transition-colors group">
+                    <td className="px-6 py-4 text-[13px] text-gray-400">{idx + 1}</td>
+                    <td className="px-6 py-4">
+                      <span className="text-[13px] font-bold text-gray-800 font-mono tracking-wide">{item.kode}</span>
+                    </td>
+                    <td className="px-6 py-4 text-[14px] font-bold text-[#1e293b]">{item.nama}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide ${KELOMPOK_COLORS[item.kelompok] || "bg-gray-100 text-gray-600"}`}>
+                        {item.kelompok || "-"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-wrap gap-1">
+                        {(item.tingkat || "").split(",").filter(Boolean).map(t => (
+                          <span key={t} className="text-[11px] font-semibold text-[#1A3D63] bg-[#1A3D63]/10 px-2 py-0.5 rounded-md">{t.trim()}</span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-[13px] font-bold text-gray-700">{item.kkm}</td>
+                    <td className="px-6 py-4 text-[13px]">
+                      <span className="font-bold text-gray-800">{item.jumlah_jam}</span>
+                      <span className="text-gray-400"> jam</span>
+                    </td>
+                    <td className="px-6 py-4 text-[13px] text-gray-500">
+                      {item.guru_nama || <span className="text-gray-300 italic">Belum ditentukan</span>}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-1 transition-opacity">
+                        <button onClick={() => setModal({ data: item })} title="Edit"
+                          className="p-1.5 text-gray-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-colors">
+                          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                        </button>
+                        <button onClick={() => handleDelete(item.id, item.nama)} title="Hapus"
+                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            )}
           </table>
-        </div>
-
-        {/* Footer Pagination */}
-        <div className="p-5 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="text-[13px] font-medium text-gray-500">
-            Menampilkan 12 dari 48 mata pelajaran
-          </div>
-          <div className="flex items-center gap-1.5">
-            <button className="px-3.5 py-2 border border-gray-200 rounded-lg text-[13px] font-bold text-gray-400 hover:text-gray-600 transition-colors bg-white">Sebelumnya</button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#1e293b] text-white text-[13px] font-bold shadow-sm">1</button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-50 text-gray-500 text-[13px] font-bold transition-colors">2</button>
-            <button className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-50 text-gray-500 text-[13px] font-bold transition-colors">3</button>
-            <button className="px-3.5 py-2 border border-gray-200 rounded-lg text-[13px] font-bold text-gray-600 hover:bg-gray-50 transition-colors bg-white">Selanjutnya</button>
-          </div>
         </div>
       </div>
     </div>

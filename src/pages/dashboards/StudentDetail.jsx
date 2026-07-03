@@ -73,7 +73,10 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
             
             <div className="px-6 pb-6 pt-14 relative">
               <div className="absolute -top-12 left-6">
-                <div className={`w-24 h-24 rounded-[20px] ${student.avatarColor} border-4 border-white flex items-center justify-center text-white text-[32px] font-bold shadow-sm`}>
+                <div 
+                  className="w-24 h-24 rounded-[20px] border-4 border-white flex items-center justify-center text-white text-[32px] font-bold shadow-sm"
+                  style={{ backgroundColor: student.avatarColor }}
+                >
                   {student.initials}
                 </div>
               </div>

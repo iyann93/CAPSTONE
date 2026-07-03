@@ -28,6 +28,7 @@ const dashboardRoutes      = require('./routes/dashboard.routes');
 const beasiswaRoutes       = require('./routes/beasiswa.routes');
 const systemRoutes         = require('./routes/system.routes');
 const jabatanRoutes        = require('./routes/jabatan.routes');
+const orangTuaRoutes       = require('./routes/orang_tua.routes');
 
 const app = express();
 
@@ -73,6 +74,7 @@ app.use(`${API}/dashboard`,        dashboardRoutes);
 app.use(`${API}/beasiswa`,         beasiswaRoutes);
 app.use(`${API}/system`,           systemRoutes);
 app.use(`${API}/jabatan`,          jabatanRoutes);
+app.use(`${API}/orang-tua`,        orangTuaRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────────────────────
 app.use((req, res, next) => {

@@ -83,14 +83,13 @@ const menuSections = [
     items: [
       { label: "Data Siswa", icon: <UsersIcon /> },
       { label: "Absensi Siswa", icon: <FileChartIcon /> },
-      { label: "Kartu Pelajar", icon: <UserSettingsIcon /> }
+      { label: "Data Orang Tua", icon: <UsersIcon /> }
     ],
     roles: ["Admin TU", "Admin"]
   },
   {
     section: "SEKOLAH",
     items: [
-      { label: "Generate Rapor", icon: <FileChartIcon /> },
       { label: "Data Guru", icon: <BriefcaseIcon /> },
       { label: "Pengumuman Sekolah", icon: <ChatIcon /> }
     ],
@@ -199,7 +198,8 @@ const menuSections = [
   {
     section: "INFORMASI",
     items: [
-      { label: "Pengumuman Sekolah", icon: <ChatIcon /> }
+      { label: "Pengumuman Sekolah", icon: <ChatIcon /> },
+      { label: "Data Orang Tua", icon: <UsersIcon /> }
     ],
     roles: ["Orang Tua"]
   },

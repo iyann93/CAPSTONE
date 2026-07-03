@@ -3,7 +3,7 @@
 const { query } = require('../config/db');
 const { whereBuilder, buildOrderBy } = require('../utils/queryBuilder');
 
-const SORT_MAP = { nama: 'k.nama_kelas', tingkat: 'k.tingkat', tahun_ajaran: 'k.tahun_ajaran', created_at: 'k.created_at' };
+const SORT_MAP = { nama: 'k.nama_kelas', tingkat: 'k.tingkat', tahun_ajaran: 'ta.nama' };
 
 const KelasRepository = {
   findAll: async ({ limit, offset, search, sort, jurusanId, tingkat }) => {
@@ -15,15 +15,16 @@ const KelasRepository = {
     const orderBy = buildOrderBy(sort, SORT_MAP, 'k.tingkat ASC, k.nama_kelas ASC');
 
     const sql = `
-      SELECT k.id, k.nama_kelas, k.tingkat, k.tahun_ajaran,
-             j.nama_jurusan, j.kode_jurusan, k.jurusan_id, k.created_at
+      SELECT k.id, k.nama_kelas, k.tingkat, k.tahun_ajaran_id, ta.nama as tahun_ajaran,
+             j.nama as nama_jurusan, j.kode as kode_jurusan, k.jurusan_id
       FROM academic.kelas k
       LEFT JOIN academic.jurusan j ON k.jurusan_id = j.id
+      LEFT JOIN academic.tahun_ajaran ta ON k.tahun_ajaran_id = ta.id
       ${where}
       ${orderBy}
       LIMIT $${nextIdx} OFFSET $${nextIdx + 1}
     `;
-    const countSql = `SELECT COUNT(*) FROM academic.kelas k LEFT JOIN academic.jurusan j ON k.jurusan_id = j.id ${where}`;
+    const countSql = `SELECT COUNT(*) FROM academic.kelas k LEFT JOIN academic.jurusan j ON k.jurusan_id = j.id LEFT JOIN academic.tahun_ajaran ta ON k.tahun_ajaran_id = ta.id ${where}`;
 
     const [data, count] = await Promise.all([
       query(sql, [...values, limit, offset]),
@@ -34,8 +35,10 @@ const KelasRepository = {
 
   findById: async (id) => {
     const sql = `
-      SELECT k.*, j.nama_jurusan, j.kode_jurusan
-      FROM academic.kelas k LEFT JOIN academic.jurusan j ON k.jurusan_id = j.id
+      SELECT k.*, j.nama as nama_jurusan, j.kode as kode_jurusan, ta.nama as tahun_ajaran
+      FROM academic.kelas k 
+      LEFT JOIN academic.jurusan j ON k.jurusan_id = j.id
+      LEFT JOIN academic.tahun_ajaran ta ON k.tahun_ajaran_id = ta.id
       WHERE k.id = $1
     `;
     const result = await query(sql, [id]);
@@ -44,8 +47,8 @@ const KelasRepository = {
 
   create: async ({ namaKelas, tingkat, tahunAjaran, jurusanId }) => {
     const sql = `
-      INSERT INTO academic.kelas (nama_kelas, tingkat, tahun_ajaran, jurusan_id, created_at)
-      VALUES ($1, $2, $3, $4, NOW()) RETURNING *
+      INSERT INTO academic.kelas (nama_kelas, tingkat, tahun_ajaran_id, jurusan_id)
+      VALUES ($1, $2, $3, $4) RETURNING *
     `;
     const result = await query(sql, [namaKelas, tingkat, tahunAjaran, jurusanId]);
     return result.rows[0];
@@ -54,10 +57,10 @@ const KelasRepository = {
   update: async (id, { namaKelas, tingkat, tahunAjaran, jurusanId }) => {
     const sql = `
       UPDATE academic.kelas
-      SET nama_kelas   = COALESCE($1, nama_kelas),
-          tingkat      = COALESCE($2, tingkat),
-          tahun_ajaran = COALESCE($3, tahun_ajaran),
-          jurusan_id   = COALESCE($4, jurusan_id)
+      SET nama_kelas      = COALESCE($1, nama_kelas),
+          tingkat         = COALESCE($2, tingkat),
+          tahun_ajaran_id = COALESCE($3, tahun_ajaran_id),
+          jurusan_id      = COALESCE($4, jurusan_id)
       WHERE id = $5 RETURNING *
     `;
     const result = await query(sql, [namaKelas, tingkat, tahunAjaran, jurusanId, id]);

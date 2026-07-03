@@ -5,7 +5,7 @@ const StudentForm = ({ onBack, onSave }) => {
   const [classes, setClasses] = useState([]);
 
   useEffect(() => {
-    api.get('/kelas').then(res => {
+    api.get('/kelas?limit=100').then(res => {
       if (res.data && res.data.data) setClasses(res.data.data);
     }).catch(err => {
       console.error("Gagal mengambil data kelas:", err);
@@ -357,13 +357,16 @@ const StudentForm = ({ onBack, onSave }) => {
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
               <div className="space-y-2">
                 <label className="text-[13px] font-bold text-gray-700">Kelas<span className="text-red-500">*</span></label>
-                <input 
-                  type="text" 
+                <select 
                   value={formData.kelas}
                   onChange={(e) => setFormData({ ...formData, kelas: e.target.value })}
-                  placeholder="Misal: X IPA 1"
                   className={`w-full px-4 py-2.5 border ${errors.kelas ? 'border-red-500' : 'border-gray-200'} rounded-xl text-[14px] text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-colors bg-white`}
-                />
+                >
+                  <option value="">Pilih Kelas</option>
+                  {classes.map((c) => (
+                    <option key={c.id} value={c.nama_kelas}>{c.nama_kelas}</option>
+                  ))}
+                </select>
                 {errors.kelas && <p className="text-red-500 text-xs mt-0.5">{errors.kelas}</p>}
               </div>
               <div className="space-y-2">

@@ -1,5 +1,5 @@
-require('dotenv').config();
 const { Pool } = require('pg');
+require('dotenv').config();
 
 const pool = new Pool({
   user: process.env.DB_USER,
@@ -10,19 +10,19 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false }
 });
 
-async function check() {
+async function run() {
   try {
     const res = await pool.query(`
-      SELECT pg_get_constraintdef(c.oid) AS definition
-      FROM pg_constraint c
-      JOIN pg_class t ON c.conrelid = t.oid
-      WHERE t.relname = 'orang_tua' AND c.conname = 'orang_tua_hubungan_check';
+      SELECT column_name, data_type 
+      FROM information_schema.columns 
+      WHERE table_schema = 'academic' AND table_name = 'kelas';
     `);
-    console.log(res.rows[0].definition);
-  } catch (err) {
+    console.log(res.rows);
+  } catch(err) {
     console.error(err);
   } finally {
     pool.end();
   }
 }
-check();
+
+run();
