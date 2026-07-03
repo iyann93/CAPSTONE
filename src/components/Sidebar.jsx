@@ -164,7 +164,7 @@ const menuSections = [
   {
     section: "OPERASIONAL",
     items: [
-      { label: "Pengeluaran Operasional", icon: <WalletIcon /> }
+      { label: "Pemasukan dan Pengeluaran", icon: <WalletIcon /> }
     ],
     roles: ["Bendahara"]
   },

@@ -45,13 +45,24 @@ const IconUpload = () => (
 );
 
 // Mock Data
+export const initialPemasukanData = [
+  { id: 1, tanggal: "10 Juni 2026", nama: "Pencairan Dana BOS Tahap 2", kategori: "Dana BOS", nominal: 15000000, sumberDana: "Pemerintah Pusat", keterangan: "Dana BOS Reguler tahap 2", bukti: ["bukti_bos.jpg"] },
+  { id: 2, tanggal: "15 Juni 2026", nama: "Sumbangan Alumni", kategori: "Donasi", nominal: 5000000, sumberDana: "Donatur", keterangan: "Sumbangan untuk pembangunan masjid", bukti: ["bukti_transfer_donasi.pdf"] }
+];
+
+export const initialBeasiswaDanaData = [
+  { id: 1, tanggal: "05 Juni 2026", nama: "Penerimaan Dana Beasiswa Yayasan", kategori: "Beasiswa", nominal: 10000000, sumberDana: "Yayasan", keterangan: "Dana kelola beasiswa bulan Juni" },
+  { id: 2, tanggal: "12 Juni 2026", nama: "Penerimaan Dana CSR Bank Jatim", kategori: "Beasiswa", nominal: 5000000, sumberDana: "Bank Jatim", keterangan: "Program Beasiswa Berprestasi" }
+];
+
 export const initialPengeluaranData = [
   { id: 1, tanggal: "24 Juni 2026", nama: "Pembayaran Listrik PLN", kategori: "Listrik", nominal: 1800000, sumberDana: "Dana BOS", keterangan: "Pembayaran listrik bulan berjalan.", bukti: ["struk_listrik_juni.jpg", "struk_listrik_tambahan.jpg"] },
   { id: 2, tanggal: "25 Juni 2026", nama: "Pembelian ATK", kategori: "ATK", nominal: 650000, sumberDana: "Dana Donatur", keterangan: "Kertas HVS, tinta printer.", bukti: ["nota_atk.pdf"] },
   { id: 3, tanggal: "26 Juni 2026", nama: "Langganan Internet", kategori: "Internet", nominal: 850000, sumberDana: "Dana BOS", keterangan: "Indihome 100Mbps.", bukti: ["bukti_transfer_indihome.png"] }
 ];
 
-const PengeluaranOperasionalTab = ({ triggerToast }) => {
+const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasiswaList = [] }) => {
+  const [activeTab, setActiveTab] = useState("pemasukan"); // 'pemasukan' atau 'pengeluaran'
   const [selectedYear, setSelectedYear] = useState("2025/2026");
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("Semua Kategori");
@@ -76,6 +87,13 @@ const PengeluaranOperasionalTab = ({ triggerToast }) => {
   const [selectedDetailItem, setSelectedDetailItem] = useState(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [selectedPreviewFile, setSelectedPreviewFile] = useState(null);
+
+  const formatTanggal = (dateStr) => {
+    if (!dateStr) return "-";
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+  };
 
   const handleSelectAll = (e) => {
     if (e.target.checked) {
@@ -132,16 +150,27 @@ const PengeluaranOperasionalTab = ({ triggerToast }) => {
       setShowAddModal(false);
       setFormData({ tanggal: "", kategori: "", nama: "", nominal: "", sumberDana: "", keterangan: "" });
       setIsDirty(false);
-      triggerToast ? triggerToast("Pengeluaran operasional berhasil disimpan!", "success") : alert("Pengeluaran operasional berhasil disimpan!");
+      const msg = activeTab === "pemasukan" ? "Data pemasukan berhasil disimpan!" : "Data pengeluaran berhasil disimpan!";
+      triggerToast ? triggerToast(msg, "success") : alert(msg);
     }, 800);
   };
+
   const currentMonth = "Juni";
-  const totalBulanIni = initialPengeluaranData
+  const currentData = activeTab === "pengeluaran" ? initialPengeluaranData : initialPemasukanData;
+  const currentBeasiswa = activeTab === "pengeluaran" ? beasiswaList : danaBeasiswaList;
+  
+  const totalBulanIni = currentData
     .filter(item => item.tanggal.includes(currentMonth))
-    .reduce((acc, curr) => acc + curr.nominal, 0);
-  const totalTahunAjaran = initialPengeluaranData.reduce((acc, curr) => acc + curr.nominal, 0);
-  const jumlahKategori = new Set(initialPengeluaranData.map(item => item.kategori)).size;
-  const filteredData = initialPengeluaranData.filter(item => {
+    .reduce((acc, curr) => acc + curr.nominal, 0) + 
+    currentBeasiswa.filter(item => {
+      const t = item.tanggal || item.tanggal_mulai;
+      return t && (t.includes(currentMonth) || String(t).includes(String(new Date().getMonth() + 1).padStart(2, '0')));
+    }).reduce((acc, curr) => acc + Number(curr.nominal), 0);
+    
+  const totalTahunAjaran = currentData.reduce((acc, curr) => acc + curr.nominal, 0) + currentBeasiswa.reduce((acc, curr) => acc + Number(curr.nominal), 0);
+  const jumlahKategori = new Set(currentData.map(item => item.kategori)).size;
+
+  const filteredData = currentData.filter(item => {
     const matchesSearch = item.nama.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = categoryFilter === "Semua Kategori" || item.kategori === categoryFilter;
     return matchesSearch && matchesCategory;
@@ -152,8 +181,22 @@ const PengeluaranOperasionalTab = ({ triggerToast }) => {
       {/* Header Area */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Pengeluaran Operasional</h1>
-          <p className="text-sm text-gray-500 mt-1">Kelola seluruh transaksi pengeluaran operasional sekolah.</p>
+          <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Pemasukan dan Pengeluaran</h1>
+          <p className="text-sm text-gray-500 mt-1">Kelola pencatatan arus kas Pemasukan & Pengeluaran sekolah.</p>
+          <div className="flex gap-2 mt-4 bg-gray-100 p-1 rounded-xl inline-flex">
+            <button 
+              onClick={() => {setActiveTab("pemasukan"); setCategoryFilter("Semua Kategori"); setSearchQuery("");}}
+              className={`px-5 py-2 text-sm font-bold rounded-lg transition-all border-none cursor-pointer ${activeTab === 'pemasukan' ? 'bg-white text-[#1A3D63] shadow-sm' : 'bg-transparent text-gray-500 hover:text-gray-700'}`}
+            >
+              Pemasukan
+            </button>
+            <button 
+              onClick={() => {setActiveTab("pengeluaran"); setCategoryFilter("Semua Kategori"); setSearchQuery("");}}
+              className={`px-5 py-2 text-sm font-bold rounded-lg transition-all border-none cursor-pointer ${activeTab === 'pengeluaran' ? 'bg-white text-[#1A3D63] shadow-sm' : 'bg-transparent text-gray-500 hover:text-gray-700'}`}
+            >
+              Pengeluaran
+            </button>
+          </div>
         </div>
         <div className="flex gap-2 sm:gap-3 items-center flex-wrap">
           <div className="relative group w-full sm:w-auto">
@@ -172,10 +215,10 @@ const PengeluaranOperasionalTab = ({ triggerToast }) => {
             </div>
           </div>
           <button
-            onClick={() => setShowAddModal(true)}
+            onClick={() => { setFormData({ tanggal: "", kategori: "", nama: "", nominal: "", sumberDana: "", keterangan: "" }); setShowAddModal(true); }}
             className="flex items-center gap-2 justify-center bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-5 py-2.5 text-xs font-bold cursor-pointer transition-all active:scale-95 shadow-sm w-full sm:w-auto"
           >
-            Tambah Pengeluaran
+            {activeTab === "pemasukan" ? "Tambah Pemasukan" : "Tambah Pengeluaran"}
           </button>
         </div>
       </div>
@@ -185,7 +228,7 @@ const PengeluaranOperasionalTab = ({ triggerToast }) => {
         {/* Card 1 */}
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
-            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Operasional Bulan Ini</div>
+            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">{activeTab === "pemasukan" ? "Pemasukan Bulan Ini" : "Operasional Bulan Ini"}</div>
             <div className="text-3xl font-black text-white">Rp {totalBulanIni.toLocaleString('id-ID')}</div>
           </div>
         </div>
@@ -193,7 +236,7 @@ const PengeluaranOperasionalTab = ({ triggerToast }) => {
         {/* Card 2 */}
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
-            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Operasional Tahunan</div>
+            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">{activeTab === "pemasukan" ? "Total Pemasukan Tahunan" : "Total Operasional Tahunan"}</div>
             <div className="text-3xl font-black text-white">Rp {totalTahunAjaran.toLocaleString('id-ID')}</div>
           </div>
         </div>
@@ -201,6 +244,17 @@ const PengeluaranOperasionalTab = ({ triggerToast }) => {
 
       {/* Filter and Table Container */}
       <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm">
+        <div className="mb-5">
+          <h2 className="text-lg font-bold text-gray-800 tracking-tight">
+            {activeTab === "pemasukan" ? "Riwayat Pemasukan Dana" : "Riwayat Pengeluaran Operasional"}
+          </h2>
+          <p className="text-xs text-gray-500 mt-1">
+            {activeTab === "pemasukan" 
+              ? "Daftar seluruh riwayat pemasukan dana." 
+              : "Daftar seluruh riwayat pengeluaran operasional."}
+          </p>
+        </div>
+        
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           {/* Search Input */}
           <div className="relative flex-1 max-w-md">
@@ -208,7 +262,7 @@ const PengeluaranOperasionalTab = ({ triggerToast }) => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari nama pengeluaran..."
+              placeholder={activeTab === "pemasukan" ? "Cari nama pemasukan..." : "Cari nama pengeluaran..."}
               className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:border-[#1A3D63] font-medium"
             />
             <span className="absolute left-3.5 top-3.5 text-gray-400">
@@ -234,16 +288,27 @@ const PengeluaranOperasionalTab = ({ triggerToast }) => {
                 className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
               >
                 <option value="Semua Kategori">Semua Kategori</option>
-                <option value="Listrik">Listrik</option>
-                <option value="Air">Air</option>
-                <option value="Internet">Internet</option>
-                <option value="ATK">ATK</option>
-                <option value="Kebersihan">Kebersihan</option>
-                <option value="Perawatan Gedung">Perawatan Gedung</option>
-                <option value="Peralatan Sekolah">Peralatan Sekolah</option>
-                <option value="Transportasi">Transportasi</option>
-                <option value="Kegiatan Sekolah">Kegiatan Sekolah</option>
-                <option value="Lain-lain">Lain-lain</option>
+                {activeTab === "pemasukan" ? (
+                  <>
+                    <option value="Dana BOS">Dana BOS</option>
+                    <option value="Donasi">Donasi</option>
+                    <option value="Hibah/Bantuan">Hibah/Bantuan</option>
+                    <option value="Lainnya">Lainnya</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="Listrik">Listrik</option>
+                    <option value="Air">Air</option>
+                    <option value="Internet">Internet</option>
+                    <option value="ATK">ATK</option>
+                    <option value="Kebersihan">Kebersihan</option>
+                    <option value="Perawatan Gedung">Perawatan Gedung</option>
+                    <option value="Peralatan Sekolah">Peralatan Sekolah</option>
+                    <option value="Transportasi">Transportasi</option>
+                    <option value="Kegiatan Sekolah">Kegiatan Sekolah</option>
+                    <option value="Lain-lain">Lain-lain</option>
+                  </>
+                )}
               </select>
               <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                 <IconChevronDown />
@@ -267,7 +332,7 @@ const PengeluaranOperasionalTab = ({ triggerToast }) => {
                 </th>
                 <th className="py-4 px-4 w-12 text-center bg-gray-50">NO</th>
                 <th className="py-4 px-4 bg-gray-50">TANGGAL</th>
-                <th className="py-4 px-4 bg-gray-50">NAMA PENGELUARAN</th>
+                <th className="py-4 px-4 bg-gray-50">{activeTab === "pemasukan" ? "NAMA PEMASUKAN" : "NAMA PENGELUARAN"}</th>
                 <th className="py-4 px-4 bg-gray-50">KATEGORI</th>
                 <th className="py-4 px-4 bg-gray-50">NOMINAL</th>
                 <th className="py-4 px-4 text-center rounded-tr-xl bg-gray-50">AKSI</th>
@@ -276,7 +341,7 @@ const PengeluaranOperasionalTab = ({ triggerToast }) => {
             <tbody className="divide-y divide-gray-50 text-xs">
               {filteredData.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="py-8 text-center text-gray-400 font-medium">Data pengeluaran tidak ditemukan.</td>
+                  <td colSpan="7" className="py-8 text-center text-gray-400 font-medium">{activeTab === "pemasukan" ? "Data pemasukan tidak ditemukan." : "Data pengeluaran tidak ditemukan."}</td>
                 </tr>
               ) : (
                 filteredData.map((row, idx) => (
@@ -290,7 +355,7 @@ const PengeluaranOperasionalTab = ({ triggerToast }) => {
                       />
                     </td>
                     <td className="py-4 px-4 text-center text-gray-500 font-bold">{idx + 1}.</td>
-                    <td className="py-4 px-4 font-medium text-gray-600">{row.tanggal}</td>
+                    <td className="py-4 px-4 font-medium text-gray-600">{formatTanggal(row.tanggal)}</td>
                     <td className="py-4 px-4 font-bold text-gray-800">{row.nama}</td>
                     <td className="py-4 px-4">
                       <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg font-semibold text-[10px]">{row.kategori}</span>
@@ -318,12 +383,138 @@ const PengeluaranOperasionalTab = ({ triggerToast }) => {
         {filteredData.length > 0 && (
           <div className="mt-4 px-2">
             <span className="text-[11px] font-semibold text-gray-500">
-              Total {filteredData.length} data pengeluaran
+              Total {filteredData.length} data {activeTab}
             </span>
           </div>
         )}
       </div>
       
+      {/* Container History Beasiswa khusus di tab Pemasukan */}
+      {activeTab === "pemasukan" && (
+        <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm mt-2">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div>
+              <h2 className="text-lg font-bold text-gray-800 tracking-tight">Riwayat Penerimaan Dana Beasiswa</h2>
+              <p className="text-xs text-gray-500 mt-1">Data dikelola otomatis dari modul Kelola Dana Beasiswa.</p>
+            </div>
+          </div>
+          
+          <div className="overflow-x-auto overflow-y-auto max-h-[300px] custom-scrollbar rounded-xl border border-gray-100">
+            <table className="w-full text-left border-collapse">
+              <thead className="sticky top-0 z-10">
+                <tr className="border-b border-gray-100 bg-gray-50 text-[10px] font-bold text-gray-500 uppercase tracking-wider shadow-sm">
+                  <th className="py-4 px-4 w-12 text-center rounded-tl-xl bg-gray-50">NO</th>
+                  <th className="py-4 px-4 bg-gray-50">TANGGAL</th>
+                  <th className="py-4 px-4 bg-gray-50">NAMA PEMASUKAN</th>
+                  <th className="py-4 px-4 bg-gray-50">KATEGORI</th>
+                  <th className="py-4 px-4 bg-gray-50">NOMINAL</th>
+                  <th className="py-4 px-4 text-center rounded-tr-xl bg-gray-50">AKSI</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50 text-xs">
+                {danaBeasiswaList.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="py-8 text-center text-gray-400 font-medium">Data beasiswa tidak ditemukan.</td>
+                  </tr>
+                ) : (
+                  danaBeasiswaList.map((row, idx) => (
+                    <tr key={row.id} className="hover:bg-gray-50/80 transition-colors">
+                      <td className="py-4 px-4 text-center text-gray-500 font-bold">{idx + 1}.</td>
+                      <td className="py-4 px-4 font-medium text-gray-600">{formatTanggal(row.tanggal)}</td>
+                      <td className="py-4 px-4 font-bold text-gray-800">Penerimaan Dana Beasiswa {row.sumber}</td>
+                      <td className="py-4 px-4">
+                        <span className="px-3 py-1 bg-purple-50 text-purple-600 rounded-lg font-semibold text-[10px]">Beasiswa</span>
+                      </td>
+                      <td className="py-4 px-4 font-bold text-emerald-600">Rp {Number(row.nominal).toLocaleString('id-ID')}</td>
+                      <td className="py-4 px-4 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => setSelectedDetailItem({...row, nama: `Penerimaan Dana Beasiswa ${row.sumber}`, kategori: 'Beasiswa', sumberDana: row.sumber})}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 text-[11px] font-bold rounded-lg transition-colors cursor-pointer border-none shadow-sm"
+                            title="Detail"
+                          >
+                            <IconEye />
+                            Detail
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-4 px-2">
+            <span className="text-[11px] font-semibold text-gray-500">
+              Total {danaBeasiswaList.length} data beasiswa
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Container Penyaluran Beasiswa khusus di tab Pengeluaran */}
+      {activeTab === "pengeluaran" && (
+        <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm mt-2">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <div>
+              <h2 className="text-lg font-bold text-gray-800 tracking-tight">Riwayat Penyaluran Beasiswa</h2>
+              <p className="text-xs text-gray-500 mt-1">Data dikelola otomatis dari modul Daftar Penerima Beasiswa.</p>
+            </div>
+          </div>
+          
+          <div className="overflow-x-auto overflow-y-auto max-h-[300px] custom-scrollbar rounded-xl border border-gray-100">
+            <table className="w-full text-left border-collapse">
+              <thead className="sticky top-0 z-10">
+                <tr className="border-b border-gray-100 bg-gray-50 text-[10px] font-bold text-gray-500 uppercase tracking-wider shadow-sm">
+                  <th className="py-4 px-4 w-12 text-center rounded-tl-xl bg-gray-50">NO</th>
+                  <th className="py-4 px-4 bg-gray-50">TANGGAL</th>
+                  <th className="py-4 px-4 bg-gray-50">NAMA PENGELUARAN</th>
+                  <th className="py-4 px-4 bg-gray-50">KATEGORI</th>
+                  <th className="py-4 px-4 bg-gray-50">NOMINAL</th>
+                  <th className="py-4 px-4 text-center rounded-tr-xl bg-gray-50">AKSI</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50 text-xs">
+                {beasiswaList.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="py-8 text-center text-gray-400 font-medium">Data penyaluran beasiswa tidak ditemukan.</td>
+                  </tr>
+                ) : (
+                  beasiswaList.map((row, idx) => (
+                    <tr key={row.id} className="hover:bg-gray-50/80 transition-colors">
+                      <td className="py-4 px-4 text-center text-gray-500 font-bold">{idx + 1}.</td>
+                      <td className="py-4 px-4 font-medium text-gray-600">{formatTanggal(row.tanggal)}</td>
+                      <td className="py-4 px-4 font-bold text-gray-800">{row.nama}</td>
+                      <td className="py-4 px-4">
+                        <span className="px-3 py-1 bg-purple-50 text-purple-600 rounded-lg font-semibold text-[10px]">Beasiswa</span>
+                      </td>
+                      <td className="py-4 px-4 font-bold text-emerald-600">Rp {Number(row.nominal).toLocaleString('id-ID')}</td>
+                      <td className="py-4 px-4 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => setSelectedDetailItem({...row, nama: row.nama, kategori: 'Beasiswa', sumberDana: row.sumber, tanggal: row.tanggal})}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 text-[11px] font-bold rounded-lg transition-colors cursor-pointer border-none shadow-sm"
+                            title="Detail"
+                          >
+                            <IconEye />
+                            Detail
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-4 px-2">
+            <span className="text-[11px] font-semibold text-gray-500">
+              Total {beasiswaList.length} data beasiswa
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Modal Tambah Pengeluaran */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -346,7 +537,7 @@ const PengeluaranOperasionalTab = ({ triggerToast }) => {
             <div className="p-5 overflow-y-auto custom-scrollbar flex-1 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Tanggal Pengeluaran <span className="text-red-500">*</span></label>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">{activeTab === "pemasukan" ? "Tanggal Pemasukan" : "Tanggal Pengeluaran"} <span className="text-red-500">*</span></label>
                   <input 
                     type="date" 
                     value={formData.tanggal}
@@ -355,7 +546,7 @@ const PengeluaranOperasionalTab = ({ triggerToast }) => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Kategori Pengeluaran <span className="text-red-500">*</span></label>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">{activeTab === "pemasukan" ? "Kategori Pemasukan" : "Kategori Pengeluaran"} <span className="text-red-500">*</span></label>
                   <div className="relative">
                     <select 
                       value={formData.kategori}
@@ -363,16 +554,27 @@ const PengeluaranOperasionalTab = ({ triggerToast }) => {
                       className="w-full pl-3 pr-8 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] appearance-none font-medium text-gray-700"
                     >
                       <option value="">Pilih kategori...</option>
-                      <option value="Listrik">Listrik</option>
-                      <option value="Air">Air</option>
-                      <option value="Internet">Internet</option>
-                      <option value="ATK">ATK</option>
-                      <option value="Kebersihan">Kebersihan</option>
-                      <option value="Perawatan Gedung">Perawatan Gedung</option>
-                      <option value="Peralatan Sekolah">Peralatan Sekolah</option>
-                      <option value="Transportasi">Transportasi</option>
-                      <option value="Kegiatan Sekolah">Kegiatan Sekolah</option>
-                      <option value="Lain-lain">Lain-lain</option>
+                      {activeTab === "pemasukan" ? (
+                        <>
+                          <option value="Dana BOS">Dana BOS</option>
+                          <option value="Donasi">Donasi</option>
+                          <option value="Hibah/Bantuan">Hibah/Bantuan</option>
+                          <option value="Lainnya">Lainnya</option>
+                        </>
+                      ) : (
+                        <>
+                          <option value="Listrik">Listrik</option>
+                          <option value="Air">Air</option>
+                          <option value="Internet">Internet</option>
+                          <option value="ATK">ATK</option>
+                          <option value="Kebersihan">Kebersihan</option>
+                          <option value="Perawatan Gedung">Perawatan Gedung</option>
+                          <option value="Peralatan Sekolah">Peralatan Sekolah</option>
+                          <option value="Transportasi">Transportasi</option>
+                          <option value="Kegiatan Sekolah">Kegiatan Sekolah</option>
+                          <option value="Lain-lain">Lain-lain</option>
+                        </>
+                      )}
                     </select>
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
                       <IconChevronDown />
@@ -382,19 +584,19 @@ const PengeluaranOperasionalTab = ({ triggerToast }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1.5">Nama Pengeluaran <span className="text-red-500">*</span></label>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">{activeTab === "pemasukan" ? "Nama Pemasukan" : "Nama Pengeluaran"} <span className="text-red-500">*</span></label>
                 <input 
                   type="text" 
                   value={formData.nama}
                   onChange={(e) => handleInputChange('nama', e.target.value)}
-                  placeholder="Misal: Pembayaran Listrik Bulan Juni" 
+                  placeholder={activeTab === "pemasukan" ? "Misal: Penerimaan BOS Tahap 1" : "Misal: Pembayaran Listrik Bulan Juni"}
                   className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] font-medium text-gray-700 placeholder-gray-400" 
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Nominal Pengeluaran <span className="text-red-500">*</span></label>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">{activeTab === "pemasukan" ? "Nominal Pemasukan" : "Nominal Pengeluaran"} <span className="text-red-500">*</span></label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <span className="text-gray-500 font-bold text-xs">Rp</span>
@@ -420,9 +622,20 @@ const PengeluaranOperasionalTab = ({ triggerToast }) => {
                       className="w-full pl-3 pr-8 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] appearance-none font-medium text-gray-700"
                     >
                       <option value="">Pilih sumber...</option>
-                      <option value="Dana BOS">Dana BOS</option>
-                      <option value="Dana Donatur">Dana Donatur</option>
-                      <option value="Lainnya">Lainnya</option>
+                      {activeTab === "pemasukan" ? (
+                        <>
+                          <option value="Pemerintah Pusat">Pemerintah Pusat</option>
+                          <option value="Donatur">Donatur</option>
+                          <option value="Yayasan">Yayasan</option>
+                          <option value="Lainnya">Lainnya</option>
+                        </>
+                      ) : (
+                        <>
+                          <option value="Dana BOS">Dana BOS</option>
+                          <option value="Dana Donatur">Dana Donatur</option>
+                          <option value="Lainnya">Lainnya</option>
+                        </>
+                      )}
                     </select>
                     <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
                       <IconChevronDown />
@@ -475,7 +688,7 @@ const PengeluaranOperasionalTab = ({ triggerToast }) => {
                     Menyimpan...
                   </>
                 ) : (
-                  "Simpan Pengeluaran"
+                  activeTab === "pemasukan" ? "Simpan Pemasukan" : "Simpan Pengeluaran"
                 )}
               </button>
             </div>
@@ -520,8 +733,8 @@ const PengeluaranOperasionalTab = ({ triggerToast }) => {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
             <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50">
               <div>
-                <h2 className="text-lg font-bold text-gray-800">Detail Pengeluaran</h2>
-                <p className="text-[11px] text-gray-500 mt-1">Informasi lengkap transaksi operasional.</p>
+                <h2 className="text-lg font-bold text-gray-800">{activeTab === "pemasukan" ? "Detail Pemasukan" : "Detail Pengeluaran"}</h2>
+                <p className="text-[11px] text-gray-500 mt-1">Informasi lengkap transaksi arus kas.</p>
               </div>
               <button 
                 onClick={() => setSelectedDetailItem(null)}
@@ -535,7 +748,7 @@ const PengeluaranOperasionalTab = ({ triggerToast }) => {
               <div className="flex justify-between items-start pb-4 border-b border-gray-100">
                 <div>
                   <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Tanggal</div>
-                  <div className="text-sm font-semibold text-gray-800">{selectedDetailItem.tanggal}</div>
+                  <div className="text-sm font-semibold text-gray-800">{formatTanggal(selectedDetailItem.tanggal)}</div>
                 </div>
                 <div className="text-right">
                   <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Kategori</div>
@@ -544,14 +757,14 @@ const PengeluaranOperasionalTab = ({ triggerToast }) => {
               </div>
 
               <div>
-                <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Nama Pengeluaran</div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">{activeTab === "pemasukan" ? "Nama Pemasukan" : "Nama Pengeluaran"}</div>
                 <div className="text-sm font-bold text-gray-800">{selectedDetailItem.nama}</div>
               </div>
 
               <div className="flex justify-between items-start">
                 <div>
                   <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Nominal</div>
-                  <div className="text-lg font-black text-emerald-600">Rp {selectedDetailItem.nominal.toLocaleString('id-ID')}</div>
+                  <div className="text-lg font-black text-emerald-600">Rp {Number(selectedDetailItem.nominal).toLocaleString('id-ID')}</div>
                 </div>
                 <div className="text-right">
                   <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Sumber Dana</div>
@@ -559,37 +772,56 @@ const PengeluaranOperasionalTab = ({ triggerToast }) => {
                 </div>
               </div>
 
-              <div>
-                <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Bukti Pembayaran</div>
-                {selectedDetailItem.bukti && selectedDetailItem.bukti.length > 0 ? (
-                  <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
-                    {selectedDetailItem.bukti.map((file, idx) => (
-                      <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                        <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                          </svg>
+              {selectedDetailItem.kategori !== 'Beasiswa' && (
+                <div>
+                  <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Bukti Pembayaran</div>
+                  {selectedDetailItem.bukti && selectedDetailItem.bukti.length > 0 ? (
+                    <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
+                      {selectedDetailItem.bukti.map((file, idx) => (
+                        <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                          <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                            </svg>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs font-bold text-gray-800 truncate">{file}</div>
+                            <div className="text-[10px] text-gray-500">Klik untuk melihat lampiran</div>
+                          </div>
+                          <button 
+                            onClick={() => {
+                              setSelectedPreviewFile(file);
+                              setShowPreviewModal(true);
+                            }}
+                            className="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 text-[10px] font-bold rounded-lg hover:bg-gray-50 cursor-pointer shrink-0"
+                          >
+                            Lihat
+                          </button>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-xs font-bold text-gray-800 truncate">{file}</div>
-                          <div className="text-[10px] text-gray-500">Klik untuk melihat lampiran</div>
-                        </div>
-                        <button 
-                          onClick={() => {
-                            setSelectedPreviewFile(file);
-                            setShowPreviewModal(true);
-                          }}
-                          className="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 text-[10px] font-bold rounded-lg hover:bg-gray-50 cursor-pointer shrink-0"
-                        >
-                          Lihat
-                        </button>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-gray-500 italic">Tidak ada bukti pembayaran yang dilampirkan.</div>
+                  )}
+                </div>
+              )}
+
+              {selectedDetailItem.penerima && selectedDetailItem.penerima.length > 0 && (
+                <div>
+                  <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Daftar Penerima Beasiswa</div>
+                  <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded-xl border border-gray-100 max-h-[140px] overflow-y-auto">
+                    <ul className="list-disc pl-4 space-y-1">
+                      {selectedDetailItem.penerima.map((p, i) => (
+                        <li key={i}>
+                          <span className="font-bold text-gray-800">{p.siswa_nama}</span> 
+                          <span className="text-gray-500"> ({p.nama_kelas})</span>
+                          <span className="text-emerald-600 font-semibold ml-2">Rp {Number(p.nominal || selectedDetailItem.nominal/selectedDetailItem.penerima.length).toLocaleString('id-ID')}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                ) : (
-                  <div className="text-xs text-gray-500 italic">Tidak ada bukti pembayaran yang dilampirkan.</div>
-                )}
-              </div>
+                </div>
+              )}
 
               <div>
                 <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Keterangan</div>
