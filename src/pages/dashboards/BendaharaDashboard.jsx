@@ -46,7 +46,7 @@ import OverridePegawaiTab from "../../components/payroll/OverridePegawaiTab";
 import GenerateSlipTab from "../../components/payroll/GenerateSlipTab";
 import RiwayatSlipTab from "../../components/payroll/RiwayatSlipTab";
 import GuruRiwayatTerimaGaji from "../../components/payroll/GuruRiwayatTerimaGaji";
-import PengeluaranOperasionalTab, { initialPengeluaranData } from "../../components/finance/PengeluaranOperasionalTab";
+import PengeluaranOperasionalTab, { initialPengeluaranData, initialPemasukanData } from "../../components/finance/PengeluaranOperasionalTab";
 
 // Icons Components
 const IconReceipt = () => (
@@ -831,15 +831,30 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
     setShowDeleteProgramConfirmModal(true);
   };
 
-  const executeDeleteProgram = () => {
+  const executeDeleteProgram = async () => {
     if (programToDelete) {
-      const updatedList = programList.filter(p => p.title !== programToDelete);
-      setProgramList(updatedList);
-      // Also remove from localStorage
-      saveProgramsToStorage(updatedList);
-      triggerToast("Program berhasil dihapus!");
-      setProgramToDelete(null);
-      setShowDeleteProgramConfirmModal(false);
+      try {
+        const prog = programList.find(p => p.title === programToDelete);
+        if (prog && prog.penerima) {
+          for (const recipient of prog.penerima) {
+            if (recipient.id) {
+              await deleteBeasiswa(recipient.id);
+            }
+          }
+        }
+        
+        const updatedList = programList.filter(p => p.title !== programToDelete);
+        setProgramList(updatedList);
+        saveProgramsToStorage(updatedList);
+        triggerToast("Program berhasil dihapus!");
+        setProgramToDelete(null);
+        setShowDeleteProgramConfirmModal(false);
+        
+        await loadBeasiswa(); // Refresh backend data so it doesn't reappear
+      } catch (err) {
+        console.error(err);
+        triggerToast("Gagal menghapus program", "error");
+      }
     }
   };
 
@@ -1065,8 +1080,30 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
   // Rendering dashboard based on activeMenu selection
   const renderContent = () => {
     switch (activeMenu) {
-      case "Pengeluaran Operasional":
-        return <PengeluaranOperasionalTab triggerToast={triggerToast} />;
+      case "Pemasukan dan Pengeluaran":
+        const penyaluranListForTab = [];
+        programList.forEach(p => {
+          if (p.status === 'Aktif') {
+            const amountStr = String(p.amount || "0").replace(/[^0-9]/g, '');
+            const amountNum = parseInt(amountStr, 10) || 0;
+            const disalurkan = (p.penerima || []).reduce((s, r) => {
+              const rNominal = r.nominal ? Number(r.nominal) : amountNum;
+              return s + (rNominal || 0);
+            }, 0);
+            const defaultTanggal = (p.penerima && p.penerima.length > 0 && p.penerima[0].tanggal_mulai) ? p.penerima[0].tanggal_mulai : new Date().toISOString();
+            penyaluranListForTab.push({
+              id: `penyaluran-${p.title}`,
+              tanggal: defaultTanggal,
+              nama: p.title,
+              kategori: 'Beasiswa',
+              nominal: disalurkan,
+              sumber: p.sumberDana || p.sumber || 'Lainnya',
+              penerima: p.penerima || [],
+              programName: p.title
+            });
+          }
+        });
+        return <PengeluaranOperasionalTab triggerToast={triggerToast} danaBeasiswaList={danaBeasiswaList} beasiswaList={penyaluranListForTab} />;
       case "My Profile":
         return <Profile user={user} />;
       case "Template Gaji Jabatan":
@@ -1124,7 +1161,22 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
         }, 0);
         const jumlahStaff = currentMonthSlips.length;
 
-        const totalPengeluaranTahunan = initialPengeluaranData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+        const penyaluranBeasiswaList = [];
+        programList.forEach(p => {
+          if (p.status === 'Aktif') {
+            const amountStr = String(p.amount || "0").replace(/[^0-9]/g, '');
+            const amountNum = parseInt(amountStr, 10) || 0;
+            const disalurkan = (p.penerima || []).reduce((s, r) => {
+              const rNominal = r.nominal ? Number(r.nominal) : amountNum;
+              return s + (rNominal || 0);
+            }, 0);
+            penyaluranBeasiswaList.push({ nominal: disalurkan });
+          }
+        });
+        const totalPenyaluranBeasiswa = penyaluranBeasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+        const totalPengeluaranTahunan = initialPengeluaranData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0) + totalPenyaluranBeasiswa;
+        const totalBeasiswa = danaBeasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+        const totalPemasukanTahunan = initialPemasukanData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0) + totalBeasiswa;
 
         return (
           <div className="flex flex-col gap-6 animate-fadeIn font-sans">
@@ -1154,7 +1206,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             </div>
 
             {/* Stat Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 mb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5 mb-5">
               {[
                 {
                   title: "Total SPP Terkumpul",
@@ -1177,7 +1229,12 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   subText: `${jumlahStaff} guru & staf`,
                 },
                 {
-                  title: "Total Operasional Tahunan",
+                  title: "Total Pemasukan Tahunan",
+                  value: formatRupiah(totalPemasukanTahunan),
+                  subText: `Akumulasi ${selectedYear}`,
+                },
+                {
+                  title: "Total Pengeluaran Tahunan",
                   value: formatRupiah(totalPengeluaranTahunan),
                   subText: `Akumulasi ${selectedYear}`,
                 }
@@ -1185,8 +1242,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                 <div key={i} className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
                   <div>
                     <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">{card.title}</div>
-                    <div className="text-3xl font-black text-white">{card.value}</div>
-                    <div className="text-xs font-medium text-blue-300 mt-2">{card.subText}</div>
+                    <div className="text-xl lg:text-2xl xl:text-[22px] font-black text-white">{card.value}</div>
+                    <div className="text-[10px] font-medium text-blue-300 mt-2">{card.subText}</div>
                   </div>
                 </div>
               ))}
@@ -3015,7 +3072,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   }}
                   className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-4 sm:px-5 py-2.5 text-xs sm:text-[13px] font-bold cursor-pointer transition-all shadow-sm active:scale-95"
                 >
-                  <IconPlus /> Tambah Komponen
+                  Tambah Komponen
                 </button>
               </div>
             </div>
