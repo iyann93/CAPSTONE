@@ -30,32 +30,29 @@ const Profile = ({ user }) => {
 
   const getDefaultProfile = () => {
     if (isWali) return {
-      fullName: "Asih Kinanti, S.Pd",
-      email: "asihkinanti@siakad.id",
+      fullName: user?.fullName || user?.nama || "Asih Kinanti, S.Pd",
+      email: user?.email || "asihkinanti@siakad.id",
       phone: "+62 856-1234-9988",
       address: "Jl. Pramuka No. 45, Sleman, DI Yogyakarta 55281",
       nip: "198807152010012015"
     };
     if (isWakilKepala) return {
-      fullName: "Drs. Hendra Kurniawan",
-      email: "hendra.kurniawan@siakad.id",
+      fullName: user?.fullName || user?.nama || "Drs. Hendra Kurniawan",
+      email: user?.email || "hendra.kurniawan@siakad.id",
       phone: "+62 811-2345-6789",
       address: "Jl. Melati No. 12, Prambanan, Sleman, DI Yogyakarta 55572",
       nip: "196905102000031005"
     };
     return {
-      fullName: "Siti Aminah",
-      email: "siti.keuangan@siakad.id",
+      fullName: user?.fullName || user?.nama || "Pengguna",
+      email: user?.email || "",
       phone: "+62 812-3456-7890",
       address: "Jl. Pendidikan No. 1, Kel. Menteng, Jakarta Pusat 10310",
       nip: "198507232010011015"
     };
   };
 
-  const [profileData, setProfileData] = useState({
-    ...getDefaultProfile(),
-    fullName: user?.fullName || getDefaultProfile().fullName,
-  });
+  const [profileData, setProfileData] = useState(getDefaultProfile());
   const [formData, setFormData] = useState(profileData);
 
   const handleSave = () => {

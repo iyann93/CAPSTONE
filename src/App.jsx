@@ -19,6 +19,7 @@ const App = () => {
   const [collapsed, setCollapsed] = useState(true);
   const [authView, setAuthView] = useState("login");
   const [activeMenu, setActiveMenu] = useState("Dashboard");
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const scrollContainerRef = React.useRef(null);
   // Navigation guard: BendaharaDashboard (or any dashboard) can register a
   // guard function here. If registered, it is called INSTEAD of setActiveMenu.
@@ -30,6 +31,39 @@ const App = () => {
     }
     window.scrollTo(0, 0);
   }, [activeMenu, user]);
+
+  React.useEffect(() => {
+    // Observer to globally detect if any modal is open across the app
+    const checkModals = () => {
+      // Check for any modal that uses the fixed inset-0 pattern
+      // We exclude those with pointer-events-none to prevent false positives
+      const modalElements = document.querySelectorAll('.fixed.inset-0:not(.pointer-events-none)');
+      let hasVisibleModal = false;
+      
+      modalElements.forEach(el => {
+        // Only count if it's not hidden
+        if (window.getComputedStyle(el).display !== 'none' && !el.classList.contains('hidden')) {
+          hasVisibleModal = true;
+        }
+      });
+      
+      setIsModalOpen(hasVisibleModal);
+    };
+
+    const observer = new MutationObserver(checkModals);
+    
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class']
+    });
+    
+    // Initial check
+    checkModals();
+    
+    return () => observer.disconnect();
+  }, []);
 
   // Inactivity / Idle Timeout Logic
   useEffect(() => {
@@ -235,29 +269,33 @@ const App = () => {
     />;
   }
   return <div className="flex flex-col min-h-screen bg-[#F4F6FA] font-sans h-screen overflow-hidden">
-    <TopBar
-      user={user}
-      onToggle={() => setCollapsed((c) => !c)}
-      onLogout={handleLogout}
-      onProfileClick={() => setActiveMenu("My Profile")}
-    />
-    <div className="flex flex-1 min-h-0 overflow-hidden relative">
-      <Sidebar
-        role={user.role}
+    <div className={`transition-opacity duration-300 ${isModalOpen ? 'pointer-events-none' : ''}`}>
+      <TopBar
         user={user}
-        collapsed={collapsed}
-        activeMenu={activeMenu}
-        onMenuClick={(menu) => {
-          // Route through nav guard if one is registered (e.g., while slip is generating)
-          if (navGuardRef.current) {
-            navGuardRef.current(menu);
-          } else {
-            setActiveMenu(menu);
-          }
-          if (window.innerWidth < 1024) setCollapsed(true);
-        }}
-        onClose={() => setCollapsed(true)}
+        onToggle={() => setCollapsed((c) => !c)}
+        onLogout={handleLogout}
+        onProfileClick={() => setActiveMenu("My Profile")}
       />
+    </div>
+    <div className="flex flex-1 min-h-0 overflow-hidden relative">
+      <div className={`transition-opacity duration-300 h-full ${isModalOpen ? 'pointer-events-none' : ''}`}>
+        <Sidebar
+          role={user.role}
+          user={user}
+          collapsed={collapsed}
+          activeMenu={activeMenu}
+          onMenuClick={(menu) => {
+            // Route through nav guard if one is registered (e.g., while slip is generating)
+            if (navGuardRef.current) {
+              navGuardRef.current(menu);
+            } else {
+              setActiveMenu(menu);
+            }
+            if (window.innerWidth < 1024) setCollapsed(true);
+          }}
+          onClose={() => setCollapsed(true)}
+        />
+      </div>
 
       <div
         ref={scrollContainerRef}

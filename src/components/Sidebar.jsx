@@ -290,7 +290,7 @@ const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) =>
     />}
 
     <aside className={`
-        fixed lg:sticky top-0 left-0 z-50 h-screen 
+        fixed lg:sticky top-0 left-0 z-40 h-screen 
         bg-[#F9FAFB] border-r border-gray-100
         transition-all duration-300 ease-in-out
         flex flex-col overflow-hidden
