@@ -51,7 +51,7 @@ const BeasiswaSiswa = ({ user }) => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left: Program List */}
           <div className="lg:col-span-1 space-y-3">
-            <h3 className="text-[15px] font-bold text-gray-800 mb-2">Daftar Program</h3>
+            <h3 className="text-[15px] font-bold text-gray-800 mb-2">Rincian Program Beasiswa yang diterima</h3>
             {beasiswaList.map((item) => {
               const isSelected = selectedProgram?.id === item.id;
               const statusDisplay = item.status ? item.status.charAt(0).toUpperCase() + item.status.slice(1) : "-";
@@ -100,13 +100,15 @@ const BeasiswaSiswa = ({ user }) => {
                     <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Nominal Bantuan</p>
                     <p className="text-[16px] font-bold text-gray-800">{formatCurrency(selectedProgram.nominal)}</p>
                   </div>
-                  <div>
-                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tanggal Mulai</p>
-                    <p className="text-[14px] font-bold text-gray-800">{new Date(selectedProgram.tanggal_mulai).toLocaleDateString('id-ID')}</p>
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tanggal Selesai</p>
-                    <p className="text-[14px] font-bold text-gray-800">{selectedProgram.tanggal_selesai ? new Date(selectedProgram.tanggal_selesai).toLocaleDateString('id-ID') : "-"}</p>
+                  <div className="flex flex-col gap-y-8">
+                    <div>
+                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tanggal Mulai</p>
+                      <p className="text-[14px] font-bold text-gray-800">{new Date(selectedProgram.tanggal_mulai).toLocaleDateString('id-ID')}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tanggal Selesai</p>
+                      <p className="text-[14px] font-bold text-gray-800">{selectedProgram.tanggal_selesai ? new Date(selectedProgram.tanggal_selesai).toLocaleDateString('id-ID') : "-"}</p>
+                    </div>
                   </div>
                 </div>
               </div>

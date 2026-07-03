@@ -26,13 +26,35 @@ const Profile = ({ user }) => {
   const [showToast, setShowToast] = useState(false);
 
   const isWali = user?.role === "Wali Kelas";
+  const isWakilKepala = user?.role === "Wakil Kepala";
+
+  const getDefaultProfile = () => {
+    if (isWali) return {
+      fullName: "Asih Kinanti, S.Pd",
+      email: "asihkinanti@siakad.id",
+      phone: "+62 856-1234-9988",
+      address: "Jl. Pramuka No. 45, Sleman, DI Yogyakarta 55281",
+      nip: "198807152010012015"
+    };
+    if (isWakilKepala) return {
+      fullName: "Drs. Hendra Kurniawan",
+      email: "hendra.kurniawan@siakad.id",
+      phone: "+62 811-2345-6789",
+      address: "Jl. Melati No. 12, Prambanan, Sleman, DI Yogyakarta 55572",
+      nip: "196905102000031005"
+    };
+    return {
+      fullName: "Siti Aminah",
+      email: "siti.keuangan@siakad.id",
+      phone: "+62 812-3456-7890",
+      address: "Jl. Pendidikan No. 1, Kel. Menteng, Jakarta Pusat 10310",
+      nip: "198507232010011015"
+    };
+  };
 
   const [profileData, setProfileData] = useState({
-    fullName: user?.fullName || (isWali ? "Asih Kinanti, S.Pd" : "Siti Aminah"),
-    email: isWali ? "asihkinanti@siakad.id" : "siti.keuangan@siakad.id",
-    phone: isWali ? "+62 856-1234-9988" : "+62 812-3456-7890",
-    address: isWali ? "Jl. Pramuka No. 45, Sleman, DI Yogyakarta 55281" : "Jl. Pendidikan No. 1, Kel. Menteng, Jakarta Pusat 10310",
-    nip: isWali ? "198807152010012015" : "198507232010011015"
+    ...getDefaultProfile(),
+    fullName: user?.fullName || getDefaultProfile().fullName,
   });
   const [formData, setFormData] = useState(profileData);
 

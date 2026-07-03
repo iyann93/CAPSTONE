@@ -1,11 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { getTagihan } from "../../api/finance";
+
+const BULAN_NAMES = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
 const mockAnnouncements = [
   {
     id: 1,
     title: "Jadwal Ujian Akhir Semester Genap TA 2023/2024",
     date: "20 Jun 2024",
-    author: "Bpk. Drs. Wahyu (Waka Kurikulum)",
+    author: "Drs. Wahyu (Waka Kurikulum)",
     category: "Akademik",
     importance: "Penting",
     desc: "Diberitahukan kepada seluruh Orang Tua/Wali siswa bahwa Ujian Akhir Semester Genap akan dilaksanakan mulai tanggal 24 Juni hingga 28 Juni 2024. Kartu ujian dapat diambil melalui TU mulai hari ini. Pastikan siswa mempersiapkan diri dengan baik dan hadir tepat waktu sesuai jadwal.",
@@ -15,7 +18,7 @@ const mockAnnouncements = [
     id: 2,
     title: "Pentas Seni & Bazar Kreativitas Siswa Akhir Tahun",
     date: "15 Jun 2024",
-    author: "Ibu Indah Sari (Pembina OSIS)",
+    author: "Indah Sari (Pembina OSIS)",
     category: "Kegiatan",
     importance: "Normal",
     desc: "Undangan resmi menghadiri acara Pentas Seni Akhir Tahun MBS Prambanan yang diselenggarakan pada Sabtu, 22 Juni 2024. Acara ini akan menampilkan kreativitas seni, musik, dan bazar produk kewirausahaan siswa kelas VIII dan IX. Kehadiran Bapak/Ibu sangat kami harapkan untuk memberikan apresiasi.",
@@ -25,7 +28,7 @@ const mockAnnouncements = [
     id: 3,
     title: "Sosialisasi Program Kenaikan & Kelulusan Kelas XII",
     date: "10 Jun 2024",
-    author: "Bpk. Drs. Ahmad Wijaya (Kepala Sekolah)",
+    author: "Drs. Ahmad Wijaya (Kepala Sekolah)",
     category: "Akademik",
     importance: "Penting",
     desc: "Rapat koordinasi dan pemaparan kriteria kenaikan kelas serta kelulusan akan dilaksanakan secara tatap muka di Aula Sekolah pada tanggal 14 Juni 2024 pukul 09.00 WIB. Pertemuan ini sangat penting guna membahas arah pendidikan anak ke depan serta penyelesaian administrasi akhir tahun.",
@@ -35,7 +38,7 @@ const mockAnnouncements = [
     id: 4,
     title: "Penerimaan Proposal Beasiswa Prestasi Semester Ganjil",
     date: "05 Jun 2024",
-    author: "Ibu Siti Aminah (Bendahara)",
+    author: "Siti Aminah (Bendahara)",
     category: "Penerimaan",
     importance: "Normal",
     desc: "Pengajuan beasiswa prestasi akademik dan non-akademik untuk periode semester ganjil tahun ajaran berikutnya telah dibuka. Bagi orang tua yang ingin mengajukan putra/putrinya silakan mengisi formulir beasiswa di portal web sekolah atau menghubungi ruang Bendahara.",
@@ -43,10 +46,23 @@ const mockAnnouncements = [
   }
 ];
 
-const PengumumanSekolah = () => {
+const PengumumanSekolah = ({ user }) => {
   const [tab, setTab] = useState("Semua");
   const [search, setSearch] = useState("");
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
+  const [tunggakanList, setTunggakanList] = useState([]);
+
+  const siswaId = user?.anak?.id;
+
+  useEffect(() => {
+    if (!siswaId) return;
+    getTagihan({ siswa_id: siswaId, status: "belum_lunas" })
+      .then(data => {
+        const arr = Array.isArray(data) ? data : [];
+        setTunggakanList(arr.filter(t => t.status === "belum_lunas" || t.status === "belum lunas"));
+      })
+      .catch(() => setTunggakanList([]));
+  }, [siswaId]);
 
   const filtered = mockAnnouncements.filter(ann => {
     const tabOk = tab === "Semua" || ann.category === tab;
@@ -69,6 +85,60 @@ const PengumumanSekolah = () => {
           <p className="text-[14px] text-gray-500 mt-1">Informasi resmi terupdate dari pihak sekolah</p>
         </div>
       </div>
+
+      {/* Notifikasi Tunggakan SPP */}
+      {tunggakanList.length > 0 && (
+        <div className="rounded-2xl border border-red-200 bg-red-50 shadow-sm overflow-hidden animate-fadeIn">
+          {/* Banner Header */}
+          <div className="flex items-center gap-3 px-5 py-3 bg-red-600">
+            <svg width="18" height="18" fill="none" stroke="white" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.008v.008H12v-.008Z"/>
+            </svg>
+            <span className="text-white font-bold text-[14px]">
+              Notifikasi Tagihan Tunggakan SPP ({tunggakanList.length} tagihan)
+            </span>
+          </div>
+          {/* Tagihan List */}
+          <div className="divide-y divide-red-100">
+            {tunggakanList.map((t, idx) => {
+              const bulanNama = BULAN_NAMES[(t.bulan ?? 1) - 1] || "-";
+              const nominal = t.nominal ? `Rp ${Number(t.nominal).toLocaleString('id-ID')}` : "-";
+              const jatuhTempo = t.jatuh_tempo ? new Date(t.jatuh_tempo).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) : "-";
+              const isOverdue = t.jatuh_tempo && new Date(t.jatuh_tempo) < new Date();
+              return (
+                <div key={t.id ?? idx} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-5 py-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+                      <svg width="16" height="16" fill="none" stroke="#dc2626" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-[13.5px] font-bold text-red-800">
+                        Tagihan SPP — {bulanNama} {t.tahun ?? ""}
+                      </p>
+                      <p className="text-[12px] text-red-600 mt-0.5">
+                        Nominal: <span className="font-bold">{nominal}</span>
+                        <span className="mx-2 text-red-300">•</span>
+                        Jatuh Tempo: <span className="font-bold">{jatuhTempo}</span>
+                        {isOverdue && <span className="ml-2 px-1.5 py-0.5 bg-red-200 text-red-700 rounded text-[10px] font-bold">LEWAT JATUH TEMPO</span>}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="flex-shrink-0 self-start sm:self-center px-3 py-1 bg-red-100 border border-red-200 rounded-lg text-[11px] font-bold text-red-700 uppercase tracking-wide">
+                    Belum Lunas
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <div className="px-5 py-3 bg-red-50 border-t border-red-100">
+            <p className="text-[12px] text-red-500 leading-relaxed">
+              ⚠️ Mohon segera melunasi tagihan di atas melalui menu <strong>Tagihan SPP</strong> agar tidak mengganggu proses administrasi sekolah.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Main Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
