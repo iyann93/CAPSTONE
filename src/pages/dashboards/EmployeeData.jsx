@@ -371,7 +371,7 @@ const EmployeeData = () => {
                   </div>
                   <div className="col-span-1 md:col-span-2 space-y-2">
                     <label className="text-[11px] font-bold text-gray-500 ml-1">Alamat Lengkap</label>
-                    <textarea rows={3} defaultValue="Komp. Griya Indah Blok B/12, Antapani, Jakarta Selatan" className="w-full px-4 py-3 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/5 focus:bg-white transition-all resize-none" />
+                    <textarea rows={3} defaultValue="Komp. Griya Indah Blok B/12, Depok, Sleman, DI Yogyakarta" className="w-full px-4 py-3 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/5 focus:bg-white transition-all resize-none" />
                   </div>
                 </div>
               </div>

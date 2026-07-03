@@ -9,7 +9,7 @@ const MOCK_USERS = [
     email: "admin@smanusantara.sch.id",
     phone: "+62 812-3456-7890",
     nip: "198507232010011015",
-    address: "Jl. Pendidikan No. 1, Kel. Menteng, Jakarta Pusat"
+    address: "Jl. Pendidikan No. 1, Gondokusuman, Yogyakarta"
   },
   {
     id: "2",
@@ -61,7 +61,7 @@ const MOCK_USERS = [
     email: "bendahara@smanusantara.sch.id",
     phone: "+62 812-9876-5432",
     nip: "199005052015052002",
-    address: "Jl. Pendidikan No. 1, Jakarta"
+    address: "Jl. Pendidikan No. 1, Yogyakarta"
   }
 ];
 export {

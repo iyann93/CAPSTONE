@@ -47,7 +47,7 @@ const Profile = ({ user }) => {
       fullName: user?.fullName || user?.nama || "Pengguna",
       email: user?.email || "",
       phone: "+62 812-3456-7890",
-      address: "Jl. Pendidikan No. 1, Kel. Menteng, Jakarta Pusat 10310",
+      address: "Jl. Pendidikan No. 1, Kel. Gondokusuman, Yogyakarta 55222",
       nip: "198507232010011015"
     };
   };
