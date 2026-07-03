@@ -133,6 +133,9 @@ const IconSend = () => (
   </svg>
 );
 
+// Roman Numeral Sorter
+const romanOrder = { 'I':1, 'II':2, 'III':3, 'IV':4, 'V':5, 'VI':6, 'VII':7, 'VIII':8, 'IX':9, 'X':10, 'XI':11, 'XII':12 };
+
 // Charts Mock Data
 const sppRecapData = [
   { name: "Jan", Lunas: 28, Belum: 6 },
@@ -1566,7 +1569,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                 {/* Tabs Filter and Export */}
                 <div className="flex items-center justify-between md:justify-end gap-3 flex-wrap">
                   <div className="flex bg-gray-50 border border-gray-100 p-1 rounded-xl">
-                    {["Semua", ...[...new Set(studentsBill.map(r => r.kelas?.split(' ')[0]))].filter(Boolean).sort().map(c => `Kelas ${c}`)].map((tab) => {
+                    {["Semua", ...[...new Set(studentsBill.map(r => r.kelas?.split(' ')[0]))].filter(Boolean).sort((a, b) => (romanOrder[a] || 99) - (romanOrder[b] || 99)).map(c => `Kelas ${c}`)].map((tab) => {
                       const isActive = billClassFilter === tab;
                       return (
                         <button
@@ -2140,7 +2143,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
           ? sppPayments 
           : sppPayments.filter(r => r.month === riwayatBulan);
           
-        const allBaseClasses = [...new Set(sppPayments.map(r => r.kelas.split(' ')[0]))].filter(Boolean).sort();
+        const allBaseClasses = [...new Set(sppPayments.map(r => r.kelas.split(' ')[0]))]
+          .filter(Boolean)
+          .sort((a, b) => (romanOrder[a] || 99) - (romanOrder[b] || 99));
         const classGroups = riwayatKelas === "Semua Kelas" 
           ? allBaseClasses.map(c => `Kelas ${c}`) 
           : [riwayatKelas];
@@ -3229,7 +3234,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all bg-gray-50 hover:bg-gray-100/50 cursor-pointer"
                   >
                     <option>Semua Kelas</option>
-                    {[...new Set(siswaList.map(s => s.nama_kelas?.split(' ')[0]))].filter(Boolean).sort().map(c => (
+                    {[...new Set(siswaList.map(s => s.nama_kelas?.split(' ')[0]))].filter(Boolean).sort((a, b) => (romanOrder[a] || 99) - (romanOrder[b] || 99)).map(c => (
                       <option key={c}>Kelas {c}</option>
                     ))}
                   </select>
@@ -4725,9 +4730,11 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                 Tetap di Sini
               </button>
               <button
-                onClick={() => {
-                  // Cancel the generation
-                  if (cancelSlipRef.current) cancelSlipRef.current();
+                onClick={async () => {
+                  // Cancel the generation and wait for rollback if any
+                  if (cancelSlipRef.current) {
+                    await cancelSlipRef.current();
+                  }
                   setShowNavConfirmModal(false);
                   // Navigate to the requested menu
                   if (pendingNavMenu && onViewChange) onViewChange(pendingNavMenu);

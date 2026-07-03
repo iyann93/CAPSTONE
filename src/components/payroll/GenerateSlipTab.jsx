@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { generateSlip, getEmployees } from '../../api/payroll';
+import { generateSlip, getEmployees, bulkDeleteSlips } from '../../api/payroll';
 
 const GenerateSlipTab = ({ triggerToast, onGeneratingChange, cancelRef }) => {
   const [bulan, setBulan] = useState(String(new Date().getMonth() + 1));
@@ -8,6 +8,8 @@ const GenerateSlipTab = ({ triggerToast, onGeneratingChange, cancelRef }) => {
   const [progress, setProgress] = useState(0);
   const [logs, setLogs] = useState([]);
   const cancelledRef = useRef(false);
+  const generatedIdsRef = useRef([]);
+  const resolveCleanupRef = useRef(null);
 
   // Notify parent when generating state changes
   useEffect(() => {
@@ -18,16 +20,20 @@ const GenerateSlipTab = ({ triggerToast, onGeneratingChange, cancelRef }) => {
   useEffect(() => {
     if (cancelRef) {
       cancelRef.current = () => {
-        cancelledRef.current = true;
-        setIsGenerating(false);
-        setProgress(0);
-        setLogs(prev => [...prev, { status: 'error', message: 'Proses generate slip gaji dibatalkan oleh pengguna.' }]);
+        return new Promise(resolve => {
+          cancelledRef.current = true;
+          resolveCleanupRef.current = resolve;
+          setIsGenerating(false);
+          setProgress(0);
+          setLogs(prev => [...prev, { status: 'error', message: 'Membatalkan proses, harap tunggu...' }]);
+        });
       };
     }
   }, [cancelRef]);
 
   const handleGenerateAll = async () => {
     cancelledRef.current = false;
+    generatedIdsRef.current = [];
     setIsGenerating(true);
     setProgress(0);
     setLogs([{ status: 'info', message: 'Memulai proses generate slip gaji...' }]);
@@ -54,7 +60,7 @@ const GenerateSlipTab = ({ triggerToast, onGeneratingChange, cancelRef }) => {
 
         const emp = employees[i];
         try {
-          await generateSlip({
+          const res = await generateSlip({
             userId: emp.id,
             bulan: parseInt(bulan, 10),
             tahun: parseInt(tahun, 10),
@@ -62,6 +68,9 @@ const GenerateSlipTab = ({ triggerToast, onGeneratingChange, cancelRef }) => {
             jumlahAlpha: 0,
             jamLembur: 0
           });
+          if (res && res.id) {
+            generatedIdsRef.current.push(res.id);
+          }
           successCount++;
           // setLogs(prev => [...prev, { status: 'success', message: `[OK] Slip untuk ${emp.nama_lengkap} berhasil dibuat.` }]);
         } catch (err) {
@@ -74,16 +83,32 @@ const GenerateSlipTab = ({ triggerToast, onGeneratingChange, cancelRef }) => {
         setProgress(Math.round(((i + 1) / employees.length) * 100));
       }
 
-      setLogs(prev => [...prev, { 
-        status: 'info', 
-        message: `Selesai! Berhasil: ${successCount}, Gagal/Sudah ada: ${failCount}` 
-      }]);
-      triggerToast("Proses generate slip gaji selesai!");
+      if (cancelledRef.current) {
+        setLogs(prev => [...prev, { status: 'info', message: 'Proses dibatalkan. Melakukan pembersihan data (rollback)...' }]);
+        if (generatedIdsRef.current.length > 0) {
+          try {
+            await bulkDeleteSlips(generatedIdsRef.current);
+            setLogs(prev => [...prev, { status: 'info', message: `${generatedIdsRef.current.length} slip gaji yang terlanjur terbuat berhasil dihapus.` }]);
+          } catch (e) {
+            console.error('Gagal rollback:', e);
+            setLogs(prev => [...prev, { status: 'error', message: 'Gagal menghapus slip gaji yang sempat terbuat.' }]);
+          }
+        }
+        generatedIdsRef.current = [];
+        if (resolveCleanupRef.current) resolveCleanupRef.current();
+      } else {
+        setLogs(prev => [...prev, { 
+          status: 'info', 
+          message: `Selesai! Berhasil: ${successCount}, Gagal/Sudah ada: ${failCount}` 
+        }]);
+        triggerToast("Proses generate slip gaji selesai!");
+      }
 
     } catch (error) {
       console.error(error);
       setLogs(prev => [...prev, { status: 'error', message: `Gagal memulai proses: ${error.message}` }]);
       triggerToast("Terjadi kesalahan sistem", "error");
+      if (resolveCleanupRef.current) resolveCleanupRef.current();
     } finally {
       setIsGenerating(false);
     }
