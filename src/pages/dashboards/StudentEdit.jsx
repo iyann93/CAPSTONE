@@ -5,7 +5,7 @@ const StudentEdit = ({ student, onBack, onSave, onDelete }) => {
   const [classes, setClasses] = useState([]);
 
   useEffect(() => {
-    api.get('/kelas').then(res => {
+    api.get('/kelas?limit=100').then(res => {
       if (res.data && res.data.data) setClasses(res.data.data);
     }).catch(err => {
       console.error("Gagal mengambil data kelas:", err);
@@ -57,9 +57,7 @@ const StudentEdit = ({ student, onBack, onSave, onDelete }) => {
       .substring(0, 2)
       .toUpperCase();
 
-    // Find ID from classes list
-    const foundClass = classes.find(c => c.nama_kelas.toLowerCase() === formData.kelas.toLowerCase().trim());
-    const matchedKelasId = foundClass ? foundClass.id : student.kelas_id;
+    const matchedKelasId = formData.kelas_id || student.kelas_id;
 
     const updatedStudent = {
       ...student,
@@ -241,13 +239,24 @@ const StudentEdit = ({ student, onBack, onSave, onDelete }) => {
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
               <div className="space-y-2">
                 <label className="text-[13px] font-bold text-gray-700">Kelas<span className="text-red-500">*</span></label>
-                <input 
-                  type="text" 
-                  value={formData.kelas}
-                  onChange={(e) => setFormData({ ...formData, kelas: e.target.value })}
-                  placeholder="Misal: X IPA 1"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-[14px] text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-colors bg-white"
-                />
+                <select 
+                  value={formData.kelas_id || ""}
+                  onChange={(e) => {
+                    const selectedId = e.target.value;
+                    const found = classes.find(c => c.id === selectedId);
+                    setFormData({ 
+                      ...formData, 
+                      kelas_id: selectedId,
+                      kelas: found ? found.nama_kelas : "" 
+                    });
+                  }}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-[14px] text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-colors bg-white appearance-none"
+                >
+                  <option value="">Pilih Kelas</option>
+                  {classes.map(c => (
+                    <option key={c.id} value={c.id}>{c.nama_kelas}</option>
+                  ))}
+                </select>
               </div>
               <div className="space-y-2">
                 <label className="text-[13px] font-bold text-gray-700">Tahun Masuk</label>
@@ -316,7 +325,10 @@ const StudentEdit = ({ student, onBack, onSave, onDelete }) => {
         <div className="w-full xl:w-[320px] space-y-6">
           {/* Pratinjau Profil */}
           <div className="bg-white rounded-[16px] border border-gray-200 shadow-sm p-6 flex flex-col items-center">
-            <div className={`w-[72px] h-[72px] ${student.avatarColor} rounded-[20px] flex items-center justify-center text-white text-[28px] font-bold mb-4 shadow-sm`}>
+            <div 
+              className="w-[72px] h-[72px] rounded-[20px] flex items-center justify-center text-white text-[28px] font-bold mb-4 shadow-sm"
+              style={{ backgroundColor: student.avatarColor }}
+            >
               {student.initials}
             </div>
             <h4 className="text-[16px] font-bold text-[#1e293b] text-center">{student.name}</h4>

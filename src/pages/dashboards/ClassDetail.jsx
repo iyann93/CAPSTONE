@@ -1,6 +1,6 @@
 import React from "react";
 
-const ClassDetail = ({ setView }) => {
+const ClassDetail = ({ setView, selectedClass }) => {
   return (
     <div className="p-6 md:p-8 animate-fadeIn space-y-6 bg-[#F4F6FA] min-h-full">
       <div className="text-[13px] font-medium text-gray-500 mb-1">
@@ -17,11 +17,11 @@ const ClassDetail = ({ setView }) => {
           </button>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-[26px] font-bold text-[#1e293b] leading-tight">Kelas X IPA 1</h1>
-              <span className="text-[13px] text-gray-400 font-bold uppercase tracking-wider">X-IPA-1</span>
-              <span className="bg-[#ECFDF5] text-[#059669] text-[11px] font-bold px-2.5 py-1 rounded-full">Aktif</span>
+              <h1 className="text-[26px] font-bold text-[#1e293b] leading-tight">{selectedClass?.name || "Detail Kelas"}</h1>
+              <span className="text-[13px] text-gray-400 font-bold uppercase tracking-wider">{selectedClass?.code || "-"}</span>
+              <span className="bg-[#ECFDF5] text-[#059669] text-[11px] font-bold px-2.5 py-1 rounded-full">{selectedClass?.status || "Aktif"}</span>
             </div>
-            <p className="text-[14px] text-gray-500 mt-1">Ganjil 2023/2024 — 2023/2024</p>
+            <p className="text-[14px] text-gray-500 mt-1">{selectedClass?.year || "-"}</p>
           </div>
         </div>
         <div className="flex gap-3">
@@ -45,9 +45,9 @@ const ClassDetail = ({ setView }) => {
             <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
           </div>
           <div>
-            <div className="text-[28px] font-black text-[#1e293b] leading-none mb-1">32</div>
+            <div className="text-[28px] font-black text-[#1e293b] leading-none mb-1">{selectedClass?.students || 0}</div>
             <div className="text-[12px] font-bold text-gray-500">Jumlah Siswa</div>
-            <div className="text-[11px] text-gray-400 mt-0.5">Kapasitas 36</div>
+            <div className="text-[11px] text-gray-400 mt-0.5">Kapasitas {selectedClass?.capacity || 36}</div>
           </div>
         </div>
 
@@ -153,7 +153,7 @@ const ClassDetail = ({ setView }) => {
                 <h3 className="text-[15px] font-bold text-[#1e293b]">Daftar Siswa</h3>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[12px] font-medium text-gray-400">32 siswa</span>
+                <span className="text-[12px] font-medium text-gray-400">{selectedClass?.students || 0} siswa</span>
                 <button className="text-[12px] font-bold text-[#3B82F6] hover:underline">Lihat Semua</button>
               </div>
             </div>
@@ -165,37 +165,33 @@ const ClassDetail = ({ setView }) => {
                     <th className="px-5 py-3 text-[11px] font-bold text-gray-400 uppercase">NIS</th>
                     <th className="px-5 py-3 text-[11px] font-bold text-gray-400 uppercase">Nama Siswa</th>
                     <th className="px-5 py-3 text-[11px] font-bold text-gray-400 uppercase">L/P</th>
-                    <th className="px-5 py-3 text-[11px] font-bold text-gray-400 uppercase">Rata-rata Nilai</th>
                     <th className="px-5 py-3 text-[11px] font-bold text-gray-400 uppercase">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  <tr className="hover:bg-gray-50/50">
-                    <td className="px-5 py-3.5 text-[13px] text-gray-500">1</td>
-                    <td className="px-5 py-3.5 text-[13px] text-gray-600">2023001</td>
-                    <td className="px-5 py-3.5 text-[14px] font-bold text-[#1e293b]">Andi Pratama</td>
-                    <td className="px-5 py-3.5"><span className="w-6 h-6 rounded-md bg-[#EFF6FF] text-[#3B82F6] text-[11px] font-bold flex items-center justify-center">L</span></td>
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[13px] font-bold">87.5</span>
-                        <div className="w-12 h-1.5 bg-gray-100 rounded-full"><div className="w-[87%] h-full bg-[#22C55E] rounded-full"></div></div>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3.5"><span className="text-[#059669] text-[12px] font-bold">Aktif</span></td>
-                  </tr>
-                  <tr className="hover:bg-gray-50/50">
-                    <td className="px-5 py-3.5 text-[13px] text-gray-500">2</td>
-                    <td className="px-5 py-3.5 text-[13px] text-gray-600">2023002</td>
-                    <td className="px-5 py-3.5 text-[14px] font-bold text-[#1e293b]">Dewi Sartika</td>
-                    <td className="px-5 py-3.5"><span className="w-6 h-6 rounded-md bg-[#FDF2F8] text-[#DB2777] text-[11px] font-bold flex items-center justify-center">P</span></td>
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[13px] font-bold">91.2</span>
-                        <div className="w-12 h-1.5 bg-gray-100 rounded-full"><div className="w-[91%] h-full bg-[#22C55E] rounded-full"></div></div>
-                      </div>
-                    </td>
-                    <td className="px-5 py-3.5"><span className="text-[#059669] text-[12px] font-bold">Aktif</span></td>
-                  </tr>
+                  {(selectedClass?.studentsList || []).length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="px-5 py-8 text-center text-[13px] text-gray-500 font-medium">Belum ada siswa terdaftar di kelas ini</td>
+                    </tr>
+                  ) : (
+                    (selectedClass?.studentsList || []).map((siswa, idx) => (
+                      <tr key={siswa.id || idx} className="hover:bg-gray-50/50">
+                        <td className="px-5 py-3.5 text-[13px] text-gray-500">{idx + 1}</td>
+                        <td className="px-5 py-3.5 text-[13px] text-gray-600">{siswa.nis || "-"}</td>
+                        <td className="px-5 py-3.5 text-[14px] font-bold text-[#1e293b]">{siswa.nama_lengkap || siswa.name}</td>
+                        <td className="px-5 py-3.5">
+                          <span className={`w-6 h-6 rounded-md text-[11px] font-bold flex items-center justify-center ${siswa.jenis_kelamin === 'P' ? 'bg-[#FDF2F8] text-[#DB2777]' : 'bg-[#EFF6FF] text-[#3B82F6]'}`}>
+                            {siswa.jenis_kelamin || "L"}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <span className={`text-[12px] font-bold ${siswa.status_siswa === 'aktif' ? 'text-[#059669]' : 'text-gray-500'}`}>
+                            {siswa.status_siswa === 'aktif' ? 'Aktif' : 'Tidak Aktif'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -211,10 +207,9 @@ const ClassDetail = ({ setView }) => {
               <h3 className="text-[15px] font-bold text-[#1e293b]">Wali Kelas</h3>
             </div>
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-[#818CF8] text-white flex items-center justify-center font-bold text-lg">IS</div>
+              <div className="w-12 h-12 rounded-full bg-[#818CF8] text-white flex items-center justify-center font-bold text-lg">{(selectedClass?.teacher || "U")[0]}</div>
               <div>
-                <div className="text-[14px] font-bold text-[#1e293b]">Ibu Sari Dewi, S.Pd</div>
-                <div className="text-[11px] text-gray-400">NIP. 198403122010012010</div>
+                <div className="text-[14px] font-bold text-[#1e293b]">{selectedClass?.teacher || "Belum Ditentukan"}</div>
                 <div className="text-[11px] text-gray-400">Guru Wali Kelas</div>
               </div>
             </div>
@@ -225,23 +220,19 @@ const ClassDetail = ({ setView }) => {
             <div className="space-y-3">
               <div className="flex justify-between items-center pb-3 border-b border-gray-50">
                 <span className="text-[13px] text-gray-500">Kode Kelas</span>
-                <span className="text-[13px] font-bold text-[#1e293b]">X-IPA-1</span>
+                <span className="text-[13px] font-bold text-[#1e293b]">{selectedClass?.code || "-"}</span>
               </div>
               <div className="flex justify-between items-center pb-3 border-b border-gray-50">
                 <span className="text-[13px] text-gray-500">Tingkat</span>
-                <span className="text-[13px] font-bold text-[#1e293b]">Kelas X</span>
+                <span className="text-[13px] font-bold text-[#1e293b]">{selectedClass?.level || "-"}</span>
               </div>
               <div className="flex justify-between items-center pb-3 border-b border-gray-50">
                 <span className="text-[13px] text-gray-500">Jurusan</span>
-                <span className="bg-[#EFF6FF] text-[#3B82F6] text-[11px] font-bold px-2 py-0.5 rounded">IPA</span>
+                <span className="bg-[#EFF6FF] text-[#3B82F6] text-[11px] font-bold px-2 py-0.5 rounded">{selectedClass?.major || "-"}</span>
               </div>
               <div className="flex justify-between items-center pb-3 border-b border-gray-50">
                 <span className="text-[13px] text-gray-500">Tahun Ajaran</span>
-                <span className="text-[13px] font-bold text-[#1e293b]">2023/2024</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[13px] text-gray-500">Semester</span>
-                <span className="text-[13px] font-bold text-[#1e293b]">Ganjil 2023/2024</span>
+                <span className="text-[13px] font-bold text-[#1e293b]">{selectedClass?.year || "-"}</span>
               </div>
             </div>
           </div>
@@ -250,12 +241,12 @@ const ClassDetail = ({ setView }) => {
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-4">Kapasitas Kelas</h3>
             <div className="flex justify-between items-center mb-2">
               <span className="text-[13px] text-gray-500">Siswa terdaftar</span>
-              <span className="text-[13px] font-bold text-[#1e293b]">32/36</span>
+              <span className="text-[13px] font-bold text-[#1e293b]">{selectedClass?.students || 0}/{selectedClass?.capacity || 36}</span>
             </div>
             <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden mb-2">
-              <div className="h-full bg-[#F59E0B] rounded-full" style={{ width: '89%' }}></div>
+              <div className="h-full bg-[#F59E0B] rounded-full" style={{ width: `${Math.round(((selectedClass?.students || 0)/(selectedClass?.capacity || 36))*100)}%` }}></div>
             </div>
-            <div className="text-[11px] text-gray-400">89% terisi</div>
+            <div className="text-[11px] text-gray-400">{Math.round(((selectedClass?.students || 0)/(selectedClass?.capacity || 36))*100)}% terisi</div>
           </div>
 
           <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm">

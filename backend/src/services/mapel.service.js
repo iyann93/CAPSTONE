@@ -6,8 +6,8 @@ const { paginate } = require('../utils/queryBuilder');
 const MapelService = {
   getAll: async (query) => {
     const { page, limit, offset } = paginate(query);
-    const { search, sort, jurusan_id: jurusanId, tingkat } = query;
-    const { rows, total } = await MapelRepository.findAll({ limit, offset, search, sort, jurusanId, tingkat });
+    const { search, sort, kelompok, tingkat } = query;
+    const { rows, total } = await MapelRepository.findAll({ limit, offset, search, sort, kelompok, tingkat });
     return { data: rows, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   },
 
@@ -17,19 +17,19 @@ const MapelService = {
     return data;
   },
 
-  create: async ({ kodeMapel, namaMapel, tingkat, deskripsi, jurusanId }) => {
-    const existing = await MapelRepository.findByKode(kodeMapel);
-    if (existing) { const e = new Error('Kode mapel sudah digunakan'); e.statusCode = 409; throw e; }
-    return MapelRepository.create({ kodeMapel, namaMapel, tingkat, deskripsi, jurusanId });
+  create: async ({ kode, nama, kelompok, kkm, jumlahJam, tingkat, guruPengampuId }) => {
+    const existing = await MapelRepository.findByKode(kode);
+    if (existing) { const e = new Error('Kode mata pelajaran sudah digunakan'); e.statusCode = 409; throw e; }
+    return MapelRepository.create({ kode, nama, kelompok, kkm, jumlahJam, tingkat, guruPengampuId });
   },
 
-  update: async (id, { kodeMapel, namaMapel, tingkat, deskripsi, jurusanId }) => {
+  update: async (id, { kode, nama, kelompok, kkm, jumlahJam, tingkat, guruPengampuId }) => {
     await MapelService.getById(id);
-    if (kodeMapel) {
-      const dup = await MapelRepository.findByKode(kodeMapel, id);
-      if (dup) { const e = new Error('Kode mapel sudah digunakan'); e.statusCode = 409; throw e; }
+    if (kode) {
+      const dup = await MapelRepository.findByKode(kode, id);
+      if (dup) { const e = new Error('Kode mata pelajaran sudah digunakan'); e.statusCode = 409; throw e; }
     }
-    return MapelRepository.update(id, { kodeMapel, namaMapel, tingkat, deskripsi, jurusanId });
+    return MapelRepository.update(id, { kode, nama, kelompok, kkm, jumlahJam, tingkat, guruPengampuId });
   },
 
   delete: async (id) => {

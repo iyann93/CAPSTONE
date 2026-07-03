@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ClassDetail from "./ClassDetail";
 import ClassEdit from "./ClassEdit";
+import api from "../../api/axios";
 // Icons
 const IconPrint = () => (
   <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -40,34 +41,69 @@ const MOCK_CLASSES = [
 ];
 
 const Classes = () => {
-  const [classes, setClasses] = useState(() => {
-    const saved = localStorage.getItem("classes_data");
-    if (saved) {
-      try { return JSON.parse(saved); } catch(e){}
-    }
-    return MOCK_CLASSES;
-  });
-
-  React.useEffect(() => {
-    localStorage.setItem("classes_data", JSON.stringify(classes));
-  }, [classes]);
-
+  const [classes, setClasses] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [view, setView] = useState("list"); // list, add, detail, edit
   const [activeTab, setActiveTab] = useState("Semua Tingkat");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClass, setSelectedClass] = useState(null);
 
-  
   // Add form state
   const [addForm, setAddForm] = useState({
-    code: "", name: "", desc: "", major: "IPA", room: "", capacity: 36, year: "2023/2024", semester: "Ganjil", teacher: ""
+    code: "", name: "", desc: "", major: "IPA", room: "", capacity: 36, year: "2025/2026", semester: "Ganjil", teacher: ""
   });
   const [level, setLevel] = useState("Kelas X");
   const [isActive, setIsActive] = useState(true);
 
+  const fetchClassesAndStudents = async () => {
+    setLoading(true);
+    try {
+      const [resKelas, resSiswa] = await Promise.all([
+        api.get('/kelas?limit=100'),
+        api.get('/siswa?limit=1000')
+      ]);
+
+      const listKelas = resKelas.data.data || [];
+      const listSiswa = resSiswa.data.data || [];
+
+      const mapped = listKelas.map((k) => {
+        const countSiswa = listSiswa.filter(s => s.kelas_id === k.id).length;
+        
+        let displayLevel = "Kelas X";
+        if (k.tingkat === "11" || k.tingkat === "Kelas XI") displayLevel = "Kelas XI";
+        if (k.tingkat === "12" || k.tingkat === "Kelas XII") displayLevel = "Kelas XII";
+
+        return {
+          id: k.id,
+          code: k.kode_kelas || "TBA",
+          name: k.nama_kelas,
+          level: displayLevel,
+          major: k.kode_jurusan || k.nama_jurusan || "Umum",
+          teacher: k.wali_kelas_nama || "Belum Ditentukan",
+          students: countSiswa,
+          studentsList: listSiswa.filter(s => s.kelas_id === k.id),
+          capacity: k.kapasitas || 36,
+          room: "TBA",
+          status: "Aktif",
+          year: k.tahun_ajaran || "2025/2026"
+        };
+      });
+
+      setClasses(mapped);
+    } catch (err) {
+      console.error("Failed to load classes and students:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchClassesAndStudents();
+  }, []);
+
   const handleExport = () => {
     const headers = ["ID", "KODE", "NAMA KELAS", "TINGKAT", "JURUSAN", "WALI KELAS", "SISWA", "KAPASITAS", "RUANGAN", "STATUS"];
-    const rows = classes.map(c => [c.id, c.code, c.name, c.level, c.major, c.teacher, c.students, c.capacity, c.room, c.status]);
+    const rows = classes.map((c, idx) => [idx + 1, c.code, c.name, c.level, c.major, c.teacher, c.students, c.capacity, c.room, c.status]);
     const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
@@ -78,41 +114,90 @@ const Classes = () => {
     document.body.removeChild(link);
   };
 
-  const handleSaveAdd = () => {
-    if (!addForm.code || !addForm.name) {
-      alert("Kode dan Nama Kelas wajib diisi!");
+  const handleSaveAdd = async () => {
+    if (!addForm.name) {
+      alert("Nama Kelas wajib diisi!");
       return;
     }
-    const newClass = {
-      id: Date.now(),
-      code: addForm.code,
-      name: addForm.name,
-      level: level,
-      major: addForm.major || "Umum",
-      teacher: addForm.teacher || "Belum Ditentukan",
-      students: 0,
-      capacity: parseInt(addForm.capacity) || 36,
-      room: addForm.room || "TBA",
-      status: isActive ? "Aktif" : "Nonaktif"
-    };
-    setClasses([newClass, ...classes]);
-    setView("list");
+
+    let dbTingkat = "10";
+    if (level === "Kelas XI") dbTingkat = "11";
+    if (level === "Kelas XII") dbTingkat = "12";
+
+    let dbJurusanId = "e0d0467a-6a5e-41cd-b274-10c08b53b66c"; 
+    const majUpper = (addForm.major || "").toUpperCase().trim();
+    if (majUpper.includes("IPA")) {
+      dbJurusanId = "e21a3ed9-3e46-4d9e-95e8-19ffac1dfaf5";
+    } else if (majUpper.includes("IPS")) {
+      dbJurusanId = "9c659b33-26eb-4d1d-8085-cd2880ea80bd";
+    } else if (majUpper.includes("BHS") || majUpper.includes("BAHASA")) {
+      dbJurusanId = "58b38f21-c7a6-4f0a-9995-29f7c693b558";
+    }
+
+    try {
+      await api.post("/kelas", {
+        nama_kelas: addForm.name,
+        tingkat: dbTingkat,
+        tahun_ajaran: addForm.year || "2025/2026",
+        jurusan_id: dbJurusanId
+      });
+      await fetchClassesAndStudents();
+      setView("list");
+      setAddForm({
+        code: "", name: "", desc: "", major: "IPA", room: "", capacity: 36, year: "2025/2026", semester: "Ganjil", teacher: ""
+      });
+    } catch (err) {
+      console.error(err);
+      alert("Gagal menambahkan kelas: " + (err.response?.data?.message || err.message));
+    }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm("Apakah Anda yakin ingin menghapus kelas ini?")) {
-      setClasses(prev => prev.filter(c => c.id !== id));
+      try {
+        await api.delete(`/kelas/${id}`);
+        await fetchClassesAndStudents();
+      } catch (err) {
+        console.error(err);
+        alert("Gagal menghapus kelas: " + (err.response?.data?.message || err.message));
+      }
     }
   };
 
   if (view === "detail") {
-    return <ClassDetail setView={setView} />;
+    return <ClassDetail setView={setView} selectedClass={selectedClass} />;
   }
 
   if (view === "edit") {
-    return <ClassEdit setView={setView} initialData={selectedClass} onSave={(updatedData) => {
-      setClasses(prev => prev.map(c => c.id === updatedData.id ? updatedData : c));
-      setView("list");
+    return <ClassEdit setView={setView} initialData={selectedClass} onSave={async (updatedData) => {
+      let dbTingkat = "10";
+      if (updatedData.level === "Kelas XI" || updatedData.level === "XI") dbTingkat = "11";
+      if (updatedData.level === "Kelas XII" || updatedData.level === "XII") dbTingkat = "12";
+
+      let dbJurusanId = "e0d0467a-6a5e-41cd-b274-10c08b53b66c";
+      const majUpper = (updatedData.major || "").toUpperCase().trim();
+      if (majUpper.includes("IPA")) {
+        dbJurusanId = "e21a3ed9-3e46-4d9e-95e8-19ffac1dfaf5";
+      } else if (majUpper.includes("IPS")) {
+        dbJurusanId = "9c659b33-26eb-4d1d-8085-cd2880ea80bd";
+      } else if (majUpper.includes("BHS") || majUpper.includes("BAHASA")) {
+        dbJurusanId = "58b38f21-c7a6-4f0a-9995-29f7c693b558";
+      }
+
+      try {
+        await api.put(`/kelas/${updatedData.id}`, {
+          nama_kelas: updatedData.name,
+          tingkat: dbTingkat,
+          tahun_ajaran: updatedData.year || "2025/2026",
+          jurusan_id: dbJurusanId
+        });
+        await fetchClassesAndStudents();
+        setView("list");
+        setSelectedClass(null);
+      } catch (err) {
+        console.error(err);
+        alert("Gagal mengedit kelas: " + (err.response?.data?.message || err.message));
+      }
     }} />;
   }
 
@@ -145,12 +230,8 @@ const Classes = () => {
               <h3 className="text-[15px] font-bold text-[#1e293b] mb-5">Identitas Kelas</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                <div>
-                  <label className="block text-[13px] font-bold text-gray-700 mb-2">Kode Kelas<span className="text-red-500">*</span></label>
-                  <input type="text" value={addForm.code} onChange={(e) => setAddForm({...addForm, code: e.target.value})} placeholder="cth. X-IPA-1" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
-                  <p className="text-[11px] text-gray-400 mt-1.5">Kode unik untuk mengidentifikasi kelas</p>
-                </div>
-                <div>
+
+                <div className="md:col-span-2">
                   <label className="block text-[13px] font-bold text-gray-700 mb-2">Nama Kelas<span className="text-red-500">*</span></label>
                   <input type="text" value={addForm.name} onChange={(e) => setAddForm({...addForm, name: e.target.value})} placeholder="cth. Kelas X IPA 1" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
                 </div>
@@ -408,7 +489,7 @@ const Classes = () => {
             <thead className="bg-white border-b border-gray-100">
               <tr>
                 <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest">NO</th>
-                <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest">KODE KELAS</th>
+
                 <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest">NAMA KELAS</th>
                 <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest text-center">TINGKAT</th>
                 <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest text-center">JURUSAN</th>
@@ -425,8 +506,8 @@ const Classes = () => {
                 (item.name.toLowerCase().includes(searchQuery.toLowerCase()) || item.code.toLowerCase().includes(searchQuery.toLowerCase()) || item.teacher.toLowerCase().includes(searchQuery.toLowerCase()))
               ).map((item, idx) => (
                 <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4 text-[13px] text-gray-500 font-medium">{item.id}</td>
-                  <td className="px-6 py-4 text-[13px] font-bold text-gray-500">{item.code}</td>
+                  <td className="px-6 py-4 text-[13px] text-gray-500 font-medium">{idx + 1}</td>
+
                   <td className="px-6 py-4 text-[14px] font-bold text-[#1e293b]">{item.name}</td>
                   <td className="px-6 py-4 text-center">
                     <span className="bg-gray-100 text-gray-600 text-[11px] font-bold px-2.5 py-1 rounded-full">

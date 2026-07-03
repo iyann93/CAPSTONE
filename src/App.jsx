@@ -20,6 +20,10 @@ const App = () => {
   const [authView, setAuthView] = useState("login");
   const [activeMenu, setActiveMenu] = useState("Dashboard");
   const scrollContainerRef = React.useRef(null);
+  // Navigation guard: BendaharaDashboard (or any dashboard) can register a
+  // guard function here. If registered, it is called INSTEAD of setActiveMenu.
+  // The guard is responsible for calling setActiveMenu when it's safe to do so.
+  const navGuardRef = React.useRef(null);
   React.useEffect(() => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = 0;
@@ -164,6 +168,7 @@ const App = () => {
           user={user}
           activeMenu={activeMenu}
           onViewChange={setActiveMenu}
+          navGuardRef={navGuardRef}
         />
       );
     } else if (roleStr === "orang tua") {
@@ -243,7 +248,12 @@ const App = () => {
         collapsed={collapsed}
         activeMenu={activeMenu}
         onMenuClick={(menu) => {
-          setActiveMenu(menu);
+          // Route through nav guard if one is registered (e.g., while slip is generating)
+          if (navGuardRef.current) {
+            navGuardRef.current(menu);
+          } else {
+            setActiveMenu(menu);
+          }
           if (window.innerWidth < 1024) setCollapsed(true);
         }}
         onClose={() => setCollapsed(true)}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { jsPDF } from "jspdf";
 import * as htmlToImage from "html-to-image";
 import {
@@ -191,7 +191,38 @@ const payrollMockData = [
   { id: 4, name: "Dra. Sri Wahyuni", role: "Guru IPA", salary: "Rp 4.250.000", status: "Sudah Transfer" }
 ];
 
-const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
+const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => {
+  // ── Navigation Guard for Generate Slip ──────────────────────────────────
+  const [isSlipGenerating, setIsSlipGenerating] = useState(false);
+  const [showNavConfirmModal, setShowNavConfirmModal] = useState(false);
+  const [pendingNavMenu, setPendingNavMenu] = useState(null);
+  const cancelSlipRef = useRef(null);
+
+  // Intercepts any navigation request while slip is being generated
+  const handleNavRequest = useCallback((menu) => {
+    if (isSlipGenerating) {
+      setPendingNavMenu(menu);
+      setShowNavConfirmModal(true);
+    } else {
+      if (onViewChange) onViewChange(menu);
+    }
+  }, [isSlipGenerating, onViewChange]);
+
+  // Register/unregister the nav guard in the parent ref when generating
+  useEffect(() => {
+    if (navGuardRef) {
+      if (isSlipGenerating && activeMenu === "Generate Slip Gaji") {
+        navGuardRef.current = handleNavRequest;
+      } else {
+        navGuardRef.current = null;
+      }
+    }
+    // Cleanup on unmount
+    return () => {
+      if (navGuardRef) navGuardRef.current = null;
+    };
+  }, [isSlipGenerating, activeMenu, handleNavRequest, navGuardRef]);
+
   const [sppPayments, setSppPayments] = useState([]);
   const [paidSlips, setPaidSlips] = useState([]);
   
@@ -536,7 +567,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
 
   const [generateForm, setGenerateForm] = useState({
     bulan: String(new Date().getMonth() + 1),
-    tahun: String(new Date().getFullYear())
+    tahun: String(new Date().getFullYear()),
+    tanggal_dibuat: new Date().toISOString().split('T')[0],
+    jatuh_tempo: ''
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [showCancelMonthModal, setShowCancelMonthModal] = useState(false);
@@ -1111,7 +1144,11 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
       case "Pengaturan Gaji Pegawai":
         return <OverridePegawaiTab triggerToast={triggerToast} />;
       case "Generate Slip Gaji":
-        return <GenerateSlipTab triggerToast={triggerToast} />;
+        return <GenerateSlipTab
+          triggerToast={triggerToast}
+          onGeneratingChange={setIsSlipGenerating}
+          cancelRef={cancelSlipRef}
+        />;
       case "Riwayat Slip Gaji":
         return <RiwayatSlipTab triggerToast={triggerToast} />;
       case "Riwayat Terima Gaji":
@@ -1617,6 +1654,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                       <th className="pb-3 px-3">KELAS</th>
                       <th className="pb-3 px-3">NOMINAL SPP</th>
                       <th className="pb-3 px-3">BULAN</th>
+                      <th className="pb-3 px-3">TANGGAL MULAI</th>
                       <th className="pb-3 px-3">JATUH TEMPO</th>
                       <th className="pb-3 px-3">STATUS</th>
                       <th className="pb-3 px-3 text-center">AKSI</th>
@@ -1625,7 +1663,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                               <tbody className="divide-y divide-gray-50 text-xs">
                                 {filteredBills.length === 0 ? (
                                   <tr>
-                                    <td colSpan="8" className="py-8 text-center text-gray-400 font-medium">Belum ada data tagihan.</td>
+                                    <td colSpan="9" className="py-8 text-center text-gray-400 font-medium">Belum ada data tagihan.</td>
                                   </tr>
                                 ) : (
                                   filteredBills.map((row, idx) => (
@@ -1638,7 +1676,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                         Rp {Number(row.nominal || 0).toLocaleString('id-ID')}
                                       </td>
                                       <td className="py-4 px-3 font-semibold text-gray-700">{formatBulan(row.bulan, row.tahun) || "-"}</td>
-                                      <td className="py-4 px-3 text-gray-500">{formatTanggal(globalSppJatuhTempo)}</td>
+                                      <td className="py-4 px-3 text-gray-500">{formatTanggal(row.created_at)}</td>
+                                      <td className="py-4 px-3 text-gray-500">{formatTanggal(row.jatuh_tempo)}</td>
                                       <td className="py-4 px-3">
                                         <span className={`px-2.5 py-1 rounded-md font-bold inline-block text-[10px] no-underline ${
                                           (row.status === "Lunas" || row.status?.toLowerCase() === "lunas") ? "bg-emerald-50 text-emerald-600" :
@@ -1886,7 +1925,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div>
                 <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Pengaturan SPP</h1>
-                <p className="text-sm text-gray-500 mt-1">Atur nominal SPP, diskon, dan jadwal pembayaran per kelas (Kelas VII, VIII, IX).</p>
+                <p className="text-sm text-gray-500 mt-1">Atur nominal SPP dan diskon per kelas (Kelas VII, VIII, IX).</p>
               </div>
               <div className="flex gap-2 sm:gap-3 items-center flex-wrap sm:ml-auto">
                 <div className="relative group w-full sm:w-auto">
@@ -1907,21 +1946,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               </div>
             </div>
 
-            {/* Tab Navigation */}
-            <div className="bg-white rounded-2xl border border-gray-100 p-1 flex gap-1 shadow-sm">
-              {[
-                { key: "nominal", label: "Nominal SPP per Kelas" },
-                { key: "kalender", label: "Jadwal Pembayaran" }
-              ].map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setSppSettingTab(tab.key)}
-                  className={`flex-1 flex items-center justify-center py-3 px-4 rounded-xl text-xs sm:text-[13px] font-bold transition-all cursor-pointer border-none ${sppSettingTab === tab.key ? "bg-[#1A3D63] text-white shadow-sm" : "text-gray-500 hover:text-gray-800 bg-transparent"}`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+
 
             {/* Tab: Nominal SPP per Kelas */}
             {sppSettingTab === "nominal" && (
@@ -1949,7 +1974,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                           </div>
                           <div className="text-3xl font-black text-gray-800 mb-2">{item.amount}</div>
                         </div>
-                        <div className="text-[11px] text-gray-400 mt-2">Berlaku: {formatTanggal(globalSppBerlaku)} · Jatuh tempo: {formatTanggal(globalSppJatuhTempo)}</div>
                       </div>
                     ));
                   })()}
@@ -1993,11 +2017,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                                 })()}
                                 <span className="text-[11px] font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded ml-2">TA {item.ta}</span>
                               </div>
-                              {!isEditing && (
-                                <div className="text-[11px] text-gray-400 mt-0.5">
-                                  Berlaku: {formatTanggal(globalSppBerlaku)} · Jatuh tempo: {formatTanggal(globalSppJatuhTempo)}
-                                </div>
-                              )}
+
                             </div>
 
                             {/* Actions */}
@@ -2111,111 +2131,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               </div>
             )}
 
-            {/* Tab: Kalender Pembayaran */}
-            {sppSettingTab === "kalender" && (
-              <div className="flex flex-col gap-6">
-                {/* Card 1: Pengaturan Jadwal SPP */}
-                <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                  <div className={`rounded-2xl border transition-all ${isEditingGlobalJadwal ? "bg-blue-50/30 border-blue-100 p-5 sm:p-6 shadow-sm" : "bg-transparent border-gray-100 p-5"}`}>
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div>
-                        <h3 className="text-sm font-bold text-gray-800">Pengaturan Jadwal SPP</h3>
-                        {!isEditingGlobalJadwal && (
-                          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-2">
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">Berlaku:</span>
-                              <span className="text-xs font-semibold text-gray-700">{formatTanggal(globalSppBerlaku)}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wide">Jatuh Tempo:</span>
-                              <span className="text-xs font-semibold text-gray-700">{formatTanggal(globalSppJatuhTempo)}</span>
-                            </div>
-                          </div>
-                        )}
-                        {isEditingGlobalJadwal && (
-                          <p className="text-[11px] text-gray-500 mt-1">Ubah tanggal berlaku dan jatuh tempo bulanan untuk seluruh tagihan kelas.</p>
-                        )}
-                      </div>
 
-                      {!isEditingGlobalJadwal && (
-                        <button
-                          onClick={() => {
-                            setEditGlobalSppBerlaku(globalSppBerlaku);
-                            setEditGlobalSppJatuhTempo(globalSppJatuhTempo);
-                            setIsEditingGlobalJadwal(true);
-                          }}
-                          className="flex items-center gap-1.5 bg-white hover:bg-gray-50 border border-gray-200 text-gray-600 px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all border-solid shadow-sm"
-                        >
-                          <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
-                          </svg>
-                          Edit Jadwal
-                        </button>
-                      )}
-                    </div>
-
-                    {isEditingGlobalJadwal && (
-                      <div className="mt-5 pt-5 border-t border-blue-100/50">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                          <div>
-                            <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Tanggal Berlaku</label>
-                            <div className="relative">
-                              <input
-                                type="date"
-                                value={editGlobalSppBerlaku}
-                                onChange={(e) => setEditGlobalSppBerlaku(e.target.value)}
-                                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#1A3D63] transition-colors"
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Jatuh Tempo Bulanan</label>
-                            <div className="relative">
-                              <input
-                                type="date"
-                                value={editGlobalSppJatuhTempo}
-                                onChange={(e) => setEditGlobalSppJatuhTempo(e.target.value)}
-                                className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-800 focus:outline-none focus:border-[#1A3D63] transition-colors"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex justify-end gap-3 mt-2 pt-5 border-t border-gray-200/60">
-                          <button
-                            onClick={() => {
-                              setEditGlobalSppBerlaku(globalSppBerlaku);
-                              setEditGlobalSppJatuhTempo(globalSppJatuhTempo);
-                              setIsEditingGlobalJadwal(false);
-                              triggerToast("Perubahan dibatalkan.");
-                            }}
-                            className="bg-white hover:bg-gray-50 border border-gray-200 text-gray-600 px-6 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer border-solid shadow-sm"
-                          >
-                            Batal
-                          </button>
-                          <button
-                            onClick={() => {
-                              setGlobalSppBerlaku(editGlobalSppBerlaku);
-                              setGlobalSppJatuhTempo(editGlobalSppJatuhTempo);
-                              localStorage.setItem("globalSppBerlaku", editGlobalSppBerlaku);
-                              localStorage.setItem("globalSppJatuhTempo", editGlobalSppJatuhTempo);
-                              setIsEditingGlobalJadwal(false);
-                              triggerToast("Jadwal SPP berhasil disimpan!");
-                            }}
-                            className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122A44] text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 border-none cursor-pointer"
-                          >
-                            <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z" />
-                            </svg>
-                            Simpan
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-              </div>
-            )}
           </div>
         );
 
@@ -3446,7 +3362,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
               <p className="text-[13px] text-gray-400 mt-1">Buat tagihan SPP bulanan untuk semua siswa</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-5">
+            {/* Bulan & Tahun */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Bulan</label>
                 <select
@@ -3465,6 +3382,28 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   type="number"
                   value={generateForm.tahun}
                   onChange={(e) => setGenerateForm({ ...generateForm, tahun: e.target.value })}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63]"
+                />
+              </div>
+            </div>
+
+            {/* Tanggal Dibuat & Jatuh Tempo */}
+            <div className="grid grid-cols-2 gap-4 mb-5">
+              <div>
+                <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Tanggal Dibuat</label>
+                <input
+                  type="date"
+                  value={generateForm.tanggal_dibuat}
+                  onChange={(e) => setGenerateForm({ ...generateForm, tanggal_dibuat: e.target.value })}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63]"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Jatuh Tempo</label>
+                <input
+                  type="date"
+                  value={generateForm.jatuh_tempo}
+                  onChange={(e) => setGenerateForm({ ...generateForm, jatuh_tempo: e.target.value })}
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63]"
                 />
               </div>
@@ -3495,11 +3434,17 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                     triggerToast('Bulan dan tahun wajib diisi');
                     return;
                   }
+                  if (!generateForm.jatuh_tempo) {
+                    triggerToast('Jatuh tempo wajib diisi');
+                    return;
+                  }
                   setIsGenerating(true);
                   try {
                     const result = await generateTagihanBulanan({
                       bulan: parseInt(generateForm.bulan),
-                      tahun: parseInt(generateForm.tahun)
+                      tahun: parseInt(generateForm.tahun),
+                      tanggal_dibuat: generateForm.tanggal_dibuat || undefined,
+                      jatuh_tempo: generateForm.jatuh_tempo
                     });
                     setShowGenerateMonthModal(false);
                     const generatedBulanNama = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][parseInt(generateForm.bulan) - 1];
@@ -4156,15 +4101,30 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Periode <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Periode Berlaku <span className="text-red-500">*</span></label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="date"
+                        value={beasiswaForm.tanggalMulai}
+                        onChange={(e) => { setIsBeasiswaFormDirty(true); setBeasiswaForm({ ...beasiswaForm, tanggalMulai: e.target.value }) }}
+                        className="flex-1 min-w-0 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/20 bg-white text-gray-700 transition-all"
+                      />
+                      <span className="text-gray-400 text-sm font-bold">-</span>
+                      <input
+                        type="date"
+                        value={beasiswaForm.tanggalSelesai}
+                        onChange={(e) => { setIsBeasiswaFormDirty(true); setBeasiswaForm({ ...beasiswaForm, tanggalSelesai: e.target.value }) }}
+                        className="flex-1 min-w-0 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/20 bg-white text-gray-700 transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Tahun Ajaran <span className="text-red-500">*</span></label>
                     <div className="relative group">
-                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
-                      </div>
                       <select
                         value={beasiswaForm.periode}
                         onChange={(e) => { setIsBeasiswaFormDirty(true); setBeasiswaForm({ ...beasiswaForm, periode: e.target.value }); }}
-                        className="w-full border border-gray-200 rounded-xl pl-10 pr-10 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/20 bg-white text-gray-700 appearance-none hover:bg-gray-50 hover:border-gray-300 transition-all"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/20 bg-white text-gray-700 appearance-none hover:bg-gray-50 hover:border-gray-300 transition-all"
                       >
                         <option value="2025/2026">2025/2026</option>
                       </select>
@@ -4723,6 +4683,56 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange }) => {
             <div className="flex justify-end gap-3">
               <button onClick={() => setShowDanaCancelConfirm(false)} className="px-4 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer border-none bg-transparent">Lanjutkan Mengisi</button>
               <button onClick={() => { setShowDanaCancelConfirm(false); setShowAddDanaModal(false); setIsDanaFormDirty(false); }} className="px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 transition-colors shadow-sm cursor-pointer border-none">Ya, Batalkan</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal: Konfirmasi Pindah Fitur saat Generate Slip Sedang Berjalan ── */}
+      {showNavConfirmModal && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-scaleUp">
+            {/* Header strip */}
+            <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-4 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                <svg width="20" height="20" fill="none" stroke="white" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                </svg>
+              </div>
+              <h3 className="text-white font-bold text-base">Proses Sedang Berjalan</h3>
+            </div>
+
+            <div className="p-6">
+              <p className="text-sm text-gray-600 mb-1">
+                Generate slip gaji sedang dalam proses. Jika Anda pindah ke fitur lain sekarang,
+              </p>
+              <p className="text-sm font-bold text-red-600 mb-5">
+                proses generate akan dibatalkan dan tidak dapat dilanjutkan.
+              </p>
+              <p className="text-sm text-gray-500">Apakah Anda yakin ingin meninggalkan halaman ini?</p>
+            </div>
+
+            <div className="px-6 pb-6 flex gap-3">
+              <button
+                onClick={() => { setShowNavConfirmModal(false); setPendingNavMenu(null); }}
+                className="flex-1 py-2.5 border border-gray-200 text-gray-700 text-sm font-bold rounded-xl hover:bg-gray-50 transition-colors cursor-pointer bg-white"
+              >
+                Tetap di Sini
+              </button>
+              <button
+                onClick={() => {
+                  // Cancel the generation
+                  if (cancelSlipRef.current) cancelSlipRef.current();
+                  setShowNavConfirmModal(false);
+                  // Navigate to the requested menu
+                  if (pendingNavMenu && onViewChange) onViewChange(pendingNavMenu);
+                  setPendingNavMenu(null);
+                }}
+                className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-bold rounded-xl transition-colors cursor-pointer border-none shadow-sm"
+              >
+                Ya, Batalkan & Pindah
+              </button>
             </div>
           </div>
         </div>

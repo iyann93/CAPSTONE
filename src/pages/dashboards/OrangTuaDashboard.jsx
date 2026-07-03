@@ -8,6 +8,7 @@ import RiwayatPembayaranSiswa from "./RiwayatPembayaranSiswa";
 import BeasiswaSiswa from "./BeasiswaSiswa";
 import PengumumanSekolah from "./PengumumanSekolah";
 import PlaceholderDashboard from "./PlaceholderDashboard";
+import ParentData from "./ParentData";
 
 const OrangTuaDashboard = ({ user, activeMenu, onViewChange }) => {
   const handleNavigate = (menuName) => {
@@ -36,7 +37,10 @@ const OrangTuaDashboard = ({ user, activeMenu, onViewChange }) => {
       return <BeasiswaSiswa user={user} />;
     
     case "Pengumuman Sekolah":
-      return <PengumumanSekolah />;
+      return <PengumumanSekolah user={user} />;
+
+    case "Data Orang Tua":
+      return <ParentData readOnly={true} />;
 
     case "My Profile":
       return <Profile user={user} />;

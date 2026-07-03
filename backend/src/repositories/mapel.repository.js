@@ -3,31 +3,28 @@
 const { query } = require('../config/db');
 const { whereBuilder, buildOrderBy } = require('../utils/queryBuilder');
 
-const SORT_MAP = { nama: 'm.nama_mapel', kode: 'm.kode_mapel', created_at: 'm.created_at' };
+const SORT_MAP = { nama: 'm.nama', kode: 'm.kode', kelompok: 'm.kelompok' };
 
 const MapelRepository = {
-  findAll: async ({ limit, offset, search, sort, jurusanId, tingkat }) => {
+  findAll: async ({ limit, offset, search, sort, kelompok, tingkat }) => {
     const wb = whereBuilder();
-    wb.addLike(search, ['m.nama_mapel', 'm.kode_mapel']);
-    wb.addExact(jurusanId, 'm.jurusan_id');
+    wb.addLike(search, ['m.nama', 'm.kode']);
+    wb.addExact(kelompok, 'm.kelompok');
     wb.addExact(tingkat, 'm.tingkat');
     const { where, values, nextIdx } = wb.build();
-    const orderBy = buildOrderBy(sort, SORT_MAP, 'm.nama_mapel ASC');
+    const orderBy = buildOrderBy(sort, SORT_MAP, 'm.kelompok ASC, m.nama ASC');
 
     const sql = `
-      SELECT m.id, m.kode_mapel, m.nama_mapel, m.tingkat, m.deskripsi,
-             m.jurusan_id, j.nama_jurusan, m.created_at
-      FROM academic.mapel m
-      LEFT JOIN academic.jurusan j ON m.jurusan_id = j.id
+      SELECT m.id, m.kode, m.nama, m.kelompok, m.kkm, m.jumlah_jam, m.tingkat, m.guru_pengampu_id,
+             g.nama_lengkap as guru_nama
+      FROM academic.mata_pelajaran m
+      LEFT JOIN academic.guru g ON m.guru_pengampu_id = g.id
       ${where}
       ${orderBy}
       LIMIT $${nextIdx} OFFSET $${nextIdx + 1}
     `;
-    const countSql = `
-      SELECT COUNT(*) FROM academic.mapel m
-      LEFT JOIN academic.jurusan j ON m.jurusan_id = j.id
-      ${where}
-    `;
+    const countSql = `SELECT COUNT(*) FROM academic.mata_pelajaran m ${where}`;
+
     const [data, count] = await Promise.all([
       query(sql, [...values, limit, offset]),
       query(countSql, values),
@@ -37,8 +34,9 @@ const MapelRepository = {
 
   findById: async (id) => {
     const sql = `
-      SELECT m.*, j.nama_jurusan FROM academic.mapel m
-      LEFT JOIN academic.jurusan j ON m.jurusan_id = j.id
+      SELECT m.*, g.nama_lengkap as guru_nama
+      FROM academic.mata_pelajaran m
+      LEFT JOIN academic.guru g ON m.guru_pengampu_id = g.id
       WHERE m.id = $1
     `;
     const result = await query(sql, [id]);
@@ -47,37 +45,39 @@ const MapelRepository = {
 
   findByKode: async (kode, excludeId = null) => {
     const sql = excludeId
-      ? 'SELECT id FROM academic.mapel WHERE kode_mapel = $1 AND id != $2'
-      : 'SELECT id FROM academic.mapel WHERE kode_mapel = $1';
+      ? 'SELECT id FROM academic.mata_pelajaran WHERE kode = $1 AND id != $2'
+      : 'SELECT id FROM academic.mata_pelajaran WHERE kode = $1';
     const result = await query(sql, excludeId ? [kode, excludeId] : [kode]);
     return result.rows[0] || null;
   },
 
-  create: async ({ kodeMapel, namaMapel, tingkat, deskripsi, jurusanId }) => {
+  create: async ({ kode, nama, kelompok, kkm, jumlahJam, tingkat, guruPengampuId }) => {
     const sql = `
-      INSERT INTO academic.mapel (kode_mapel, nama_mapel, tingkat, deskripsi, jurusan_id, created_at)
-      VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING *
+      INSERT INTO academic.mata_pelajaran (kode, nama, kelompok, kkm, jumlah_jam, tingkat, guru_pengampu_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *
     `;
-    const result = await query(sql, [kodeMapel, namaMapel, tingkat, deskripsi, jurusanId]);
+    const result = await query(sql, [kode, nama, kelompok, kkm || 75, jumlahJam || 2, tingkat, guruPengampuId || null]);
     return result.rows[0];
   },
 
-  update: async (id, { kodeMapel, namaMapel, tingkat, deskripsi, jurusanId }) => {
+  update: async (id, { kode, nama, kelompok, kkm, jumlahJam, tingkat, guruPengampuId }) => {
     const sql = `
-      UPDATE academic.mapel
-      SET kode_mapel  = COALESCE($1, kode_mapel),
-          nama_mapel  = COALESCE($2, nama_mapel),
-          tingkat     = COALESCE($3, tingkat),
-          deskripsi   = COALESCE($4, deskripsi),
-          jurusan_id  = COALESCE($5, jurusan_id)
-      WHERE id = $6 RETURNING *
+      UPDATE academic.mata_pelajaran
+      SET kode             = COALESCE($1, kode),
+          nama             = COALESCE($2, nama),
+          kelompok         = COALESCE($3, kelompok),
+          kkm              = COALESCE($4, kkm),
+          jumlah_jam       = COALESCE($5, jumlah_jam),
+          tingkat          = COALESCE($6, tingkat),
+          guru_pengampu_id = $7
+      WHERE id = $8 RETURNING *
     `;
-    const result = await query(sql, [kodeMapel, namaMapel, tingkat, deskripsi, jurusanId, id]);
+    const result = await query(sql, [kode, nama, kelompok, kkm, jumlahJam, tingkat, guruPengampuId || null, id]);
     return result.rows[0] || null;
   },
 
   delete: async (id) => {
-    const result = await query('DELETE FROM academic.mapel WHERE id = $1 RETURNING id', [id]);
+    const result = await query('DELETE FROM academic.mata_pelajaran WHERE id = $1 RETURNING id', [id]);
     return result.rows[0] || null;
   },
 };
