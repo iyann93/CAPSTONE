@@ -4616,8 +4616,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
         </div>
       )}
 
-<<<<<<< HEAD
-
       {/* ── Modal: Konfirmasi Pindah Fitur saat Generate Slip Sedang Berjalan ── */}
       {showNavConfirmModal && (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
@@ -4667,7 +4665,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
           </div>
         </div>
       )}
-=======
+
       {/* Hidden PDF Report Template */}
       <div style={{ position: 'absolute', top: 0, left: 0, zIndex: -100, opacity: 0.01, pointerEvents: 'none' }}>
         <div id="pdf-report-template" className="bg-white p-10" style={{ width: '800px', minHeight: '1122px', color: 'black', fontFamily: 'serif' }}>
@@ -4794,7 +4792,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
           </div>
         </div>
       </div>
->>>>>>> 2dfa0de3a04efcc93041f4b3fcbdc6948efb1ad1
 
     </main>
   );
