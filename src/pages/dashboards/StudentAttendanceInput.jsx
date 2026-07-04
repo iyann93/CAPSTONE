@@ -16,8 +16,40 @@ const initialStudents = [
 ];
 
 const StudentAttendanceInput = ({ classData, onBack, onSave }) => {
-  const [students, setStudents] = useState(initialStudents);
+  const [students, setStudents] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  
+  React.useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const { default: api } = await import('../../api/axios');
+        const res = await api.get('/siswa?limit=1000');
+        const allStudents = res.data?.data || [];
+        const classStudents = allStudents.filter(s => s.nama_kelas === classData.name);
+        
+        if (classStudents.length === 0) {
+          setStudents(initialStudents);
+          return;
+        }
+
+        const mapped = classStudents.map((s, idx) => ({
+          id: s.id,
+          name: s.nama_lengkap,
+          nis: s.nis,
+          initials: s.nama_lengkap.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase(),
+          color: ["bg-[#3B82F6]", "bg-[#10B981]", "bg-[#F59E0B]", "bg-[#EF4444]", "bg-[#8B5CF6]", "bg-[#EC4899]"][idx % 6],
+          gender: s.jenis_kelamin === "Perempuan" ? "P" : "L",
+          status: "Hadir", // default
+          ket: ""
+        }));
+        setStudents(mapped);
+      } catch (err) {
+        console.error("Gagal memuat siswa:", err);
+        setStudents(initialStudents);
+      }
+    };
+    fetchStudents();
+  }, [classData.name]);
   const [filterStatus, setFilterStatus] = useState("Semua");
 
   const handleSave = () => {
@@ -259,10 +291,7 @@ const StudentAttendanceInput = ({ classData, onBack, onSave }) => {
                 <span className="text-gray-500">Kelas</span>
                 <span className="font-bold text-[#1e293b]">{classData.name}</span>
               </div>
-              <div className="flex justify-between text-[13px]">
-                <span className="text-gray-500">Jurusan</span>
-                <span className="font-bold text-[#1e293b]">{classData.jurusan}</span>
-              </div>
+
               <div className="flex justify-between text-[13px]">
                 <span className="text-gray-500">Wali Kelas</span>
                 <span className="font-bold text-[#1e293b] text-right">{classData.wali}</span>
@@ -283,23 +312,19 @@ const StudentAttendanceInput = ({ classData, onBack, onSave }) => {
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-4">Kelas Lain</h3>
             <div className="space-y-4">
               <div className="flex justify-between items-center text-[13px]">
-                <span className="font-bold text-[#1e293b]">X IPA 2</span>
+                <span className="font-bold text-[#1e293b]">VII A</span>
                 <span className="text-emerald-500 font-bold flex items-center gap-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>Selesai</span>
               </div>
               <div className="flex justify-between items-center text-[13px]">
-                <span className="font-bold text-[#1e293b]">X IPS 1</span>
+                <span className="font-bold text-[#1e293b]">VII B</span>
                 <span className="text-emerald-500 font-bold flex items-center gap-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>Selesai</span>
               </div>
               <div className="flex justify-between items-center text-[13px]">
-                <span className="font-bold text-[#1e293b]">X IPS 2</span>
+                <span className="font-bold text-[#1e293b]">VIII A</span>
                 <span className="text-orange-500 font-bold flex items-center gap-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Belum</span>
               </div>
               <div className="flex justify-between items-center text-[13px]">
-                <span className="font-bold text-[#1e293b]">X Bahasa 1</span>
-                <span className="text-orange-500 font-bold flex items-center gap-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Belum</span>
-              </div>
-              <div className="flex justify-between items-center text-[13px]">
-                <span className="font-bold text-[#1e293b]">XI IPA 1</span>
+                <span className="font-bold text-[#1e293b]">IX A</span>
                 <span className="text-emerald-500 font-bold flex items-center gap-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>Selesai</span>
               </div>
             </div>

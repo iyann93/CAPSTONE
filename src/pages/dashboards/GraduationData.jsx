@@ -1,14 +1,6 @@
 import React, { useState } from "react";
 import GraduationDataDetail from "./GraduationDataDetail";
 
-const mockClasses = [
-  { no:1, kelas:"Kelas XII IPA 1", kode:"XII-IPA-1", jurusan:"IPA", wali:"Ibu Siti Aminah, M.Pd", total:28, lulus:27, tidakLulus:1, pending:0, pct:96, tgl:"3 Mei 2024", status:"Selesai" },
-  { no:2, kelas:"Kelas XII IPA 2", kode:"XII-IPA-2", jurusan:"IPA", wali:"Bpk. Budi Setiawan, S.", total:30, lulus:29, tidakLulus:1, pending:0, pct:97, tgl:"3 Mei 2024", status:"Selesai" },
-  { no:3, kelas:"Kelas XII IPS 1", kode:"XII-IPS-1", jurusan:"IPS", wali:"Ibu Retno Wulandari, S.", total:29, lulus:25, tidakLulus:2, pending:2, pct:86, tgl:"—", status:"Dalam Proses" },
-  { no:4, kelas:"Kelas XII IPS 2", kode:"XII-IPS-2", jurusan:"IPS", wali:"Bpk. Doni Pratama, S.", total:27, lulus:0, tidakLulus:0, pending:27, pct:0, tgl:"—", status:"Belum Diproses" },
-];
-
-const TABS = ["Semua Jurusan","IPA","IPS","Bahasa"];
 
 const StatusBadge = ({ s }) => {
   if (s==="Selesai") return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-50 text-green-600 border border-green-100"><svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>Selesai</span>;
@@ -17,17 +9,57 @@ const StatusBadge = ({ s }) => {
 };
 
 const GraduationData = () => {
-  const [classes, setClasses] = useState(() => {
-    const saved = localStorage.getItem("graduation_classes");
-    return saved ? JSON.parse(saved) : mockClasses;
-  });
-  const [tab, setTab] = useState("Semua Jurusan");
+  const [classes, setClasses] = useState([]);
+  
+  React.useEffect(() => {
+    const fetchState = async () => {
+      try {
+        const { default: api } = await import('../../api/axios');
+        const kelasRes = await api.get('/kelas');
+        const dbClasses = kelasRes.data?.data || [];
+        
+        let savedProgress = [];
+        try {
+          const stateRes = await api.get('/system/frontend-state');
+          savedProgress = stateRes.data?.data?.graduation_classes || [];
+        } catch(e) {}
+        
+        const ixClasses = dbClasses.filter(c => c.nama_kelas?.toUpperCase().includes("IX"));
+        
+        const mappedClasses = ixClasses.map((c, index) => {
+          const progress = savedProgress.find(p => p.kode === c.id) || {};
+          
+          return {
+            no: index + 1,
+            kelas: c.nama_kelas,
+            kode: c.id,
+            wali: c.wali_kelas || "Belum ditentukan",
+            total: c.kapasitas || 0,
+            lulus: progress.lulus || 0,
+            tidakLulus: progress.tidakLulus || 0,
+            pending: progress.pending !== undefined ? progress.pending : (c.kapasitas || 0),
+            pct: progress.pct || 0,
+            tgl: progress.tgl || "—",
+            status: progress.status || "Belum Diproses"
+          };
+        });
+        
+        setClasses(mappedClasses);
+        localStorage.setItem("graduation_classes", JSON.stringify(mappedClasses));
+      } catch (err) {
+        console.error(err);
+        const saved = localStorage.getItem("graduation_classes");
+        if (saved) setClasses(JSON.parse(saved));
+      }
+    };
+    fetchState();
+  }, []);
   const [view, setView] = useState("list");
   const [selectedClass, setSelectedClass] = useState(null);
   const [showCriteria, setShowCriteria] = useState(false);
   const [showPengumuman, setShowPengumuman] = useState(false);
 
-  const handleSaveGraduation = (classKode, updatedStats) => {
+  const handleSaveGraduation = async (classKode, updatedStats) => {
     const updated = classes.map(c =>
       c.kode === classKode
         ? { ...c, lulus: updatedStats.lulus, tidakLulus: updatedStats.tidakLulus, pending: updatedStats.pending, pct: updatedStats.pct, status: updatedStats.status }
@@ -36,6 +68,16 @@ const GraduationData = () => {
     setClasses(updated);
     localStorage.setItem("graduation_classes", JSON.stringify(updated));
     setView("list");
+    
+    try {
+      const { default: api } = await import('../../api/axios');
+      const stateRes = await api.get('/system/frontend-state');
+      const currentState = stateRes.data?.data || {};
+      await api.put('/system/frontend-state', {
+        ...currentState,
+        graduation_classes: updated
+      });
+    } catch (e) {}
   };
 
   const totalSiswa = classes.reduce((a,c)=>a+c.total,0);
@@ -45,7 +87,7 @@ const GraduationData = () => {
   const selesai = classes.filter(c=>c.status==="Selesai").length;
   const pctLulus = totalSiswa > 0 ? Math.round((totalLulus/totalSiswa)*100*10)/10 : 0;
 
-  const filtered = tab==="Semua Jurusan" ? classes : classes.filter(c=>c.jurusan===tab);
+  const filtered = classes;
 
   if (view==="detail") return <GraduationDataDetail cls={selectedClass} setView={setView} onSave={handleSaveGraduation} />;
 
@@ -58,7 +100,7 @@ const GraduationData = () => {
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
           <h1 className="text-[26px] font-bold text-[#1e293b]">Data Kelulusan</h1>
-          <p className="text-[14px] text-gray-500 mt-1">Kelola data kelulusan siswa Kelas XII berdasarkan nilai sekolah dan ujian.</p>
+          <p className="text-[14px] text-gray-500 mt-1">Kelola data kelulusan siswa Kelas IX berdasarkan nilai sekolah dan ujian.</p>
         </div>
         <div className="flex items-center gap-2.5">
           <button onClick={() => setShowCriteria(true)} className="flex items-center gap-2 px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-[13px] font-bold text-gray-700 hover:bg-gray-50 shadow-sm">
@@ -100,7 +142,7 @@ const GraduationData = () => {
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
         {[
-          { label: "Total Siswa XII", val: totalSiswa, sub: "4 kelas" },
+          { label: "Total Siswa IX", val: totalSiswa, sub: "Semua kelas IX" },
           { label: "Dinyatakan Lulus", val: totalLulus, sub: `${pctLulus}% tingkat kelulusan` },
           { label: "Tidak Lulus", val: totalTidakLulus, sub: "Perlu remedial/mengulang" },
           { label: "Belum Diproses", val: totalPending, sub: "Menunggu keputusan" },
@@ -128,17 +170,11 @@ const GraduationData = () => {
 
       {/* Table Card */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-5 pt-5 pb-4 border-b border-gray-100">
-          <div className="flex items-center gap-2">
-            {TABS.map(t=>(
-              <button key={t} onClick={()=>setTab(t)} className={`px-4 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${tab===t?"bg-[#2A4365] text-white":"bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>{t}</button>
-            ))}
-          </div>
-        </div>
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="border-b border-gray-100">
-              <tr>{["NO","KELAS","JURUSAN","WALI KELAS","TOTAL SISWA","LULUS","TIDAK LULUS","PENDING","TINGKAT KELULUSAN","TGL PENGUMUMAN","STATUS","AKSI"].map(h=>(
+              <tr>{["NO","KELAS","WALI KELAS","TOTAL SISWA","LULUS","TIDAK LULUS","PENDING","TINGKAT KELULUSAN","TGL PENGUMUMAN","STATUS","AKSI"].map(h=>(
                 <th key={h} className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
               ))}</tr>
             </thead>
@@ -150,9 +186,7 @@ const GraduationData = () => {
                     <p className="text-[13px] font-bold text-gray-800">{row.kelas}</p>
                     <p className="text-[11px] text-gray-400">{row.kode}</p>
                   </td>
-                  <td className="px-4 py-4">
-                    <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${row.jurusan==="IPA"?"bg-blue-50 text-blue-600":"bg-green-50 text-green-600"}`}>{row.jurusan}</span>
-                  </td>
+
                   <td className="px-4 py-4 text-[13px] text-gray-600 max-w-[140px] truncate">{row.wali}</td>
                   <td className="px-4 py-4 text-[13px] font-semibold text-gray-700">{row.total}</td>
                   <td className="px-4 py-4 text-[13px] font-bold text-green-600">{row.lulus}</td>

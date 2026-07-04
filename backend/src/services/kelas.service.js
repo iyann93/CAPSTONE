@@ -17,13 +17,13 @@ const KelasService = {
     return data;
   },
 
-  create: async ({ namaKelas, tingkat, tahunAjaran, jurusanId }) => {
-    return KelasRepository.create({ namaKelas, tingkat, tahunAjaran, jurusanId });
+  create: async ({ namaKelas, tingkat, tahunAjaran, jurusanId, waliKelasId, kapasitas }) => {
+    return KelasRepository.create({ namaKelas, tingkat, tahunAjaran, jurusanId, waliKelasId, kapasitas });
   },
 
-  update: async (id, { namaKelas, tingkat, tahunAjaran, jurusanId }) => {
+  update: async (id, { namaKelas, tingkat, tahunAjaran, jurusanId, waliKelasId, kapasitas }) => {
     await KelasService.getById(id);
-    return KelasRepository.update(id, { namaKelas, tingkat, tahunAjaran, jurusanId });
+    return KelasRepository.update(id, { namaKelas, tingkat, tahunAjaran, jurusanId, waliKelasId, kapasitas });
   },
 
   delete: async (id) => {

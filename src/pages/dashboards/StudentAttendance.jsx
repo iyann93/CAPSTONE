@@ -2,25 +2,12 @@ import React, { useState } from "react";
 import StudentAttendanceInput from "./StudentAttendanceInput";
 import StudentAttendanceRecap from "./StudentAttendanceRecap";
 
-const classData = [
-  { id: 1, name: "X IPA 1", students: 32, tingkat: "Kelas X", jurusan: "IPA", wali: "Ibu Sari Dewi, S.Pd", hadir: 30, sakit: 1, izin: 1, alpha: 0, pct: 94, waktu: "07:45", admin: "Siti Rahayu", status: "Selesai" },
-  { id: 2, name: "X IPA 2", students: 31, tingkat: "Kelas X", jurusan: "IPA", wali: "Bpk. Ahmad Fauzi, M.Pd", hadir: 29, sakit: 2, izin: 0, alpha: 0, pct: 94, waktu: "07:50", admin: "Siti Rahayu", status: "Selesai" },
-  { id: 3, name: "X IPS 1", students: 30, tingkat: "Kelas X", jurusan: "IPS", wali: "Ibu Dewi Anggraini, S.E", hadir: 28, sakit: 0, izin: 1, alpha: 1, pct: 93, waktu: "08:00", admin: "Siti Rahayu", status: "Selesai" },
-  { id: 4, name: "X IPS 2", students: 29, tingkat: "Kelas X", jurusan: "IPS", wali: "Bpk. Budi Hartono, S.Pd", hadir: null, sakit: null, izin: null, alpha: null, pct: null, waktu: null, admin: null, status: "Belum Input" },
-  { id: 5, name: "X Bahasa 1", students: 28, tingkat: "Kelas X", jurusan: "Bahasa", wali: "Ibu Nurdiana, S.Pd", hadir: null, sakit: null, izin: null, alpha: null, pct: null, waktu: null, admin: null, status: "Belum Input" },
-  { id: 6, name: "XI IPA 1", students: 33, tingkat: "Kelas XI", jurusan: "IPA", wali: "Ibu Rani Kusuma, S.Pd", hadir: 31, sakit: 1, izin: 1, alpha: 0, pct: 94, waktu: "07:48", admin: "Siti Rahayu", status: "Selesai" },
-  { id: 7, name: "XI IPA 2", students: 32, tingkat: "Kelas XI", jurusan: "IPA", wali: "Bpk. Hendra Wijaya, M.Si", hadir: 30, sakit: 0, izin: 2, alpha: 0, pct: 94, waktu: "07:55", admin: "Siti Rahayu", status: "Selesai" },
-  { id: 8, name: "XI IPS 1", students: 30, tingkat: "Kelas XI", jurusan: "IPS", wali: "Ibu Maya Sari, S.Pd", hadir: null, sakit: null, izin: null, alpha: null, pct: null, waktu: null, admin: null, status: "Belum Input" },
-  { id: 9, name: "XI IPS 2", students: 31, tingkat: "Kelas XI", jurusan: "IPS", wali: "Bpk. Agus Santoso, S.E", hadir: 29, sakit: 1, izin: 1, alpha: 0, pct: 94, waktu: "08:02", admin: "Siti Rahayu", status: "Selesai" },
-  { id: 10, name: "XII IPA 1", students: 28, tingkat: "Kelas XII", jurusan: "IPA", wali: "Ibu Siti Aminah, M.Pd", hadir: 27, sakit: 1, izin: 0, alpha: 0, pct: 96, waktu: "07:42", admin: "Siti Rahayu", status: "Selesai" },
-  { id: 11, name: "XII IPA 2", students: 30, tingkat: "Kelas XII", jurusan: "IPA", wali: "Bpk. Budi Setiawan, S.Pd", hadir: null, sakit: null, izin: null, alpha: null, pct: null, waktu: null, admin: null, status: "Belum Input" },
-  { id: 12, name: "XII IPS 1", students: 29, tingkat: "Kelas XII", jurusan: "IPS", wali: "Ibu Retno Wulandari, S.Pd", hadir: 28, sakit: 0, izin: 1, alpha: 0, pct: 97, waktu: "07:58", admin: "Siti Rahayu", status: "Selesai" },
-];
+
 
 const StudentAttendance = () => {
   const [classes, setClasses] = useState(() => {
     const saved = localStorage.getItem('attendance_classes');
-    return saved ? JSON.parse(saved) : classData;
+    return saved ? JSON.parse(saved) : [];
   });
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -29,39 +16,29 @@ const StudentAttendance = () => {
     const syncWithRealData = async () => {
       try {
         const { default: api } = await import('../../api/axios');
-        const res = await api.get('/siswa?limit=1000');
-        const allStudents = res.data?.data || [];
+        const kelasRes = await api.get('/kelas');
+        const dbClasses = kelasRes.data?.data || [];
         
-        if (allStudents.length === 0) return; // Jika kosong, biarkan pakai mock/data yang ada
-
-        const classMap = {};
-        allStudents.forEach(s => {
-          const className = s.nama_kelas || "Tanpa Kelas";
-          if (!classMap[className]) {
-            classMap[className] = {
-              name: className,
-              students: 0,
-              wali: "Belum Ditentukan", // Default if not found
-              jurusan: className.includes('IPA') ? 'IPA' : className.includes('IPS') ? 'IPS' : className.includes('Bahasa') ? 'Bahasa' : '-',
-              tingkat: className.split(' ')[0] || '-',
-            };
-          }
-          classMap[className].students += 1;
-        });
+        if (dbClasses.length === 0) return;
 
         setClasses(prevClasses => {
-          const newClasses = Object.values(classMap).map((cls, idx) => {
-            const existing = prevClasses.find(c => c.name === cls.name);
+          const newClasses = dbClasses.map((cls, idx) => {
+            const existing = prevClasses.find(c => c.name === cls.nama_kelas);
+            
+            const nameUpper = cls.nama_kelas?.toUpperCase() || "";
+            const isVII = nameUpper.includes("VII") && !nameUpper.includes("VIII");
+            const isVIII = nameUpper.includes("VIII");
+            const tingkat = isVII ? "Kelas VII" : isVIII ? "Kelas VIII" : "Kelas IX";
+
             if (existing) {
-              return { ...existing, students: cls.students, jurusan: cls.jurusan, tingkat: cls.tingkat };
+              return { ...existing, students: cls.kapasitas || 0, tingkat, wali: cls.wali_kelas || "Belum Ditentukan" };
             }
             return {
-              id: Date.now() + idx,
-              name: cls.name,
-              students: cls.students,
-              tingkat: cls.tingkat,
-              jurusan: cls.jurusan,
-              wali: cls.wali,
+              id: cls.id || Date.now() + idx,
+              name: cls.nama_kelas,
+              students: cls.kapasitas || 0,
+              tingkat: tingkat,
+              wali: cls.wali_kelas || "Belum Ditentukan",
               hadir: null, sakit: null, izin: null, alpha: null, pct: null, waktu: null, admin: null,
               status: "Belum Input"
             };
@@ -295,7 +272,7 @@ const StudentAttendance = () => {
       <div className="bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-hidden flex flex-col">
         <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex bg-gray-100 p-1 rounded-xl">
-            {["Semua Kelas", "Kelas X", "Kelas XI", "Kelas XII"].map((tab) => (
+            {["Semua Kelas", "Kelas VII", "Kelas VIII", "Kelas IX"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -329,7 +306,7 @@ const StudentAttendance = () => {
                 <th className="py-4 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider">No</th>
                 <th className="py-4 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Kelas</th>
                 <th className="py-4 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Tingkat</th>
-                <th className="py-4 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Jurusan</th>
+
                 <th className="py-4 px-6 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Wali Kelas</th>
                 <th className="py-4 px-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider text-center">Hadir</th>
                 <th className="py-4 px-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider text-center">Sakit</th>
@@ -358,11 +335,7 @@ const StudentAttendance = () => {
                       {cls.tingkat}
                     </span>
                   </td>
-                  <td className="py-4 px-6">
-                    <span className={`inline-flex px-2.5 py-1 rounded-md text-[11px] font-bold whitespace-nowrap border ${cls.jurusan === 'IPA' ? 'bg-[#1A3D63]/10 text-[#1A3D63] border-[#1A3D63]/25' : cls.jurusan === 'IPS' ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-gray-100 text-gray-700 border-gray-200'}`}>
-                      {cls.jurusan}
-                    </span>
-                  </td>
+
                   <td className="py-4 px-6 text-[13px] font-medium text-gray-600 whitespace-nowrap">{cls.wali}</td>
                   <td className="py-4 px-4 text-center text-[14px] font-bold text-emerald-600">{cls.hadir !== null ? cls.hadir : <span className="text-gray-300">—</span>}</td>
                   <td className="py-4 px-4 text-center text-[14px] font-bold text-orange-400">{cls.sakit !== null ? cls.sakit : <span className="text-gray-300">—</span>}</td>

@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 
-const ClassEdit = ({ setView, initialData, onSave }) => {
+const ClassEdit = ({ setView, initialData, teachers, onSave, onDelete }) => {
   const [editForm, setEditForm] = useState(initialData || {
     id: Date.now(),
-    code: "X-IPA-1",
-    name: "Kelas X IPA 1",
+    code: "VII-1",
+    name: "Kelas VII 1",
     desc: "",
-    level: "Kelas X",
-    major: "IPA",
+    level: "Kelas VII",
     teacher: "Ibu Sari Dewi, S.Pd",
     capacity: 36,
     students: 32,
@@ -43,7 +42,15 @@ const ClassEdit = ({ setView, initialData, onSave }) => {
             <p className="text-[14px] text-gray-500 mt-1">Anda sedang mengubah data {editForm.name}. Perubahan akan berpengaruh pada jadwal dan rapor semester yang berjalan.</p>
           </div>
         </div>
-        <button className="bg-white border border-red-200 text-red-500 hover:bg-red-50 px-5 py-2.5 rounded-xl font-bold text-[13px] shadow-sm transition-all flex items-center gap-2">
+        <button 
+          onClick={() => {
+            if (onDelete) {
+              onDelete(editForm.id);
+              setView("list");
+            }
+          }}
+          className="bg-white border border-red-200 text-red-500 hover:bg-red-50 px-5 py-2.5 rounded-xl font-bold text-[13px] shadow-sm transition-all flex items-center gap-2"
+        >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2-2v2"></path></svg>
           Hapus Kelas
         </button>
@@ -74,20 +81,16 @@ const ClassEdit = ({ setView, initialData, onSave }) => {
           </div>
 
           <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-sm">
-            <h3 className="text-[15px] font-bold text-[#1e293b] mb-5">Tingkat & Jurusan</h3>
+            <h3 className="text-[15px] font-bold text-[#1e293b] mb-5">Tingkat Kelas</h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 gap-5">
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-2">Tingkat Kelas<span className="text-red-500">*</span></label>
                 <div className="flex gap-2">
-                  {["Kelas X", "Kelas XI", "Kelas XII"].map(t => (
+                  {["Kelas VII", "Kelas VIII", "Kelas IX"].map(t => (
                     <button key={t} onClick={() => setEditForm({...editForm, level: t})} className={`flex-1 py-3 text-[13px] font-bold rounded-xl border ${editForm.level === t ? 'border-[#3B82F6] text-white bg-[#3B82F6]' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>{t}</button>
                   ))}
                 </div>
-              </div>
-              <div>
-                <label className="block text-[13px] font-bold text-gray-700 mb-2">Jurusan / Program<span className="text-red-500">*</span></label>
-                <input type="text" value={editForm.major} onChange={e => setEditForm({...editForm, major: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
               </div>
             </div>
           </div>
@@ -175,7 +178,19 @@ const ClassEdit = ({ setView, initialData, onSave }) => {
               </div>
             </div>
 
-            <input type="text" value={editForm.teacher} onChange={e => setEditForm({...editForm, teacher: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700" />
+            <select 
+              value={editForm.teacherId || ""} 
+              onChange={e => {
+                const sel = teachers.find(t => t.id === e.target.value);
+                setEditForm({...editForm, teacherId: e.target.value, teacher: sel ? sel.nama : "Belum Ditentukan"});
+              }} 
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700"
+            >
+              <option value="">-- Pilih Wali Kelas --</option>
+              {teachers && teachers.map(t => (
+                <option key={t.id} value={t.id}>{t.nama}</option>
+              ))}
+            </select>
           </div>
 
           <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-sm">

@@ -69,8 +69,8 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
   const berprestasi = students.filter(s=>s.star).sort((a,b)=>b.nilaiAkhir-a.nilaiAkhir);
   const top3 = [...students].sort((a,b)=>b.nilaiAkhir-a.nilaiAkhir).slice(0,3);
 
-  const clsName = cls?.kelas || "Kelas XII IPA 1";
-  const clsKode = cls?.kode || "XII-IPA-1";
+  const clsName = cls?.kelas || "Kelas IX A";
+  const clsKode = cls?.kode || "IX-A";
   const clsWali = cls?.wali || "Ibu Siti Aminah, M.Pd";
 
   return (
@@ -319,7 +319,7 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <p className="text-[14px] font-bold text-gray-700 mb-3">Informasi Data</p>
             {[
-              ["Kelas", clsName],["Jurusan","IPA"],["Tahun Ajaran","2023/2024"],["Tgl Pengumuman","3 Mei 2024"],
+              ["Kelas", clsName],["Tahun Ajaran","2023/2024"],["Tgl Pengumuman","3 Mei 2024"],
             ].map(([k,v],i)=>(
               <div key={i} className="flex justify-between items-center py-1.5 border-b border-gray-50 last:border-0">
                 <span className="text-[12px] text-gray-500">{k}</span>
@@ -374,7 +374,7 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
                     <div className="text-[#64748B]">Nama</div><div className="text-[#64748B] text-center">:</div><div className="text-[#1e293b]">{printStudent.nama}</div>
                     <div className="text-[#64748B]">NIS</div><div className="text-[#64748B] text-center">:</div><div className="text-[#1e293b]">{printStudent.nis}</div>
                     <div className="text-[#64748B]">Kelas</div><div className="text-[#64748B] text-center">:</div><div className="text-[#1e293b]">{clsName}</div>
-                    <div className="text-[#64748B]">Jurusan</div><div className="text-[#64748B] text-center">:</div><div className="text-[#1e293b]">IPA</div>
+
                     <div className="text-[#64748B]">Nilai Akhir</div><div className="text-[#64748B] text-center">:</div><div className="text-[#1e293b]">{printStudent.nilaiAkhir.toFixed(2)}</div>
                     <div className="text-[#64748B]">Tahun Ajaran</div><div className="text-[#64748B] text-center">:</div><div className="text-[#1e293b]">2023/2024</div>
                   </div>

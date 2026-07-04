@@ -2,22 +2,8 @@ import React, { useState } from "react";
 import GradePromotionCriteria from "./GradePromotionCriteria";
 import GradePromotionDetail from "./GradePromotionDetail";
 
-const mockClasses = [
-  { no: 1, kelas: "Kelas X IPA 1", kode: "X-IPA-1", tingkat: "Kelas X", jurusan: "IPA", jurusanColor: "bg-blue-100 text-blue-700", wali: "Ibu Sari Dewi, S.Pd", naik: 30, total: 32, tidakNaik: 2, belum: 0, status: "Selesai" },
-  { no: 2, kelas: "Kelas X IPA 2", kode: "X-IPA-2", tingkat: "Kelas X", jurusan: "IPA", jurusanColor: "bg-blue-100 text-blue-700", wali: "Bpk. Ahmad Fauzi, M.Pd", naik: 28, total: 31, tidakNaik: 1, belum: 2, status: "Dalam Proses" },
-  { no: 3, kelas: "Kelas X IPS 1", kode: "X-IPS-1", tingkat: "Kelas X", jurusan: "IPS", jurusanColor: "bg-green-100 text-green-700", wali: "Ibu Dewi Anggraini, S.Pd", naik: 0, total: 30, tidakNaik: 0, belum: 30, status: "Belum Diproses" },
-  { no: 4, kelas: "Kelas X IPS 2", kode: "X-IPS-2", tingkat: "Kelas X", jurusan: "IPS", jurusanColor: "bg-green-100 text-green-700", wali: "Bpk. Rudi Hartono, S.Pd", naik: 0, total: 29, tidakNaik: 0, belum: 29, status: "Belum Diproses" },
-  { no: 5, kelas: "Kelas X Bahasa 1", kode: "X-BHS-1", tingkat: "Kelas X", jurusan: "Bahasa", jurusanColor: "bg-orange-100 text-orange-700", wali: "Ibu Nurdiana, S.Pd", naik: 0, total: 28, tidakNaik: 0, belum: 28, status: "Belum Diproses" },
-  { no: 6, kelas: "Kelas XI IPA 1", kode: "XI-IPA-1", tingkat: "Kelas XI", jurusan: "IPA", jurusanColor: "bg-blue-100 text-blue-700", wali: "Ibu Rani Kusuma, S.Pd", naik: 33, total: 33, tidakNaik: 0, belum: 0, status: "Selesai" },
-  { no: 7, kelas: "Kelas XI IPA 2", kode: "XI-IPA-2", tingkat: "Kelas XI", jurusan: "IPA", jurusanColor: "bg-blue-100 text-blue-700", wali: "Bpk. Hendra Wijaya, M.Pd", naik: 31, total: 32, tidakNaik: 1, belum: 0, status: "Selesai" },
-  { no: 8, kelas: "Kelas XI IPS 1", kode: "XI-IPS-1", tingkat: "Kelas XI", jurusan: "IPS", jurusanColor: "bg-green-100 text-green-700", wali: "Ibu Maya Sari, S.Pd", naik: 27, total: 30, tidakNaik: 2, belum: 1, status: "Dalam Proses" },
-  { no: 9, kelas: "Kelas XI IPS 2", kode: "XI-IPS-2", tingkat: "Kelas XI", jurusan: "IPS", jurusanColor: "bg-green-100 text-green-700", wali: "Bpk. Agus Santoso, S.Pd", naik: 0, total: 31, tidakNaik: 0, belum: 31, status: "Belum Diproses" },
-  { no: 10, kelas: "Kelas XII IPA 1", kode: "XII-IPA-1", tingkat: "Kelas XII", jurusan: "IPA", jurusanColor: "bg-blue-100 text-blue-700", wali: "Ibu Siti Aminah, M.Pd", naik: 28, total: 28, tidakNaik: 0, belum: 0, status: "Selesai" },
-  { no: 11, kelas: "Kelas XII IPA 2", kode: "XII-IPA-2", tingkat: "Kelas XII", jurusan: "IPA", jurusanColor: "bg-blue-100 text-blue-700", wali: "Bpk. Dodi Pratama, M.Pd", naik: 29, total: 30, tidakNaik: 1, belum: 0, status: "Selesai" },
-  { no: 12, kelas: "Kelas XII IPS 1", kode: "XII-IPS-1", tingkat: "Kelas XII", jurusan: "IPS", jurusanColor: "bg-green-100 text-green-700", wali: "Ibu Rina Wati, S.Pd", naik: 0, total: 29, tidakNaik: 0, belum: 29, status: "Belum Diproses" },
-];
 
-const TABS = ["Semua Tingkat", "Kelas X", "Kelas XI", "Kelas XII"];
+const TABS = ["Semua Tingkat", "Kelas VII", "Kelas VIII", "Kelas IX"];
 
 const StatusBadge = ({ status }) => {
   if (status === "Selesai") return (
@@ -53,7 +39,7 @@ const ProgressBar = ({ value, max, color = "bg-green-500" }) => {
 };
 
 const GradePromotion = () => {
-  const [classes, setClasses] = useState(mockClasses);
+  const [classes, setClasses] = useState([]);
   const [selectedClass, setSelectedClass] = useState(null);
   const [activeTab, setActiveTab] = useState("Semua Tingkat");
   const [view, setView] = useState("list");
@@ -66,16 +52,41 @@ const GradePromotion = () => {
     const fetchState = async () => {
       try {
         const { default: api } = await import('../../api/axios');
-        const res = await api.get('/system/frontend-state');
-        if (res.data?.data?.grade_promotion_classes) {
-          setClasses(res.data.data.grade_promotion_classes);
-          // Also sync to local storage for offline fast load
-          localStorage.setItem("grade_promotion_classes", JSON.stringify(res.data.data.grade_promotion_classes));
-        } else {
-          // Fallback to local storage
-          const saved = localStorage.getItem("grade_promotion_classes");
-          if (saved) setClasses(JSON.parse(saved));
-        }
+        // Fetch kelas data
+        const kelasRes = await api.get('/kelas');
+        const dbClasses = kelasRes.data?.data || [];
+
+        // Fetch frontend state
+        let savedProgress = [];
+        try {
+          const stateRes = await api.get('/system/frontend-state');
+          savedProgress = stateRes.data?.data?.grade_promotion_classes || [];
+        } catch(e) {}
+
+        const mappedClasses = dbClasses.map((c, index) => {
+          const nameUpper = c.nama_kelas?.toUpperCase() || "";
+          const isVII = nameUpper.includes("VII") && !nameUpper.includes("VIII");
+          const isVIII = nameUpper.includes("VIII");
+          const tingkat = isVII ? "Kelas VII" : isVIII ? "Kelas VIII" : "Kelas IX";
+          
+          const progress = savedProgress.find(p => p.kode === c.id) || {};
+          
+          return {
+            no: index + 1,
+            kelas: c.nama_kelas,
+            kode: c.id,
+            tingkat: tingkat,
+            wali: c.wali_kelas || "Belum ditentukan",
+            total: c.kapasitas || 0,
+            naik: progress.naik || 0,
+            tidakNaik: progress.tidakNaik || 0,
+            belum: progress.belum !== undefined ? progress.belum : (c.kapasitas || 0),
+            status: progress.status || "Belum Diproses"
+          };
+        });
+
+        setClasses(mappedClasses);
+        localStorage.setItem("grade_promotion_classes", JSON.stringify(mappedClasses));
       } catch (err) {
         console.error("Gagal memuat status kenaikan kelas dari backend", err);
         const saved = localStorage.getItem("grade_promotion_classes");
@@ -195,7 +206,7 @@ const GradePromotion = () => {
           </div>
           <span className="text-[14px] font-bold text-green-600 w-10">{progressPct}%</span>
         </div>
-        <p className="text-[13px] text-gray-500 mt-2">{selesai} dari {mockClasses.length} kelas selesai diproses</p>
+        <p className="text-[13px] text-gray-500 mt-2">{selesai} dari {classes.length} kelas selesai diproses</p>
       </div>
 
       {/* Stat Cards */}
@@ -240,7 +251,7 @@ const GradePromotion = () => {
           <table className="w-full">
             <thead className="border-b border-gray-100">
               <tr>
-                {["NO","KELAS","TINGKAT","JURUSAN","WALI KELAS","NAIK KELAS","TIDAK NAIK","BELUM DIPROSES","STATUS","AKSI"].map(h => (
+                {["NO","KELAS","TINGKAT","WALI KELAS","NAIK KELAS","TIDAK NAIK","BELUM DIPROSES","STATUS","AKSI"].map(h => (
                   <th key={h} className="px-5 py-4 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -256,9 +267,7 @@ const GradePromotion = () => {
                   <td className="px-5 py-4">
                     <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600">{row.tingkat}</span>
                   </td>
-                  <td className="px-5 py-4">
-                    <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${row.jurusanColor}`}>{row.jurusan}</span>
-                  </td>
+
                   <td className="px-5 py-4 text-[13px] text-gray-700">{row.wali}</td>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-2">

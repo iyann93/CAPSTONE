@@ -43,7 +43,7 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
             <div>
               <h1 className="text-[26px] font-bold text-[#1e293b]">{student.name}</h1>
               <p className="text-gray-500 text-[14px] mt-0.5">
-                {student.kelas} - {student.jurusan} - NIS {student.nis}
+                {student.kelas} - NIS {student.nis}
               </p>
             </div>
           </div>
@@ -312,10 +312,7 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
                 <span className="text-gray-500">Tingkat</span>
                 <span className="font-bold text-[#1e293b]">{student.tingkat}</span>
               </div>
-              <div className="flex justify-between text-[13px]">
-                <span className="text-gray-500">Jurusan</span>
-                <span className="font-bold text-[#1e293b]">{student.jurusan}</span>
-              </div>
+
               <div className="flex justify-between text-[13px]">
                 <span className="text-gray-500">Tahun Masuk</span>
                 <span className="font-bold text-[#1e293b]">2023</span>

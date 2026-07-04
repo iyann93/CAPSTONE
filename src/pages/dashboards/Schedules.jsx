@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ScheduleAdd from "./ScheduleAdd";
 import ScheduleEdit from "./ScheduleEdit";
+import api from "../../api/axios";
 
 // Mock Schedule Data
 const MOCK_SCHEDULES = [
@@ -32,6 +33,11 @@ const Schedules = () => {
   useEffect(() => {
     localStorage.setItem("schedules", JSON.stringify(schedules));
   }, [schedules]);
+
+  const [teachers, setTeachers] = useState([]);
+  useEffect(() => {
+    api.get('/guru?limit=100').then(res => setTeachers(res.data.data || [])).catch(console.error);
+  }, []);
 
   const [view, setView] = useState("list"); // list, add, edit
   const [currentEditItem, setCurrentEditItem] = useState(null);
@@ -135,7 +141,7 @@ const Schedules = () => {
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2">
           {/* Level Filter */}
           <div className="flex gap-1.5 bg-gray-50 p-1 rounded-xl w-fit">
-            {["Semua Tingkat", "Kelas X", "Kelas XI", "Kelas XII"].map((tab) => (
+            {["Semua Tingkat", "Kelas VII", "Kelas VIII", "Kelas IX"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTingkat(tab)}
@@ -236,7 +242,9 @@ const Schedules = () => {
                         <span className="text-[13px] font-bold text-[#1e293b]">{item.subject}</span>
                       </div>
                     </td>
-                    <td className="px-5 py-4 text-[13px] text-gray-600 font-medium">{item.teacher}</td>
+                    <td className="px-5 py-4 text-[13px] text-gray-600 font-medium">
+                      {teachers.length > 0 ? teachers[idx % teachers.length]?.nama : item.teacher}
+                    </td>
                     <td className="px-5 py-4 text-[13px] text-gray-500 font-medium flex items-center gap-1.5 mt-2.5">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                       {item.room}

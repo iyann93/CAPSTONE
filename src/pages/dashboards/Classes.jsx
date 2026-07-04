@@ -47,38 +47,43 @@ const Classes = () => {
   const [activeTab, setActiveTab] = useState("Semua Tingkat");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClass, setSelectedClass] = useState(null);
+  const [teachers, setTeachers] = useState([]);
 
   // Add form state
   const [addForm, setAddForm] = useState({
-    code: "", name: "", desc: "", major: "IPA", room: "", capacity: 36, year: "2025/2026", semester: "Ganjil", teacher: ""
+    code: "", name: "", desc: "", room: "", capacity: 36, year: "2025/2026", semester: "Ganjil", teacher: ""
   });
-  const [level, setLevel] = useState("Kelas X");
+  const [level, setLevel] = useState("Kelas VII");
   const [isActive, setIsActive] = useState(true);
 
   const fetchClassesAndStudents = async () => {
     setLoading(true);
     try {
-      const [resKelas, resSiswa] = await Promise.all([
+      const [resKelas, resSiswa, resGuru] = await Promise.all([
         api.get('/kelas?limit=100'),
-        api.get('/siswa?limit=1000')
+        api.get('/siswa?limit=1000'),
+        api.get('/guru?limit=100').catch(() => ({ data: { data: [] } }))
       ]);
 
       const listKelas = resKelas.data.data || [];
       const listSiswa = resSiswa.data.data || [];
+      const listGuru = resGuru.data.data || [];
+      setTeachers(listGuru);
 
       const mapped = listKelas.map((k) => {
         const countSiswa = listSiswa.filter(s => s.kelas_id === k.id).length;
         
-        let displayLevel = "Kelas X";
-        if (k.tingkat === "11" || k.tingkat === "Kelas XI") displayLevel = "Kelas XI";
-        if (k.tingkat === "12" || k.tingkat === "Kelas XII") displayLevel = "Kelas XII";
+        let displayLevel = "Kelas VII";
+        if (k.tingkat === "7" || k.tingkat === "VII" || k.tingkat === "Kelas VII") displayLevel = "Kelas VII";
+        if (k.tingkat === "8" || k.tingkat === "VIII" || k.tingkat === "Kelas VIII") displayLevel = "Kelas VIII";
+        if (k.tingkat === "9" || k.tingkat === "IX" || k.tingkat === "Kelas IX") displayLevel = "Kelas IX";
 
         return {
           id: k.id,
           code: k.kode_kelas || "TBA",
           name: k.nama_kelas,
           level: displayLevel,
-          major: k.kode_jurusan || k.nama_jurusan || "Umum",
+          teacherId: k.wali_kelas_id || "",
           teacher: k.wali_kelas_nama || "Belum Ditentukan",
           students: countSiswa,
           studentsList: listSiswa.filter(s => s.kelas_id === k.id),
@@ -102,8 +107,8 @@ const Classes = () => {
   }, []);
 
   const handleExport = () => {
-    const headers = ["ID", "KODE", "NAMA KELAS", "TINGKAT", "JURUSAN", "WALI KELAS", "SISWA", "KAPASITAS", "RUANGAN", "STATUS"];
-    const rows = classes.map((c, idx) => [idx + 1, c.code, c.name, c.level, c.major, c.teacher, c.students, c.capacity, c.room, c.status]);
+    const headers = ["ID", "KODE", "NAMA KELAS", "TINGKAT", "WALI KELAS", "SISWA", "KAPASITAS", "RUANGAN", "STATUS"];
+    const rows = classes.map((c, idx) => [idx + 1, c.code, c.name, c.level, c.teacher, c.students, c.capacity, c.room, c.status]);
     const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
@@ -120,31 +125,26 @@ const Classes = () => {
       return;
     }
 
-    let dbTingkat = "10";
-    if (level === "Kelas XI") dbTingkat = "11";
-    if (level === "Kelas XII") dbTingkat = "12";
+    let dbTingkat = "7";
+    if (level === "Kelas VIII") dbTingkat = "8";
+    if (level === "Kelas IX") dbTingkat = "9";
 
-    let dbJurusanId = "e0d0467a-6a5e-41cd-b274-10c08b53b66c"; 
-    const majUpper = (addForm.major || "").toUpperCase().trim();
-    if (majUpper.includes("IPA")) {
-      dbJurusanId = "e21a3ed9-3e46-4d9e-95e8-19ffac1dfaf5";
-    } else if (majUpper.includes("IPS")) {
-      dbJurusanId = "9c659b33-26eb-4d1d-8085-cd2880ea80bd";
-    } else if (majUpper.includes("BHS") || majUpper.includes("BAHASA")) {
-      dbJurusanId = "58b38f21-c7a6-4f0a-9995-29f7c693b558";
-    }
+    let dbJurusanId = null; 
+
 
     try {
       await api.post("/kelas", {
         nama_kelas: addForm.name,
         tingkat: dbTingkat,
         tahun_ajaran: addForm.year || "2025/2026",
-        jurusan_id: dbJurusanId
+        jurusan_id: null,
+        wali_kelas_id: addForm.teacher || null,
+        kapasitas: parseInt(addForm.capacity) || 36
       });
       await fetchClassesAndStudents();
       setView("list");
       setAddForm({
-        code: "", name: "", desc: "", major: "IPA", room: "", capacity: 36, year: "2025/2026", semester: "Ganjil", teacher: ""
+        code: "", name: "", desc: "", room: "", capacity: 36, year: "2025/2026", semester: "Ganjil", teacher: ""
       });
     } catch (err) {
       console.error(err);
@@ -169,27 +169,21 @@ const Classes = () => {
   }
 
   if (view === "edit") {
-    return <ClassEdit setView={setView} initialData={selectedClass} onSave={async (updatedData) => {
-      let dbTingkat = "10";
-      if (updatedData.level === "Kelas XI" || updatedData.level === "XI") dbTingkat = "11";
-      if (updatedData.level === "Kelas XII" || updatedData.level === "XII") dbTingkat = "12";
+    return <ClassEdit setView={setView} initialData={selectedClass} teachers={teachers} onDelete={handleDelete} onSave={async (updatedData) => {
+      let dbTingkat = "7";
+      if (updatedData.level === "Kelas VIII" || updatedData.level === "VIII") dbTingkat = "8";
+      if (updatedData.level === "Kelas IX" || updatedData.level === "IX") dbTingkat = "9";
 
-      let dbJurusanId = "e0d0467a-6a5e-41cd-b274-10c08b53b66c";
-      const majUpper = (updatedData.major || "").toUpperCase().trim();
-      if (majUpper.includes("IPA")) {
-        dbJurusanId = "e21a3ed9-3e46-4d9e-95e8-19ffac1dfaf5";
-      } else if (majUpper.includes("IPS")) {
-        dbJurusanId = "9c659b33-26eb-4d1d-8085-cd2880ea80bd";
-      } else if (majUpper.includes("BHS") || majUpper.includes("BAHASA")) {
-        dbJurusanId = "58b38f21-c7a6-4f0a-9995-29f7c693b558";
-      }
+      let dbJurusanId = null;
 
       try {
         await api.put(`/kelas/${updatedData.id}`, {
           nama_kelas: updatedData.name,
           tingkat: dbTingkat,
           tahun_ajaran: updatedData.year || "2025/2026",
-          jurusan_id: dbJurusanId
+          jurusan_id: null,
+          wali_kelas_id: updatedData.teacherId || null,
+          kapasitas: parseInt(updatedData.capacity) || 36
         });
         await fetchClassesAndStudents();
         setView("list");
@@ -243,15 +237,15 @@ const Classes = () => {
               </div>
             </div>
 
-            {/* Tingkat & Jurusan */}
+            {/* Tingkat */}
             <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-sm">
-              <h3 className="text-[15px] font-bold text-[#1e293b] mb-5">Tingkat & Jurusan</h3>
+              <h3 className="text-[15px] font-bold text-[#1e293b] mb-5">Tingkat Kelas</h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 gap-5">
                 <div>
                   <label className="block text-[13px] font-bold text-gray-700 mb-2">Tingkat Kelas<span className="text-red-500">*</span></label>
                   <div className="flex gap-2">
-                    {["Kelas X", "Kelas XI", "Kelas XII"].map(t => (
+                    {["Kelas VII", "Kelas VIII", "Kelas IX"].map(t => (
                       <button 
                         key={t}
                         onClick={() => setLevel(t)}
@@ -261,10 +255,6 @@ const Classes = () => {
                       </button>
                     ))}
                   </div>
-                </div>
-                <div>
-                  <label className="block text-[13px] font-bold text-gray-700 mb-2">Jurusan / Program<span className="text-red-500">*</span></label>
-                  <input type="text" value={addForm.major} onChange={(e) => setAddForm({...addForm, major: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
                 </div>
               </div>
             </div>
@@ -321,7 +311,16 @@ const Classes = () => {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                 <p className="text-[12px]">Pilih wali kelas dari daftar di bawah</p>
               </div>
-              <input type="text" value={addForm.teacher} onChange={(e) => setAddForm({...addForm, teacher: e.target.value})} placeholder="Nama Wali Kelas" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700" />
+              <select 
+                value={addForm.teacher} 
+                onChange={(e) => setAddForm({...addForm, teacher: e.target.value})} 
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700"
+              >
+                <option value="">-- Pilih Wali Kelas --</option>
+                {teachers.map(t => (
+                  <option key={t.id} value={t.id}>{t.nama}</option>
+                ))}
+              </select>
             </div>
 
             {/* Status Kelas */}
@@ -448,7 +447,7 @@ const Classes = () => {
         {/* Filters and Search */}
         <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex gap-2 bg-gray-50 p-1 rounded-xl">
-            {["Semua Tingkat", "Kelas X", "Kelas XI", "Kelas XII"].map(t => (
+            {["Semua Tingkat", "Kelas VII", "Kelas VIII", "Kelas IX"].map(t => (
               <button 
                 key={t}
                 onClick={() => setActiveTab(t)}
@@ -460,16 +459,7 @@ const Classes = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="relative">
-              <select className="appearance-none pl-10 pr-8 py-2.5 bg-white border border-gray-200 rounded-xl text-[13px] font-bold text-gray-600 focus:outline-none focus:border-[#1A3D63]">
-                <option>Semua Jurusan</option>
-                <option>IPA</option>
-                <option>IPS</option>
-                <option>Bahasa</option>
-              </select>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="absolute left-3.5 top-3 text-gray-400"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-3.5 text-gray-400"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </div>
+
             <div className="relative">
               <input 
                 type="text" 
@@ -492,7 +482,7 @@ const Classes = () => {
 
                 <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest">NAMA KELAS</th>
                 <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest text-center">TINGKAT</th>
-                <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest text-center">JURUSAN</th>
+
                 <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest">WALI KELAS</th>
                 <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest">SISWA / KAPASITAS</th>
                 <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest">RUANGAN</th>
@@ -514,15 +504,7 @@ const Classes = () => {
                       {item.level}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className={`text-[11px] font-bold px-2.5 py-1 rounded-md border ${
-                      item.major === 'IPA' ? 'bg-[#1A3D63]/10 text-[#1A3D63] border-[#1A3D63]/20' :
-                      item.major === 'IPS' ? 'bg-slate-100 text-slate-700 border-slate-200' :
-                      'bg-gray-100 text-gray-700 border-gray-200'
-                    }`}>
-                      {item.major}
-                    </span>
-                  </td>
+
                   <td className="px-6 py-4 text-[13px] text-gray-600 font-medium">{item.teacher}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">

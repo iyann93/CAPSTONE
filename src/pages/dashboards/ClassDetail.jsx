@@ -226,10 +226,7 @@ const ClassDetail = ({ setView, selectedClass }) => {
                 <span className="text-[13px] text-gray-500">Tingkat</span>
                 <span className="text-[13px] font-bold text-[#1e293b]">{selectedClass?.level || "-"}</span>
               </div>
-              <div className="flex justify-between items-center pb-3 border-b border-gray-50">
-                <span className="text-[13px] text-gray-500">Jurusan</span>
-                <span className="bg-[#EFF6FF] text-[#3B82F6] text-[11px] font-bold px-2 py-0.5 rounded">{selectedClass?.major || "-"}</span>
-              </div>
+
               <div className="flex justify-between items-center pb-3 border-b border-gray-50">
                 <span className="text-[13px] text-gray-500">Tahun Ajaran</span>
                 <span className="text-[13px] font-bold text-[#1e293b]">{selectedClass?.year || "-"}</span>
