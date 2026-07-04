@@ -81,7 +81,7 @@ const Classes = () => {
         return {
           id: k.id,
           code: k.kode_kelas || "TBA",
-          name: displayName,
+          name: k.nama_kelas,
           level: displayLevel,
           teacherId: k.wali_kelas_id || "",
           teacher: k.wali_kelas_nama || "Belum Ditentukan",
