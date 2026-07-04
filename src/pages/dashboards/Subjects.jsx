@@ -145,6 +145,34 @@ const Subjects = () => {
     setTimeout(() => setToast(null), 3000);
   };
 
+  const handleExport = () => {
+    if (filtered.length === 0) {
+      showToast("Tidak ada data untuk diekspor.", "error");
+      return;
+    }
+    const csvContent = [
+      ["No", "Kode", "Nama Mata Pelajaran", "Kelompok", "Jenjang", "KKM", "Jam/Minggu", "Guru Pengampu"],
+      ...filtered.map((item, idx) => [
+        idx + 1,
+        item.kode,
+        item.nama,
+        item.kelompok || "-",
+        (item.tingkat || "").replace(/,/g, " & "),
+        item.kkm,
+        item.jumlah_jam,
+        item.guru_nama || "Belum ditentukan"
+      ])
+    ].map(row => row.join(",")).join("\n");
+    
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "Data_Mata_Pelajaran.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const fetchMapel = async () => {
     setLoading(true);
     try {
@@ -208,13 +236,22 @@ const Subjects = () => {
             Kelola daftar mata pelajaran SMP–SMA, alokasi jam, dan kelompok pelajaran.
           </p>
         </div>
-        <button
-          onClick={() => setModal({ data: null })}
-          className="flex items-center gap-2 bg-[#1A3D63] hover:bg-[#122A44] text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-md transition-all"
-        >
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Tambah Mata Pelajaran
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-bold hover:bg-gray-50 shadow-sm transition-colors"
+          >
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Ekspor Daftar
+          </button>
+          <button
+            onClick={() => setModal({ data: null })}
+            className="flex items-center gap-2 bg-[#1A3D63] hover:bg-[#122A44] text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-md transition-all"
+          >
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Tambah Mata Pelajaran
+          </button>
+        </div>
       </div>
 
       {/* Stat Cards */}
@@ -263,19 +300,19 @@ const Subjects = () => {
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">No</th>
-                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Kode</th>
-                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Nama Mata Pelajaran</th>
-                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Kelompok</th>
-                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Jenjang</th>
-                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">KKM</th>
-                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Jam/Minggu</th>
-                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Guru Pengampu</th>
-                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider text-right">Aksi</th>
+        <div className="overflow-x-auto overflow-y-auto max-h-[500px]">
+          <table className="w-full text-left relative">
+            <thead className="sticky top-0 z-10 bg-gray-50 shadow-[0_1px_0_0_#f3f4f6]">
+              <tr>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider bg-gray-50">No</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider bg-gray-50">Kode</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider bg-gray-50">Nama Mata Pelajaran</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider bg-gray-50">Kelompok</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider bg-gray-50">Jenjang</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider bg-gray-50">KKM</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider bg-gray-50">Jam/Minggu</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider bg-gray-50">Guru Pengampu</th>
+                <th className="px-6 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider text-right bg-gray-50">Aksi</th>
               </tr>
             </thead>
             {loading ? <Skeleton /> : (

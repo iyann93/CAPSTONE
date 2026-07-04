@@ -346,7 +346,7 @@ const StudentForm = ({ onBack, onSave }) => {
                   value={formData.kelas_id}
                   onChange={(e) => {
                     const selectedId = e.target.value;
-                    const found = classes.find(c => c.id === selectedId);
+                    const found = classes.find(c => String(c.id) === selectedId);
                     setFormData({ 
                       ...formData, 
                       kelas_id: selectedId,

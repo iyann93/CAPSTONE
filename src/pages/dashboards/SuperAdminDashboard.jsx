@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import ManageUsers from "./ManageUsers";
 import Profile from "../Profile";
@@ -444,7 +444,12 @@ const ActivationModule = () => {
     return nama.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
   };
 
-  const filteredUsers = allUsers;
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredUsers = allUsers.filter(u => 
+    (u.nama || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (u.email || '').toLowerCase().includes(searchQuery.toLowerCase())
+  ).filter(u => activeTab === "Pending" ? !u.is_active : !u.is_active);
 
   return (
     <div className="flex flex-col gap-6 animate-fadeIn">
@@ -544,6 +549,8 @@ const ActivationModule = () => {
             <input 
               type="text" 
               placeholder="Cari nama atau email..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="border border-gray-200 focus:border-gray-300 rounded-xl pl-10 pr-4 py-2 text-sm w-full md:w-[280px] outline-none transition-all placeholder:text-gray-400 text-gray-700 bg-white" 
             />
           </div>
@@ -987,8 +994,9 @@ const RolePermissionModule = () => {
   );
 };
 
-const SuperAdminOverview = ({ onExportClick }) => {
+const SuperAdminOverview = ({ onExportClick, onViewChange }) => {
   const [showQuickAction, setShowQuickAction] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const rbacChanges = [
     { name: "Dr. Wahyu", oldRole: "Guru", newRole: "Admin TU", time: "10:45" },
@@ -1010,6 +1018,15 @@ const SuperAdminOverview = ({ onExportClick }) => {
     { time: "07:00:05", message: "Service [PaymentGateway] restarted" },
   ];
 
+  const filteredRbacChanges = rbacChanges.filter(row =>
+    row.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    row.newRole.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredSystemLogs = systemLogs.filter(log =>
+    log.message.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="flex flex-col gap-6 animate-fadeIn">
       {/* Header Section */}
@@ -1025,6 +1042,8 @@ const SuperAdminOverview = ({ onExportClick }) => {
             <input 
               type="text" 
               placeholder="Cari user, role, atau log..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-white border border-gray-200 rounded-xl pl-11 pr-4 py-2.5 text-sm w-full md:w-[280px] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/10 focus:border-[#1A3D63] transition-all"
             />
           </div>
@@ -1045,7 +1064,7 @@ const SuperAdminOverview = ({ onExportClick }) => {
                     Manajemen Akun
                   </div>
                   <div className="p-1.5 space-y-0.5">
-                    <button className="w-full text-left px-3 py-2 text-[13px] font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
+                    <button onClick={() => { onViewChange?.("Kelola Pengguna"); setShowQuickAction(false); }} className="w-full text-left px-3 py-2 text-[13px] font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-[#1A3D63]">
                         <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                         <circle cx="8.5" cy="7" r="4" />
@@ -1054,7 +1073,7 @@ const SuperAdminOverview = ({ onExportClick }) => {
                       </svg>
                       Tambah Akun User
                     </button>
-                    <button className="w-full text-left px-3 py-2 text-[13px] font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
+                    <button onClick={() => { onViewChange?.("Aktivasi & Nonaktif"); setShowQuickAction(false); }} className="w-full text-left px-3 py-2 text-[13px] font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-[#1A3D63]">
                         <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                         <circle cx="8.5" cy="7" r="4" />
@@ -1062,7 +1081,7 @@ const SuperAdminOverview = ({ onExportClick }) => {
                       </svg>
                       Aktivasi / Nonaktif User
                     </button>
-                    <button className="w-full text-left px-3 py-2 text-[13px] font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
+                    <button onClick={() => { onViewChange?.("Kelola Pengguna"); setShowQuickAction(false); }} className="w-full text-left px-3 py-2 text-[13px] font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500">
                         <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zM12 12l.5-1.5L14 11l.5-1.5L16 10l3.5-3.5L21 4" />
                       </svg>
@@ -1074,13 +1093,13 @@ const SuperAdminOverview = ({ onExportClick }) => {
                     Sistem & Akses
                   </div>
                   <div className="p-1.5 space-y-0.5">
-                    <button className="w-full text-left px-3 py-2 text-[13px] font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
+                    <button onClick={() => { onViewChange?.("Role & Permission"); setShowQuickAction(false); }} className="w-full text-left px-3 py-2 text-[13px] font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-[#1A3D63]">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                       </svg>
                       Kelola Role (RBAC)
                     </button>
-                    <button className="w-full text-left px-3 py-2 text-[13px] font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
+                    <button onClick={() => { onViewChange?.("Backup & Maintenance"); setShowQuickAction(false); }} className="w-full text-left px-3 py-2 text-[13px] font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600">
                         <ellipse cx="12" cy="5" rx="9" ry="3" />
                         <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
@@ -1088,7 +1107,7 @@ const SuperAdminOverview = ({ onExportClick }) => {
                       </svg>
                       Backup Sistem Manual
                     </button>
-                    <button className="w-full text-left px-3 py-2 text-[13px] font-bold text-red-600 hover:bg-red-50 rounded-xl flex items-center gap-3 transition-colors">
+                    <button onClick={() => { onViewChange?.("Hak Akses Sistem"); setShowQuickAction(false); }} className="w-full text-left px-3 py-2 text-[13px] font-bold text-red-600 hover:bg-red-50 rounded-xl flex items-center gap-3 transition-colors">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500">
                         <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
                         <line x1="12" y1="2" x2="12" y2="12" />
@@ -1137,7 +1156,7 @@ const SuperAdminOverview = ({ onExportClick }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {rbacChanges.map((row, i) => (
+                {filteredRbacChanges.map((row, i) => (
                   <tr key={i} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4 text-sm font-bold text-gray-800">{row.name}</td>
                     <td className="px-6 py-4 text-sm text-gray-400 font-medium">{row.oldRole}</td>
@@ -1145,6 +1164,9 @@ const SuperAdminOverview = ({ onExportClick }) => {
                     <td className="px-6 py-4 text-sm text-gray-400 font-medium">{row.time}</td>
                   </tr>
                 ))}
+                {filteredRbacChanges.length === 0 && (
+                  <tr><td colSpan={4} className="px-6 py-8 text-center text-gray-400">Tidak ada perubahan role yang cocok</td></tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -1167,12 +1189,15 @@ const SuperAdminOverview = ({ onExportClick }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 font-mono">
-                {systemLogs.map((log, i) => (
+                {filteredSystemLogs.map((log, i) => (
                   <tr key={i} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4 text-[13px] text-gray-400 font-medium">{log.time}</td>
                     <td className="px-6 py-4 text-[13px] text-gray-700 leading-relaxed min-w-[300px]">{log.message}</td>
                   </tr>
                 ))}
+                {filteredSystemLogs.length === 0 && (
+                  <tr><td colSpan={2} className="px-6 py-8 text-center text-gray-400 font-sans">Tidak ada log aktivitas yang cocok</td></tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -3245,7 +3270,7 @@ const LogAktivitasModule = () => {
 };
 // ============================================================================================================================
 
-const SuperAdminDashboard = ({ user, activeMenu }) => {
+const SuperAdminDashboard = ({ user, activeMenu, onViewChange }) => {
   const [showExportModal, setShowExportModal] = useState(false);
 
   const content = () => {
@@ -3274,7 +3299,7 @@ const SuperAdminDashboard = ({ user, activeMenu }) => {
       case "My Profile":
         return <Profile user={user} />;
       default:
-        return <SuperAdminOverview onExportClick={() => setShowExportModal(true)} />;
+        return <SuperAdminOverview onExportClick={() => setShowExportModal(true)} onViewChange={onViewChange} />;
     }
   };
 

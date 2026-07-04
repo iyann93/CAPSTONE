@@ -34,7 +34,7 @@ const mapSiswa = (s, index) => {
     tempat_lahir: s.tempat_lahir || null,
     tanggal_lahir:s.tanggal_lahir || null,
     jenis_kelamin:s.jenis_kelamin,
-    kelas:        displayKelas,
+    kelas:        s.nama_kelas || "-",
     kelas_id:     s.kelas_id,
     tingkat,
     status:       s.status || "aktif",

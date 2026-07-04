@@ -11,6 +11,7 @@ const AuthRepository = {
       SELECT u.id, u.nama, u.email, u.password_hash, u.no_telepon, u.alamat_lengkap,
              u.is_active, u.last_login_at, u.created_at,
              (SELECT r.nama_role FROM shared.user_roles ur JOIN shared.roles r ON ur.role_id = r.id WHERE ur.user_id = u.id LIMIT 1) AS role,
+             (SELECT g.jabatan_tugas FROM academic.guru g WHERE g.user_id = u.id LIMIT 1) AS jabatan_tugas,
              (SELECT json_build_object(
                  'id', s.id,
                  'nama', s.nama_lengkap,
@@ -45,6 +46,7 @@ const AuthRepository = {
       SELECT u.id, u.nama, u.email, u.no_telepon, u.alamat_lengkap,
              u.is_active, u.last_login_at, u.created_at,
              (SELECT r.nama_role FROM shared.user_roles ur JOIN shared.roles r ON ur.role_id = r.id WHERE ur.user_id = u.id LIMIT 1) AS role,
+             (SELECT g.jabatan_tugas FROM academic.guru g WHERE g.user_id = u.id LIMIT 1) AS jabatan_tugas,
              (SELECT json_build_object(
                  'id', s.id,
                  'nama', s.nama_lengkap,
