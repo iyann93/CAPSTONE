@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+﻿import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import ManageUsers from "./ManageUsers";
 import Profile from "../Profile";
@@ -302,7 +302,7 @@ const ReactivateAccountModal = ({ user, onClose }) => {
               <div className="flex items-center gap-1.5 text-xs text-gray-400 font-semibold mt-1">
                 <span>💼 {user.role}</span>
                 <span>•</span>
-                <span>🗓️ Nonaktif: {user.date}</span>
+                <span>ðŸ—“ï¸ Nonaktif: {user.date}</span>
               </div>
             </div>
           </div>
@@ -1192,7 +1192,7 @@ const Toggle = ({ checked, onChange, disabled = false }) => (
   >
     <span
       className={`inline-block w-4 h-4 bg-white rounded-full shadow-sm transform transition-all duration-300 ${
-        checked ? "translate-x-6" : "translate-x-1"
+        checked ? "translate-VII-6" : "translate-VII-1"
       }`}
     />
   </button>
@@ -1626,12 +1626,12 @@ const AksesSeluruhDataModule = () => {
   };
 
   const previewStudents = [
-    { id: "1001", nisn: "0012345678", name: "Andi Setiawan", class: "X-A", gender: "L", status: "AKTIF" },
-    { id: "1002", nisn: "0012345679", name: "Budi Santoso", class: "X-A", gender: "L", status: "AKTIF" },
-    { id: "1003", nisn: "0012345680", name: "Citra Kirana", class: "X-B", gender: "P", status: "AKTIF" },
-    { id: "1004", nisn: "0012345681", name: "Dewi Lestari", class: "X-B", gender: "P", status: "AKTIF" },
-    { id: "1005", nisn: "0012345682", name: "Eko Prasetyo", class: "X-C", gender: "L", status: "CUTI" },
-    { id: "1006", nisn: "0012345683", name: "Fajar Hidayat", class: "XI-A", gender: "L", status: "AKTIF" },
+    { id: "1001", nisn: "0012345678", name: "Andi Setiawan", class: "VII-A", gender: "L", status: "AKTIF" },
+    { id: "1002", nisn: "0012345679", name: "Budi Santoso", class: "VII-A", gender: "L", status: "AKTIF" },
+    { id: "1003", nisn: "0012345680", name: "Citra Kirana", class: "VII-B", gender: "P", status: "AKTIF" },
+    { id: "1004", nisn: "0012345681", name: "Dewi Lestari", class: "VII-B", gender: "P", status: "AKTIF" },
+    { id: "1005", nisn: "0012345682", name: "Eko Prasetyo", class: "VII-C", gender: "L", status: "CUTI" },
+    { id: "1006", nisn: "0012345683", name: "Fajar Hidayat", class: "VIII-A", gender: "L", status: "AKTIF" },
   ];
 
   const filteredStudents = previewStudents.filter(student => 
@@ -2360,7 +2360,7 @@ const AksesSeluruhDataModule = () => {
                 <div className="border border-gray-100 rounded-xl overflow-hidden divide-y divide-gray-100">
                   {[
                     { state: pdfKopSurat, setter: setPdfKopSurat, label: "Sertakan Kop Surat & Logo Sekolah", desc: "Menambahkan header resmi sekolah di halaman pertama." },
-                    { state: pdfPageNum, setter: setPdfPageNum, label: "Penomoran Halaman", desc: "Format: Halaman X dari Y di bagian bawah." },
+                    { state: pdfPageNum, setter: setPdfPageNum, label: "Penomoran Halaman", desc: "Format: Halaman VII dari Y di bagian bawah." },
                     { state: pdfPassword, setter: setPdfPassword, label: "Lindungi dengan Password", desc: "Enkripsi file PDF agar hanya bisa dibuka dengan kata sandi." },
                   ].map((opt, i) => (
                     <label key={i} className="flex items-start gap-3.5 p-4 cursor-pointer hover:bg-gray-50/50 transition-colors">
@@ -2699,7 +2699,7 @@ const BackupMaintenanceModule = () => {
                   onClick={() => setDailyBackup(!dailyBackup)}
                   className={`w-11 h-6 rounded-full flex items-center transition-colors px-0.5 shrink-0 ${dailyBackup ? 'bg-[#1A3D63]' : 'bg-gray-200'}`}
                 >
-                  <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${dailyBackup ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                  <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${dailyBackup ? 'translate-VII-5' : 'translate-VII-0'}`}></div>
                 </button>
               </div>
               
@@ -3229,7 +3229,7 @@ const LogAktivitasModule = () => {
             Refresh
           </button>
           <div className="flex items-center gap-2">
-            <button className="px-4 py-2 text-xs font-black text-gray-500 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all shadow-sm">← Prev</button>
+            <button className="px-4 py-2 text-xs font-black text-gray-500 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all shadow-sm">â† Prev</button>
             {[1, 2, 3].map(p => (
               <button key={p} className={`w-9 h-9 flex items-center justify-center rounded-xl text-sm font-black transition-all ${
                 p === 1 ? "bg-[#1A3D63] text-white shadow-md shadow-[#1A3D63]/25" : "text-gray-500 hover:bg-white hover:shadow-sm"
@@ -3287,3 +3287,6 @@ const SuperAdminDashboard = ({ user, activeMenu }) => {
 };
 
 export default SuperAdminDashboard;
+
+
+

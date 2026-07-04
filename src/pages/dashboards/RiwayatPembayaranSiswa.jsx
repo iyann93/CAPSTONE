@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { getTagihan } from "../../api/finance";
 
@@ -192,3 +192,5 @@ const RiwayatPembayaranSiswa = ({ user, onNavigate }) => {
 };
 
 export default RiwayatPembayaranSiswa;
+
+

@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 
 const WaliKelasHome = ({ user, onNavigate }) => {
   const classData = {
@@ -101,3 +101,7 @@ const WaliKelasHome = ({ user, onNavigate }) => {
 };
 
 export default WaliKelasHome;
+
+
+
+

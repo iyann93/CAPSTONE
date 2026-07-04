@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 
 const initStudentsProcess = [
   { no:1,nis:"2023100",nama:"Siswa Kelas VII 1",init:"S",color:"bg-blue-500",nilai:76,kehadiran:94,mapel:2 },
@@ -374,3 +374,7 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
 };
 
 export default GradePromotionDetail;
+
+
+
+

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import {
   BarChart,
   Bar,
@@ -88,3 +88,5 @@ const LaporanHarianKepsek = ({ user, onNavigate }) => {
 };
 
 export default LaporanHarianKepsek;
+
+

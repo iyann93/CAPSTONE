@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import api from "../../api/axios";
+import { getTagihan } from "../../api/finance";
 
 const mockNotifications = [
   { id: 1, type: "tagihan", title: "Tagihan SPP Bulan Juli", desc: "Jatuh tempo: 10 Juli 2024 · Rp 500.000", time: "2 jam lalu", read: false },
@@ -33,6 +34,8 @@ const OrangTuaHome = ({ user, onNavigate }) => {
     semester: "Ganjil 2025/2026",
     totalSiswaKelas: "-",
   });
+
+  const [tagihanTerdekat, setTagihanTerdekat] = useState(null);
 
   useEffect(() => {
     const fetchStudentStats = async () => {
@@ -82,17 +85,39 @@ const OrangTuaHome = ({ user, onNavigate }) => {
       }
     };
 
-    if (user) fetchStudentStats();
+    const fetchTagihan = async () => {
+      try {
+        const tagihans = await getTagihan({ limit: 100 });
+        const aktif = tagihans.filter(t => t.status === "belum_bayar" || t.status === "menunggu_konfirmasi");
+        if (aktif.length > 0) {
+          aktif.sort((a, b) => new Date(a.jatuh_tempo || 0) - new Date(b.jatuh_tempo || 0));
+          setTagihanTerdekat(aktif[0]);
+        }
+      } catch (err) {
+        console.error("Gagal memuat tagihan terdekat:", err);
+      }
+    };
+
+    if (user) {
+      fetchStudentStats();
+      fetchTagihan();
+    }
   }, [user]);
 
-  const tagihanInfo = {
-    bulan: "Januari 2026",
-    nominal: "Rp 1.250.000",
-    jatuhTempo: "10 Januari 2026",
-    status: "Belum Lunas",
-  };
+  const fmt = (n) => "Rp " + Number(n).toLocaleString("id-ID");
+  const getBulanNama = (b) => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][b-1];
 
   const unreadCount = mockNotifications.filter(n => !n.read).length;
+
+  const tagihanInfo = tagihanTerdekat ? {
+    bulan: getBulanNama(tagihanTerdekat.bulan) + " " + tagihanTerdekat.tahun,
+    nominal: fmt(tagihanTerdekat.nominal_akhir || tagihanTerdekat.nominal),
+    status: tagihanTerdekat.status === 'menunggu_konfirmasi' ? 'Menunggu Konfirmasi' : 'Belum Lunas'
+  } : {
+    bulan: "-",
+    nominal: "-",
+    status: "Semua Lunas"
+  };
 
   return (
     <div className="p-6 md:p-8 space-y-6 animate-fadeIn">
@@ -243,17 +268,25 @@ const OrangTuaHome = ({ user, onNavigate }) => {
             <h3 className="text-[15px] font-bold text-gray-800">Tagihan Terdekat</h3>
           </div>
           <div className="p-5 space-y-4">
-            <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[12px] font-bold text-amber-700">SPP {tagihanInfo.bulan}</span>
-                <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-full">Belum Lunas</span>
+            {tagihanTerdekat ? (
+              <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[12px] font-bold text-amber-700">SPP {getBulanNama(tagihanTerdekat.bulan)} {tagihanTerdekat.tahun}</span>
+                  <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${tagihanTerdekat.status === 'menunggu_konfirmasi' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
+                    {tagihanTerdekat.status === 'menunggu_konfirmasi' ? 'Menunggu Konfirmasi' : 'Belum Lunas'}
+                  </span>
+                </div>
+                <p className="text-[22px] font-black text-amber-600">{fmt(tagihanTerdekat.nominal_akhir || tagihanTerdekat.nominal)}</p>
+                <div className="flex items-center gap-1 mt-2 text-[12px] text-amber-600">
+                  <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                  Jatuh tempo: {tagihanTerdekat.jatuh_tempo ? new Date(tagihanTerdekat.jatuh_tempo).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}) : "-"}
+                </div>
               </div>
-              <p className="text-[22px] font-black text-amber-600">{tagihanInfo.nominal}</p>
-              <div className="flex items-center gap-1 mt-2 text-[12px] text-amber-600">
-                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                Jatuh tempo: {tagihanInfo.jatuhTempo}
+            ) : (
+              <div className="p-4 bg-green-50 border border-green-100 rounded-xl text-center">
+                <p className="text-sm font-bold text-green-700">Semua tagihan sudah lunas!</p>
               </div>
-            </div>
+            )}
             <button
               onClick={() => onNavigate("Tagihan SPP")}
               className="w-full py-3 bg-[#1A3D63] hover:bg-[#163256] text-white rounded-xl text-[13px] font-bold flex items-center justify-center gap-2 transition-colors"
@@ -326,3 +359,7 @@ const OrangTuaHome = ({ user, onNavigate }) => {
 };
 
 export default OrangTuaHome;
+
+
+
+

@@ -5,27 +5,33 @@ import api from "../../api/axios";
 
 // Mock Schedule Data
 const MOCK_SCHEDULES = [
-  { id: 1, class: "X IPA 1", day: "Senin", time: "07:00-08:30", period: "Jam ke-1-2", code: "MTK", subject: "Matematika", teacher: "Drs. Hendra, M.Pd", room: "Ruang 101", status: "Aktif", color: "bg-blue-50 border-blue-200 text-blue-700" },
-  { id: 2, class: "X IPA 1", day: "Senin", time: "08:30-10:00", period: "Jam ke-3-4", code: "IND", subject: "Bahasa Indonesia", teacher: "Ibu Rani Kusuma, S.Pd", room: "Ruang 101", status: "Aktif", color: "bg-yellow-50 border-yellow-200 text-yellow-700" },
-  { id: 3, class: "X IPA 1", day: "Selasa", time: "07:00-08:30", period: "Jam ke-1-2", code: "FIS", subject: "Fisika", teacher: "Ibu Sari Dewi, S.Pd", room: "Lab Fisika", status: "Aktif", color: "bg-pink-50 border-pink-200 text-pink-700" },
-  { id: 4, class: "X IPA 1", day: "Selasa", time: "08:30-10:00", period: "Jam ke-3-4", code: "KIM", subject: "Kimia", teacher: "Bpk. Ahmad Fauzi, M.Pd", room: "Lab Kimia", status: "Aktif", color: "bg-teal-50 border-teal-200 text-teal-700" },
-  { id: 5, class: "X IPA 1", day: "Rabu", time: "07:00-08:30", period: "Jam ke-1-2", code: "BIO", subject: "Biologi", teacher: "Ibu Dewi Anggraini, S.Pd", room: "Lab Biologi", status: "Aktif", color: "bg-green-50 border-green-200 text-green-700" },
-  { id: 6, class: "X IPA 1", day: "Rabu", time: "08:30-10:00", period: "Jam ke-3-4", code: "ENG", subject: "Bahasa Inggris", teacher: "Bpk. James Hutapea, S.Pd", room: "Ruang 101", status: "Aktif", color: "bg-sky-50 border-sky-200 text-sky-700" },
-  { id: 7, class: "X IPA 1", day: "Kamis", time: "07:00-08:30", period: "Jam ke-1-2", code: "MTK", subject: "Matematika", teacher: "Drs. Hendra, M.Pd", room: "Ruang 101", status: "Aktif", color: "bg-blue-50 border-blue-200 text-blue-700" },
-  { id: 8, class: "X IPA 1", day: "Kamis", time: "08:30-10:00", period: "Jam ke-3-4", code: "PKN", subject: "PKn", teacher: "Ibu Nurdiana, S.Pd", room: "Ruang 101", status: "Aktif", color: "bg-orange-50 border-orange-200 text-orange-700" },
-  { id: 9, class: "X IPA 1", day: "Jumat", time: "07:00-08:30", period: "Jam ke-1-2", code: "SBD", subject: "Seni Budaya", teacher: "Ibu Ani Sulistyo, S.Sn", room: "Ruang Seni", status: "Aktif", color: "bg-purple-50 border-purple-200 text-purple-700" },
-  { id: 10, class: "X IPA 1", day: "Jumat", time: "08:30-10:00", period: "Jam ke-3-4", code: "PJK", subject: "PJOK", teacher: "Bpk. Rizal Maulana, S.Pd", room: "Lapangan", status: "Aktif", color: "bg-emerald-50 border-emerald-200 text-emerald-700" },
+  { id: 1, class: "VII IPA 1", day: "Senin", time: "07:00-08:30", period: "Jam ke-1-2", code: "MTK", subject: "Matematika", teacher: "Drs. Hendra, M.Pd", room: "Ruang 101", status: "Aktif", color: "bg-blue-50 border-blue-200 text-blue-700" },
+  { id: 2, class: "VII IPA 1", day: "Senin", time: "08:30-10:00", period: "Jam ke-3-4", code: "IND", subject: "Bahasa Indonesia", teacher: "Ibu Rani Kusuma, S.Pd", room: "Ruang 101", status: "Aktif", color: "bg-yellow-50 border-yellow-200 text-yellow-700" },
+  { id: 3, class: "VII IPA 1", day: "Selasa", time: "07:00-08:30", period: "Jam ke-1-2", code: "FIS", subject: "Fisika", teacher: "Ibu Sari Dewi, S.Pd", room: "Lab Fisika", status: "Aktif", color: "bg-pink-50 border-pink-200 text-pink-700" },
+  { id: 4, class: "VII IPA 1", day: "Selasa", time: "08:30-10:00", period: "Jam ke-3-4", code: "KIM", subject: "Kimia", teacher: "Bpk. Ahmad Fauzi, M.Pd", room: "Lab Kimia", status: "Aktif", color: "bg-teal-50 border-teal-200 text-teal-700" },
+  { id: 5, class: "VII IPA 1", day: "Rabu", time: "07:00-08:30", period: "Jam ke-1-2", code: "BIO", subject: "Biologi", teacher: "Ibu Dewi Anggraini, S.Pd", room: "Lab Biologi", status: "Aktif", color: "bg-green-50 border-green-200 text-green-700" },
+  { id: 6, class: "VII IPA 1", day: "Rabu", time: "08:30-10:00", period: "Jam ke-3-4", code: "ENG", subject: "Bahasa Inggris", teacher: "Bpk. James Hutapea, S.Pd", room: "Ruang 101", status: "Aktif", color: "bg-sky-50 border-sky-200 text-sky-700" },
+  { id: 7, class: "VII IPA 1", day: "Kamis", time: "07:00-08:30", period: "Jam ke-1-2", code: "MTK", subject: "Matematika", teacher: "Drs. Hendra, M.Pd", room: "Ruang 101", status: "Aktif", color: "bg-blue-50 border-blue-200 text-blue-700" },
+  { id: 8, class: "VII IPA 1", day: "Kamis", time: "08:30-10:00", period: "Jam ke-3-4", code: "PKN", subject: "PKn", teacher: "Ibu Nurdiana, S.Pd", room: "Ruang 101", status: "Aktif", color: "bg-orange-50 border-orange-200 text-orange-700" },
+  { id: 9, class: "VII IPA 1", day: "Jumat", time: "07:00-08:30", period: "Jam ke-1-2", code: "SBD", subject: "Seni Budaya", teacher: "Ibu Ani Sulistyo, S.Sn", room: "Ruang Seni", status: "Aktif", color: "bg-purple-50 border-purple-200 text-purple-700" },
+  { id: 10, class: "VII IPA 1", day: "Jumat", time: "08:30-10:00", period: "Jam ke-3-4", code: "PJK", subject: "PJOK", teacher: "Bpk. Rizal Maulana, S.Pd", room: "Lapangan", status: "Aktif", color: "bg-emerald-50 border-emerald-200 text-emerald-700" },
   
   // Extra data for other classes to make list full
-  { id: 11, class: "X IPA 2", day: "Senin", time: "07:00-08:30", period: "Jam ke-1-2", code: "IND", subject: "Bahasa Indonesia", teacher: "Ibu Rani Kusuma, S.Pd", room: "Ruang 102", status: "Aktif", color: "bg-yellow-50 border-yellow-200 text-yellow-700" },
-  { id: 12, class: "X IPA 2", day: "Senin", time: "08:30-10:00", period: "Jam ke-3-4", code: "MTK", subject: "Matematika", teacher: "Drs. Hendra, M.Pd", room: "Ruang 102", status: "Aktif", color: "bg-blue-50 border-blue-200 text-blue-700" }
+  { id: 11, class: "VII IPA 2", day: "Senin", time: "07:00-08:30", period: "Jam ke-1-2", code: "IND", subject: "Bahasa Indonesia", teacher: "Ibu Rani Kusuma, S.Pd", room: "Ruang 102", status: "Aktif", color: "bg-yellow-50 border-yellow-200 text-yellow-700" },
+  { id: 12, class: "VII IPA 2", day: "Senin", time: "08:30-10:00", period: "Jam ke-3-4", code: "MTK", subject: "Matematika", teacher: "Drs. Hendra, M.Pd", room: "Ruang 102", status: "Aktif", color: "bg-blue-50 border-blue-200 text-blue-700" }
 ];
 
 const Schedules = () => {
   const [schedules, setSchedules] = useState(() => {
     const saved = localStorage.getItem("schedules");
     if (saved) {
-      return JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      const hasOldData = parsed.some(s => {
+        if (!s.class) return false;
+        const cls = s.class.toUpperCase();
+        return cls.startsWith("X ") || cls.startsWith("XI ") || cls.startsWith("XII ");
+      });
+      if (!hasOldData) return parsed;
     }
     return MOCK_SCHEDULES;
   });
@@ -75,7 +81,7 @@ const Schedules = () => {
     <div className="p-6 md:p-8 animate-fadeIn space-y-6 bg-[#F4F6FA] min-h-full font-sans">
       {/* Breadcrumb */}
       <div className="text-[13px] font-medium text-gray-500 mb-1">
-        Dashboard <span className="mx-2">›</span> Kelola Akademik <span className="mx-2">›</span> <span className="text-[#1e293b] font-bold">Jadwal Pelajaran</span>
+        Dashboard <span className="mx-2">&rsaquo;</span> Kelola Akademik <span className="mx-2">&rsaquo;</span> <span className="text-[#1e293b] font-bold">Jadwal Pelajaran</span>
       </div>
 
       {/* Header */}
@@ -161,8 +167,8 @@ const Schedules = () => {
                 className="appearance-none pl-10 pr-8 py-2.5 bg-white border border-gray-200 rounded-xl text-[13px] font-bold text-gray-600 focus:outline-none focus:border-[#2563EB]"
               >
                 <option>Semua Kelas</option>
-                <option>X IPA 1</option>
-                <option>X IPA 2</option>
+                <option>VII IPA 1</option>
+                <option>VII IPA 2</option>
               </select>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="absolute left-3.5 top-3.5 text-gray-400"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-3.5 text-gray-400 pointer-events-none"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -202,7 +208,7 @@ const Schedules = () => {
                 {schedules.filter((item) => {
                   // Filter berdasarkan Tingkat
                   if (activeTingkat !== "Semua Tingkat") {
-                    const gradeMatch = item.class.match(/^(X|XI|XII)\b/);
+                    const gradeMatch = item.class.match(/^(VII|VIII|IX)\b/);
                     const grade = gradeMatch ? "Kelas " + gradeMatch[1] : "";
                     if (grade !== activeTingkat) return false;
                   }
@@ -303,3 +309,5 @@ const Schedules = () => {
 };
 
 export default Schedules;
+
+

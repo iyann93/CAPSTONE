@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import api from "../api/axios";
 const EyeIcon = ({ show }) => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-gray-400 hover:text-gray-600 transition-colors">
     {show ? <>
@@ -235,8 +235,8 @@ const Login = ({ onLogin, onForgotPassword }) => {
             <NewsCard
     category="KEGIATAN"
     categoryColor="bg-white text-[#0A1931]"
-    title="Pendaftaran Ekstrakurikuler Wajib Kelas X"
-    description="Siswa kelas X wajib memilih minimal 1 ekstrakurikuler. Pendaftaran dibuka melalui portal SIAKAD ini hingga akhir pekan depan. Kuota terbatas tiap bidangnya."
+    title="Pendaftaran Ekstrakurikuler Wajib Kelas VII"
+    description="Siswa kelas VII wajib memilih minimal 1 ekstrakurikuler. Pendaftaran dibuka melalui portal SIAKAD ini hingga akhir pekan depan. Kuota terbatas tiap bidangnya."
     time="2 Hari Lalu"
   />
           </div>
@@ -248,3 +248,4 @@ var Login_default = Login;
 export {
   Login_default as default
 };
+

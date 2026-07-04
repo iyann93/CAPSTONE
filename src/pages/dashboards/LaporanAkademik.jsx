@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import AcademicChart from "../../components/AcademicChart";
 
 const LaporanAkademik = () => {
@@ -70,9 +70,9 @@ const LaporanAkademik = () => {
             className="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-[#1A3D63] focus:border-[#1A3D63] block p-2.5"
           >
             <option>Semua</option>
-            <option>Kelas X</option>
-            <option>Kelas XI</option>
-            <option>Kelas XII</option>
+            <option>Kelas VII</option>
+            <option>Kelas VIII</option>
+            <option>Kelas IX</option>
           </select>
         </div>
         <button className="bg-[#EBF3FA] text-[#1A3D63] px-5 py-2.5 rounded-xl font-bold hover:bg-blue-100 transition-colors h-[42px]">
@@ -128,3 +128,5 @@ const LaporanAkademik = () => {
 };
 
 export default LaporanAkademik;
+
+

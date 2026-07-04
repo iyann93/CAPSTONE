@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 
 const ClassEdit = ({ setView, initialData, teachers, onSave, onDelete }) => {
   const [editForm, setEditForm] = useState(initialData || {
@@ -23,7 +23,7 @@ const ClassEdit = ({ setView, initialData, teachers, onSave, onDelete }) => {
   return (
     <div className="p-6 md:p-8 animate-fadeIn font-sans bg-[#F4F6FA] min-h-full">
       <div className="text-[13px] font-medium text-gray-500 mb-4">
-        Dashboard <span className="mx-2">›</span> Data Kelas <span className="mx-2">›</span> Kelas X IPA 1 <span className="mx-2">›</span> <span className="text-[#1e293b] font-bold">Edit</span>
+        Dashboard <span className="mx-2">&rsaquo;</span> Data Kelas <span className="mx-2">&rsaquo;</span> Kelas VII IPA 1 <span className="mx-2">&rsaquo;</span> <span className="text-[#1e293b] font-bold">Edit</span>
       </div>
 
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
@@ -201,7 +201,7 @@ const ClassEdit = ({ setView, initialData, teachers, onSave, onDelete }) => {
                 <div className="text-[11px] text-gray-400">Kelas dapat digunakan dalam jadwal</div>
               </div>
               <div onClick={() => setEditForm({...editForm, status: editForm.status === 'Aktif' ? 'Nonaktif' : 'Aktif'})} className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors ${editForm.status === 'Aktif' ? 'bg-[#3B82F6]' : 'bg-gray-300'}`}>
-                <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${editForm.status === 'Aktif' ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${editForm.status === 'Aktif' ? 'translate-VII-6' : 'translate-VII-0'}`}></div>
               </div>
             </div>
           </div>
@@ -245,3 +245,5 @@ const ClassEdit = ({ setView, initialData, teachers, onSave, onDelete }) => {
 };
 
 export default ClassEdit;
+
+

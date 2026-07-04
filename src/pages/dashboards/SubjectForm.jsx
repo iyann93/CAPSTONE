@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 
 const ToggleSwitch = ({ checked, onChange }) => {
   return (
@@ -6,7 +6,7 @@ const ToggleSwitch = ({ checked, onChange }) => {
       onClick={() => onChange(!checked)}
       className={`w-[44px] h-[24px] rounded-full flex items-center p-1 cursor-pointer transition-colors duration-300 ${checked ? 'bg-[#1e293b]' : 'bg-gray-200'}`}
     >
-      <div className={`w-[16px] h-[16px] bg-white rounded-full shadow-sm transform transition-transform duration-300 ${checked ? 'translate-x-[20px]' : 'translate-x-0'}`} />
+      <div className={`w-[16px] h-[16px] bg-white rounded-full shadow-sm transform transition-transform duration-300 ${checked ? 'translate-VII-[20px]' : 'translate-VII-0'}`} />
     </div>
   );
 };
@@ -18,7 +18,7 @@ const SubjectForm = ({ mode = "add", initialData = null, onBack, onSave, onDelet
     deskripsi: initialData?.deskripsi || "",
     kelompok: initialData?.kelompok || "Wajib",
     kurikulum: initialData?.kurikulum || "Kurikulum Merdeka",
-    jenjang: initialData?.jenjang || ["Kelas X", "Kelas XI", "Kelas XII"],
+    jenjang: initialData?.jenjang || ["Kelas VII", "Kelas VIII", "Kelas IX"],
     jam: initialData?.jam || 4,
     durasi: initialData?.durasi || "45",
     kkm: initialData?.kkm || 75,
@@ -209,7 +209,7 @@ const SubjectForm = ({ mode = "add", initialData = null, onBack, onSave, onDelet
                 Jenjang Kelas <span className="text-red-500">*</span>
               </label>
               <div className="flex flex-wrap items-center gap-3">
-                {["Kelas X", "Kelas XI", "Kelas XII"].map(kelas => (
+                {["Kelas VII", "Kelas VIII", "Kelas IX"].map(kelas => (
                   <button
                     key={kelas}
                     onClick={() => toggleJenjang(kelas)}
@@ -512,3 +512,6 @@ const SubjectForm = ({ mode = "add", initialData = null, onBack, onSave, onDelet
 };
 
 export default SubjectForm;
+
+
+

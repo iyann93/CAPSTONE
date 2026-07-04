@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 
 const initialStudents = [
   { id: 1, name: "Andi Pratama", nis: "2023001", initials: "AP", color: "bg-[#3B82F6]", gender: "L", status: "Hadir", ket: "" },
@@ -91,9 +91,9 @@ const StudentAttendanceInput = ({ classData, onBack, onSave }) => {
         <div className="space-y-4">
           <div className="flex items-center text-[13px] text-gray-500 gap-2">
             <span>Dashboard</span>
-            <span>›</span>
+            <span>&rsaquo;</span>
             <span>Absensi Siswa</span>
-            <span>›</span>
+            <span>&rsaquo;</span>
             <span className="font-bold text-[#1e293b]">Input — {classData.name}</span>
           </div>
 
@@ -345,3 +345,5 @@ const StudentAttendanceInput = ({ classData, onBack, onSave }) => {
 };
 
 export default StudentAttendanceInput;
+
+

@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 const CalendarIcon = () => <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
     <rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" />
   </svg>;
@@ -49,7 +49,7 @@ const AcademicYear = () => {
     { id: 5, date: "2025-12-20", title: "Pembagian Rapor Semester Ganjil", color: "bg-[#6BA1CC] text-white" },
     { id: 6, date: "2025-12-22", title: "Libur Semester Ganjil", color: "bg-[#E1EFF9] text-[#0A1931]" },
     { id: 7, date: "2026-01-05", title: "Awal Semester Genap 2025/2026", color: "bg-[#6BA1CC] text-white" },
-    { id: 8, date: "2026-04-20", title: "Ujian Sekolah Kelas XII", color: "bg-[#E1EFF9] text-[#0A1931]" }
+    { id: 8, date: "2026-04-20", title: "Ujian Sekolah Kelas IX", color: "bg-[#E1EFF9] text-[#0A1931]" }
   ];
   if (isAdding) {
     return <div className="animate-fadeIn space-y-6 pb-20">
@@ -60,9 +60,9 @@ const AcademicYear = () => {
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-[12px] text-gray-400 font-medium">
               <span>Dashboard</span>
-              <span>›</span>
+              <span>&rsaquo;</span>
               <span className="cursor-pointer hover:text-[#1A3D63]" onClick={() => setIsAdding(false)}>Tahun Ajaran</span>
-              <span>›</span>
+              <span>&rsaquo;</span>
               <span className="text-[#1A3D63]">Tambah Baru</span>
             </div>
             <h1 className="text-[28px] font-bold text-[#1F2937] leading-tight">Tambah Tahun Ajaran</h1>
@@ -253,7 +253,7 @@ const AcademicYear = () => {
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer shrink-0">
                     <input type="checkbox" className="sr-only peer" defaultChecked />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0D9488]" />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-VII-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0D9488]" />
                   </label>
                 </div>
 
@@ -328,9 +328,9 @@ const AcademicYear = () => {
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-[12px] text-gray-400 font-medium">
               <span>Dashboard</span>
-              <span>›</span>
+              <span>&rsaquo;</span>
               <span className="cursor-pointer hover:text-[#1A3D63]" onClick={() => setIsEditingSemester(false)}>Tahun Ajaran</span>
-              <span>›</span>
+              <span>&rsaquo;</span>
               <span className="text-[#1A3D63]">Edit Semester</span>
             </div>
             <h1 className="text-[28px] font-bold text-[#1F2937] leading-tight">Edit Semester Ganjil</h1>
@@ -443,7 +443,7 @@ const AcademicYear = () => {
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer shrink-0">
                     <input type="checkbox" className="sr-only peer" defaultChecked />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0D9488]" />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-VII-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0D9488]" />
                   </label>
                 </div>
 
@@ -475,7 +475,7 @@ const AcademicYear = () => {
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer shrink-0">
                     <input type="checkbox" className="sr-only peer" />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0D9488]" />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-VII-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0D9488]" />
                   </label>
                 </div>
 
@@ -486,7 +486,7 @@ const AcademicYear = () => {
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer shrink-0">
                     <input type="checkbox" className="sr-only peer" />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0D9488]" />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-VII-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0D9488]" />
                   </label>
                 </div>
               </div>
@@ -646,3 +646,6 @@ var AcademicYear_default = AcademicYear;
 export {
   AcademicYear_default as default
 };
+
+
+

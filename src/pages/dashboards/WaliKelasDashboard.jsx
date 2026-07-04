@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import WaliKelasHome from "./WaliKelasHome";
 
 import GuruRiwayatTerimaGaji from "../../components/payroll/GuruRiwayatTerimaGaji";
@@ -29,3 +29,5 @@ const WaliKelasDashboard = ({ user, activeMenu, onViewChange }) => {
 };
 
 export default WaliKelasDashboard;
+
+

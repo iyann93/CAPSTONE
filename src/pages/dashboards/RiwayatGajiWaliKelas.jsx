@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 
 const mockRiwayatGaji = [
   { id: 1, periode: "Juli 2026", tglBayar: "01 Jul 2026", nominal: 4450000, status: "Terbayar" },
@@ -82,3 +82,5 @@ const RiwayatGajiWaliKelas = ({ user, onNavigate }) => {
 };
 
 export default RiwayatGajiWaliKelas;
+
+

@@ -1,21 +1,21 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 
 const HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
 const JAM = ["07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00"];
-const KELAS_LIST = ["X IPA 1", "X IPA 2", "X IPS 1", "XI IPA 1", "XI IPA 2", "XI IPS 1", "XII IPA 1", "XII IPA 2"];
+const KELAS_LIST = ["VII IPA 1", "VII IPA 2", "VII IPS 1", "VIII IPA 1", "VIII IPA 2", "VIII IPS 1", "IX IPA 1", "IX IPA 2"];
 const GURU_LIST = ["Bpk. Hendra", "Ibu Sari", "Bpk. Agus", "Ibu Lena", "Ibu Rina", "Bpk. Joko"];
 const RUANG_LIST = ["R. 01", "R. 02", "R. 03", "Lab Fisika", "Lab Kimia", "Lab Komputer"];
 const MAPEL_LIST = ["Matematika", "Fisika", "Kimia", "Biologi", "B. Indonesia", "B. Inggris", "Sejarah", "PKN"];
 
 const initJadwal = [
-  { id: 1, mapel: "Matematika", guru: "Bpk. Hendra", kelas: "XI IPA 1", hari: "Senin", jam: "07:00", ruang: "R. 01", semester: "Genap 2023/2024" },
-  { id: 2, mapel: "Fisika", guru: "Bpk. Hendra", kelas: "XI IPA 2", hari: "Senin", jam: "08:00", ruang: "Lab Fisika", semester: "Genap 2023/2024" },
-  { id: 3, mapel: "Kimia", guru: "Ibu Rina", kelas: "XI IPA 1", hari: "Selasa", jam: "07:00", ruang: "Lab Kimia", semester: "Genap 2023/2024" },
-  { id: 4, mapel: "B. Indonesia", guru: "Ibu Sari", kelas: "X IPS 1", hari: "Rabu", jam: "10:00", ruang: "R. 12", semester: "Genap 2023/2024" },
-  { id: 5, mapel: "B. Inggris", guru: "Ibu Lena", kelas: "X IPA 1", hari: "Kamis", jam: "09:00", ruang: "R. 03", semester: "Genap 2023/2024" },
+  { id: 1, mapel: "Matematika", guru: "Bpk. Hendra", kelas: "VIII IPA 1", hari: "Senin", jam: "07:00", ruang: "R. 01", semester: "Genap 2023/2024" },
+  { id: 2, mapel: "Fisika", guru: "Bpk. Hendra", kelas: "VIII IPA 2", hari: "Senin", jam: "08:00", ruang: "Lab Fisika", semester: "Genap 2023/2024" },
+  { id: 3, mapel: "Kimia", guru: "Ibu Rina", kelas: "VIII IPA 1", hari: "Selasa", jam: "07:00", ruang: "Lab Kimia", semester: "Genap 2023/2024" },
+  { id: 4, mapel: "B. Indonesia", guru: "Ibu Sari", kelas: "VII IPS 1", hari: "Rabu", jam: "10:00", ruang: "R. 12", semester: "Genap 2023/2024" },
+  { id: 5, mapel: "B. Inggris", guru: "Ibu Lena", kelas: "VII IPA 1", hari: "Kamis", jam: "09:00", ruang: "R. 03", semester: "Genap 2023/2024" },
 ];
 
-const emptyForm = { mapel: "Matematika", guru: "Bpk. Hendra", kelas: "X IPA 1", hari: "Senin", jam: "07:00", ruang: "R. 01", semester: "Genap 2023/2024" };
+const emptyForm = { mapel: "Matematika", guru: "Bpk. Hendra", kelas: "VII IPA 1", hari: "Senin", jam: "07:00", ruang: "R. 01", semester: "Genap 2023/2024" };
 
 const detectConflicts = (jadwal) => {
   const conflicts = [];
@@ -102,7 +102,7 @@ const JadwalPelajaranWakil = () => {
           {conflicts.map((c, i) => (
             <div key={i} className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-3">
               <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#d97706" strokeWidth="2.5" className="flex-shrink-0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              <p className="text-[13px] font-semibold text-amber-800">⚠️ Bentrok: {c.msg}</p>
+              <p className="text-[13px] font-semibold text-amber-800">⚠️ Bentrok: {c.msg}</p>
             </div>
           ))}
         </div>
@@ -129,7 +129,7 @@ const JadwalPelajaranWakil = () => {
         <div className="flex gap-2">
           {["tabel", "grid"].map(m => (
             <button key={m} onClick={() => setViewMode(m)} className={`px-3 py-2 rounded-xl text-[12px] font-semibold transition-colors ${viewMode === m ? "bg-[#1A3D63] text-white" : "bg-gray-100 text-gray-600"}`}>
-              {m === "tabel" ? "📋 Tabel" : "🗓️ Grid"}
+              {m === "tabel" ? "📋 Tabel" : "ðŸ—“ï¸ Grid"}
             </button>
           ))}
         </div>
@@ -150,7 +150,7 @@ const JadwalPelajaranWakil = () => {
                   <tr key={j.id} className={`transition-colors ${conflictIds.has(j.id) ? "bg-amber-50/50 hover:bg-amber-50" : "hover:bg-gray-50/50"}`}>
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-2">
-                        {conflictIds.has(j.id) && <span className="text-amber-500 text-[14px]">⚠️</span>}
+                        {conflictIds.has(j.id) && <span className="text-amber-500 text-[14px]">⚠️</span>}
                         <span className="text-[13px] font-bold text-gray-800">{j.mapel}</span>
                       </div>
                     </td>
@@ -279,3 +279,5 @@ const JadwalPelajaranWakil = () => {
 };
 
 export default JadwalPelajaranWakil;
+
+

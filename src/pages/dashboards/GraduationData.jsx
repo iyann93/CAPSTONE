@@ -339,7 +339,7 @@ const GraduationData = () => {
             <div className="p-4 bg-[#FAF5FF] border border-[#E9D5FF] rounded-[20px] flex gap-3 items-start mb-8">
               <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#A855F7" strokeWidth="2" className="flex-shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
               <p className="text-[13px] text-[#9333EA] leading-relaxed">
-                Pengumuman hanya dapat dilakukan setelah semua kelas selesai diproses. 2 kelas belum selesai.
+                Pengumuman hanya dapat dilakukan setelah semua kelas selesai diproses. {classes.length - selesai > 0 ? `${classes.length - selesai} kelas belum selesai.` : "Semua kelas selesai."}
               </p>
             </div>
 
@@ -361,3 +361,5 @@ const GraduationData = () => {
 };
 
 export default GraduationData;
+
+

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+﻿import React, { useState, useMemo, useEffect } from "react";
 
 const ScheduleEdit = ({ setView, handleEdit, handleDelete, currentSchedule }) => {
   const [selectedDay, setSelectedDay] = useState(currentSchedule?.day || "Senin");
@@ -83,7 +83,7 @@ const ScheduleEdit = ({ setView, handleEdit, handleDelete, currentSchedule }) =>
     <div className="p-6 md:p-8 animate-fadeIn space-y-6 bg-[#F4F6FA] min-h-full font-sans">
       {/* Breadcrumb */}
       <div className="text-[13px] font-medium text-gray-500 mb-1">
-        Dashboard <span className="mx-2">›</span> Jadwal Pelajaran <span className="mx-2">›</span> <span className="text-[#1e293b] font-bold">Edit Jadwal</span>
+        Dashboard <span className="mx-2">&rsaquo;</span> Jadwal Pelajaran <span className="mx-2">&rsaquo;</span> <span className="text-[#1e293b] font-bold">Edit Jadwal</span>
       </div>
 
       {/* Header */}
@@ -119,8 +119,8 @@ const ScheduleEdit = ({ setView, handleEdit, handleDelete, currentSchedule }) =>
                 <div className="relative">
                   <select name="class" value={formData.class} onChange={handleChange} className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700">
                     <option value="">Pilih kelas...</option>
-                    <option value="X IPA 1">X IPA 1</option>
-                    <option value="X IPA 2">X IPA 2</option>
+                    <option value="VII IPA 1">VII IPA 1</option>
+                    <option value="VII IPA 2">VII IPA 2</option>
                   </select>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-4 top-4 text-gray-400 pointer-events-none"><polyline points="6 9 12 15 18 9"></polyline></svg>
                 </div>
@@ -297,7 +297,7 @@ const ScheduleEdit = ({ setView, handleEdit, handleDelete, currentSchedule }) =>
                 onClick={() => setIsActive(!isActive)}
                 className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors ${isActive ? "bg-[#3B82F6]" : "bg-gray-200"}`}
               >
-                <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${isActive ? "translate-x-6" : ""}`}></div>
+                <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${isActive ? "translate-VII-6" : ""}`}></div>
               </div>
             </div>
           </div>
@@ -312,7 +312,7 @@ const ScheduleEdit = ({ setView, handleEdit, handleDelete, currentSchedule }) =>
               </div>
               <div className="flex justify-between items-center text-[13px] text-gray-500">
                 <span>Kelas</span>
-                <span className="font-bold text-[#1e293b]">X IPA 1</span>
+                <span className="font-bold text-[#1e293b]">VII IPA 1</span>
               </div>
               <div className="flex justify-between items-center text-[13px] text-gray-500">
                 <span>Jam ke-</span>
@@ -343,3 +343,6 @@ const ScheduleEdit = ({ setView, handleEdit, handleDelete, currentSchedule }) =>
 };
 
 export default ScheduleEdit;
+
+
+

@@ -26,7 +26,7 @@ const mockAnnouncements = [
   },
   {
     id: 3,
-    title: "Sosialisasi Program Kenaikan & Kelulusan Kelas XII",
+    title: "Sosialisasi Program Kenaikan & Kelulusan Kelas IX",
     date: "10 Jun 2024",
     author: "Drs. Ahmad Wijaya (Kepala Sekolah)",
     category: "Akademik",
@@ -51,6 +51,8 @@ const PengumumanSekolah = ({ user }) => {
   const [search, setSearch] = useState("");
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const [tunggakanList, setTunggakanList] = useState([]);
+  const [isAdding, setIsAdding] = useState(false);
+  const [newAnn, setNewAnn] = useState({ title: "", date: "", author: "", category: "Akademik", importance: "Normal", desc: "", attachment: "" });
 
   const siswaId = user?.anak?.id;
 
@@ -84,6 +86,10 @@ const PengumumanSekolah = ({ user }) => {
           <h1 className="text-[26px] font-bold text-[#1e293b]">Pengumuman Sekolah</h1>
           <p className="text-[14px] text-gray-500 mt-1">Informasi resmi terupdate dari pihak sekolah</p>
         </div>
+        <button onClick={() => setIsAdding(true)} className="bg-[#1A3D63] text-white px-4 py-2.5 rounded-xl text-[13px] font-bold shadow-sm hover:bg-[#122a46] transition-all flex items-center gap-2">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Buat Pengumuman Baru
+        </button>
       </div>
 
       {/* Notifikasi Tunggakan SPP */}
@@ -134,7 +140,7 @@ const PengumumanSekolah = ({ user }) => {
           </div>
           <div className="px-5 py-3 bg-red-50 border-t border-red-100">
             <p className="text-[12px] text-red-500 leading-relaxed">
-              ⚠️ Mohon segera melunasi tagihan di atas melalui menu <strong>Tagihan SPP</strong> agar tidak mengganggu proses administrasi sekolah.
+              ⚠️ Mohon segera melunasi tagihan di atas melalui menu <strong>Tagihan SPP</strong> agar tidak mengganggu proses administrasi sekolah.
             </p>
           </div>
         </div>
@@ -267,8 +273,68 @@ const PengumumanSekolah = ({ user }) => {
           )}
         </div>
       </div>
+      {isAdding && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <h3 className="font-bold text-[#1e293b]">Buat Pengumuman Baru</h3>
+              <button onClick={() => setIsAdding(false)} className="text-gray-400 hover:text-gray-600">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <div className="p-5 space-y-4 overflow-y-auto max-h-[70vh]">
+              <div>
+                <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Judul Pengumuman</label>
+                <input type="text" value={newAnn.title} onChange={e => setNewAnn({...newAnn, title: e.target.value})} className="w-full px-4 py-2 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300" placeholder="Masukkan judul pengumuman" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Kategori</label>
+                  <select value={newAnn.category} onChange={e => setNewAnn({...newAnn, category: e.target.value})} className="w-full px-4 py-2 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300">
+                    <option value="Akademik">Akademik</option>
+                    <option value="Kegiatan">Kegiatan</option>
+                    <option value="Penerimaan">Penerimaan</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Urgensi</label>
+                  <select value={newAnn.importance} onChange={e => setNewAnn({...newAnn, importance: e.target.value})} className="w-full px-4 py-2 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300">
+                    <option value="Normal">Normal</option>
+                    <option value="Penting">Penting</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Isi Pengumuman</label>
+                <textarea rows="4" value={newAnn.desc} onChange={e => setNewAnn({...newAnn, desc: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300" placeholder="Tuliskan isi pengumuman secara detail..."></textarea>
+              </div>
+              <div>
+                <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Lampiran (Opsional)</label>
+                <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center hover:bg-gray-50 transition-colors cursor-pointer">
+                  <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" className="mx-auto text-gray-400 mb-2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                  <span className="text-[12px] text-gray-500 font-medium">Klik untuk mengunggah file (PDF, JPG)</span>
+                </div>
+              </div>
+            </div>
+            <div className="p-5 border-t border-gray-100 flex gap-3 justify-end">
+              <button onClick={() => setIsAdding(false)} className="px-5 py-2 rounded-xl border border-gray-200 text-gray-600 text-[13px] font-bold hover:bg-gray-50 transition-colors">Batal</button>
+              <button onClick={() => {
+                alert("Pengumuman baru berhasil diterbitkan!");
+                setIsAdding(false);
+              }} className="px-5 py-2 rounded-xl bg-[#1A3D63] text-white text-[13px] font-bold hover:bg-[#122a46] transition-colors flex items-center gap-2">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                Terbitkan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default PengumumanSekolah;
+
+
+
+// trigger HMR

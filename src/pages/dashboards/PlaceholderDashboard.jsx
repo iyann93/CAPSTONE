@@ -1,4 +1,4 @@
-const PlaceholderDashboard = ({ user, activeMenu }) => {
+﻿const PlaceholderDashboard = ({ user, activeMenu }) => {
   return (
     <div className="flex-1 flex items-center justify-center min-h-screen bg-[#F3F4F6]">
       <div className="text-center">
@@ -13,3 +13,5 @@ const PlaceholderDashboard = ({ user, activeMenu }) => {
 };
 
 export default PlaceholderDashboard;
+
+

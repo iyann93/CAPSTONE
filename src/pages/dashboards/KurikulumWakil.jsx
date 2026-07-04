@@ -1,15 +1,15 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 
 const initData = [
-  { id: 1, mapel: "Matematika", kelas: "XII IPA", tingkat: "SMA", tahunAjaran: "2023/2024", deskripsi: "Matematika lanjut untuk kelas XII IPA", status: "Aktif" },
-  { id: 2, mapel: "Fisika", kelas: "XI IPA", tingkat: "SMA", tahunAjaran: "2023/2024", deskripsi: "Fisika modern dan mekanika kuantum", status: "Aktif" },
-  { id: 3, mapel: "Biologi", kelas: "X IPA", tingkat: "SMA", tahunAjaran: "2023/2024", deskripsi: "Pengantar biologi sel dan genetika", status: "Aktif" },
-  { id: 4, mapel: "Sejarah Indonesia", kelas: "X IPS", tingkat: "SMA", tahunAjaran: "2023/2024", deskripsi: "Sejarah nasional abad ke-20", status: "Revisi" },
-  { id: 5, mapel: "Bahasa Inggris", kelas: "X IPA", tingkat: "SMA", tahunAjaran: "2023/2024", deskripsi: "Grammar, speaking, dan writing", status: "Aktif" },
-  { id: 6, mapel: "Kimia", kelas: "XI IPA", tingkat: "SMA", tahunAjaran: "2023/2024", deskripsi: "Kimia organik dan reaksi", status: "Aktif" },
+  { id: 1, mapel: "Matematika", kelas: "IX IPA", tingkat: "SMP", tahunAjaran: "2023/2024", deskripsi: "Matematika lanjut untuk Kelas IX IPA", status: "Aktif" },
+  { id: 2, mapel: "Fisika", kelas: "VIII IPA", tingkat: "SMP", tahunAjaran: "2023/2024", deskripsi: "Fisika modern dan mekanika kuantum", status: "Aktif" },
+  { id: 3, mapel: "Biologi", kelas: "VII IPA", tingkat: "SMP", tahunAjaran: "2023/2024", deskripsi: "Pengantar biologi sel dan genetika", status: "Aktif" },
+  { id: 4, mapel: "Sejarah Indonesia", kelas: "VII IPS", tingkat: "SMP", tahunAjaran: "2023/2024", deskripsi: "Sejarah nasional abad ke-20", status: "Revisi" },
+  { id: 5, mapel: "Bahasa Inggris", kelas: "VII IPA", tingkat: "SMP", tahunAjaran: "2023/2024", deskripsi: "Grammar, speaking, dan writing", status: "Aktif" },
+  { id: 6, mapel: "Kimia", kelas: "VIII IPA", tingkat: "SMP", tahunAjaran: "2023/2024", deskripsi: "Kimia organik dan reaksi", status: "Aktif" },
 ];
 
-const emptyForm = { mapel: "", kelas: "", tingkat: "SMA", tahunAjaran: "2023/2024", deskripsi: "", status: "Aktif" };
+const emptyForm = { mapel: "", kelas: "", tingkat: "SMP", tahunAjaran: "2023/2024", deskripsi: "", status: "Aktif" };
 
 const KurikulumWakil = () => {
   const [data, setData] = useState(() => {
@@ -188,13 +188,13 @@ const KurikulumWakil = () => {
                 </div>
                 <div>
                   <label className="block text-[12px] font-bold text-gray-600 mb-1.5">Kelas *</label>
-                  <input value={form.kelas} onChange={e => setForm({ ...form, kelas: e.target.value })} placeholder="cth: XI IPA" className={`w-full px-3.5 py-2.5 rounded-xl border text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100 ${errors.kelas ? "border-red-300 bg-red-50" : "border-gray-200"}`}/>
+                  <input value={form.kelas} onChange={e => setForm({ ...form, kelas: e.target.value })} placeholder="cth: VIII IPA" className={`w-full px-3.5 py-2.5 rounded-xl border text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100 ${errors.kelas ? "border-red-300 bg-red-50" : "border-gray-200"}`}/>
                   {errors.kelas && <p className="text-[11px] text-red-500 mt-1">{errors.kelas}</p>}
                 </div>
                 <div>
                   <label className="block text-[12px] font-bold text-gray-600 mb-1.5">Tingkat</label>
                   <select value={form.tingkat} onChange={e => setForm({ ...form, tingkat: e.target.value })} className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100">
-                    {["SMA", "SMK", "SMP"].map(t => <option key={t}>{t}</option>)}
+                    {["SMP", "SMK", "SMP"].map(t => <option key={t}>{t}</option>)}
                   </select>
                 </div>
                 <div>
@@ -249,3 +249,5 @@ const KurikulumWakil = () => {
 };
 
 export default KurikulumWakil;
+
+

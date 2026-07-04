@@ -89,7 +89,7 @@ const GradePromotion = () => {
         localStorage.setItem("grade_promotion_classes", JSON.stringify(mappedClasses));
       } catch (err) {
         console.error("Gagal memuat status kenaikan kelas dari backend", err);
-        const saved = localStorage.getItem("grade_promotion_classes");
+        const saved = localStorage.getItem("grade_promotion_classes_v2");
         if (saved) setClasses(JSON.parse(saved));
       }
     };
@@ -110,7 +110,7 @@ const GradePromotion = () => {
       return c;
     });
     setClasses(updated);
-    localStorage.setItem("grade_promotion_classes", JSON.stringify(updated));
+    localStorage.setItem("grade_promotion_classes_v2", JSON.stringify(updated));
     setView("list");
     
     // Save to backend database for persistent storage across logouts/sessions
@@ -120,7 +120,7 @@ const GradePromotion = () => {
       const currentState = res.data?.data || {};
       await api.put('/system/frontend-state', {
         ...currentState,
-        grade_promotion_classes: updated
+        grade_promotion_classes_v2: updated
       });
     } catch (err) {
       console.error("Gagal menyimpan ke database", err);
@@ -389,3 +389,7 @@ const GradePromotion = () => {
 };
 
 export default GradePromotion;
+
+
+
+// trigger HMR

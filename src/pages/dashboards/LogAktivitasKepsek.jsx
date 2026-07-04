@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 
 const LogAktivitasKepsek = ({ user, onNavigate }) => {
   const [filter, setFilter] = useState("Semua");
@@ -170,3 +170,5 @@ const LogAktivitasKepsek = ({ user, onNavigate }) => {
 };
 
 export default LogAktivitasKepsek;
+
+

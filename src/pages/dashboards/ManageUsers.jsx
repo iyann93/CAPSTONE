@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+﻿import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { getAllSystemUsers, createSystemUser, updateSystemUser, deleteSystemUser, getRoles, getSiswaDropdown } from "../../api/system";
 
@@ -126,7 +126,7 @@ const ManageUsers = () => {
       email: user.email || '',
       password: '', // blank on edit
       roleId: roles.find(r => r.nama_role === user.role)?.id || '',
-      siswaId: '',
+      siswaId: user.linked_siswa_id || '', // pre-fill dari relasi yang sudah ada
       isActive: user.is_active
     });
     setView("edit");
@@ -630,3 +630,6 @@ const ManageUsers = () => {
 };
 
 export default ManageUsers;
+
+
+

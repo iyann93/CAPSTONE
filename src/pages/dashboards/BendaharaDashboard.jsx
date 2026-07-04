@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+﻿import React, { useState, useEffect, useCallback, useRef } from "react";
 import { jsPDF } from "jspdf";
 import * as htmlToImage from "html-to-image";
 import {
@@ -132,6 +132,9 @@ const IconSend = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
   </svg>
 );
+
+// Roman Numeral Sorter
+const romanOrder = { 'I':1, 'II':2, 'III':3, 'IV':4, 'V':5, 'VI':6, 'VII':7, 'VIII':8, 'IX':9, 'X':10, 'XI':11, 'XII':12 };
 
 // Charts Mock Data
 const sppRecapData = [
@@ -1566,7 +1569,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                 {/* Tabs Filter and Export */}
                 <div className="flex items-center justify-between md:justify-end gap-3 flex-wrap">
                   <div className="flex bg-gray-50 border border-gray-100 p-1 rounded-xl">
-                    {["Semua", "Kelas VII", "Kelas VIII", "Kelas IX"].map((tab) => {
+                    {["Semua", ...[...new Set(studentsBill.map(r => r.kelas?.split(' ')[0]))].filter(Boolean).sort((a, b) => (romanOrder[a] || 99) - (romanOrder[b] || 99)).map(c => `Kelas ${c}`)].map((tab) => {
                       const isActive = billClassFilter === tab;
                       return (
                         <button
@@ -1925,7 +1928,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div>
                 <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Pengaturan SPP</h1>
-                <p className="text-sm text-gray-500 mt-1">Atur nominal SPP dan diskon per kelas (Kelas VII, VIII, IX).</p>
+                <p className="text-sm text-gray-500 mt-1">Atur nominal SPP dan diskon per kelas.</p>
               </div>
               <div className="flex gap-2 sm:gap-3 items-center flex-wrap sm:ml-auto">
                 <div className="relative group w-full sm:w-auto">
@@ -2140,7 +2143,12 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
           ? sppPayments 
           : sppPayments.filter(r => r.month === riwayatBulan);
           
-        const classGroups = riwayatKelas === "Semua Kelas" ? ["Kelas VII", "Kelas VIII", "Kelas IX"] : [riwayatKelas];
+        const allBaseClasses = [...new Set(sppPayments.map(r => r.kelas.split(' ')[0]))]
+          .filter(Boolean)
+          .sort((a, b) => (romanOrder[a] || 99) - (romanOrder[b] || 99));
+        const classGroups = riwayatKelas === "Semua Kelas" 
+          ? allBaseClasses.map(c => `Kelas ${c}`) 
+          : [riwayatKelas];
 
         return (
           <div className="animate-fadeIn font-sans">
@@ -2173,9 +2181,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                     className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-xs sm:text-[13px] font-semibold text-gray-700 cursor-pointer appearance-none pr-8 focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all hover:bg-gray-50 hover:border-gray-300 shadow-sm"
                   >
                     <option value="Semua Kelas">Semua Kelas</option>
-                    <option value="Kelas VII">Kelas VII</option>
-                    <option value="Kelas VIII">Kelas VIII</option>
-                    <option value="Kelas IX">Kelas IX</option>
+                    {allBaseClasses.map(c => (
+                      <option key={c} value={`Kelas ${c}`}>Kelas {c}</option>
+                    ))}
                   </select>
                   <span className="absolute right-3 top-3.5 text-gray-400 pointer-events-none transition-colors">
                     <IconChevronDown />
@@ -2212,7 +2220,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
             <div className={`grid grid-cols-1 ${classGroups.length > 1 ? 'xl:grid-cols-3' : ''} gap-6`}>
               {classGroups.map(group => {
                 const groupPrefix = group.replace("Kelas ", "");
-                const groupData = filteredRiwayat.filter(r => r.kelas.startsWith(groupPrefix));
+                const groupData = filteredRiwayat.filter(r => r.kelas.split(' ')[0] === groupPrefix);
 
                 return (
                   <div key={group} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col">
@@ -3226,9 +3234,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all bg-gray-50 hover:bg-gray-100/50 cursor-pointer"
                   >
                     <option>Semua Kelas</option>
-                    <option>Kelas VII</option>
-                    <option>Kelas VIII</option>
-                    <option>Kelas IX</option>
+                    {[...new Set(siswaList.map(s => s.nama_kelas?.split(' ')[0]))].filter(Boolean).sort((a, b) => (romanOrder[a] || 99) - (romanOrder[b] || 99)).map(c => (
+                      <option key={c}>Kelas {c}</option>
+                    ))}
                   </select>
                 </div>
               )}
@@ -4046,14 +4054,14 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                    {beasiswaForm.siswaIds && beasiswaForm.siswaIds.length > 0 && (
                      <div className="flex flex-wrap gap-1.5 mt-2">
                        {beasiswaForm.siswaIds.map(id => {
-                         const s = siswaList.find(x => String(x.id) === String(id));
+                         const s = siswaList.find(VII => String(VII.id) === String(id));
                          if (!s) return null;
                          return (
                            <span key={id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
                              {s.nama_lengkap}
                              <button type="button" onClick={() => {
                                setIsBeasiswaFormDirty(true);
-                               setBeasiswaForm(prev => ({...prev, siswaIds: prev.siswaIds.filter(x => x !== id)}));
+                               setBeasiswaForm(prev => ({...prev, siswaIds: prev.siswaIds.filter(VII => VII !== id)}));
                              }} className="hover:text-blue-900 bg-transparent border-none cursor-pointer p-0 leading-none">
                                &times;
                              </button>
@@ -4688,6 +4696,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
         </div>
       )}
 
+
       {/* ── Modal: Konfirmasi Pindah Fitur saat Generate Slip Sedang Berjalan ── */}
       {showNavConfirmModal && (
         <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
@@ -4721,9 +4730,11 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                 Tetap di Sini
               </button>
               <button
-                onClick={() => {
-                  // Cancel the generation
-                  if (cancelSlipRef.current) cancelSlipRef.current();
+                onClick={async () => {
+                  // Cancel the generation and wait for rollback if any
+                  if (cancelSlipRef.current) {
+                    await cancelSlipRef.current();
+                  }
                   setShowNavConfirmModal(false);
                   // Navigate to the requested menu
                   if (pendingNavMenu && onViewChange) onViewChange(pendingNavMenu);
@@ -4865,11 +4876,15 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
         </div>
       </div>
 
+
     </main>
   );
 };
 
 export default BendaharaDashboard;
+
+
+
 
 
 

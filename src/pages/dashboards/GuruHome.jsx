@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 
 const GuruHome = ({ user, onNavigate }) => {
   const guruData = {
@@ -137,7 +137,7 @@ const GuruHome = ({ user, onNavigate }) => {
               className="group flex items-center gap-1.5 text-[#1A3D63] text-sm font-semibold hover:text-[#2A5F8F] transition-colors"
             >
               Lihat Semua Jadwal
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" className="transform group-hover:translate-x-1 transition-transform">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" className="transform group-hover:translate-VII-1 transition-transform">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/>
               </svg>
             </button>
@@ -215,3 +215,7 @@ const GuruHome = ({ user, onNavigate }) => {
 };
 
 export default GuruHome;
+
+
+
+

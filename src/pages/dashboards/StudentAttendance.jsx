@@ -206,7 +206,7 @@ const StudentAttendance = () => {
               </div>
             </div>
 
-            {/* X Axis labels */}
+            {/* VII Axis labels */}
             <div className="flex justify-around pl-8 text-[12px] text-gray-500 font-medium pt-3">
               <span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sen</span>
             </div>
@@ -421,3 +421,6 @@ const StudentAttendance = () => {
 };
 
 export default StudentAttendance;
+
+
+
