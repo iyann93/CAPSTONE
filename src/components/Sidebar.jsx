@@ -216,18 +216,6 @@ const menuSections = [
     ],
     roles: ["Wakil Kepala"]
   },
-
-<<<<<<< HEAD
-  {
-    section: "KEUANGAN KELAS",
-    items: [
-      { label: "Monitoring SPP Siswa", icon: <ReceiptIcon /> }
-    ],
-    roles: []
-  },
-=======
-
->>>>>>> b7de6e958f516ccc642a2b491e40f3e544911fa2
   {
     section: "AKADEMIK",
     items: [
@@ -237,7 +225,6 @@ const menuSections = [
       { label: "Rekap Absensi Siswa", icon: <BarChartIcon /> },
       { label: "Catatan Siswa", icon: <ChatIcon /> }
     ],
-<<<<<<< HEAD
     roles: ["Guru", "Guru Mapel"]
   },
   {
@@ -248,23 +235,6 @@ const menuSections = [
       { label: "Rapor Siswa", icon: <FileChartIcon /> }
     ],
     roles: ["Wali Kelas"]
-=======
-    roles: ["Guru", "Wali Kelas"]
->>>>>>> b7de6e958f516ccc642a2b491e40f3e544911fa2
-  },
-  {
-    section: "AKADEMIK",
-    items: [
-      { label: "Jadwal Mengajar", icon: <CalendarIcon /> },
-      { label: "Input Nilai", icon: <BookIcon /> },
-      { label: "Absensi Siswa", icon: <UsersIcon /> },
-      { label: "Rekap Absensi Siswa", icon: <BarChartIcon /> }
-    ],
-<<<<<<< HEAD
-    roles: ["Guru", "Guru Mapel"]
-=======
-    roles: ["Guru Mapel"]
->>>>>>> b7de6e958f516ccc642a2b491e40f3e544911fa2
   },
   {
     section: "PERSETUJUAN & VALIDASI",
@@ -288,11 +258,7 @@ const menuSections = [
     items: [
       { label: "Riwayat Terima Gaji", icon: <CalendarIcon /> }
     ],
-<<<<<<< HEAD
-    roles: ["Admin TU", "Kepala Sekolah", "Bendahara", "Guru", "Guru Mapel"]
-=======
-    roles: ["Admin TU", "Kepala Sekolah", "Wakil Kepala", "Bendahara"]
->>>>>>> b7de6e958f516ccc642a2b491e40f3e544911fa2
+    roles: ["Admin TU", "Kepala Sekolah", "Wakil Kepala", "Bendahara", "Guru", "Guru Mapel", "Wali Kelas"]
   }
 ];
 const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) => {

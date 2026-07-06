@@ -1,45 +1,10 @@
-<<<<<<< HEAD
-import React, { useState, useMemo } from "react";
-import ReactDOM from "react-dom";
-
-const CatatanSiswa = ({ user }) => {
-  const [selectedClass, setSelectedClass] = useState("VII A");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStudentId, setSelectedStudentId] = useState(null);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [notification, setNotification] = useState(null);
-
-  // Mock student records
-  // Load from localStorage or use default
-  const [studentsData, setStudentsData] = useState(() => {
-    const saved = localStorage.getItem("wali_kelas_students");
-    if (saved) return JSON.parse(saved);
-    return {
-      "VII A": [
-        { id: "2023001", name: "Andi Pratama", gender: "Laki-laki", note: "Aktif dan rajin. Kemampuan aljabar meningkat pesat.", lastUpdated: "15 Nov 2023", avatarBg: "bg-blue-500", statusRapor: "Belum Terbit", hadir: 90, mapel: 12 },
-        { id: "2023002", name: "Dewi Sartika", gender: "Perempuan", note: "Nilai tertinggi di kelas. Sangat direkomendasikan mengikuti olimpiade.", lastUpdated: "12 Nov 2023", avatarBg: "bg-slate-700", statusRapor: "Terbit", hadir: 100, mapel: 12 },
-        { id: "2023003", name: "Ricky Firmansyah", gender: "Laki-laki", note: "", lastUpdated: null, avatarBg: "bg-amber-600", statusRapor: "Belum Terbit", hadir: 85, mapel: 10 },
-        { id: "2023004", name: "Nurul Hidayah", gender: "Perempuan", note: "Sangat baik", lastUpdated: "12 Nov 2023", avatarBg: "bg-red-500", statusRapor: "Terbit", hadir: 98, mapel: 12 },
-      ]
-    };
-  });
-
-  // Save changes to localStorage whenever studentsData changes (via handleSave)
-  const persistData = (newData) => {
-    setStudentsData(newData);
-    localStorage.setItem("wali_kelas_students", JSON.stringify(newData));
-  };
-
-  const classes = Object.keys(studentsData);
-=======
 import React, { useState, useMemo, useEffect } from "react";
-import ReactDOM from "react-dom";
 
 const CatatanSiswa = ({ user }) => {
   const [selectedClass, setSelectedClass] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStudentId, setSelectedStudentId] = useState("");
-  const [notification, setNotification] = useState(null);
+  const [selectedStudentId, setSelectedStudentId] = useState(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const [classes, setClasses] = useState([]);
   const [studentsData, setStudentsData] = useState({});
@@ -105,7 +70,6 @@ const CatatanSiswa = ({ user }) => {
     fetchData();
   }, []);
 
->>>>>>> b7de6e958f516ccc642a2b491e40f3e544911fa2
   const currentClassStudents = studentsData[selectedClass] || [];
 
   const filteredStudents = useMemo(() => {
@@ -114,13 +78,14 @@ const CatatanSiswa = ({ user }) => {
       list = list.filter(
         (s) =>
           s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          s.id.includes(searchQuery)
+          (s.nis && s.nis.includes(searchQuery))
       );
     }
     return list;
   }, [currentClassStudents, searchQuery]);
 
   const selectedStudent = useMemo(() => {
+    if (!selectedStudentId) return null;
     let found = currentClassStudents.find((s) => s.id === selectedStudentId);
     if (!found) {
       for (const cls of classes) {
@@ -128,7 +93,7 @@ const CatatanSiswa = ({ user }) => {
         if (found) break;
       }
     }
-    return found || currentClassStudents[0];
+    return found || null;
   }, [studentsData, selectedClass, selectedStudentId, currentClassStudents, classes]);
 
   const totalWithNotes = useMemo(() => {
@@ -143,6 +108,8 @@ const CatatanSiswa = ({ user }) => {
 
   const handleNoteChange = (e) => {
     const newVal = e.target.value;
+    if (!selectedStudent) return;
+    
     setStudentsData((prev) => {
       let foundClass = selectedClass;
       for (const cls of classes) {
@@ -152,7 +119,7 @@ const CatatanSiswa = ({ user }) => {
         }
       }
 
-      const updatedList = prev[foundClass].map((s) => {
+      const updatedList = (prev[foundClass] || []).map((s) => {
         if (s.id === selectedStudent.id) {
           return { ...s, note: newVal };
         }
@@ -164,13 +131,14 @@ const CatatanSiswa = ({ user }) => {
   };
 
   const handleSave = () => {
+    if (!selectedStudent) return;
+    
     const todayStr = new Date().toLocaleDateString("id-ID", {
       day: "2-digit",
       month: "short",
       year: "numeric"
     });
 
-    let newData;
     setStudentsData((prev) => {
       let foundClass = selectedClass;
       for (const cls of classes) {
@@ -180,52 +148,26 @@ const CatatanSiswa = ({ user }) => {
         }
       }
 
-      const updatedList = prev[foundClass].map((s) => {
+      const updatedList = (prev[foundClass] || []).map((s) => {
         if (s.id === selectedStudent.id) {
           return { ...s, lastUpdated: todayStr };
         }
         return s;
       });
 
-      newData = { ...prev, [foundClass]: updatedList };
-      return newData;
+      return { ...prev, [foundClass]: updatedList };
     });
 
-<<<<<<< HEAD
-    // Save to localStorage immediately
-    setTimeout(() => persistData(newData), 0);
-
-    // Hilangkan form dan ganti dengan tampilan sukses
+    // Tampilkan success di panel
     setSaveSuccess(true);
-    // Kita biarkan selectedStudentId tetap ada agar kita tahu siapa yg baru disimpan
-=======
-    setNotification(`Catatan untuk ${selectedStudent.name} berhasil disimpan! (Simulasi)`);
-    setTimeout(() => setNotification(null), 4000);
->>>>>>> b7de6e958f516ccc642a2b491e40f3e544911fa2
   };
 
   if (loading) {
-    return <div className="p-8">Memuat data dari database...</div>;
+    return <div className="p-8 font-bold text-gray-500">Memuat data siswa dari database...</div>;
   }
 
   return (
     <div className="p-6 md:p-8 space-y-6 animate-fadeIn bg-[#F8FAFC] min-h-screen relative">
-<<<<<<< HEAD
-      {/* Header */}
-=======
-      {notification && ReactDOM.createPortal(
-        <div style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 9999 }} className="flex items-center gap-3 bg-slate-900 text-white px-5 py-4 rounded-2xl shadow-xl animate-slideIn">
-          <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          </div>
-          <span className="text-xs font-black tracking-tight">{notification}</span>
-        </div>,
-        document.body
-      )}
-
->>>>>>> b7de6e958f516ccc642a2b491e40f3e544911fa2
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex flex-col gap-1">
           <div className="flex items-center text-xs font-semibold text-gray-400 gap-1.5">
@@ -269,10 +211,7 @@ const CatatanSiswa = ({ user }) => {
                 onChange={(e) => {
                   setSelectedClass(e.target.value);
                   setSearchQuery("");
-<<<<<<< HEAD
                   setSaveSuccess(false);
-=======
->>>>>>> b7de6e958f516ccc642a2b491e40f3e544911fa2
                   const firstS = studentsData[e.target.value]?.[0];
                   if (firstS) setSelectedStudentId(firstS.id);
                   else setSelectedStudentId(null);
@@ -324,7 +263,7 @@ const CatatanSiswa = ({ user }) => {
                       <div className="text-sm font-black truncate">{student.name}</div>
                       <div
                         className={`text-[10px] font-bold uppercase tracking-wider mt-0.5 ${
-                          isSelected ? "text-blue-200" : "text-gray-400"
+                          isSelected && !saveSuccess ? "text-blue-200" : "text-gray-400"
                         }`}
                       >
                         {selectedClass}
@@ -333,7 +272,7 @@ const CatatanSiswa = ({ user }) => {
                     {hasNote && (
                       <span
                         className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${
-                          isSelected
+                          isSelected && !saveSuccess
                             ? "bg-white/10 text-white border border-white/20"
                             : "bg-slate-100 text-slate-600 border border-slate-200"
                         }`}
