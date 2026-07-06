@@ -216,7 +216,10 @@ const menuSections = [
     ],
     roles: ["Wakil Kepala"]
   },
+<<<<<<< HEAD
 
+=======
+>>>>>>> 90d46930a3627f280f940e78ecffe693c345205a
   {
     section: "AKADEMIK",
     items: [
@@ -258,7 +261,11 @@ const menuSections = [
     items: [
       { label: "Riwayat Terima Gaji", icon: <CalendarIcon /> }
     ],
+<<<<<<< HEAD
     roles: ["Admin TU", "Kepala Sekolah", "Wakil Kepala", "Bendahara", "Guru", "Guru Mapel"]
+=======
+    roles: ["Admin TU", "Kepala Sekolah", "Wakil Kepala", "Bendahara", "Guru", "Guru Mapel", "Wali Kelas"]
+>>>>>>> 90d46930a3627f280f940e78ecffe693c345205a
   }
 ];
 const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) => {

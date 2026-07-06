@@ -70,6 +70,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("Semua Kategori");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState([]);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -140,6 +141,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
     setShowCancelConfirm(false);
     setShowAddModal(false);
     setFormData({ tanggal: "", kategori: "", nama: "", nominal: "", sumberDana: "", keterangan: "" });
+    setUploadedFiles([]);
     setIsDirty(false);
   };
 
@@ -160,7 +162,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
         nominal: Number(String(formData.nominal).replace(/[^0-9]/g, '')),
         sumberDana: formData.sumberDana,
         keterangan: formData.keterangan,
-        bukti: [] // mock
+        bukti: uploadedFiles.map(f => f.name)
       };
 
       if (activeTab === "pemasukan") {
@@ -176,6 +178,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
       setIsSaving(false);
       setShowAddModal(false);
       setFormData({ tanggal: "", kategori: "", nama: "", nominal: "", sumberDana: "", keterangan: "" });
+      setUploadedFiles([]);
       setIsDirty(false);
       const msg = activeTab === "pemasukan" ? "Data pemasukan berhasil disimpan!" : "Data pengeluaran berhasil disimpan!";
       triggerToast ? triggerToast(msg, "success") : alert(msg);
@@ -680,8 +683,71 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
                   </div>
                   <span className="text-[11px] font-bold text-[#1A3D63]">Klik untuk upload file</span>
                   <span className="text-[10px] text-gray-400 mt-0.5">Maks. 2MB per file (JPG, PNG, PDF)</span>
-                  <input type="file" className="hidden" accept=".jpg,.jpeg,.png,.pdf" multiple />
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept=".jpg,.jpeg,.png,.pdf"
+                    multiple
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files);
+                      if (files.length === 0) return;
+
+                      let hasInvalid = false;
+                      const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+                      const validFiles = [];
+
+                      for (const file of files) {
+                        if (!allowedTypes.includes(file.type)) {
+                          triggerToast ? triggerToast(`Format file tidak didukung! Harap upload file JPG, PNG, atau PDF.`, "error") : alert(`Format ${file.name} tidak didukung!`);
+                          hasInvalid = true;
+                          continue;
+                        }
+                        if (file.size > 2 * 1024 * 1024) {
+                          triggerToast ? triggerToast(`Ukuran file terlalu besar! Maksimal 2 MB.`, "error") : alert(`Ukuran ${file.name} terlalu besar!`);
+                          hasInvalid = true;
+                          continue;
+                        }
+                        validFiles.push(file);
+                      }
+
+                      if (validFiles.length > 0) {
+                        setUploadedFiles(prev => [...prev, ...validFiles]);
+                        if (!hasInvalid) {
+                          triggerToast ? triggerToast("File berhasil diunggah dan memenuhi syarat!") : alert("File berhasil ditambahkan.");
+                        }
+                      }
+                      e.target.value = ''; // Reset input to allow selecting the same file again if removed
+                    }}
+                  />
                 </label>
+
+                {uploadedFiles.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {uploadedFiles.map((f, idx) => (
+                      <div key={idx} className="flex items-center justify-between bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl">
+                        <div className="flex items-center gap-3 overflow-hidden">
+                          <div className="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center shrink-0">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-emerald-800 truncate">{f.name}</p>
+                            <p className="text-[10px] text-emerald-600 font-medium">{(f.size / 1024 / 1024).toFixed(2)} MB</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setUploadedFiles(prev => prev.filter((_, i) => i !== idx))}
+                          className="text-emerald-600 hover:text-emerald-800 bg-transparent border-none cursor-pointer p-1.5 rounded-lg hover:bg-emerald-100/50 transition-colors shrink-0"
+                          title="Hapus File"
+                        >
+                          <IconX />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div>

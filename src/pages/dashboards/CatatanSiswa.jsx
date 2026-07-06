@@ -1,11 +1,10 @@
 import React, { useState, useMemo, useEffect } from "react";
-import ReactDOM from "react-dom";
 
 const CatatanSiswa = ({ user }) => {
   const [selectedClass, setSelectedClass] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStudentId, setSelectedStudentId] = useState("");
-  const [notification, setNotification] = useState(null);
+  const [selectedStudentId, setSelectedStudentId] = useState(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const [classes, setClasses] = useState([]);
   const [studentsData, setStudentsData] = useState({});
@@ -79,13 +78,14 @@ const CatatanSiswa = ({ user }) => {
       list = list.filter(
         (s) =>
           s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          s.id.includes(searchQuery)
+          (s.nis && s.nis.includes(searchQuery))
       );
     }
     return list;
   }, [currentClassStudents, searchQuery]);
 
   const selectedStudent = useMemo(() => {
+    if (!selectedStudentId) return null;
     let found = currentClassStudents.find((s) => s.id === selectedStudentId);
     if (!found) {
       for (const cls of classes) {
@@ -93,7 +93,7 @@ const CatatanSiswa = ({ user }) => {
         if (found) break;
       }
     }
-    return found || currentClassStudents[0];
+    return found || null;
   }, [studentsData, selectedClass, selectedStudentId, currentClassStudents, classes]);
 
   const totalWithNotes = useMemo(() => {
@@ -108,6 +108,8 @@ const CatatanSiswa = ({ user }) => {
 
   const handleNoteChange = (e) => {
     const newVal = e.target.value;
+    if (!selectedStudent) return;
+    
     setStudentsData((prev) => {
       let foundClass = selectedClass;
       for (const cls of classes) {
@@ -117,7 +119,7 @@ const CatatanSiswa = ({ user }) => {
         }
       }
 
-      const updatedList = prev[foundClass].map((s) => {
+      const updatedList = (prev[foundClass] || []).map((s) => {
         if (s.id === selectedStudent.id) {
           return { ...s, note: newVal };
         }
@@ -129,6 +131,8 @@ const CatatanSiswa = ({ user }) => {
   };
 
   const handleSave = () => {
+    if (!selectedStudent) return;
+    
     const todayStr = new Date().toLocaleDateString("id-ID", {
       day: "2-digit",
       month: "short",
@@ -144,7 +148,7 @@ const CatatanSiswa = ({ user }) => {
         }
       }
 
-      const updatedList = prev[foundClass].map((s) => {
+      const updatedList = (prev[foundClass] || []).map((s) => {
         if (s.id === selectedStudent.id) {
           return { ...s, lastUpdated: todayStr };
         }
@@ -159,7 +163,7 @@ const CatatanSiswa = ({ user }) => {
   };
 
   if (loading) {
-    return <div className="p-8">Memuat data dari database...</div>;
+    return <div className="p-8 font-bold text-gray-500">Memuat data siswa dari database...</div>;
   }
 
   return (
@@ -175,7 +179,6 @@ const CatatanSiswa = ({ user }) => {
         </div>,
         document.body
       )}
-
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex flex-col gap-1">
           <div className="flex items-center text-xs font-semibold text-gray-400 gap-1.5">
@@ -219,6 +222,10 @@ const CatatanSiswa = ({ user }) => {
                 onChange={(e) => {
                   setSelectedClass(e.target.value);
                   setSearchQuery("");
+<<<<<<< HEAD
+=======
+                  setSaveSuccess(false);
+>>>>>>> 90d46930a3627f280f940e78ecffe693c345205a
                   const firstS = studentsData[e.target.value]?.[0];
                   if (firstS) setSelectedStudentId(firstS.id);
                 }}
@@ -269,7 +276,7 @@ const CatatanSiswa = ({ user }) => {
                       <div className="text-sm font-black truncate">{student.name}</div>
                       <div
                         className={`text-[10px] font-bold uppercase tracking-wider mt-0.5 ${
-                          isSelected ? "text-blue-200" : "text-gray-400"
+                          isSelected && !saveSuccess ? "text-blue-200" : "text-gray-400"
                         }`}
                       >
                         {selectedClass}
@@ -278,7 +285,7 @@ const CatatanSiswa = ({ user }) => {
                     {hasNote && (
                       <span
                         className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${
-                          isSelected
+                          isSelected && !saveSuccess
                             ? "bg-white/10 text-white border border-white/20"
                             : "bg-slate-100 text-slate-600 border border-slate-200"
                         }`}

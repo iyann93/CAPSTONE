@@ -34,7 +34,7 @@ const ExportLogsModal = ({ onClose }) => {
   const [range, setRange] = useState("Hari Ini");
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-      <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={onClose}></div>
+      <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" ></div>
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-slideUp">
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <div className="flex items-center gap-3">
@@ -144,7 +144,7 @@ const MassActivationModal = ({ onClose }) => {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
       {/* Overlay */}
-      <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={onClose}></div>
+      <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" ></div>
       
       {/* Modal Container */}
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-slideUp">
@@ -263,7 +263,7 @@ const ReactivateAccountModal = ({ user, onClose }) => {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
       {/* Overlay */}
-      <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={onClose}></div>
+      <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" ></div>
       
       {/* Modal Container */}
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-slideUp">
@@ -1058,7 +1058,7 @@ const SuperAdminOverview = ({ onExportClick, onViewChange }) => {
             
             {showQuickAction && (
               <>
-                <div className="fixed inset-0 z-10" onClick={() => setShowQuickAction(false)}></div>
+                <div className="fixed inset-0 z-10" ></div>
                 <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100/80 py-0 z-20 overflow-hidden animate-slideUp">
                   <div className="px-4 py-2.5 bg-slate-50 border-b border-gray-100 text-xs font-bold text-slate-500">
                     Manajemen Akun
@@ -1298,7 +1298,7 @@ const HakAksesSistemModule = () => {
       {/* Reset Confirmation Modal */}
       {showResetModal && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setShowResetModal(false)} />
+          <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-slideUp">
             {/* Modal Header */}
             <div className="flex items-start justify-between p-6 pb-4">
@@ -1869,7 +1869,7 @@ const AksesSeluruhDataModule = () => {
       {/* Ekspor Laporan Penuh (Backup) Modal */}
       {showFullExportModal && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={() => setShowFullExportModal(false)} />
+          <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl flex flex-col" style={{maxHeight: '88vh'}}>
             {/* Modal Header - always visible */}
             <div className="flex-shrink-0 flex items-start justify-between p-6 border-b border-gray-100">
@@ -2063,7 +2063,7 @@ const AksesSeluruhDataModule = () => {
       {/* Data Preview Modal */}
       {showPreviewModal && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm animate-fadeIn" onClick={() => setShowPreviewModal(false)} />
+          <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm animate-fadeIn" />
           <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-4xl flex flex-col overflow-hidden animate-scaleUp" style={{ maxHeight: '88vh' }}>
             {/* Modal Header */}
             <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-100 bg-white">
@@ -2187,7 +2187,7 @@ const AksesSeluruhDataModule = () => {
       {/* ===== EKSPOR KE EXCEL MODAL ===== */}
       {showExcelModal && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={() => setShowExcelModal(false)} />
+          <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
@@ -2312,7 +2312,7 @@ const AksesSeluruhDataModule = () => {
       {/* ===== EKSPOR KE PDF MODAL ===== */}
       {showPdfModal && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={() => setShowPdfModal(false)} />
+          <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
@@ -2430,7 +2430,7 @@ const AksesSeluruhDataModule = () => {
       {/* ===== EKSPOR KE CSV MODAL ===== */}
       {showCsvModal && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={() => setShowCsvModal(false)} />
+          <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
@@ -2780,7 +2780,7 @@ const BackupMaintenanceModule = () => {
       {/* Buat Backup Manual Modal */}
       {showManualBackupModal && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={() => setShowManualBackupModal(false)} />
+          <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-slideUp">
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
@@ -2878,7 +2878,7 @@ const BackupMaintenanceModule = () => {
       {/* Jadwalkan Maintenance Modal */}
       {showScheduleModal && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={() => setShowScheduleModal(false)} />
+          <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-slideUp">
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
@@ -2975,7 +2975,7 @@ const BackupMaintenanceModule = () => {
       {/* Peringatan Mode Maintenance Modal */}
       {showMaintenanceModal && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={() => setShowMaintenanceModal(false)} />
+          <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-slideUp">
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
