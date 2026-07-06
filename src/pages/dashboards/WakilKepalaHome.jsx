@@ -1,8 +1,15 @@
-import React, { useState } from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
-import { initialPengeluaranData } from "../../components/finance/PengeluaranOperasionalTab";
+import React, { useState, useEffect } from "react";
+import { getBeasiswa, getDanaBeasiswa, getOperasional } from "../../api/finance";
+
+
 
 // --- Icons ---
+const IconX = () => (
+  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+  </svg>
+);
+
 const InfoIcon = () => (
   <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
     <circle cx="12" cy="12" r="10" />
@@ -28,9 +35,9 @@ const EyeIcon = () => (
 
 // --- Dummy Data (Akademik) ---
 const stats = [
-  { label: "Mata Pelajaran Aktif", val: 12, sub: "Kurikulum berjalan", color: "text-blue-200", icon: <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> },
-  { label: "Jadwal Aktif", val: 38, sub: "Minggu ini", color: "text-green-200", icon: <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> },
-  { label: "Konflik Jadwal", val: 2, sub: "Perlu diselesaikan", color: "text-amber-200", icon: <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="1.8"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> },
+  { label: "Mata Pelajaran Aktif", val: 12, sub: "Kurikulum berjalan" },
+  { label: "Jadwal Aktif", val: 38, sub: "Minggu ini" },
+  { label: "Konflik Jadwal", val: 2, sub: "Perlu diselesaikan" },
 ];
 
 const recentCurriculum = [
@@ -45,29 +52,7 @@ const conflicts = [
   { guru: "Ibu Sari", mapel: "B. Indonesia", kelas: "VII-A & VII-B", waktu: "Rabu, 10:00", ruang: "R. 12" },
 ];
 
-// --- Dummy Data (Keuangan) ---
-const chartData = [
-  { name: 'Juli', nominal: 15000000 },
-  { name: 'Agustus', nominal: 18000000 },
-  { name: 'September', nominal: 17500000 },
-  { name: 'Oktober', nominal: 19000000 },
-  { name: 'November', nominal: 16500000 },
-  { name: 'Desember', nominal: 22000000 },
-  { name: 'Januari', nominal: 20000000 },
-  { name: 'Februari', nominal: 18500000 },
-  { name: 'Maret', nominal: 19500000 },
-  { name: 'April', nominal: 18000000 },
-  { name: 'Mei', nominal: 18500000 },
-  { name: 'Juni', nominal: initialPengeluaranData.reduce((acc, curr) => acc + curr.nominal, 0) + 12000000 }
-];
 
-const recentTransactions = initialPengeluaranData.map(tx => ({
-  id: tx.id,
-  tanggal: tx.tanggal,
-  nama: tx.nama,
-  jenis: tx.kategori,
-  nominal: tx.nominal
-}));
 
 const formatRupiah = (value) => {
   return new Intl.NumberFormat("id-ID", {
@@ -78,24 +63,79 @@ const formatRupiah = (value) => {
   }).format(value);
 };
 
-// Custom Tooltip for Chart
-const CustomTooltip = ({ active, payload, label }) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-white border border-gray-100 shadow-xl rounded-xl p-3">
-        <p className="text-xs font-bold text-gray-500 mb-1">{label}</p>
-        <p className="text-sm font-bold text-[#1F3A5F]">
-          {formatRupiah(payload[0].value)}
-        </p>
-      </div>
-    );
-  }
-  return null;
-};
+
 
 const WakilKepalaHome = ({ user, onNavigate }) => {
   const [tahunAjaran, setTahunAjaran] = useState("2025/2026");
   const [bulan, setBulan] = useState("Mei");
+  
+  const [programList, setProgramList] = useState([]);
+  const [danaBeasiswaList, setDanaBeasiswaList] = useState([]);
+  const [currentPemasukanData, setCurrentPemasukanData] = useState([]);
+  const [currentPengeluaranData, setCurrentPengeluaranData] = useState([]);
+  const [selectedDetailItem, setSelectedDetailItem] = useState(null);
+
+  const formatRupiah = (value) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(value);
+  };
+
+  useEffect(() => {
+    const loadProgramsFromStorage = () => {
+      try {
+        const raw = localStorage.getItem('capstone_program_beasiswa');
+        return raw ? JSON.parse(raw) : [];
+      } catch (_) { return []; }
+    };
+
+    const loadData = async () => {
+      try {
+        const programs = await getBeasiswa();
+        setProgramList(Array.isArray(programs) ? programs : []);
+      } catch (e) {
+        console.error("Error loading getBeasiswa in WakilKepalaHome:", e);
+        setProgramList(loadProgramsFromStorage());
+      }
+
+      try {
+        const dana = await getDanaBeasiswa();
+        setDanaBeasiswaList(Array.isArray(dana) ? dana : []);
+      } catch (e) {
+        console.error("Error loading getDanaBeasiswa in WakilKepalaHome:", e);
+      }
+
+      try {
+        const ops = await getOperasional();
+        if (Array.isArray(ops)) {
+          setCurrentPemasukanData(ops.filter(d => d.tipe === 'pemasukan'));
+          setCurrentPengeluaranData(ops.filter(d => d.tipe === 'pengeluaran'));
+        }
+      } catch (e) {
+        console.error("Error loading getOperasional in WakilKepalaHome:", e);
+      }
+    };
+    loadData();
+  }, []);
+
+  const penyaluranBeasiswaList = [];
+  programList.forEach(p => {
+    if (p.status === 'Aktif') {
+      const amountStr = String(p.amount || "0").replace(/[^0-9]/g, '');
+      const amountNum = parseInt(amountStr, 10) || 0;
+      const disalurkan = (p.penerima || []).reduce((s, r) => {
+        const rNominal = r.nominal ? Number(r.nominal) : amountNum;
+        return s + (rNominal || 0);
+      }, 0);
+      penyaluranBeasiswaList.push({ nominal: disalurkan });
+    }
+  });
+  const totalPenyaluranBeasiswa = penyaluranBeasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+  const totalPengeluaranTahunan = currentPengeluaranData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0) + totalPenyaluranBeasiswa;
+  const totalBeasiswa = danaBeasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+  const totalPemasukanTahunan = currentPemasukanData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0) + totalBeasiswa;
 
   return (
     <div className="p-6 md:p-8 space-y-8 animate-fadeIn bg-[#F5F7FA] min-h-full font-sans">
@@ -123,14 +163,13 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
         <h2 className="text-xl font-bold text-[#1F3A5F]">Monitoring Akademik &amp; Kurikulum</h2>
         
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {stats.map((s, i) => (
-            <div key={i} className="bg-[#1A3D63] rounded-2xl p-5 shadow-sm flex items-start gap-4">
-              <div className="w-11 h-11 bg-white/10 rounded-xl flex items-center justify-center flex-shrink-0">{s.icon}</div>
+            <div key={i} className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
               <div>
-                <p className="text-[11px] font-bold text-blue-300 uppercase tracking-wider mb-1">{s.label}</p>
-                <p className="text-[28px] font-black text-white leading-tight">{s.val}</p>
-                <p className={`text-[12px] mt-0.5 ${s.color}`}>{s.sub}</p>
+                <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">{s.label}</div>
+                <div className="text-xl lg:text-2xl xl:text-[22px] font-black text-white">{s.val}</div>
+                <div className="text-[10px] font-medium text-blue-300 mt-2">{s.sub}</div>
               </div>
             </div>
           ))}
@@ -232,44 +271,26 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
 
         {/* Ringkasan Operasional Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="bg-white rounded-[16px] p-6 shadow-sm border border-gray-50 border-l-4 border-l-[#1F3A5F]">
-            <h3 className="text-[12px] font-bold text-gray-400 uppercase tracking-wider mb-2">Total Operasional Bulan Ini</h3>
-            <p className="text-[32px] font-black text-[#1F3A5F] tracking-tight">{formatRupiah(chartData.find(d => d.name === "Juni")?.nominal || 0)}</p>
-          </div>
-          <div className="bg-white rounded-[16px] p-6 shadow-sm border border-gray-50 border-l-4 border-l-[#F59E0B]">
-            <h3 className="text-[12px] font-bold text-gray-400 uppercase tracking-wider mb-2">Total Operasional Tahun Ajaran</h3>
-            <p className="text-[32px] font-black text-[#1F3A5F] tracking-tight">{formatRupiah(chartData.reduce((acc, curr) => acc + curr.nominal, 0))}</p>
-          </div>
-        </div>
-
-        {/* Chart Section */}
-        <div className="bg-white rounded-[16px] shadow-sm border border-gray-50 p-6">
-          <div className="mb-6">
-            <h2 className="text-[18px] font-bold text-[#1F3A5F]">Tren Pengeluaran Operasional</h2>
-            <p className="text-[13px] text-gray-500 mt-1">Total pengeluaran operasional setiap bulan.</p>
-          </div>
-          <div className="h-[320px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 12, fill: '#9CA3AF', fontWeight: 600 }}
-                  dy={10}
-                />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 12, fill: '#9CA3AF', fontWeight: 600 }}
-                  tickFormatter={(value) => `Rp${value / 1000000}M`}
-                  width={80}
-                />
-                <RechartsTooltip cursor={{ fill: '#F5F7FA' }} content={<CustomTooltip />} />
-                <Bar dataKey="nominal" fill="#1F3A5F" radius={[6, 6, 0, 0]} maxBarSize={48} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          {[
+            {
+              title: "Total Pemasukan Tahunan",
+              value: formatRupiah(totalPemasukanTahunan),
+              subText: `Akumulasi Tahun Ajaran ${tahunAjaran}`
+            },
+            {
+              title: "Total Pengeluaran Tahunan",
+              value: formatRupiah(totalPengeluaranTahunan),
+              subText: `Akumulasi Tahun Ajaran ${tahunAjaran}`
+            }
+          ].map((card, i) => (
+            <div key={i} className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
+              <div>
+                <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">{card.title}</div>
+                <div className="text-xl lg:text-2xl xl:text-[22px] font-black text-white">{card.value}</div>
+                <div className="text-[10px] font-medium text-blue-300 mt-2">{card.subText}</div>
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className="space-y-6">
@@ -297,18 +318,21 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {recentTransactions.map((tx) => (
+                    {currentPengeluaranData.slice(0, 5).map((tx) => (
                       <tr key={tx.id} className="hover:bg-gray-50/50 transition-colors">
                         <td className="px-6 py-4 text-[13px] text-gray-500 whitespace-nowrap">{tx.tanggal}</td>
                         <td className="px-6 py-4 text-[13px] font-bold text-gray-800 whitespace-nowrap">{tx.nama}</td>
                         <td className="px-6 py-4 text-[13px] text-gray-500 whitespace-nowrap">
                           <span className="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg font-medium text-[11px]">
-                            {tx.jenis}
+                            {tx.kategori}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-[13px] font-bold text-[#1F3A5F] whitespace-nowrap">{formatRupiah(tx.nominal)}</td>
                         <td className="px-6 py-4 text-right whitespace-nowrap">
-                          <button className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-[#1F3A5F] rounded-lg text-[11px] font-bold transition-colors border-none cursor-pointer">
+                          <button 
+                            onClick={() => setSelectedDetailItem(tx)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-[#1F3A5F] rounded-lg text-[11px] font-bold transition-colors border-none cursor-pointer"
+                          >
                             <EyeIcon /> Lihat Detail
                           </button>
                         </td>
@@ -322,6 +346,70 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
         </div>
       </section>
 
+      {/* Modal Detail Pengeluaran */}
+      {selectedDetailItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+              <div>
+                <h2 className="text-lg font-bold text-gray-800">Detail Pengeluaran</h2>
+                <p className="text-[11px] text-gray-500 mt-1">Informasi lengkap transaksi arus kas.</p>
+              </div>
+              <button 
+                onClick={() => setSelectedDetailItem(null)}
+                className="text-gray-400 hover:text-gray-600 bg-white hover:bg-gray-100 p-2 rounded-xl transition-colors border border-gray-200 cursor-pointer"
+              >
+                <IconX />
+              </button>
+            </div>
+            
+            <div className="p-5 space-y-4">
+              <div className="flex justify-between items-start pb-4 border-b border-gray-100">
+                <div>
+                  <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Tanggal</div>
+                  <div className="text-sm font-semibold text-gray-800">{selectedDetailItem.tanggal}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Kategori</div>
+                  <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg font-bold text-xs">{selectedDetailItem.jenis || selectedDetailItem.kategori}</span>
+                </div>
+              </div>
+
+              <div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Nama Pengeluaran</div>
+                <div className="text-sm font-bold text-gray-800">{selectedDetailItem.nama}</div>
+              </div>
+
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Nominal</div>
+                  <div className="text-lg font-black text-emerald-600">{formatRupiah(selectedDetailItem.nominal)}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Sumber Dana</div>
+                  <div className="text-sm font-semibold text-gray-700">{selectedDetailItem.sumberDana || "-"}</div>
+                </div>
+              </div>
+              
+              {selectedDetailItem.keterangan && (
+                <div className="pt-4 border-t border-gray-100">
+                  <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Keterangan Tambahan</div>
+                  <div className="text-[13px] text-gray-600 bg-gray-50 p-3 rounded-xl border border-gray-100">{selectedDetailItem.keterangan}</div>
+                </div>
+              )}
+            </div>
+            
+            <div className="p-4 border-t border-gray-100 bg-gray-50/50 flex justify-end">
+              <button 
+                onClick={() => setSelectedDetailItem(null)}
+                className="px-5 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-xs font-bold hover:bg-gray-50 transition-colors cursor-pointer shadow-sm"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

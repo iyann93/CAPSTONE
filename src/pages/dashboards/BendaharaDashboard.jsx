@@ -37,6 +37,7 @@ import {
   getDanaBeasiswa,
   createDanaBeasiswa,
   deleteDanaBeasiswa,
+  getOperasional,
 } from "../../api/finance";
 import { getSiswa } from "../../api/academic";
 import { getAllSlips } from "../../api/payroll";
@@ -46,7 +47,7 @@ import OverridePegawaiTab from "../../components/payroll/OverridePegawaiTab";
 import GenerateSlipTab from "../../components/payroll/GenerateSlipTab";
 import RiwayatSlipTab from "../../components/payroll/RiwayatSlipTab";
 import GuruRiwayatTerimaGaji from "../../components/payroll/GuruRiwayatTerimaGaji";
-import PengeluaranOperasionalTab, { initialPengeluaranData, initialPemasukanData } from "../../components/finance/PengeluaranOperasionalTab";
+import PengeluaranOperasionalTab from "../../components/finance/PengeluaranOperasionalTab";
 
 // Icons Components
 const IconReceipt = () => (
@@ -316,9 +317,10 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
   const [showBeasiswaCancelConfirm, setShowBeasiswaCancelConfirm] = useState(false);
   const [isSavingBeasiswa, setIsSavingBeasiswa] = useState(false);
 
-  // Dana Beasiswa States
   const [isSavingDana, setIsSavingDana] = useState(false);
   const [danaBeasiswaList, setDanaBeasiswaList] = useState([]);
+  const [currentPemasukanData, setCurrentPemasukanData] = useState([]);
+  const [currentPengeluaranData, setCurrentPengeluaranData] = useState([]);
   const [showAddDanaModal, setShowAddDanaModal] = useState(false);
   const [showKelolaDanaModal, setShowKelolaDanaModal] = useState(false);
   const [newDanaForm, setNewDanaForm] = useState({
@@ -439,6 +441,18 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       setDanaBeasiswaList(Array.isArray(data) ? data : []);
     } catch (e) {
       console.error("loadDanaBeasiswa:", e);
+    }
+  }, []);
+
+  const loadOperasional = useCallback(async () => {
+    try {
+      const data = await getOperasional();
+      if (Array.isArray(data)) {
+        setCurrentPemasukanData(data.filter(d => d.tipe === 'pemasukan'));
+        setCurrentPengeluaranData(data.filter(d => d.tipe === 'pengeluaran'));
+      }
+    } catch (e) {
+      console.error("loadOperasional:", e);
     }
   }, []);
 
@@ -621,7 +635,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
     loadPembayaran();
     loadPaidSlips();
     loadDanaBeasiswa();
-  }, [loadKomponenSpp, loadKomponenGaji, loadTagihan, loadBeasiswa, loadSiswa, loadPembayaran, loadPaidSlips, loadDanaBeasiswa]);
+    loadOperasional();
+  }, [loadKomponenSpp, loadKomponenGaji, loadTagihan, loadBeasiswa, loadSiswa, loadPembayaran, loadPaidSlips, loadDanaBeasiswa, loadOperasional]);
 
   // Handlers
   const handleDownloadLaporan = async () => {
@@ -641,7 +656,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
     } else if (laporanType.includes("Penggajian")) {
       hasData = paidSlips.length > 0;
     } else if (laporanType.includes("Operasional")) {
-      hasData = initialPengeluaranData.length > 0;
+      hasData = false; // TODO: Fetch operasional data for reports if needed
     }
 
     if (!hasData) {
@@ -1225,9 +1240,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
           }
         });
         const totalPenyaluranBeasiswa = penyaluranBeasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
-        const totalPengeluaranTahunan = initialPengeluaranData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0) + totalPenyaluranBeasiswa;
+        const totalPengeluaranTahunan = currentPengeluaranData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0) + totalPenyaluranBeasiswa;
         const totalBeasiswa = danaBeasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
-        const totalPemasukanTahunan = initialPemasukanData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0) + totalBeasiswa;
+        const totalPemasukanTahunan = currentPemasukanData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0) + totalBeasiswa;
 
         return (
           <div className="flex flex-col gap-6 animate-fadeIn font-sans">
@@ -4877,7 +4892,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                 <tr><td colSpan="4" className="py-4 text-center text-gray-500">Tidak ada data penggajian.</td></tr>
               ))}
               
-              {laporanType.includes("Operasional") && (initialPengeluaranData.length > 0 ? initialPengeluaranData.map((o, i) => (
+              {laporanType.includes("Operasional") && ([].length > 0 ? [].map((o, i) => (
                 <tr key={i} className="border-b border-gray-300">
                   <td className="py-2 px-3">{i + 1}</td>
                   <td className="py-2 px-3">{o.tanggal}</td>
