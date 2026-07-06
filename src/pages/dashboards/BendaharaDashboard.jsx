@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { jsPDF } from "jspdf";
 import * as htmlToImage from "html-to-image";
 import {
@@ -2532,12 +2532,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                           }).format(dateObj);
                         };
                         
-                        let tglBerlaku = "-";
-                        let jatuhTempo = "-";
-                        if (activeProgram.periodePendaftaran && activeProgram.periodePendaftaran !== "-" && activeProgram.periodePendaftaran.includes(' s/d ')) {
-                          tglBerlaku = formatDateID(activeProgram.periodePendaftaran.split(' s/d ')[0]);
-                          jatuhTempo = formatDateID(activeProgram.periodePendaftaran.split(' s/d ')[1]);
-                        }
+
                         
                         return (
                       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm xl:sticky xl:top-6 flex flex-col">
@@ -2567,12 +2562,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                             <div className="text-sm font-bold text-gray-800">{activeProgram.sumberDana || '-'}</div>
                           </div>
                           <div>
-                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Tanggal Berlaku</div>
-                            <div className="text-sm font-bold text-gray-800">{tglBerlaku}</div>
-                          </div>
-                          <div>
-                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Jatuh Tempo</div>
-                            <div className="text-sm font-bold text-[#e11d48]">{jatuhTempo}</div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Periode</div>
+                            <div className="text-sm font-bold text-gray-800">{activeProgram.subtitle || '2025/2026'}</div>
                           </div>
                           <div>
                             <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Kuota Tersedia</div>
@@ -3692,24 +3683,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Periode Berlaku</label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="date"
-                        value={newProgramForm.tanggalMulaiDaftar}
-                        onChange={(e) => { setIsProgramFormDirty(true); setNewProgramForm({ ...newProgramForm, tanggalMulaiDaftar: e.target.value }) }}
-                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all"
-                      />
-                      <span className="text-gray-400 text-sm font-bold">-</span>
-                      <input
-                        type="date"
-                        value={newProgramForm.tanggalSelesaiDaftar}
-                        onChange={(e) => { setIsProgramFormDirty(true); setNewProgramForm({ ...newProgramForm, tanggalSelesaiDaftar: e.target.value }) }}
-                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all"
-                      />
-                    </div>
-                  </div>
+
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Status Program</label>
                     <div className="relative">
@@ -4108,24 +4082,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Periode Berlaku <span className="text-red-500">*</span></label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="date"
-                        value={beasiswaForm.tanggalMulai}
-                        onChange={(e) => { setIsBeasiswaFormDirty(true); setBeasiswaForm({ ...beasiswaForm, tanggalMulai: e.target.value }) }}
-                        className="flex-1 min-w-0 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/20 bg-white text-gray-700 transition-all"
-                      />
-                      <span className="text-gray-400 text-sm font-bold">-</span>
-                      <input
-                        type="date"
-                        value={beasiswaForm.tanggalSelesai}
-                        onChange={(e) => { setIsBeasiswaFormDirty(true); setBeasiswaForm({ ...beasiswaForm, tanggalSelesai: e.target.value }) }}
-                        className="flex-1 min-w-0 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/20 bg-white text-gray-700 transition-all"
-                      />
-                    </div>
-                  </div>
+
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Tahun Ajaran <span className="text-red-500">*</span></label>
                     <div className="relative group">
