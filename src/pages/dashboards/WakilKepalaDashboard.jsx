@@ -1,6 +1,7 @@
 import React from "react";
 import Profile from "../Profile";
 import WakilKepalaHome from "./WakilKepalaHome";
+import WakilKepalaSarpras from "./WakilKepalaSarpras";
 import KurikulumWakil from "./KurikulumWakil";
 import JadwalPelajaranWakil from "./JadwalPelajaranWakil";
 import MonitoringPembayaran from "./MonitoringPembayaran";
@@ -22,6 +23,8 @@ const WakilKepalaDashboard = ({ user, activeMenu, onViewChange }) => {
     case "Monitoring SPP":
     case "Monitoring Pembayaran":
       return <MonitoringPembayaran />;
+    case "Sarana & Prasarana":
+      return <WakilKepalaSarpras user={user} />;
     case "Monitoring Gaji":
     case "Laporan":
       return <PlaceholderDashboard user={user} activeMenu={activeMenu} />;

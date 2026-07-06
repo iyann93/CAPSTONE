@@ -44,21 +44,24 @@ const IconUpload = () => (
   </svg>
 );
 
-// Mock Data
-export const initialPemasukanData = [
+// Mock Data Defaults
+const defaultPemasukanData = [
   { id: 1, tanggal: "10 Juni 2026", nama: "Pencairan Dana BOS Tahap 2", kategori: "Dana BOS", nominal: 15000000, sumberDana: "Pemerintah Pusat", keterangan: "Dana BOS Reguler tahap 2", bukti: ["bukti_bos.jpg"] },
   { id: 2, tanggal: "15 Juni 2026", nama: "Sumbangan Alumni", kategori: "Donasi", nominal: 5000000, sumberDana: "Donatur", keterangan: "Sumbangan untuk pembangunan masjid", bukti: ["bukti_transfer_donasi.pdf"] }
 ];
 
-export const initialBeasiswaDanaData = [
-  { id: 1, tanggal: "05 Juni 2026", nama: "Penerimaan Dana Beasiswa Yayasan", kategori: "Beasiswa", nominal: 10000000, sumberDana: "Yayasan", keterangan: "Dana kelola beasiswa bulan Juni" },
-  { id: 2, tanggal: "12 Juni 2026", nama: "Penerimaan Dana CSR Bank Jatim", kategori: "Beasiswa", nominal: 5000000, sumberDana: "Bank Jatim", keterangan: "Program Beasiswa Berprestasi" }
-];
-
-export const initialPengeluaranData = [
+const defaultPengeluaranData = [
   { id: 1, tanggal: "24 Juni 2026", nama: "Pembayaran Listrik PLN", kategori: "Listrik", nominal: 1800000, sumberDana: "Dana BOS", keterangan: "Pembayaran listrik bulan berjalan.", bukti: ["struk_listrik_juni.jpg", "struk_listrik_tambahan.jpg"] },
   { id: 2, tanggal: "25 Juni 2026", nama: "Pembelian ATK", kategori: "ATK", nominal: 650000, sumberDana: "Dana Donatur", keterangan: "Kertas HVS, tinta printer.", bukti: ["nota_atk.pdf"] },
   { id: 3, tanggal: "26 Juni 2026", nama: "Langganan Internet", kategori: "Internet", nominal: 850000, sumberDana: "Dana BOS", keterangan: "Indihome 100Mbps.", bukti: ["bukti_transfer_indihome.png"] }
+];
+
+export const initialPemasukanData = JSON.parse(localStorage.getItem('mockPemasukanData')) || defaultPemasukanData;
+export const initialPengeluaranData = JSON.parse(localStorage.getItem('mockPengeluaranData')) || defaultPengeluaranData;
+
+export const initialBeasiswaDanaData = [
+  { id: 1, tanggal: "05 Juni 2026", nama: "Penerimaan Dana Beasiswa Yayasan", kategori: "Beasiswa", nominal: 10000000, sumberDana: "Yayasan", keterangan: "Dana kelola beasiswa bulan Juni" },
+  { id: 2, tanggal: "12 Juni 2026", nama: "Penerimaan Dana CSR Bank Jatim", kategori: "Beasiswa", nominal: 5000000, sumberDana: "Bank Jatim", keterangan: "Program Beasiswa Berprestasi" }
 ];
 
 const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasiswaList = [] }) => {
@@ -80,7 +83,10 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
   const [isDirty, setIsDirty] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-
+  
+  // Local Data State
+  const [localPemasukanData, setLocalPemasukanData] = useState(initialPemasukanData);
+  const [localPengeluaranData, setLocalPengeluaranData] = useState(initialPengeluaranData);
   // Table Selection & Modals State
   const [selectedItems, setSelectedItems] = useState([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -146,6 +152,27 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
     setIsSaving(true);
     // Simulasi API call
     setTimeout(() => {
+      const newItem = {
+        id: Date.now(),
+        tanggal: formatTanggal(formData.tanggal),
+        nama: formData.nama,
+        kategori: formData.kategori,
+        nominal: Number(String(formData.nominal).replace(/[^0-9]/g, '')),
+        sumberDana: formData.sumberDana,
+        keterangan: formData.keterangan,
+        bukti: [] // mock
+      };
+
+      if (activeTab === "pemasukan") {
+        initialPemasukanData.unshift(newItem);
+        setLocalPemasukanData([...initialPemasukanData]);
+        localStorage.setItem('mockPemasukanData', JSON.stringify(initialPemasukanData));
+      } else {
+        initialPengeluaranData.unshift(newItem);
+        setLocalPengeluaranData([...initialPengeluaranData]);
+        localStorage.setItem('mockPengeluaranData', JSON.stringify(initialPengeluaranData));
+      }
+
       setIsSaving(false);
       setShowAddModal(false);
       setFormData({ tanggal: "", kategori: "", nama: "", nominal: "", sumberDana: "", keterangan: "" });
@@ -155,8 +182,9 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
     }, 800);
   };
 
-  const currentMonth = "Juni";
-  const currentData = activeTab === "pengeluaran" ? initialPengeluaranData : initialPemasukanData;
+  const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+  const currentMonth = monthNames[new Date().getMonth()];
+  const currentData = activeTab === "pengeluaran" ? localPengeluaranData : localPemasukanData;
   const currentBeasiswa = activeTab === "pengeluaran" ? beasiswaList : danaBeasiswaList;
   
   const totalBulanIni = currentData
@@ -522,8 +550,8 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
             {/* Header Modal */}
             <div className="p-5 border-b border-gray-100 flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold text-gray-800">Tambah Pengeluaran</h2>
-                <p className="text-[11px] text-gray-500 mt-1">Catat transaksi pengeluaran operasional sekolah.</p>
+                <h2 className="text-lg font-bold text-gray-800">{activeTab === "pemasukan" ? "Tambah Pemasukan" : "Tambah Pengeluaran"}</h2>
+                <p className="text-[11px] text-gray-500 mt-1">{activeTab === "pemasukan" ? "Catat transaksi pemasukan dana sekolah." : "Catat transaksi pengeluaran operasional sekolah."}</p>
               </div>
               <button 
                 onClick={handleCancel}

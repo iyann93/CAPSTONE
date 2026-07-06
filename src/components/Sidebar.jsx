@@ -63,7 +63,7 @@ const menuSections = [
     items: [
       { label: "Dashboard", icon: <BarChartIcon /> }
     ],
-    roles: ["Admin", "Kepala Sekolah", "Wakil Kepsek", "Super Admin", "Bendahara", "Admin TU", "Orang Tua", "Wakil Kepala", "Guru", "Guru Mapel", "Wali Kelas"]
+    roles: ["Admin", "Kepala Sekolah", "Super Admin", "Bendahara", "Admin TU", "Orang Tua", "Wakil Kepala", "Guru", "Guru Mapel", "Wali Kelas"]
   },
 
   {
@@ -128,16 +128,14 @@ const menuSections = [
       { label: "Kelas & Penjadwalan", icon: <GridIcon /> },
       { label: "E-Rapor & Input Nilai", icon: <GraduationIcon /> }
     ],
-    roles: ["Wakil Kepsek", "Guru"]
+    roles: ["Guru"]
   },
   {
-    section: "MODUL KEUANGAN",
+    section: "SARANA & PRASARANA",
     items: [
-      { label: "Tagihan SPP Siswa", icon: <ReceiptIcon /> },
-      { label: "Beasiswa & Potongan", icon: <AwardIcon /> },
-      { label: "Penggajian (Payroll)", icon: <WalletIcon /> }
+      { label: "Sarana & Prasarana", icon: <ActivityIcon /> }
     ],
-    roles: ["Wakil Kepsek"]
+    roles: ["Wakil Kepala"]
   },
   {
     section: "SPP SISWA",
@@ -218,15 +216,7 @@ const menuSections = [
     ],
     roles: ["Wakil Kepala"]
   },
-  {
-    section: "MONITORING KEUANGAN",
-    items: [
-      { label: "Monitoring SPP", icon: <ReceiptIcon /> },
-      { label: "Monitoring Gaji", icon: <WalletIcon /> },
-      { label: "Laporan", icon: <FileChartIcon /> }
-    ],
-    roles: ["Wakil Kepala"]
-  },
+
   {
     section: "KEUANGAN KELAS",
     items: [
