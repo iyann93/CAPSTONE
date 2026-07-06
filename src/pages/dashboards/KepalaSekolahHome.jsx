@@ -138,7 +138,6 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
         </div>
       </div>
 
-      {/* Quick Actions / Executive Summary */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
         
         {/* Ringkasan Arus Kas */}
@@ -147,31 +146,31 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h3 className="text-[16px] font-bold text-gray-800">Ringkasan Arus Kas</h3>
-                <p className="text-[12px] text-gray-500 mt-0.5">Pemantauan singkat kondisi keuangan bulan ini</p>
+                <p className="text-[12px] text-gray-500 mt-0.5">Total akumulasi keuangan sekolah</p>
               </div>
-              <span className="text-[10px] font-bold bg-green-50 text-green-600 px-3 py-1.5 rounded-lg tracking-wider uppercase border border-green-100">
-                BULAN INI
+              <span className="text-[10px] font-bold bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg tracking-wider uppercase border border-blue-100">
+                TAHUNAN
               </span>
             </div>
             
             <div className="space-y-5">
               <div>
                 <div className="flex justify-between text-[13px] font-medium text-gray-500 mb-2">
-                  <span>Pemasukan</span>
-                  <span className="text-gray-800 font-black">{formatShortRupiah(financialData.pemasukanBulanIni)}</span>
+                  <span>Total Pemasukan</span>
+                  <span className="text-gray-800 font-black">{formatShortRupiah(financialData.totalPemasukan)}</span>
                 </div>
                 <div className="w-full bg-gray-50 rounded-full h-2.5 overflow-hidden border border-gray-100">
-                  <div className="bg-[#1A3D63] h-full rounded-full" style={{ width: financialData.pemasukanBulanIni > 0 ? '100%' : '0%' }}></div>
+                  <div className="bg-[#1A3D63] h-full rounded-full" style={{ width: financialData.totalPemasukan > 0 ? '100%' : '0%' }}></div>
                 </div>
               </div>
               
               <div>
                 <div className="flex justify-between text-[13px] font-medium text-gray-500 mb-2">
-                  <span>Pengeluaran</span>
-                  <span className="text-gray-800 font-black">{formatShortRupiah(financialData.pengeluaranBulanIni)}</span>
+                  <span>Total Pengeluaran</span>
+                  <span className="text-gray-800 font-black">{formatShortRupiah(financialData.totalPengeluaran)}</span>
                 </div>
                 <div className="w-full bg-gray-50 rounded-full h-2.5 overflow-hidden border border-gray-100">
-                  <div className="bg-[#e11d48] h-full rounded-full" style={{ width: financialData.pemasukanBulanIni > 0 ? `${Math.min((financialData.pengeluaranBulanIni / financialData.pemasukanBulanIni) * 100, 100)}%` : '0%' }}></div>
+                  <div className="bg-[#e11d48] h-full rounded-full" style={{ width: financialData.totalPemasukan > 0 ? `${Math.min((financialData.totalPengeluaran / financialData.totalPemasukan) * 100, 100)}%` : '0%' }}></div>
                 </div>
               </div>
             </div>

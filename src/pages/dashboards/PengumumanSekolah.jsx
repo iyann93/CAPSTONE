@@ -46,7 +46,7 @@ const mockAnnouncements = [
   }
 ];
 
-const PengumumanSekolah = ({ user }) => {
+const PengumumanSekolah = ({ user, onNavigate }) => {
   const [tab, setTab] = useState("Semua");
   const [search, setSearch] = useState("");
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
@@ -57,20 +57,56 @@ const PengumumanSekolah = ({ user }) => {
   const siswaId = user?.anak?.id;
 
   useEffect(() => {
-    if (!siswaId) return;
-    getTagihan({ siswa_id: siswaId, status: "belum_lunas" })
+    if (!user) return;
+    getTagihan({ limit: 5000 })
       .then(data => {
         const arr = Array.isArray(data) ? data : [];
-        setTunggakanList(arr.filter(t => t.status === "belum_lunas" || t.status === "belum lunas"));
+        const anakId = user?.anak?.id;
+        const anakNis = user?.anak?.nis;
+        const anakNisn = user?.anak?.nisn;
+        const anakNama = user?.anak?.nama;
+
+        const myTagihans = arr.filter(t => 
+           (anakId && t.id_siswa === anakId) ||
+           (anakNis && t.nis === anakNis) ||
+           (anakNama && (t.nama_siswa === anakNama || t.nama === anakNama)) ||
+           (anakNisn && t.nisn === anakNisn)
+        );
+
+        setTunggakanList(myTagihans.filter(t => t.status === "belum_bayar" || t.status === "menunggu_konfirmasi"));
       })
       .catch(() => setTunggakanList([]));
-  }, [siswaId]);
+  }, [user]);
 
   const filtered = mockAnnouncements.filter(ann => {
     const tabOk = tab === "Semua" || ann.category === tab;
     const searchOk = ann.title.toLowerCase().includes(search.toLowerCase()) || 
                      ann.desc.toLowerCase().includes(search.toLowerCase());
     return tabOk && searchOk;
+  });
+
+  const tagihanAnnouncements = tunggakanList.map((t, idx) => {
+    const bulanNama = BULAN_NAMES[(t.bulan ?? 1) - 1] || "-";
+    const nominalValue = t.nominal_akhir || t.nominal;
+    const nominal = nominalValue ? `Rp ${Number(nominalValue).toLocaleString('id-ID')}` : "-";
+    const jatuhTempo = t.jatuh_tempo ? new Date(t.jatuh_tempo).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) : "-";
+    const isOverdue = t.jatuh_tempo && new Date(t.jatuh_tempo) < new Date();
+    
+    return {
+      id: `tagihan-${t.id || idx}`,
+      title: `Tagihan SPP — ${bulanNama} ${t.tahun ?? ""}`,
+      date: jatuhTempo,
+      author: "Bendahara Sekolah",
+      category: "Tagihan SPP",
+      importance: "Penting",
+      desc: `Terdapat tagihan SPP bulan ${bulanNama} sebesar ${nominal} yang belum dilunasi. Jatuh tempo pada tanggal ${jatuhTempo}.${isOverdue ? ' Status saat ini telah melewati batas jatuh tempo.' : ''}`,
+      isTagihan: true
+    };
+  });
+
+  const combinedList = [...tagihanAnnouncements, ...filtered].filter(ann => {
+    if (tab !== "Semua" && ann.category !== tab) return false;
+    return true;
   });
 
   return (
@@ -86,73 +122,14 @@ const PengumumanSekolah = ({ user }) => {
           <h1 className="text-[26px] font-bold text-[#1e293b]">Pengumuman Sekolah</h1>
           <p className="text-[14px] text-gray-500 mt-1">Informasi resmi terupdate dari pihak sekolah</p>
         </div>
-        <button onClick={() => setIsAdding(true)} className="bg-[#1A3D63] text-white px-4 py-2.5 rounded-xl text-[13px] font-bold shadow-sm hover:bg-[#122a46] transition-all flex items-center gap-2">
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Buat Pengumuman Baru
-        </button>
       </div>
-
-      {/* Notifikasi Tunggakan SPP */}
-      {tunggakanList.length > 0 && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 shadow-sm overflow-hidden animate-fadeIn">
-          {/* Banner Header */}
-          <div className="flex items-center gap-3 px-5 py-3 bg-red-600">
-            <svg width="18" height="18" fill="none" stroke="white" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.008v.008H12v-.008Z"/>
-            </svg>
-            <span className="text-white font-bold text-[14px]">
-              Notifikasi Tagihan Tunggakan SPP ({tunggakanList.length} tagihan)
-            </span>
-          </div>
-          {/* Tagihan List */}
-          <div className="divide-y divide-red-100">
-            {tunggakanList.map((t, idx) => {
-              const bulanNama = BULAN_NAMES[(t.bulan ?? 1) - 1] || "-";
-              const nominal = t.nominal ? `Rp ${Number(t.nominal).toLocaleString('id-ID')}` : "-";
-              const jatuhTempo = t.jatuh_tempo ? new Date(t.jatuh_tempo).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) : "-";
-              const isOverdue = t.jatuh_tempo && new Date(t.jatuh_tempo) < new Date();
-              return (
-                <div key={t.id ?? idx} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-5 py-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
-                      <svg width="16" height="16" fill="none" stroke="#dc2626" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"/>
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-[13.5px] font-bold text-red-800">
-                        Tagihan SPP — {bulanNama} {t.tahun ?? ""}
-                      </p>
-                      <p className="text-[12px] text-red-600 mt-0.5">
-                        Nominal: <span className="font-bold">{nominal}</span>
-                        <span className="mx-2 text-red-300">•</span>
-                        Jatuh Tempo: <span className="font-bold">{jatuhTempo}</span>
-                        {isOverdue && <span className="ml-2 px-1.5 py-0.5 bg-red-200 text-red-700 rounded text-[10px] font-bold">LEWAT JATUH TEMPO</span>}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="flex-shrink-0 self-start sm:self-center px-3 py-1 bg-red-100 border border-red-200 rounded-lg text-[11px] font-bold text-red-700 uppercase tracking-wide">
-                    Belum Lunas
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-          <div className="px-5 py-3 bg-red-50 border-t border-red-100">
-            <p className="text-[12px] text-red-500 leading-relaxed">
-              ⚠️ Mohon segera melunasi tagihan di atas melalui menu <strong>Tagihan SPP</strong> agar tidak mengganggu proses administrasi sekolah.
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Main Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Side: List of Announcements */}
         <div className="lg:col-span-2 space-y-4">
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col md:flex-row items-center justify-between gap-3">
             <div className="flex gap-1.5 flex-wrap">
-              {["Semua", "Akademik", "Kegiatan", "Penerimaan"].map(t => (
+              {["Semua", "Akademik", "Kegiatan", "Penerimaan", "Tagihan SPP"].map(t => (
                 <button
                   key={t}
                   onClick={() => setTab(t)}
@@ -177,7 +154,7 @@ const PengumumanSekolah = ({ user }) => {
           </div>
 
           <div className="space-y-4">
-            {filtered.map(ann => (
+            {combinedList.map(ann => (
               <div
                 key={ann.id}
                 onClick={() => setSelectedAnnouncement(ann)}
@@ -192,7 +169,9 @@ const PengumumanSekolah = ({ user }) => {
                     }`}>
                       {ann.importance}
                     </span>
-                    <span className="px-2.5 py-0.5 bg-gray-100 text-gray-500 rounded-md text-[10px] font-bold">
+                    <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold ${
+                      ann.isTagihan ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'
+                    }`}>
                       {ann.category}
                     </span>
                   </div>
@@ -202,14 +181,22 @@ const PengumumanSekolah = ({ user }) => {
                 <p className="text-[13px] text-gray-500 line-clamp-2 mt-2 leading-relaxed">{ann.desc}</p>
                 <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-50">
                   <span className="text-[11.5px] text-gray-400">Oleh: {ann.author}</span>
-                  <span className="text-[12px] font-bold text-[#1A3D63] hover:underline flex items-center gap-1">
-                    Baca Selengkapnya
+                  <span 
+                    onClick={(e) => {
+                      if (ann.isTagihan && onNavigate) {
+                        e.stopPropagation();
+                        onNavigate("Tagihan SPP");
+                      }
+                    }}
+                    className="text-[12px] font-bold text-[#1A3D63] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    {ann.isTagihan ? 'Lihat Detail Tagihan' : 'Baca Selengkapnya'}
                     <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
                   </span>
                 </div>
               </div>
             ))}
-            {filtered.length === 0 && (
+            {combinedList.length === 0 && (
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center text-gray-500">
                 Belum ada pengumuman untuk pencarian ini.
               </div>
@@ -249,7 +236,7 @@ const PengumumanSekolah = ({ user }) => {
                 </div>
                 <p className="text-[13.5px] text-gray-600 leading-relaxed pt-2 whitespace-pre-line">{selectedAnnouncement.desc}</p>
                 
-                {selectedAnnouncement.attachment && (
+                {selectedAnnouncement.attachment && !selectedAnnouncement.isTagihan && (
                   <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 flex items-center justify-between mt-4">
                     <div className="flex items-center gap-2">
                       <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#475569" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -263,6 +250,18 @@ const PengumumanSekolah = ({ user }) => {
                     </button>
                   </div>
                 )}
+                
+                {selectedAnnouncement.isTagihan && onNavigate && (
+                  <div className="mt-6 pt-4 border-t border-gray-100">
+                    <button 
+                      onClick={() => onNavigate("Tagihan SPP")}
+                      className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[13px] font-bold flex items-center justify-center gap-2 transition-colors shadow-sm"
+                    >
+                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                      Buka Menu Tagihan SPP
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ) : (
@@ -273,62 +272,6 @@ const PengumumanSekolah = ({ user }) => {
           )}
         </div>
       </div>
-      {isAdding && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
-            <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-              <h3 className="font-bold text-[#1e293b]">Buat Pengumuman Baru</h3>
-              <button onClick={() => setIsAdding(false)} className="text-gray-400 hover:text-gray-600">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-              </button>
-            </div>
-            <div className="p-5 space-y-4 overflow-y-auto max-h-[70vh]">
-              <div>
-                <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Judul Pengumuman</label>
-                <input type="text" value={newAnn.title} onChange={e => setNewAnn({...newAnn, title: e.target.value})} className="w-full px-4 py-2 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300" placeholder="Masukkan judul pengumuman" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Kategori</label>
-                  <select value={newAnn.category} onChange={e => setNewAnn({...newAnn, category: e.target.value})} className="w-full px-4 py-2 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300">
-                    <option value="Akademik">Akademik</option>
-                    <option value="Kegiatan">Kegiatan</option>
-                    <option value="Penerimaan">Penerimaan</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Urgensi</label>
-                  <select value={newAnn.importance} onChange={e => setNewAnn({...newAnn, importance: e.target.value})} className="w-full px-4 py-2 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300">
-                    <option value="Normal">Normal</option>
-                    <option value="Penting">Penting</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Isi Pengumuman</label>
-                <textarea rows="4" value={newAnn.desc} onChange={e => setNewAnn({...newAnn, desc: e.target.value})} className="w-full px-4 py-3 border border-gray-200 rounded-xl text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300" placeholder="Tuliskan isi pengumuman secara detail..."></textarea>
-              </div>
-              <div>
-                <label className="block text-[13px] font-bold text-gray-700 mb-1.5">Lampiran (Opsional)</label>
-                <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center hover:bg-gray-50 transition-colors cursor-pointer">
-                  <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" className="mx-auto text-gray-400 mb-2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                  <span className="text-[12px] text-gray-500 font-medium">Klik untuk mengunggah file (PDF, JPG)</span>
-                </div>
-              </div>
-            </div>
-            <div className="p-5 border-t border-gray-100 flex gap-3 justify-end">
-              <button onClick={() => setIsAdding(false)} className="px-5 py-2 rounded-xl border border-gray-200 text-gray-600 text-[13px] font-bold hover:bg-gray-50 transition-colors">Batal</button>
-              <button onClick={() => {
-                alert("Pengumuman baru berhasil diterbitkan!");
-                setIsAdding(false);
-              }} className="px-5 py-2 rounded-xl bg-[#1A3D63] text-white text-[13px] font-bold hover:bg-[#122a46] transition-colors flex items-center gap-2">
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
-                Terbitkan
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

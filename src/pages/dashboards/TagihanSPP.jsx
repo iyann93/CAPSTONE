@@ -1,10 +1,10 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { getTagihan, uploadBuktiSpp } from "../../api/finance";
 
 const fmt = (n) => "Rp " + Number(n).toLocaleString("id-ID");
 const getBulanNama = (b) => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][b-1];
 
-const TagihanSPP = ({ onNavigate }) => {
+const TagihanSPP = ({ user, onNavigate }) => {
   const [tagihan, setTagihan] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
 
@@ -16,8 +16,22 @@ const TagihanSPP = ({ onNavigate }) => {
   const loadData = async () => {
     try {
       setLoadingData(true);
-      const res = await getTagihan({ limit: 100 });
-      setTagihan(res);
+      const res = await getTagihan({ limit: 5000 });
+      const arr = Array.isArray(res) ? res : [];
+      
+      const anakId = user?.anak?.id;
+      const anakNis = user?.anak?.nis;
+      const anakNisn = user?.anak?.nisn;
+      const anakNama = user?.anak?.nama;
+
+      const myTagihans = arr.filter(t => 
+         (anakId && t.id_siswa === anakId) ||
+         (anakNis && t.nis === anakNis) ||
+         (anakNama && (t.nama_siswa === anakNama || t.nama === anakNama)) ||
+         (anakNisn && t.nisn === anakNisn)
+      );
+
+      setTagihan(myTagihans);
     } catch (err) {
       console.error(err);
     } finally {
@@ -26,12 +40,32 @@ const TagihanSPP = ({ onNavigate }) => {
   };
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (user) {
+      loadData();
+    }
+  }, [user]);
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      
+      // Validasi format file
+      const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
+      if (!allowedTypes.includes(selectedFile.type)) {
+        alert("Gagal: Format file tidak didukung. Mohon unggah file JPG, PNG, atau PDF.");
+        e.target.value = null;
+        return;
+      }
+      
+      // Validasi ukuran file (Max 5MB)
+      const maxSizeBytes = 5 * 1024 * 1024;
+      if (selectedFile.size > maxSizeBytes) {
+        alert("Gagal: Ukuran file terlalu besar. Maksimal 5MB.");
+        e.target.value = null;
+        return;
+      }
+      
+      setFile(selectedFile);
     }
   };
 
@@ -62,17 +96,26 @@ const TagihanSPP = ({ onNavigate }) => {
     }
   };
 
+  const getNominalTagihan = (t) => {
+    const baseNominal = Number(t.nominal || 0);
+    const potongan = Number(t.potongan || 0);
+    const nominalAkhir = (t.nominal_akhir !== undefined && t.nominal_akhir !== null) 
+       ? Number(t.nominal_akhir) 
+       : (baseNominal - potongan);
+    return Math.max(0, nominalAkhir);
+  };
+
   const lunas = tagihan.filter(t => t.status === "lunas").length;
   const belumLunas = tagihan.filter(t => t.status === "belum_bayar").length;
   const menunggu = tagihan.filter(t => t.status === "menunggu_konfirmasi").length;
   
-  const totalLunas = tagihan.filter(t => t.status === "lunas").reduce((a, c) => a + Number(c.nominal_akhir || c.nominal), 0);
+  const totalLunas = tagihan.filter(t => t.status === "lunas").reduce((a, c) => a + getNominalTagihan(c), 0);
   
   // Breakdown Tagihan Aktif
   const tagihanAktif = tagihan.filter(t => t.status === "belum_bayar" || t.status === "menunggu_konfirmasi");
   const totalOriginal = tagihanAktif.reduce((a, c) => a + Number(c.nominal), 0);
   const totalPotongan = tagihanAktif.reduce((a, c) => a + Number(c.potongan || 0), 0);
-  const totalHarusDibayar = tagihanAktif.reduce((a, c) => a + Number(c.nominal_akhir || (c.nominal - (c.potongan || 0))), 0);
+  const totalHarusDibayar = tagihanAktif.reduce((a, c) => a + getNominalTagihan(c), 0);
 
   const tagihanBelumBayar = tagihan.filter(t => t.status === "belum_bayar");
 
@@ -172,7 +215,7 @@ const TagihanSPP = ({ onNavigate }) => {
               <option value="">-- Pilih Bulan Tagihan --</option>
               {tagihanBelumBayar.map(t => (
                 <option key={t.id} value={t.id}>
-                  Bulan {getBulanNama(t.bulan)} {t.tahun} - {fmt(t.nominal_akhir || (t.nominal - (t.potongan || 0)))}
+                  Bulan {getBulanNama(t.bulan)} {t.tahun} - {fmt(getNominalTagihan(t))}
                 </option>
               ))}
             </select>
@@ -181,7 +224,7 @@ const TagihanSPP = ({ onNavigate }) => {
           <div className="flex-1 border-2 border-dashed border-gray-200 hover:border-blue-400 rounded-2xl p-6 flex flex-col justify-center items-center text-center cursor-pointer transition-colors relative bg-gray-50/50">
             <input
               type="file"
-              accept="image/*,application/pdf"
+              accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
               onChange={handleFileChange}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
             />

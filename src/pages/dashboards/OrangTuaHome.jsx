@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import api from "../../api/axios";
 import { getTagihan } from "../../api/finance";
 
@@ -87,11 +87,27 @@ const OrangTuaHome = ({ user, onNavigate }) => {
 
     const fetchTagihan = async () => {
       try {
-        const tagihans = await getTagihan({ limit: 100 });
-        const aktif = tagihans.filter(t => t.status === "belum_bayar" || t.status === "menunggu_konfirmasi");
+        const tagihans = await getTagihan({ limit: 5000 });
+        
+        // Filter untuk murid yang sesuai (berdasarkan NIS, NISN, atau ID)
+        const anakId   = user?.anak?.id;
+        const anakNis  = user?.anak?.nis;
+        const anakNisn = user?.anak?.nisn;
+        const anakNama = user?.anak?.nama;
+        
+        const myTagihans = tagihans.filter(t => 
+           (anakId && t.id_siswa === anakId) ||
+           (anakNis && t.nis === anakNis) ||
+           (anakNama && (t.nama_siswa === anakNama || t.nama === anakNama)) ||
+           (anakNisn && t.nisn === anakNisn)
+        );
+
+        const aktif = myTagihans.filter(t => t.status === "belum_bayar" || t.status === "menunggu_konfirmasi");
         if (aktif.length > 0) {
           aktif.sort((a, b) => new Date(a.jatuh_tempo || 0) - new Date(b.jatuh_tempo || 0));
           setTagihanTerdekat(aktif[0]);
+        } else {
+          setTagihanTerdekat(null);
         }
       } catch (err) {
         console.error("Gagal memuat tagihan terdekat:", err);
@@ -109,9 +125,19 @@ const OrangTuaHome = ({ user, onNavigate }) => {
 
   const unreadCount = mockNotifications.filter(n => !n.read).length;
 
+  const getNominalTagihan = (t) => {
+    if(!t) return 0;
+    const baseNominal = Number(t.nominal || 0);
+    const potongan = Number(t.potongan || 0);
+    const nominalAkhir = (t.nominal_akhir !== undefined && t.nominal_akhir !== null) 
+       ? Number(t.nominal_akhir) 
+       : (baseNominal - potongan);
+    return Math.max(0, nominalAkhir);
+  };
+
   const tagihanInfo = tagihanTerdekat ? {
     bulan: getBulanNama(tagihanTerdekat.bulan) + " " + tagihanTerdekat.tahun,
-    nominal: fmt(tagihanTerdekat.nominal_akhir || tagihanTerdekat.nominal),
+    nominal: fmt(getNominalTagihan(tagihanTerdekat)),
     status: tagihanTerdekat.status === 'menunggu_konfirmasi' ? 'Menunggu Konfirmasi' : 'Belum Lunas'
   } : {
     bulan: "-",
@@ -133,7 +159,7 @@ const OrangTuaHome = ({ user, onNavigate }) => {
           <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
             <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
           </svg>
-          Senin, 23 Juni 2024
+          {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
         </div>
       </div>
 
@@ -206,17 +232,12 @@ const OrangTuaHome = ({ user, onNavigate }) => {
             icon: "M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1z",
           },
         ].map((card, i) => (
-          <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <div className="flex items-start justify-between mb-3">
-              <div className={`w-10 h-10 rounded-xl ${card.bg} flex items-center justify-center`}>
-                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" className={card.color}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d={card.icon}/>
-                </svg>
-              </div>
+          <div key={i} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm flex flex-col justify-between transition-all">
+            <div className="flex items-center gap-1.5 mb-2">
+              <p className={`text-[11px] font-bold uppercase tracking-wider ${card.color}`}>{card.label}</p>
             </div>
-            <p className="text-[26px] font-black text-[#1e293b]">{card.val}</p>
-            <p className="text-[12px] text-gray-500 font-medium mt-0.5">{card.label}</p>
-            <p className="text-[11px] text-gray-400 mt-1">{card.sub}</p>
+            <p className="text-[26px] font-black leading-tight text-[#1e293b]">{card.val}</p>
+            <p className="text-[12px] mt-1 font-medium text-gray-500">{card.sub}</p>
           </div>
         ))}
       </div>

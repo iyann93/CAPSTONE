@@ -1,27 +1,13 @@
 import React, { useState, useEffect } from "react";
 import SPPDonutChart from "../../components/SPPDonutChart";
-import { getGlobalFinanceSummary } from "../../utils/financeHelpers";
+import { getGlobalFinanceSummary, getSppYearlySummary } from "../../utils/financeHelpers";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
   PieChart,
   Pie,
-  Cell
+  Cell,
+  ResponsiveContainer
 } from "recharts";
 
-const ARUS_KAS_DATA = [
-  { name: "Jul '25", Pemasukan: 300, Pengeluaran: 150 },
-  { name: "Aug '25", Pemasukan: 400, Pengeluaran: 200 },
-  { name: "Sep '25", Pemasukan: 350, Pengeluaran: 180 },
-  { name: "Oct '25", Pemasukan: 320, Pengeluaran: 250 },
-  { name: "Nov '25", Pemasukan: 450, Pengeluaran: 220 },
-  { name: "Dec '25", Pemasukan: 310, Pengeluaran: 290 }
-];
 
 const BEASISWA_PIE_DATA = [
   { name: "Terealisasi", value: 84, color: "#1e3a8a" },
@@ -29,56 +15,41 @@ const BEASISWA_PIE_DATA = [
 ];
 
 const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
-  const [filter, setFilter] = useState({ tahunAjaran: "2024/2025", semester: "Ganjil", bulan: "Semua Bulan" });
-  const [isFiltering, setIsFiltering] = useState(false);
-  const [filterSuccess, setFilterSuccess] = useState(false);
+  const [selectedYear, setSelectedYear] = useState("2025/2026");
 
   const [data, setData] = useState({
     pemasukan: 0,
-    pengeluaran: 0,
-    saldo: 0,
-    persentaseSpp: 88.5,
-    tunggakan: 80000000
+    saldo: 0
+  });
+
+  const [sppData, setSppData] = useState({
+    totalTagihan: 0, terbayar: 0, tunggakan: 0, countVerifikasi: 0, persentase: 0, countLunas: 0, countBelum: 0,
+    tunggakanPerKelas: []
   });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const summary = await getGlobalFinanceSummary();
+        const [summary, sppSummary] = await Promise.all([
+          getGlobalFinanceSummary(),
+          getSppYearlySummary(selectedYear)
+        ]);
         setData(prev => ({
           ...prev,
           pemasukan: summary.totalPemasukan,
           pengeluaran: summary.totalPengeluaran,
           saldo: summary.saldoKeuangan
         }));
+        setSppData(sppSummary);
       } catch (err) {
         console.error("Gagal load operasional:", err);
       }
     };
     fetchData();
-  }, []);
+  }, [selectedYear]);
 
   const formatCurrency = (amount) => {
-    return "Rp " + amount.toLocaleString("id-ID");
-  };
-
-  const handleApplyFilter = () => {
-    setIsFiltering(true);
-    setTimeout(() => {
-      const multiplier = filter.bulan === "Semua Bulan" ? 1 : 0.4 + Math.random() * 0.4;
-      const newPemasukan = Math.floor(2450000000 * multiplier);
-      const newPengeluaran = Math.floor(1120000000 * multiplier);
-      
-      setData(prev => ({
-        ...prev,
-        persentaseSpp: filter.bulan === "Semua Bulan" ? 88.5 : +(70 + Math.random() * 25).toFixed(1),
-        tunggakan: Math.floor(80000000 * (1.5 - multiplier))
-      }));
-      
-      setIsFiltering(false);
-      setFilterSuccess(true);
-      setTimeout(() => setFilterSuccess(false), 2000);
-    }, 800);
+    return "Rp " + (Number(amount) || 0).toLocaleString("id-ID");
   };
 
   return (
@@ -89,69 +60,24 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
           <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Monitoring Keuangan</h1>
           <p className="text-sm text-gray-500 mt-2">Pantau arus kas, pembayaran SPP, pemberian beasiswa, dan pembayaran gaji.</p>
         </div>
-      </div>
-
-      {/* Filter Section */}
-      <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col md:flex-row items-end gap-4">
-        <div className="flex-1 w-full">
-          <label className="block text-[12px] font-bold text-gray-500 mb-2 uppercase tracking-wider">Tahun Ajaran</label>
-          <select 
-            value={filter.tahunAjaran} 
-            onChange={(e) => setFilter({...filter, tahunAjaran: e.target.value})}
-            className="w-full bg-gray-50 border border-gray-200 text-gray-700 text-[13px] font-semibold rounded-xl focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] block p-3 transition-all outline-none"
+        {/* Year filter — top right */}
+        <div className="relative group w-full sm:w-auto flex-shrink-0">
+          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+            <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
+          </div>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 appearance-none focus:outline-none shadow-sm hover:border-blue-400 hover:ring-1 hover:ring-blue-100 cursor-pointer transition-all"
           >
-            <option>2023/2024</option>
-            <option>2024/2025</option>
+            <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
+            <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+            <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
           </select>
+          <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+            <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+          </div>
         </div>
-        <div className="flex-1 w-full">
-          <label className="block text-[12px] font-bold text-gray-500 mb-2 uppercase tracking-wider">Semester</label>
-          <select 
-            value={filter.semester} 
-            onChange={(e) => setFilter({...filter, semester: e.target.value})}
-            className="w-full bg-gray-50 border border-gray-200 text-gray-700 text-[13px] font-semibold rounded-xl focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] block p-3 transition-all outline-none"
-          >
-            <option>Ganjil</option>
-            <option>Genap</option>
-          </select>
-        </div>
-        <div className="flex-1 w-full">
-          <label className="block text-[12px] font-bold text-gray-500 mb-2 uppercase tracking-wider">Bulan</label>
-          <select 
-            value={filter.bulan} 
-            onChange={(e) => setFilter({...filter, bulan: e.target.value})}
-            className="w-full bg-gray-50 border border-gray-200 text-gray-700 text-[13px] font-semibold rounded-xl focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] block p-3 transition-all outline-none"
-          >
-            <option>Semua Bulan</option>
-            <option>Juli</option>
-            <option>Agustus</option>
-            <option>September</option>
-            <option>Oktober</option>
-          </select>
-        </div>
-        <button 
-          onClick={handleApplyFilter}
-          disabled={isFiltering}
-          className={`px-6 py-3 rounded-xl font-bold shadow-sm transition-colors w-full md:w-auto h-[46px] flex items-center justify-center cursor-pointer border-none text-[13px] ${
-            filterSuccess 
-              ? "bg-green-500 hover:bg-green-600 text-white" 
-              : "bg-[#1A3D63] text-white hover:bg-[#122c4a]"
-          }`}
-        >
-          {isFiltering ? (
-            <span className="flex items-center gap-2">
-              <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-              MEMPROSES...
-            </span>
-          ) : filterSuccess ? (
-             <span className="flex items-center gap-2">
-              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-              BERHASIL
-            </span>
-          ) : (
-            "TERAPKAN FILTER"
-          )}
-        </button>
       </div>
 
       {/* Ringkasan Keuangan Cards */}
@@ -170,68 +96,35 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
         </div>
       </div>
 
-      {/* Bar Chart & Penagihan SPP */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Bar Chart */}
-        <div className="lg:col-span-2 bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm">
-          <div className="flex flex-col sm:flex-row justify-between items-start mb-6">
-            <div>
-              <h3 className="text-[16px] font-bold text-gray-800">Analisis Arus Kas Bulanan</h3>
-              <p className="text-[12px] text-gray-500 mt-1">Perbandingan akumulasi pemasukan dan biaya pengeluaran</p>
-            </div>
-            <div className="flex items-center gap-4 mt-3 sm:mt-0">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-[#1e3a8a]"></div>
-                <span className="text-[11px] font-bold text-gray-600">Pemasukan</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-[#dc2626]"></div>
-                <span className="text-[11px] font-bold text-gray-600">Pengeluaran</span>
-              </div>
-            </div>
-          </div>
-          <div className="h-[250px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={ARUS_KAS_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#9ca3af", fontWeight: "bold" }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={false} />
-                <Tooltip cursor={{ fill: "#f9fafb" }} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }} />
-                <Bar dataKey="Pemasukan" fill="#1e3a8a" radius={[4, 4, 0, 0]} barSize={30} />
-                <Bar dataKey="Pengeluaran" fill="#dc2626" radius={[4, 4, 0, 0]} barSize={30} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Penagihan SPP */}
-        <div className="lg:col-span-1 bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col">
+      {/* Penagihan SPP */}
+      <div className="grid grid-cols-1 gap-6">
+        <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col">
           <h3 className="text-[16px] font-bold text-gray-800 mb-6">Penagihan SPP</h3>
           <div className="mb-6">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-[12px] font-medium text-gray-500">Realisasi {filter.bulan === "Semua Bulan" ? "Keseluruhan" : filter.bulan}</span>
-              <span className="text-[12px] font-black text-gray-800">{data.persentaseSpp}%</span>
+              <span className="text-[12px] font-medium text-gray-500">Realisasi {selectedYear}</span>
+              <span className="text-[12px] font-black text-gray-800">{sppData.persentase}%</span>
             </div>
             <div className="w-full bg-blue-50 rounded-full h-3">
-              <div className="bg-[#1e3a8a] h-3 rounded-full" style={{ width: `${data.persentaseSpp}%`, transition: 'width 0.5s ease-out' }}></div>
+              <div className="bg-[#1e3a8a] h-3 rounded-full" style={{ width: `${sppData.persentase}%`, transition: 'width 0.5s ease-out' }}></div>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-y-6 gap-x-4 mt-auto">
             <div>
               <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total Tagihan</div>
-              <div className="text-[14px] font-black text-gray-800">Rp 250 Jt</div>
+              <div className="text-[14px] font-black text-gray-800">{formatCurrency(sppData.totalTagihan)}</div>
             </div>
             <div>
               <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Terbayar</div>
-              <div className="text-[14px] font-black text-[#1e3a8a]">Rp 1.106 Jt</div>
+              <div className="text-[14px] font-black text-[#1e3a8a]">{formatCurrency(sppData.terbayar)}</div>
             </div>
             <div>
               <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Sisa Tunggakan</div>
-              <div className="text-[14px] font-black text-red-600">Rp 80 Jt</div>
+              <div className="text-[14px] font-black text-red-600">{formatCurrency(sppData.tunggakan)}</div>
             </div>
             <div>
               <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Status Verifikasi</div>
-              <div className="text-[14px] font-black text-gray-800">12 Siswa</div>
+              <div className="text-[14px] font-black text-gray-800">{sppData.countVerifikasi} Siswa</div>
             </div>
           </div>
         </div>
@@ -315,10 +208,10 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
         <div className="w-full lg:w-1/3 flex flex-col items-center">
           <div className="w-full text-center mb-2">
             <h3 className="text-[16px] font-bold text-gray-800">Distribusi Status SPP</h3>
-            <p className="text-[12px] text-gray-500 mt-1">Realisasi {filter.bulan === "Semua Bulan" ? filter.tahunAjaran : `Bulan ${filter.bulan}`}</p>
+            <p className="text-[12px] text-gray-500 mt-1">Realisasi {selectedYear}</p>
           </div>
           <div className="w-full max-w-[200px] mt-2">
-            <SPPDonutChart />
+            <SPPDonutChart lunas={sppData.countLunas} belumLunas={sppData.countBelum} />
           </div>
         </div>
         
@@ -326,46 +219,26 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
           <div className="flex justify-between items-center mb-6">
             <div>
               <h3 className="text-[16px] font-bold text-gray-800">Akumulasi Tunggakan</h3>
-              <p className="text-[12px] text-gray-500 mt-1">Data per {filter.bulan === "Semua Bulan" ? "akhir semester" : `akhir bulan ${filter.bulan}`}</p>
+              <p className="text-[12px] text-gray-500 mt-1">Data akumulasi {selectedYear}</p>
             </div>
             <div className="px-3 py-1 bg-red-50 text-red-600 rounded-lg text-[11px] font-bold uppercase tracking-wider">
-              Total: {formatCurrency(data.tunggakan)}
+              Total: {formatCurrency(sppData.tunggakan)}
             </div>
           </div>
           
           <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gray-50 border border-gray-100 text-gray-500 flex items-center justify-center font-black text-[12px]">VII</div>
-                <div>
-                  <div className="text-[13px] font-bold text-gray-800">Kelas VII</div>
-                  <div className="text-[11px] font-medium text-gray-500">38 Siswa belum lunas</div>
+            {sppData.tunggakanPerKelas.map((kelas, idx) => (
+              <div key={idx} className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gray-50 border border-gray-100 text-gray-500 flex items-center justify-center font-black text-[12px]">{kelas.tingkat}</div>
+                  <div>
+                    <div className="text-[13px] font-bold text-gray-800">{kelas.label}</div>
+                    <div className="text-[11px] font-medium text-gray-500">{kelas.count} Siswa belum lunas</div>
+                  </div>
                 </div>
+                <div className="text-[14px] font-black text-gray-800">{formatCurrency(kelas.nominal)}</div>
               </div>
-              <div className="text-[14px] font-black text-gray-800">Rp 43.500.000</div>
-            </div>
-
-            <div className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gray-50 border border-gray-100 text-gray-500 flex items-center justify-center font-black text-[12px]">VIII</div>
-                <div>
-                  <div className="text-[13px] font-bold text-gray-800">Kelas VIII</div>
-                  <div className="text-[11px] font-medium text-gray-500">22 Siswa belum lunas</div>
-                </div>
-              </div>
-              <div className="text-[14px] font-black text-gray-800">Rp 24.000.000</div>
-            </div>
-            
-            <div className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gray-50 border border-gray-100 text-gray-500 flex items-center justify-center font-black text-[12px]">IX</div>
-                <div>
-                  <div className="text-[13px] font-bold text-gray-800">Kelas IX</div>
-                  <div className="text-[11px] font-medium text-gray-500">14 Siswa belum lunas</div>
-                </div>
-              </div>
-              <div className="text-[14px] font-black text-red-600">Rp 12.500.000</div>
-            </div>
+            ))}
           </div>
         </div>
       </div>

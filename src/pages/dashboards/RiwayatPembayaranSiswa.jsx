@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { getTagihan } from "../../api/finance";
 
@@ -10,6 +10,15 @@ const mapStatus = (status) => {
   if (status === "lunas") return "Lunas";
   if (status === "menunggu_konfirmasi") return "Menunggu";
   return "Belum Lunas";
+};
+
+const getNominalTagihan = (t) => {
+  const baseNominal = Number(t.nominal || 0);
+  const potongan = Number(t.potongan || 0);
+  const nominalAkhir = (t.nominal_akhir !== undefined && t.nominal_akhir !== null) 
+     ? Number(t.nominal_akhir) 
+     : (baseNominal - potongan);
+  return Math.max(0, nominalAkhir);
 };
 
 const RiwayatPembayaranSiswa = ({ user, onNavigate }) => {
@@ -26,13 +35,27 @@ const RiwayatPembayaranSiswa = ({ user, onNavigate }) => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const res = await getTagihan({ limit: 100 });
-        const mapped = res.map(t => {
+        const res = await getTagihan({ limit: 5000 });
+        const arr = Array.isArray(res) ? res : [];
+        
+        const anakId = user?.anak?.id;
+        const anakNis = user?.anak?.nis;
+        const anakNisn = user?.anak?.nisn;
+        const anakNama = user?.anak?.nama;
+
+        const myTagihans = arr.filter(t => 
+           (anakId && t.id_siswa === anakId) ||
+           (anakNis && t.nis === anakNis) ||
+           (anakNama && (t.nama_siswa === anakNama || t.nama === anakNama)) ||
+           (anakNisn && t.nisn === anakNisn)
+        );
+
+        const mapped = myTagihans.map(t => {
           const d = t.created_at ? new Date(t.created_at) : new Date();
           return {
             id: t.id,
             bulan: `${getBulanNama(t.bulan)} ${t.tahun}`,
-            nominal: t.nominal_akhir, // <-- changed from t.nominal to t.nominal_akhir
+            nominal: getNominalTagihan(t),
             jatuhTempo: t.jatuh_tempo ? new Date(t.jatuh_tempo).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : "10 " + getBulanNama(t.bulan).substring(0,3) + " " + t.tahun,
             status: mapStatus(t.status),
             tglBayar: t.status === 'lunas' && t.updated_at ? new Date(t.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : null,
@@ -47,8 +70,10 @@ const RiwayatPembayaranSiswa = ({ user, onNavigate }) => {
         setLoading(false);
       }
     };
-    loadData();
-  }, []);
+    if (user) {
+      loadData();
+    }
+  }, [user]);
 
   const baseTagihan = tagihan.filter(t => t.status !== "Belum Lunas");
   const filtered = filter === "Semua" ? baseTagihan : baseTagihan.filter(t => t.status === filter);

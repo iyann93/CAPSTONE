@@ -1,9 +1,17 @@
+import React from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
-const sppData = [
-  { name: "Lunas", value: 973, fill: "#1A3D63" },
-  { name: "Belum Lunas", value: 275, fill: "#e5e7eb" }
-];
-const SPPDonutChart = () => {
+
+const SPPDonutChart = ({ lunas = 0, belumLunas = 0 }) => {
+  const total = lunas + belumLunas;
+  const percentage = total > 0 ? Math.round((lunas / total) * 100) : 0;
+  
+  const sppData = total > 0 ? [
+    { name: "Lunas SPP", value: lunas, fill: "#22c55e" },
+    { name: "Belum Bayar", value: belumLunas, fill: "#ef4444" }
+  ] : [
+    { name: "Belum Ada Data", value: 1, fill: "#e5e7eb" }
+  ];
+
   return (
     <div className="w-full flex-shrink-0">
       <div className="relative flex items-center justify-center" style={{ height: 200 }}>
@@ -27,7 +35,7 @@ const SPPDonutChart = () => {
         </ResponsiveContainer>
         {/* Center label */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-[24px] font-black text-gray-800">78%</span>
+          <span className="text-[24px] font-black text-gray-800">{percentage}%</span>
           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Lunas</span>
         </div>
       </div>
