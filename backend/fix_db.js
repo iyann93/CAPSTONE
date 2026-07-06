@@ -1,13 +1,36 @@
 require('dotenv').config();
-const { query } = require('./src/config/db');
+const { Pool } = require('pg');
+const pool = new Pool({
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  database: process.env.DB_DATABASE,
+  ssl: { rejectUnauthorized: false }
+});
 
-(async () => {
+async function fix() {
   try {
-    await query(`ALTER TABLE academic.guru ALTER COLUMN user_id DROP NOT NULL;`);
-    console.log('Successfully dropped NOT NULL constraint on user_id');
-  } catch (err) {
-    console.error(err);
+    const roleRes = await pool.query("SELECT id FROM shared.roles WHERE nama_role = 'Guru Mapel'");
+    const roleId = roleRes.rows[0].id;
+    
+    // Check if permission exists
+    let permRes = await pool.query("SELECT id FROM shared.permissions WHERE modul = 'jadwal_pelajaran' AND aksi = 'read'");
+    let permId;
+    
+    if (permRes.rows.length === 0) {
+      const insPerm = await pool.query("INSERT INTO shared.permissions (nama_permission, modul, aksi) VALUES ('Melihat Jadwal', 'jadwal_pelajaran', 'read') RETURNING id");
+      permId = insPerm.rows[0].id;
+    } else {
+      permId = permRes.rows[0].id;
+    }
+    
+    await pool.query("INSERT INTO shared.role_permissions (role_id, permission_id) VALUES ($1, $2) ON CONFLICT DO NOTHING", [roleId, permId]);
+    console.log("Permission granted successfully!");
+  } catch(e) {
+    console.error(e);
   } finally {
-    process.exit();
+    pool.end();
   }
-})();
+}
+fix();

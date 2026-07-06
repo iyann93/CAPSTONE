@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { getAllSlips, approveSlip, transferSlip, getSlipDetail, revertSlip, deleteSlip, bulkDeleteSlips } from '../../api/payroll';
 
 const RiwayatSlipTab = ({ triggerToast }) => {
@@ -382,8 +383,8 @@ const RiwayatSlipTab = ({ triggerToast }) => {
       )}
 
       {/* Modal Detail Slip Gaji */}
-      {showDetail && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.45)' }}>
+      {showDetail && ReactDOM.createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             {/* Header modal */}
             <div className="flex items-center justify-between p-5 border-b border-gray-100">
@@ -487,12 +488,12 @@ const RiwayatSlipTab = ({ triggerToast }) => {
               <div className="py-10 text-center text-gray-400 text-sm">Gagal memuat data.</div>
             )}
           </div>
-        </div>
+        </div>, document.body
       )}
 
       {/* Modal Konfirmasi Pembayaran */}
-      {showConfirmModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+      {showConfirmModal && ReactDOM.createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl animate-scaleIn">
             <div className="p-6 text-center">
               <div className="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-4 text-blue-500">
@@ -518,12 +519,12 @@ const RiwayatSlipTab = ({ triggerToast }) => {
               </div>
             </div>
           </div>
-        </div>
+        </div>, document.body
       )}
 
       {/* Modal Batal Konfirmasi */}
-      {showRevertModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+      {showRevertModal && ReactDOM.createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl animate-scaleIn">
             <div className="p-6 text-center">
               <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4 text-red-500">
@@ -549,11 +550,11 @@ const RiwayatSlipTab = ({ triggerToast }) => {
               </div>
             </div>
           </div>
-        </div>
+        </div>, document.body
       )}
       {/* Modal Hapus Slip */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+      {showDeleteModal && ReactDOM.createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl animate-scaleIn">
             <div className="p-6 text-center">
               <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4 text-red-500">
@@ -579,7 +580,7 @@ const RiwayatSlipTab = ({ triggerToast }) => {
               </div>
             </div>
           </div>
-        </div>
+        </div>, document.body
       )}
     </div>
   );

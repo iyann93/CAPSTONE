@@ -183,7 +183,7 @@ const DashboardRepository = {
       SELECT
         jp.id, jp.hari, jp.jam_mulai, jp.jam_selesai,
         jp.kelas_id, k.nama_kelas, k.tingkat,
-        jp.mapel_id, m.nama_mapel, m.kode_mapel,
+        jp.mata_pelajaran_id, m.nama AS nama_mapel, m.kode_mapel,
         jp.semester_id, sm.nama AS semester_nama,
         -- Hitung sudah berapa siswa diabsen hari ini
         (
@@ -202,7 +202,7 @@ const DashboardRepository = {
         ) AS total_siswa_kelas
       FROM academic.jadwal_pelajaran jp
       INNER JOIN academic.kelas   k  ON jp.kelas_id  = k.id
-      INNER JOIN academic.mapel   m  ON jp.mapel_id  = m.id
+      INNER JOIN academic.mata_pelajaran   m  ON jp.mata_pelajaran_id  = m.id
       INNER JOIN academic.semester sm ON jp.semester_id = sm.id
       WHERE jp.guru_id = $1
         AND jp.hari    = $2
@@ -221,7 +221,7 @@ const DashboardRepository = {
     const sql = `
       SELECT
         jp.id AS jadwal_id, jp.jam_mulai, jp.jam_selesai,
-        k.nama_kelas, m.nama_mapel,
+        k.nama_kelas, m.nama AS nama_mapel,
         COUNT(ab.id)                                              AS total_diabsen,
         SUM(CASE WHEN ab.status = 'Hadir' THEN 1 ELSE 0 END)     AS hadir,
         SUM(CASE WHEN ab.status = 'Sakit' THEN 1 ELSE 0 END)     AS sakit,
@@ -229,12 +229,12 @@ const DashboardRepository = {
         SUM(CASE WHEN ab.status = 'Alpha' THEN 1 ELSE 0 END)     AS alpha
       FROM academic.jadwal_pelajaran jp
       INNER JOIN academic.kelas k ON jp.kelas_id = k.id
-      INNER JOIN academic.mapel m ON jp.mapel_id = m.id
+      INNER JOIN academic.mata_pelajaran m ON jp.mata_pelajaran_id = m.id
       LEFT JOIN academic.absensi ab
         ON ab.jadwal_id = jp.id AND ab.tanggal = CURRENT_DATE
       WHERE jp.guru_id = $1
         AND jp.hari    = $2
-      GROUP BY jp.id, jp.jam_mulai, jp.jam_selesai, k.nama_kelas, m.nama_mapel
+      GROUP BY.nama
       ORDER BY jp.jam_mulai ASC
     `;
     const res = await query(sql, [guruId, hariIni]);
@@ -250,27 +250,27 @@ const DashboardRepository = {
       SELECT
         jp.id AS jadwal_id,
         jp.kelas_id, k.nama_kelas,
-        jp.mapel_id, m.nama_mapel,
+        jp.mata_pelajaran_id, m.nama AS nama_mapel,
         jp.semester_id, sm.nama AS semester_nama,
         COUNT(DISTINCT s.id)  AS total_siswa,
         COUNT(DISTINCT n.siswa_id) AS sudah_dinilai,
         COUNT(DISTINCT s.id) - COUNT(DISTINCT n.siswa_id) AS belum_dinilai
       FROM academic.jadwal_pelajaran jp
       INNER JOIN academic.kelas   k  ON jp.kelas_id   = k.id
-      INNER JOIN academic.mapel   m  ON jp.mapel_id   = m.id
+      INNER JOIN academic.mata_pelajaran   m  ON jp.mata_pelajaran_id   = m.id
       INNER JOIN academic.semester sm ON jp.semester_id = sm.id
       INNER JOIN academic.siswa   s  ON s.kelas_id = jp.kelas_id AND s.status = 'aktif' AND s.deleted_at IS NULL
       LEFT JOIN academic.nilai    n
         ON n.siswa_id        = s.id
-       AND n.mata_pelajaran_id = jp.mapel_id
+       AND n.mata_pelajaran_id = jp.mata_pelajaran_id
        AND n.semester_id     = jp.semester_id
        AND n.guru_id         = $1
       WHERE jp.guru_id = $1
         AND sm.is_active = true
-      GROUP BY jp.id, jp.kelas_id, k.nama_kelas, jp.mapel_id, m.nama_mapel,
+      GROUP BY.nama,
                jp.semester_id, sm.nama
       HAVING COUNT(DISTINCT s.id) - COUNT(DISTINCT n.siswa_id) > 0
-      ORDER BY belum_dinilai DESC, m.nama_mapel ASC
+      ORDER BY.nama ASC
     `;
     const res = await query(sql, [guruId]);
     return res.rows;
@@ -288,12 +288,12 @@ const DashboardRepository = {
     const sql = `
       SELECT
         jp.id, jp.hari, jp.jam_mulai, jp.jam_selesai,
-        m.nama_mapel, m.kode_mapel,
-        g.nama AS guru_nama,
+        m.nama AS nama_mapel, m.kode_mapel,
+        g.nama_lengkap AS guru_nama,
         k.nama_kelas, sm.nama AS semester_nama
       FROM academic.jadwal_pelajaran jp
       INNER JOIN academic.kelas   k  ON jp.kelas_id   = k.id
-      INNER JOIN academic.mapel   m  ON jp.mapel_id   = m.id
+      INNER JOIN academic.mata_pelajaran   m  ON jp.mata_pelajaran_id   = m.id
       INNER JOIN academic.guru    g  ON jp.guru_id    = g.id
       INNER JOIN academic.semester sm ON jp.semester_id = sm.id
       INNER JOIN academic.siswa   s  ON s.kelas_id = jp.kelas_id
@@ -324,16 +324,16 @@ const DashboardRepository = {
       SELECT
         n.id, n.nilai_harian, n.nilai_uts, n.nilai_uas, n.nilai_akhir,
         n.bobot_harian, n.bobot_uts, n.bobot_uas, n.catatan, n.created_at,
-        m.nama_mapel, m.kode_mapel,
+        m.nama AS nama_mapel, m.kode_mapel,
         g.nama  AS guru_nama,
         sm.nama AS semester_nama
       FROM academic.nilai n
-      INNER JOIN academic.mapel   m  ON n.mata_pelajaran_id = m.id
+      INNER JOIN academic.mata_pelajaran   m  ON n.mata_pelajaran_id = m.id
       INNER JOIN academic.guru    g  ON n.guru_id           = g.id
       INNER JOIN academic.semester sm ON n.semester_id      = sm.id
       WHERE n.siswa_id   = $1
         AND sm.is_active = true
-      ORDER BY m.nama_mapel ASC
+      ORDER BY.nama ASC
     `;
     const res = await query(sql, [siswaId]);
     return res.rows;
@@ -363,10 +363,10 @@ const DashboardRepository = {
       query(`
         SELECT
           ab.id, ab.tanggal, ab.status, ab.keterangan,
-          m.nama_mapel, k.nama_kelas
+          m.nama AS nama_mapel, k.nama_kelas
         FROM academic.absensi ab
         INNER JOIN academic.jadwal_pelajaran jp ON ab.jadwal_id = jp.id
-        INNER JOIN academic.mapel   m  ON jp.mapel_id  = m.id
+        INNER JOIN academic.mata_pelajaran   m  ON jp.mata_pelajaran_id  = m.id
         INNER JOIN academic.semester sm ON jp.semester_id = sm.id
         INNER JOIN academic.kelas k ON jp.kelas_id = k.id
         WHERE ab.siswa_id   = $1

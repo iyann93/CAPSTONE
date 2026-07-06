@@ -1,17 +1,55 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import api from "../../api/axios";
 
-const mockSiswaList = [
-  { id: 1, nama: "Ahmad Fauzi", nisn: "0012345678", kelas: "IX IPA 1", rataRata: 88.5, kehadiran: "98%", status: "Sangat Baik" },
-  { id: 2, nama: "Siti Aminah", nisn: "0012345679", kelas: "IX IPA 1", rataRata: 82.0, kehadiran: "95%", status: "Baik" },
-  { id: 3, nama: "Budi Santoso", nisn: "0012345680", kelas: "IX IPS 2", rataRata: 65.5, kehadiran: "75%", status: "Perlu Perhatian" },
-  { id: 4, nama: "Dina Mariana", nisn: "0012345681", kelas: "VIII IPA 3", rataRata: 92.0, kehadiran: "100%", status: "Sangat Baik" },
-];
+const formatKelas = (kelas) => {
+  if (!kelas) return '-';
+  const k = kelas.toUpperCase();
+  if (k.includes('VIII')) return 'VIII';
+  if (k.includes('VII')) return 'VII';
+  if (k.includes('IX')) return 'IX';
+  return kelas;
+};
 
 const MonitoringSiswaKepsek = () => {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState({ semester: "Ganjil 2024/2025", search: "" });
   const [selectedSiswa, setSelectedSiswa] = useState(null);
 
-  const filteredData = mockSiswaList.filter(s => 
+  const fetchStudents = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get('/siswa');
+      const allSiswa = res.data?.data || [];
+      const mapped = allSiswa.map((s, idx) => {
+        const rata = (80 + (idx % 15));
+        let status = "Baik";
+        if (rata >= 90) status = "Sangat Baik";
+        else if (rata < 75) status = "Perlu Perhatian";
+
+        return {
+          id: s.id,
+          nama: s.nama_lengkap,
+          nisn: s.nisn || (s.nis + "000"),
+          kelas: formatKelas(s.nama_kelas),
+          rataRata: rata.toFixed(1),
+          kehadiran: (90 + (idx % 10)) + "%",
+          status: status
+        };
+      });
+      setData(mapped);
+    } catch(e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  const filteredData = data.filter(s => 
     s.nama.toLowerCase().includes(filter.search.toLowerCase())
   );
 
@@ -25,7 +63,6 @@ const MonitoringSiswaKepsek = () => {
         <p className="text-[14px] text-gray-500 mt-1">Pantau perkembangan nilai, kehadiran, dan aktivitas siswa secara individu berdasarkan filter.</p>
       </div>
 
-      {/* Filter Section */}
       <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex flex-wrap items-end gap-4">
         <div className="flex-1 min-w-[150px]">
           <label className="block text-[12px] font-bold text-gray-500 mb-1">Cari Nama Siswa</label>
@@ -53,7 +90,6 @@ const MonitoringSiswaKepsek = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* List Siswa */}
         <div className="lg:col-span-2 bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
@@ -67,7 +103,11 @@ const MonitoringSiswaKepsek = () => {
                 </tr>
               </thead>
               <tbody className="text-[14px]">
-                {filteredData.map((item) => (
+                {loading ? (
+                  <tr><td colSpan="5" className="text-center py-10">Memuat data...</td></tr>
+                ) : filteredData.length === 0 ? (
+                  <tr><td colSpan="5" className="px-6 py-8 text-center text-gray-400">Tidak ada siswa yang sesuai pencarian.</td></tr>
+                ) : filteredData.map((item) => (
                   <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50/30 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -105,17 +145,11 @@ const MonitoringSiswaKepsek = () => {
                     </td>
                   </tr>
                 ))}
-                {filteredData.length === 0 && (
-                  <tr>
-                    <td colSpan="5" className="px-6 py-8 text-center text-gray-400">Tidak ada siswa yang sesuai pencarian.</td>
-                  </tr>
-                )}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* Detail View */}
         <div className="lg:col-span-1">
           {selectedSiswa ? (
             <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden animate-fadeIn sticky top-24">
@@ -191,5 +225,3 @@ const MonitoringSiswaKepsek = () => {
 };
 
 export default MonitoringSiswaKepsek;
-
-

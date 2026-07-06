@@ -1,36 +1,115 @@
-﻿import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import ReactDOM from "react-dom";
 
 const AbsensiSiswa = ({ user, onSaveAttendance }) => {
-  const [selectedClass, setSelectedClass] = useState("VII IPA 1");
-  const [selectedDate, setSelectedDate] = useState("2026-06-30");
+  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [searchQuery, setSearchQuery] = useState("");
   const [notification, setNotification] = useState(null);
+  
+  const [classes, setClasses] = useState([]);
+  const [dbClasses, setDbClasses] = useState([]);
+  const [studentsData, setStudentsData] = useState({});
+  const [loading, setLoading] = useState(true);
 
-  // Mock student data grouped by class
-  const [studentsData, setStudentsData] = useState({
-    "VII IPA 1": [
-      { id: "2023001", name: "Andi Pratama", gender: "Laki-laki", status: "Hadir", avatarBg: "bg-blue-500" },
-      { id: "2023002", name: "Dewi Sartika", gender: "Perempuan", status: "Hadir", avatarBg: "bg-slate-700" },
-      { id: "2023003", name: "Ricky Firmansyah", gender: "Laki-laki", status: "Sakit", avatarBg: "bg-amber-600" },
-      { id: "2023004", name: "Nurul Hidayah", gender: "Perempuan", status: "Hadir", avatarBg: "bg-red-500" },
-      { id: "2023005", name: "Fajar Setiawan", gender: "Laki-laki", status: "Izin", avatarBg: "bg-purple-600" },
-      { id: "2023006", name: "Ayu Lestari", gender: "Perempuan", status: "Hadir", avatarBg: "bg-pink-500" },
-    ],
-    "VII IPA 2": [
-      { id: "2023007", name: "Bagus Cahyo", gender: "Laki-laki", status: "Hadir", avatarBg: "bg-blue-500" },
-      { id: "2023008", name: "Citra Lestari", gender: "Perempuan", status: "Izin", avatarBg: "bg-pink-500" },
-      { id: "2023009", name: "Dimas Anggara", gender: "Laki-laki", status: "Sakit", avatarBg: "bg-amber-600" },
-    ]
-  });
+  // Fetch classes and students from backend
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const { default: api } = await import('../../api/axios');
+        const [kelasRes, siswaRes] = await Promise.all([
+          api.get('/kelas'),
+          api.get('/siswa')
+        ]);
+        
+        const dbClassesData = kelasRes.data?.data || [];
+        const dbSiswa = siswaRes.data?.data || [];
 
-  const classes = Object.keys(studentsData);
-  const currentStudents = studentsData[selectedClass] || [];
+        // Parse classes
+        const classNames = dbClassesData.map(c => c.nama_kelas);
+        setDbClasses(dbClassesData);
+        setClasses(classNames);
+        if (classNames.length > 0) {
+          setSelectedClass(classNames[0]);
+        }
 
-  // Handle single student attendance change
+        // Group students by class
+        const groupedData = {};
+        classNames.forEach(cName => {
+          groupedData[cName] = [];
+        });
+
+        dbSiswa.forEach(siswa => {
+          const cls = dbClassesData.find(c => c.id === siswa.kelas_id);
+          const className = cls ? cls.nama_kelas : "Tanpa Kelas";
+          
+          if (!groupedData[className]) {
+            groupedData[className] = [];
+          }
+
+          groupedData[className].push({
+            id: siswa.id, // Must be UUID
+            nis: siswa.nis || "-",
+            name: siswa.nama_lengkap,
+            gender: siswa.jenis_kelamin === "Laki-laki" ? "Laki-laki" : "Perempuan",
+            status: "Hadir", // Default
+            avatarBg: "bg-blue-500",
+          });
+        });
+
+        setStudentsData(groupedData);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // Fetch existing attendance when class or date changes
+  useEffect(() => {
+    if (!selectedClass || !selectedDate || !dbClasses.length || loading) return;
+
+    const fetchExistingAbsensi = async () => {
+      try {
+        const { default: api } = await import('../../api/axios');
+        const cls = dbClasses.find(c => c.nama_kelas === selectedClass);
+        if (!cls) return;
+
+        const res = await api.get(`/absensi?tanggal=${selectedDate}&limit=2000`);
+        const existingData = res.data?.data || [];
+        
+        if (existingData.length > 0) {
+          setStudentsData(prev => {
+            const updatedClassStudents = (prev[selectedClass] || []).map(student => {
+              const record = existingData.find(r => r.siswa_id === student.id);
+              if (record) {
+                return { ...student, status: record.status };
+              }
+              return { ...student, status: "Hadir" };
+            });
+            return { ...prev, [selectedClass]: updatedClassStudents };
+          });
+        } else {
+          // Reset to default if no data exists
+          setStudentsData(prev => {
+            const resetStudents = (prev[selectedClass] || []).map(student => ({ ...student, status: "Hadir" }));
+            return { ...prev, [selectedClass]: resetStudents };
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching existing absensi:", err);
+      }
+    };
+
+    fetchExistingAbsensi();
+  }, [selectedClass, selectedDate, dbClasses, loading]);
+
   const handleStatusChange = (studentId, newStatus) => {
     setStudentsData((prev) => {
-      const updated = prev[selectedClass].map((s) => {
+      const updated = (prev[selectedClass] || []).map((s) => {
         if (s.id === studentId) return { ...s, status: newStatus };
         return s;
       });
@@ -38,15 +117,15 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
     });
   };
 
-  // Bulk mark all
   const handleMarkAll = (status) => {
     setStudentsData((prev) => {
-      const updated = prev[selectedClass].map((s) => ({ ...s, status }));
+      const updated = (prev[selectedClass] || []).map((s) => ({ ...s, status }));
       return { ...prev, [selectedClass]: updated };
     });
   };
 
-  // Stats calculation
+  const currentStudents = studentsData[selectedClass] || [];
+
   const counts = useMemo(() => {
     const total = currentStudents.length;
     const hadir = currentStudents.filter((s) => s.status === "Hadir").length;
@@ -56,7 +135,6 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
     return { total, hadir, izin, sakit, rate };
   }, [currentStudents]);
 
-  // Filtered student list
   const filteredStudents = useMemo(() => {
     if (!searchQuery.trim()) return currentStudents;
     return currentStudents.filter(
@@ -66,22 +144,56 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
     );
   }, [currentStudents, searchQuery]);
 
-  const handleSave = () => {
-    // Push session data up to GuruDashboard shared state
-    if (onSaveAttendance) {
-      onSaveAttendance({
-        attendanceClass: selectedClass,
-        date: selectedDate,
-        students: currentStudents
-      });
+  const handleSave = async () => {
+    try {
+      const { default: api } = await import('../../api/axios');
+      
+      const cls = dbClasses.find(c => c.nama_kelas === selectedClass);
+      if (!cls) throw new Error("Kelas tidak ditemukan");
+      
+      // Fetch jadwal pelajaran to get a valid jadwalId
+      const jadwalRes = await api.get('/jadwal-pelajaran');
+      const allJadwal = jadwalRes.data?.data || [];
+      const jadwal = allJadwal.find(j => j.kelas_id === cls.id) || allJadwal[0];
+      
+      if (!jadwal) {
+        setNotification("Gagal: Tidak ada jadwal pelajaran yang tersedia.");
+        setTimeout(() => setNotification(null), 4000);
+        return;
+      }
+      
+      const payload = currentStudents.map(student => ({
+        siswaId: student.id,
+        jadwalId: jadwal.id,
+        tanggal: selectedDate,
+        status: student.status,
+        keterangan: ""
+      }));
+      
+      await api.post('/absensi', payload);
+      
+      if (onSaveAttendance) {
+        onSaveAttendance({
+          attendanceClass: selectedClass,
+          date: selectedDate,
+          students: currentStudents
+        });
+      }
+      setNotification(`Absensi kelas ${selectedClass} berhasil disimpan ke database!`);
+    } catch (error) {
+      console.error("Error saving attendance:", error);
+      const errorMsg = error.response?.data?.message || error.message || "Unknown error";
+      setNotification(`Gagal: ${errorMsg}`);
     }
-    setNotification(`Absensi kelas ${selectedClass} berhasil disimpan!`);
     setTimeout(() => setNotification(null), 4000);
   };
 
+  if (loading) {
+    return <div className="p-8">Memuat data dari database...</div>;
+  }
+
   return (
     <div className="p-6 md:p-8 space-y-6 animate-fadeIn bg-[#F8FAFC] min-h-screen relative">
-      {/* Toast Notification — rendered via portal so it always shows at top-right of viewport */}
       {notification && ReactDOM.createPortal(
         <div style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 9999 }} className="flex items-center gap-3 bg-slate-900 text-white px-5 py-4 rounded-2xl shadow-xl animate-slideIn">
           <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white">
@@ -94,15 +206,13 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
         document.body
       )}
 
-      {/* Header */}
       <div className="flex flex-col gap-1.5">
         <h1 className="text-[26px] font-black text-[#1e293b] tracking-tight">Absensi Siswa</h1>
         <p className="text-sm text-gray-400 font-semibold">
-          Semester Ganjil 2023/2024 • SMPN 1 Contoh
+          Semester Ganjil 2023/2024 • Data bersumber dari Database
         </p>
       </div>
 
-      {/* Section 1: Pilih Kelas & Tanggal */}
       <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
         <div className="flex items-center gap-3 text-gray-800">
           <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-bold text-xs">
@@ -112,7 +222,6 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
         </div>
 
         <div className="flex flex-wrap items-center gap-4 sm:gap-6">
-          {/* Class Select */}
           <div className="relative w-full sm:w-[220px]">
             <select
               value={selectedClass}
@@ -122,11 +231,15 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
               }}
               className="w-full bg-white border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 appearance-none shadow-sm transition-all"
             >
-              {classes.map((cls) => (
-                <option key={cls} value={cls}>
-                  Kelas {cls}
-                </option>
-              ))}
+              {classes.length > 0 ? (
+                classes.map((cls) => (
+                  <option key={cls} value={cls}>
+                    Kelas {cls}
+                  </option>
+                ))
+              ) : (
+                <option value="">Tidak ada kelas</option>
+              )}
             </select>
             <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -135,7 +248,6 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
             </div>
           </div>
 
-          {/* Date Picker */}
           <div className="relative w-full sm:w-[200px]">
             <input
               type="date"
@@ -145,7 +257,6 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
             />
           </div>
 
-          {/* Summary Badges & Progress Bar */}
           <div className="flex flex-wrap items-center gap-3">
             <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#1A3D63] text-white rounded-2xl text-xs font-black shadow-sm">
               Hadir: {counts.hadir}
@@ -172,7 +283,6 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
         </div>
       </div>
 
-      {/* Section 2: Daftar Siswa */}
       <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-6">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div className="flex flex-wrap items-center gap-4">
@@ -181,11 +291,10 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
                 2
               </div>
               <h3 className="text-sm font-black text-[#1e293b]">
-                Daftar Siswa — {selectedClass}
+                Daftar Siswa — {selectedClass || "Tidak ada kelas"}
               </h3>
             </div>
 
-            {/* Bulk actions */}
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Tandai semua:</span>
               <div className="flex gap-1.5">
@@ -211,7 +320,6 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
             </div>
           </div>
 
-          {/* Search bar */}
           <div className="relative w-full lg:w-[280px]">
             <input
               type="text"
@@ -229,57 +337,33 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
           </div>
         </div>
 
-        {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[750px]">
             <thead>
               <tr className="border-b border-gray-100">
-                <th className="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-[60px]">
-                  No
-                </th>
-                <th className="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-[120px]">
-                  NIS
-                </th>
-                <th className="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                  Nama Siswa
-                </th>
-                <th className="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center w-[380px]">
-                  Status Kehadiran
-                </th>
+                <th className="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-[60px]">No</th>
+                <th className="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-[120px]">NIS</th>
+                <th className="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Nama Siswa</th>
+                <th className="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center w-[380px]">Status Kehadiran</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {filteredStudents.length > 0 ? (
                 filteredStudents.map((student, idx) => (
                   <tr key={student.id} className="hover:bg-slate-50/20 transition-colors">
-                    {/* NO */}
-                    <td className="py-5 px-4 text-xs font-bold text-gray-400">
-                      {idx + 1}
-                    </td>
-
-                    {/* NIS */}
-                    <td className="py-5 px-4 text-xs font-bold text-gray-500">
-                      {student.id}
-                    </td>
-
-                    {/* NAMA SISWA */}
+                    <td className="py-5 px-4 text-xs font-bold text-gray-400">{idx + 1}</td>
+                    <td className="py-5 px-4 text-xs font-bold text-gray-500">{student.nis}</td>
                     <td className="py-5 px-4">
                       <div className="flex items-center gap-3.5">
-                        <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-extrabold text-sm shadow-sm ${student.avatarBg}`}
-                        >
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-extrabold text-sm shadow-sm ${student.avatarBg}`}>
                           {student.name[0]}
                         </div>
                         <div>
                           <div className="text-sm font-black text-gray-800">{student.name}</div>
-                          <span className="inline-block mt-1 text-[10px] text-gray-400 font-semibold">
-                            {student.gender}
-                          </span>
+                          <span className="inline-block mt-1 text-[10px] text-gray-400 font-semibold">{student.gender}</span>
                         </div>
                       </div>
                     </td>
-
-                    {/* STATUS KEHADIRAN */}
                     <td className="py-5 px-4 text-center">
                       <div className="flex items-center justify-center gap-3">
                         <div className="flex bg-gray-50 p-1 rounded-2xl border border-gray-100 shadow-inner">
@@ -290,9 +374,7 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
                                 key={status}
                                 onClick={() => handleStatusChange(student.id, status)}
                                 className={`px-5 py-2 rounded-xl text-xs font-black transition-all ${
-                                  isSelected
-                                    ? "bg-[#1A3D63] text-white shadow-md scale-100"
-                                    : "text-gray-500 hover:bg-gray-100"
+                                  isSelected ? "bg-[#1A3D63] text-white shadow-md scale-100" : "text-gray-500 hover:bg-gray-100"
                                 }`}
                               >
                                 {status}
@@ -300,8 +382,6 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
                             );
                           })}
                         </div>
-
-                        {/* Warnings if absent */}
                         {student.status !== "Hadir" && (
                           <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-800">
                             <span className="text-[12px]">▲</span>
@@ -324,7 +404,6 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
         </div>
       </div>
 
-      {/* Section 3: Action Bar */}
       <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-3 text-gray-800">
           <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-bold text-xs">
@@ -332,7 +411,7 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
           </div>
           <div>
             <h3 className="text-sm font-black text-[#1e293b]">
-              Simpan absensi kelas {selectedClass}
+              Simpan absensi kelas {selectedClass || "..."}
             </h3>
             <p className="text-[11px] text-gray-400 font-semibold mt-0.5">
               {counts.hadir} Hadir • {counts.izin} Izin • {counts.sakit} Sakit • Total {counts.total} siswa
@@ -358,6 +437,3 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
 };
 
 export default AbsensiSiswa;
-
-
-

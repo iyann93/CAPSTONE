@@ -3,29 +3,29 @@
 const { query } = require('../config/db');
 const { whereBuilder, buildOrderBy } = require('../utils/queryBuilder');
 
-const SORT_MAP = { hari: 'jp.hari', jam_mulai: 'jp.jam_mulai', created_at: 'jp.created_at' };
+const SORT_MAP = { hari: 'jp.hari', jam_mulai: 'jp.jam_mulai' };
 
 const JadwalPelajaranRepository = {
   findAll: async ({ limit, offset, search, sort, kelasId, guruId, mapelId, semesterId, hari }) => {
     const wb = whereBuilder();
-    wb.addLike(search, ['g.nama', 'm.nama_mapel', 'k.nama_kelas']);
+    wb.addLike(search, ['g.nama_lengkap', 'm.nama', 'k.nama_kelas']);
     wb.addExact(kelasId, 'jp.kelas_id');
     wb.addExact(guruId, 'jp.guru_id');
-    wb.addExact(mapelId, 'jp.mapel_id');
+    wb.addExact(mapelId, 'jp.mata_pelajaran_id');
     wb.addExact(semesterId, 'jp.semester_id');
     wb.addExact(hari, 'jp.hari');
     const { where, values, nextIdx } = wb.build();
     const orderBy = buildOrderBy(sort, SORT_MAP, 'jp.hari ASC, jp.jam_mulai ASC');
 
     const sql = `
-      SELECT jp.id, jp.hari, jp.jam_mulai, jp.jam_selesai, jp.created_at,
+      SELECT jp.id, jp.hari, jp.jam_mulai, jp.jam_selesai,
              jp.kelas_id, k.nama_kelas, k.tingkat,
-             jp.mapel_id, m.nama_mapel, m.kode_mapel,
-             jp.guru_id, g.nama AS guru_nama, g.nip,
+             jp.mata_pelajaran_id, m.nama AS nama_mapel, m.kode AS kode_mapel,
+             jp.guru_id, g.nama_lengkap AS guru_nama, g.nip,
              jp.semester_id, sm.nama AS semester_nama
       FROM academic.jadwal_pelajaran jp
       LEFT JOIN academic.kelas k ON jp.kelas_id = k.id
-      LEFT JOIN academic.mapel m ON jp.mapel_id = m.id
+      LEFT JOIN academic.mata_pelajaran m ON jp.mata_pelajaran_id = m.id
       LEFT JOIN academic.guru g ON jp.guru_id = g.id
       LEFT JOIN academic.semester sm ON jp.semester_id = sm.id
       ${where}
@@ -35,7 +35,7 @@ const JadwalPelajaranRepository = {
     const countSql = `
       SELECT COUNT(*) FROM academic.jadwal_pelajaran jp
       LEFT JOIN academic.kelas k ON jp.kelas_id = k.id
-      LEFT JOIN academic.mapel m ON jp.mapel_id = m.id
+      LEFT JOIN academic.mata_pelajaran m ON jp.mata_pelajaran_id = m.id
       LEFT JOIN academic.guru g ON jp.guru_id = g.id
       LEFT JOIN academic.semester sm ON jp.semester_id = sm.id
       ${where}
@@ -51,12 +51,12 @@ const JadwalPelajaranRepository = {
     const sql = `
       SELECT jp.*,
              k.nama_kelas, k.tingkat,
-             m.nama_mapel, m.kode_mapel,
-             g.nama AS guru_nama, g.nip,
+             m.nama AS nama_mapel, m.kode AS kode_mapel,
+             g.nama_lengkap AS guru_nama, g.nip,
              sm.nama AS semester_nama
       FROM academic.jadwal_pelajaran jp
       LEFT JOIN academic.kelas k ON jp.kelas_id = k.id
-      LEFT JOIN academic.mapel m ON jp.mapel_id = m.id
+      LEFT JOIN academic.mata_pelajaran m ON jp.mata_pelajaran_id = m.id
       LEFT JOIN academic.guru g ON jp.guru_id = g.id
       LEFT JOIN academic.semester sm ON jp.semester_id = sm.id
       WHERE jp.id = $1
@@ -87,8 +87,8 @@ const JadwalPelajaranRepository = {
   create: async ({ kelasId, mapelId, guruId, semesterId, hari, jamMulai, jamSelesai }) => {
     const sql = `
       INSERT INTO academic.jadwal_pelajaran
-        (kelas_id, mapel_id, guru_id, semester_id, hari, jam_mulai, jam_selesai, created_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) RETURNING *
+        (kelas_id, mata_pelajaran_id, guru_id, semester_id, hari, jam_mulai, jam_selesai)
+      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *
     `;
     const result = await query(sql, [kelasId, mapelId, guruId, semesterId, hari, jamMulai, jamSelesai]);
     return result.rows[0];
@@ -98,7 +98,7 @@ const JadwalPelajaranRepository = {
     const sql = `
       UPDATE academic.jadwal_pelajaran
       SET kelas_id   = COALESCE($1, kelas_id),
-          mapel_id   = COALESCE($2, mapel_id),
+          mata_pelajaran_id   = COALESCE($2, mata_pelajaran_id),
           guru_id    = COALESCE($3, guru_id),
           semester_id = COALESCE($4, semester_id),
           hari       = COALESCE($5, hari),

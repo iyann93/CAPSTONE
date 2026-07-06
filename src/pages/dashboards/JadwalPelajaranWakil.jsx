@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 
 const HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
 const JAM = ["07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00"];
@@ -129,7 +129,7 @@ const JadwalPelajaranWakil = () => {
         <div className="flex gap-2">
           {["tabel", "grid"].map(m => (
             <button key={m} onClick={() => setViewMode(m)} className={`px-3 py-2 rounded-xl text-[12px] font-semibold transition-colors ${viewMode === m ? "bg-[#1A3D63] text-white" : "bg-gray-100 text-gray-600"}`}>
-              {m === "tabel" ? "📋 Tabel" : "ðŸ—“ï¸ Grid"}
+              {m === "tabel" ? "📋 Tabel" : "📅 Grid"}
             </button>
           ))}
         </div>

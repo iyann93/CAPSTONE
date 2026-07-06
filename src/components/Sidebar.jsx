@@ -216,8 +216,6 @@ const menuSections = [
     ],
     roles: ["Wakil Kepala"]
   },
-
-
   {
     section: "AKADEMIK",
     items: [
@@ -227,7 +225,16 @@ const menuSections = [
       { label: "Rekap Absensi Siswa", icon: <BarChartIcon /> },
       { label: "Catatan Siswa", icon: <ChatIcon /> }
     ],
-    roles: ["Guru", "Guru Mapel", "Wali Kelas"]
+    roles: ["Guru", "Guru Mapel"]
+  },
+  {
+    section: "MANAJEMEN KELAS",
+    items: [
+      { label: "Data Siswa Kelas", icon: <UsersIcon /> },
+      { label: "Catatan Siswa", icon: <ChatIcon /> },
+      { label: "Rapor Siswa", icon: <FileChartIcon /> }
+    ],
+    roles: ["Wali Kelas"]
   },
   {
     section: "PERSETUJUAN & VALIDASI",
@@ -251,7 +258,7 @@ const menuSections = [
     items: [
       { label: "Riwayat Terima Gaji", icon: <CalendarIcon /> }
     ],
-    roles: ["Admin TU", "Kepala Sekolah", "Bendahara", "Guru", "Guru Mapel", "Wali Kelas"]
+    roles: ["Admin TU", "Kepala Sekolah", "Wakil Kepala", "Bendahara", "Guru", "Guru Mapel", "Wali Kelas"]
   }
 ];
 const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) => {
@@ -266,7 +273,7 @@ const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) =>
     />}
 
     <aside className={`
-        fixed lg:sticky top-0 left-0 z-50 h-screen 
+        fixed lg:sticky top-0 left-0 z-40 h-screen 
         bg-[#F9FAFB] border-r border-gray-100
         transition-all duration-300 ease-in-out
         flex flex-col overflow-hidden
