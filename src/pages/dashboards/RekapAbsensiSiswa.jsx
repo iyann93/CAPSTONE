@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import ReactDOM from "react-dom";
 
 const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
-  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedClass, setSelectedClass] = useState("Kelas IX");
   const [activeTab, setActiveTab] = useState("Semua");
   const [searchQuery, setSearchQuery] = useState("");
   const [notification, setNotification] = useState(null);
@@ -30,9 +30,6 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
         // Parse classes
         const classNames = dbClasses.map(c => c.nama_kelas);
         setClasses(classNames);
-        if (classNames.length > 0) {
-          setSelectedClass(classNames[0]);
-        }
 
         const classMap = {};
         classNames.forEach(cName => {
@@ -139,7 +136,7 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
       }
     };
     fetchData();
-  }, [selectedClass]); // Trigger reload if selected class changes or explicitly requested
+  }, []); // Only fetch once on mount, selectedClass purely filters the local state
 
   const currentStudents = derivedStudentsData[selectedClass] || [];
 
