@@ -72,6 +72,14 @@ const whereBuilder = (startIdx = 1) => {
       idx++;
     },
 
+    /**
+     * Add a raw condition string without parameter bindings
+     */
+    addRaw(conditionStr) {
+      if (!conditionStr) return;
+      conditions.push(`(${conditionStr})`);
+    },
+
     build() {
       return {
         where: conditions.length ? `WHERE ${conditions.join(' AND ')}` : '',

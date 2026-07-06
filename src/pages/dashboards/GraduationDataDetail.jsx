@@ -17,11 +17,11 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
     const fetchStudents = async () => {
       try {
         setLoading(true);
-        const resSiswa = await api.get('/siswa');
-        const resLulus = await api.get('/kelulusan');
+        let allSiswa = [];
+        try { const res = await api.get('/siswa'); allSiswa = res.data?.data || []; } catch(e){}
         
-        const allSiswa = resSiswa.data?.data || [];
-        const allLulus = resLulus.data?.data || [];
+        let allLulus = [];
+        try { const res = await api.get('/kelulusan'); allLulus = res.data?.data || []; } catch(e){}
         
         // Filter siswa by class
         const classSiswa = allSiswa.filter(s => s.kelas_id === cls?.kode);
@@ -31,8 +31,11 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
         const mapped = classSiswa.map((s, i) => {
           const lulusData = allLulus.find(l => l.siswa_id === s.id) || {};
           let status = "Pending";
-          if (lulusData.status === "Lulus") status = "Lulus";
-          if (lulusData.status === "Tidak Lulus") status = "Tidak Lulus";
+          if (lulusData.status) {
+            const statusDb = lulusData.status.toLowerCase();
+            if (statusDb === "lulus") status = "Lulus";
+            if (statusDb === "tidak lulus") status = "Tidak Lulus";
+          }
 
           return {
             id: s.id,
@@ -84,7 +87,7 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
         if (s.status !== "Pending") {
           await api.post('/kelulusan', {
             siswaId: s.id,
-            status: s.status,
+            status: s.status.toLowerCase(),
             divalidasi_kepsek: false
           });
         }
@@ -103,7 +106,8 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
       }
     } catch (e) {
       console.error(e);
-      alert("Gagal menyimpan keputusan");
+      const msg = e.response?.data?.message || e.message || "Gagal menyimpan keputusan";
+      alert("Error: " + msg);
     }
   };
 

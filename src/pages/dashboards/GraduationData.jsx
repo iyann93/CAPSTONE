@@ -20,23 +20,20 @@ const GraduationData = () => {
       setLoading(true);
       const { default: api } = await import('../../api/axios');
       
-      const [kelasRes, siswaRes, lulusRes] = await Promise.all([
-        api.get('/kelas'),
-        api.get('/siswa'),
-        api.get('/kelulusan')
-      ]);
+      let dbClasses = [];
+      try { const res = await api.get('/kelas'); dbClasses = res.data?.data || []; } catch(e){}
+      
+      let allSiswa = [];
+      try { const res = await api.get('/siswa'); allSiswa = res.data?.data || []; } catch(e){}
+      
+      let allLulus = [];
+      try { const res = await api.get('/kelulusan'); allLulus = res.data?.data || []; } catch(e){}
 
-      const dbClasses = kelasRes.data?.data || [];
-      const allSiswa = siswaRes.data?.data || [];
-      const allLulus = lulusRes.data?.data || [];
-
-      // Filter hanya kelas IX dan bersihkan nama kelas dari IPA/IPS
+      // Filter hanya kelas IX
       const ixClasses = dbClasses
         .filter(c => c.nama_kelas?.toUpperCase().includes("IX"))
         .map(c => {
-          let kName = c.nama_kelas.toUpperCase();
-          if (kName.includes('IX')) kName = 'IX';
-          return { ...c, displayName: kName };
+          return { ...c, displayName: c.nama_kelas };
         });
       
       const mappedClasses = ixClasses.map((c, index) => {
@@ -49,11 +46,12 @@ const GraduationData = () => {
 
         classSiswa.forEach(s => {
           const lData = allLulus.find(l => l.siswa_id === s.id);
-          if (lData) {
-            if (lData.status === "Lulus") {
+          if (lData && lData.status) {
+            const statusDb = lData.status.toLowerCase();
+            if (statusDb === "lulus") {
               lulus++;
               pending--;
-            } else if (lData.status === "Tidak Lulus") {
+            } else if (statusDb === "tidak lulus") {
               tidakLulus++;
               pending--;
             }

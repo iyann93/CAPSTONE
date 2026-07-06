@@ -1,30 +1,6 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 
-const initStudentsProcess = [
-  { no:1,nis:"2023100",nama:"Siswa Kelas VII 1",init:"S",color:"bg-blue-500",nilai:76,kehadiran:94,mapel:2 },
-  { no:2,nis:"2023101",nama:"Siswa Kelas VII 2",init:"S",color:"bg-green-500",nilai:84,kehadiran:89,mapel:0 },
-  { no:3,nis:"2023102",nama:"Siswa Kelas VII 3",init:"S",color:"bg-purple-500",nilai:74,kehadiran:91,mapel:2 },
-  { no:4,nis:"2023103",nama:"Siswa Kelas VII 4",init:"S",color:"bg-orange-500",nilai:78,kehadiran:97,mapel:2 },
-  { no:5,nis:"2023104",nama:"Siswa Kelas VII 5",init:"S",color:"bg-pink-500",nilai:79,kehadiran:97,mapel:3 },
-  { no:6,nis:"2023105",nama:"Siswa Kelas VII 6",init:"S",color:"bg-teal-500",nilai:74,kehadiran:94,mapel:2 },
-  { no:7,nis:"2023106",nama:"Siswa Kelas VII 7",init:"S",color:"bg-red-500",nilai:83,kehadiran:78,mapel:2 },
-  { no:8,nis:"2023107",nama:"Siswa Kelas VII 8",init:"S",color:"bg-indigo-500",nilai:73,kehadiran:85,mapel:1 },
-  { no:9,nis:"2023108",nama:"Siswa Kelas VII 9",init:"S",color:"bg-yellow-500",nilai:79,kehadiran:87,mapel:3 },
-  { no:10,nis:"2023109",nama:"Siswa Kelas VII 10",init:"S",color:"bg-cyan-500",nilai:69,kehadiran:86,mapel:3 },
-];
 
-const initStudentsSelesai = [
-  { no:1,nis:"2023001",nama:"Andi Pratama",init:"A",color:"bg-green-500",nilai:87.5,kehadiran:95,mapel:0,status:"Naik Kelas" },
-  { no:2,nis:"2023002",nama:"Dewi Sartika",init:"D",color:"bg-orange-500",nilai:91.2,kehadiran:98,mapel:0,status:"Naik Kelas" },
-  { no:3,nis:"2023003",nama:"Ricky Firmansyah",init:"R",color:"bg-blue-500",nilai:78.3,kehadiran:88,mapel:0,status:"Naik Kelas" },
-  { no:4,nis:"2023004",nama:"Nurul Hidayah",init:"N",color:"bg-teal-500",nilai:85.6,kehadiran:92,mapel:0,status:"Naik Kelas" },
-  { no:5,nis:"2023005",nama:"Fajar Setiawan",init:"F",color:"bg-yellow-500",nilai:62.4,kehadiran:74,mapel:3,status:"Tidak Naik" },
-  { no:6,nis:"2023006",nama:"Rina Marlina",init:"R",color:"bg-red-400",nilai:89.4,kehadiran:94,mapel:0,status:"Naik Kelas" },
-  { no:7,nis:"2023007",nama:"Bagas Prasetyo",init:"B",color:"bg-purple-500",nilai:68.1,kehadiran:77,mapel:2,status:"Tidak Naik" },
-  { no:8,nis:"2023008",nama:"Ayu Lestari",init:"A",color:"bg-pink-500",nilai:93.7,kehadiran:99,mapel:0,status:"Naik Kelas" },
-  { no:9,nis:"2023009",nama:"Dimas Kurniawan",init:"D",color:"bg-blue-600",nilai:82.0,kehadiran:90,mapel:0,status:"Naik Kelas" },
-  { no:10,nis:"2023010",nama:"Siti Rahma",init:"S",color:"bg-green-600",nilai:88.3,kehadiran:93,mapel:0,status:"Naik Kelas" },
-];
 
 function autoStatus(s) {
   if (s.nilai >= 70 && s.kehadiran >= 80 && s.mapel <= 2) return "Naik Kelas";
@@ -34,28 +10,61 @@ function autoStatus(s) {
 const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) => {
   const isSelesai = mode === "selesai" || classData?.status === "Selesai";
   
-  const [students, setStudents] = useState(isSelesai ? initStudentsSelesai : initStudentsProcess.map(s => ({ ...s, status: "Belum Ditentukan" })));
-  
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   React.useEffect(() => {
-    const fetchState = async () => {
-      const key = `grade_promotion_students_${classData?.kode || "default"}`;
+    const fetchStudentsAndState = async () => {
+      setLoading(true);
       try {
+        const key = `grade_promotion_students_${classData?.kode || "default"}`;
+        const savedStr = localStorage.getItem(key);
+        const savedState = savedStr ? JSON.parse(savedStr) : null;
+
         const { default: api } = await import('../../api/axios');
-        const res = await api.get('/system/frontend-state');
-        if (res.data?.data?.[key]) {
-          setStudents(res.data.data[key]);
-          localStorage.setItem(key, JSON.stringify(res.data.data[key]));
-        } else {
-          const saved = localStorage.getItem(key);
-          if (saved) setStudents(JSON.parse(saved));
+        const resSiswa = await api.get('/siswa');
+        const allSiswa = resSiswa.data?.data || [];
+        const classSiswa = allSiswa.filter(s => s.kelas_id === classData?.kode);
+
+        // If no students in DB for this class, fallback to dynamic mock data
+        let baseStudents = [];
+        const count = classSiswa.length > 0 ? classSiswa.length : (classData?.total || 36);
+        
+        for (let i = 0; i < count; i++) {
+          const actual = classSiswa[i];
+          const nama = actual ? actual.nama_lengkap : `Siswa ${classData?.kelas || "Kelas VII"} ${i + 1}`;
+          const nis = actual ? actual.nis : `20231${i.toString().padStart(2, '0')}`;
+          const init = nama.charAt(0).toUpperCase();
+          const color = ["bg-blue-500", "bg-green-500", "bg-purple-500", "bg-orange-500", "bg-teal-500", "bg-pink-500"][i % 6];
+          
+          let status = isSelesai ? "Naik Kelas" : "Belum Ditentukan";
+          
+          if (savedState) {
+            const savedStudent = savedState.find(s => s.nis === nis);
+            if (savedStudent) status = savedStudent.status;
+          }
+
+          baseStudents.push({
+            no: i + 1,
+            nis,
+            nama,
+            init,
+            color,
+            nilai: 75 + (i % 20),
+            kehadiran: 85 + (i % 15),
+            mapel: i % 3,
+            status
+          });
         }
-      } catch (err) {
-        const saved = localStorage.getItem(key);
-        if (saved) setStudents(JSON.parse(saved));
+        setStudents(baseStudents);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchState();
-  }, [classData?.kode]);
+    if (classData) fetchStudentsAndState();
+  }, [classData, isSelesai]);
 
   const [activeTab, setActiveTab] = useState("Semua");
   const [search, setSearch] = useState("");
@@ -154,30 +163,7 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Ekspor Data
           </button>
-          <button
-            onClick={() => isSelesai ? setView("process") : handleProses()}
-            disabled={processing}
-            className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-[13px] font-bold shadow-sm transition-colors border ${
-              processing
-                ? "bg-blue-50 border-blue-200 text-blue-400 cursor-not-allowed"
-                : "bg-white border-[#2A4365] text-[#2A4365] hover:bg-blue-50"
-            }`}
-          >
-            {processing ? (
-              <>
-                <svg className="animate-spin" width="15" height="15" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                </svg>
-                Memproses...
-              </>
-            ) : (
-              <>
-                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                Proses Otomatis
-              </>
-            )}
-          </button>
+
           <button onClick={handleSaveDecision} className="flex items-center gap-2 px-3.5 py-2.5 bg-[#2A4365] hover:bg-[#1A365D] text-white rounded-xl text-[13px] font-bold shadow-sm">
             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
             Simpan Keputusan
@@ -252,7 +238,11 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
                   ))}</tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {filtered.map((s,i)=>(
+                  {loading ? (
+                    <tr><td colSpan="8" className="py-10 text-center text-gray-500 font-medium">Memuat data siswa...</td></tr>
+                  ) : filtered.length === 0 ? (
+                    <tr><td colSpan="8" className="py-10 text-center text-gray-500 font-medium">Tidak ada siswa ditemukan.</td></tr>
+                  ) : filtered.map((s,i)=>(
                     <tr key={i} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-4 py-3.5 text-[13px] text-gray-400">{s.no}</td>
                       <td className="px-4 py-3.5 text-[13px] text-gray-500">{s.nis}</td>
@@ -287,8 +277,8 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
                         )}
                       </td>
                       <td className="px-4 py-3.5">
-                        <button onClick={() => handleToggleStatus(s.nis)} className="flex items-center gap-1 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-[12px] font-bold text-gray-600 hover:bg-gray-50">
-                          Ubah <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                        <button onClick={() => handleToggleStatus(s.nis)} className="flex items-center gap-1 px-4 py-1.5 bg-blue-50 border border-blue-100 rounded-lg text-[12px] font-bold text-blue-600 hover:bg-blue-100 transition-colors">
+                          Ubah Status
                         </button>
                       </td>
                     </tr>
@@ -304,7 +294,7 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <h3 className="text-[14px] font-bold text-gray-700 mb-4">Informasi Kelas</h3>
             <div className="space-y-3">
-              {[["Total Siswa","30"],["Semester","Ganjil 2023/2024"]].map(([l,v],i)=>(
+              {[["Total Siswa", students.length],["Semester","Ganjil 2023/2024"]].map(([l,v],i)=>(
                 <div key={i} className="flex items-center justify-between">
                   <span className="text-[13px] text-gray-400">{l}</span>
                   <span className="text-[13px] font-semibold text-gray-700">{v}</span>
@@ -313,48 +303,7 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-              <h3 className="text-[14px] font-bold text-gray-700">Distribusi Nilai</h3>
-            </div>
-            <div className="space-y-3">
-              {[["≥ 85 (Sangat Baik)",0,"bg-green-500","bg-green-500"],["70-84 (Baik)",9,"bg-blue-500","bg-blue-500"],["60-69 (Cukup)",1,"bg-amber-400","bg-amber-400"],["< 60 (Kurang)",0,"bg-red-400","bg-red-400"]].map(([l,c,bar,dot],i)=>(
-                <div key={i} className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dot}`}/>
-                    <span className="text-[12px] text-gray-500 truncate">{l}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-12 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${bar}`} style={{width:`${(c/10)*100}%`}}/>
-                    </div>
-                    <span className="text-[12px] font-bold text-gray-600 w-3 text-right">{c}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
 
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#3B82F6" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              <h3 className="text-[14px] font-bold text-gray-700">Distribusi Kehadiran</h3>
-            </div>
-            <div className="space-y-3">
-              {[["≥ 90%",5,"bg-green-500"],["80-89%",4,"bg-blue-500"],["< 80% (Kurang)",1,"bg-red-400"]].map(([l,c,bar],i)=>(
-                <div key={i} className="flex items-center justify-between gap-2">
-                  <span className="text-[12px] text-gray-500 flex-1">{l}</span>
-                  <div className="flex items-center gap-2">
-                    <div className="w-12 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${bar}`} style={{width:`${(c/10)*100}%`}}/>
-                    </div>
-                    <span className="text-[12px] font-bold text-gray-600 w-3 text-right">{c}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
 
           {belum > 0 && (
             <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
@@ -362,7 +311,7 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#d97706" strokeWidth="2.5" className="flex-shrink-0 mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
                 <div>
                   <p className="text-[13px] font-bold text-amber-700">{belum} siswa belum ditentukan</p>
-                  <p className="text-[12px] text-amber-600 mt-1">Gunakan "Proses Otomatis" untuk memproses berdasarkan kriteria, atau tentukan secara manual.</p>
+                  <p className="text-[12px] text-amber-600 mt-1">Silakan tentukan status kenaikan siswa secara manual.</p>
                 </div>
               </div>
             </div>
