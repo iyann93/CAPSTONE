@@ -17,8 +17,8 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
     const fetchStudents = async () => {
       try {
         setLoading(true);
-        const resSiswa = await api.get('/siswa');
-        const resLulus = await api.get('/kelulusan');
+        const resSiswa = await api.get('/siswa?kelas_id=' + cls?.kode + '&limit=1000');
+        const resLulus = await api.get('/kelulusan?limit=10000');
         
         const allSiswa = resSiswa.data?.data || [];
         const allLulus = resLulus.data?.data || [];

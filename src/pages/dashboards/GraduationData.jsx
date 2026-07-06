@@ -21,9 +21,9 @@ const GraduationData = () => {
       const { default: api } = await import('../../api/axios');
       
       const [kelasRes, siswaRes, lulusRes] = await Promise.all([
-        api.get('/kelas'),
-        api.get('/siswa'),
-        api.get('/kelulusan')
+        api.get('/kelas?limit=1000'),
+        api.get('/siswa?limit=10000'),
+        api.get('/kelulusan?limit=10000')
       ]);
 
       const dbClasses = kelasRes.data?.data || [];
