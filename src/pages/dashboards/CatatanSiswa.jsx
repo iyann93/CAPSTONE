@@ -222,10 +222,6 @@ const CatatanSiswa = ({ user }) => {
                 onChange={(e) => {
                   setSelectedClass(e.target.value);
                   setSearchQuery("");
-<<<<<<< HEAD
-=======
-                  setSaveSuccess(false);
->>>>>>> 90d46930a3627f280f940e78ecffe693c345205a
                   const firstS = studentsData[e.target.value]?.[0];
                   if (firstS) setSelectedStudentId(firstS.id);
                 }}
