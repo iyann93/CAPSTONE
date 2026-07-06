@@ -26,23 +26,35 @@ const EyeIcon = () => (
   </svg>
 );
 
-// --- Dummy Data (Akademik) ---
-const stats = [
-  { label: "Mata Pelajaran Aktif", val: 12, sub: "Kurikulum berjalan", color: "text-blue-200", icon: <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> },
-  { label: "Jadwal Aktif", val: 38, sub: "Minggu ini", color: "text-green-200", icon: <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> },
-  { label: "Konflik Jadwal", val: 2, sub: "Perlu diselesaikan", color: "text-amber-200", icon: <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="1.8"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> },
+const initJadwal = [
+  { id: 1, mapel: "Matematika", guru: "Bpk. Hendra", kelas: "VIII IPA 1", hari: "Senin", jam: "07:00", ruang: "R. 01", semester: "Genap 2023/2024" },
+  { id: 2, mapel: "Fisika", guru: "Bpk. Hendra", kelas: "VIII IPA 2", hari: "Senin", jam: "08:00", ruang: "Lab Fisika", semester: "Genap 2023/2024" },
+  { id: 3, mapel: "Kimia", guru: "Ibu Rina", kelas: "VIII IPA 1", hari: "Selasa", jam: "07:00", ruang: "Lab Kimia", semester: "Genap 2023/2024" },
+  { id: 4, mapel: "B. Indonesia", guru: "Ibu Sari", kelas: "VII IPS 1", hari: "Rabu", jam: "10:00", ruang: "R. 12", semester: "Genap 2023/2024" },
+  { id: 5, mapel: "B. Inggris", guru: "Ibu Lena", kelas: "VII IPA 1", hari: "Kamis", jam: "09:00", ruang: "R. 03", semester: "Genap 2023/2024" },
 ];
 
+const detectConflicts = (jadwal) => {
+  const conflicts = [];
+  for (let i = 0; i < jadwal.length; i++) {
+    for (let j = i + 1; j < jadwal.length; j++) {
+      const a = jadwal[i], b = jadwal[j];
+      if (a.hari === b.hari && a.jam === b.jam) {
+        if (a.guru === b.guru) conflicts.push({ guru: a.guru, mapel: a.mapel, kelas: `${a.kelas} & ${b.kelas}`, waktu: `${a.hari}, ${a.jam}`, ruang: a.ruang });
+        else if (a.ruang === b.ruang) conflicts.push({ guru: `${a.guru} & ${b.guru}`, mapel: a.mapel, kelas: `${a.kelas} & ${b.kelas}`, waktu: `${a.hari}, ${a.jam}`, ruang: a.ruang });
+        else if (a.kelas === b.kelas) conflicts.push({ guru: `${a.guru} & ${b.guru}`, mapel: a.mapel, kelas: a.kelas, waktu: `${a.hari}, ${a.jam}`, ruang: `${a.ruang} & ${b.ruang}` });
+      }
+    }
+  }
+  return conflicts;
+};
+
+// --- Dummy Data (Akademik) ---
 const recentCurriculum = [
   { mapel: "Matematika", kelas: "IX-A", tingkat: "SMP", status: "Aktif" },
   { mapel: "IPA Terpadu", kelas: "VIII-A", tingkat: "SMP", status: "Aktif" },
   { mapel: "IPS Terpadu", kelas: "VII-B", tingkat: "SMP", status: "Revisi" },
   { mapel: "Bahasa Inggris", kelas: "VII-A", tingkat: "SMP", status: "Aktif" },
-];
-
-const conflicts = [
-  { guru: "Bpk. Hendra", mapel: "IPA", kelas: "VIII-A & VIII-B", waktu: "Senin, 08:00", ruang: "Lab IPA" },
-  { guru: "Ibu Sari", mapel: "B. Indonesia", kelas: "VII-A & VII-B", waktu: "Rabu, 10:00", ruang: "R. 12" },
 ];
 
 // --- Dummy Data (Keuangan) ---
@@ -97,6 +109,20 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
   const [tahunAjaran, setTahunAjaran] = useState("2025/2026");
   const [bulan, setBulan] = useState("Mei");
 
+  // Load jadwal from localStorage or use initial
+  const storedJadwal = localStorage.getItem("wakil_jadwal");
+  const jadwal = storedJadwal ? JSON.parse(storedJadwal) : initJadwal;
+  
+  // Detect real conflicts
+  const currentConflicts = detectConflicts(jadwal);
+  
+  // Dynamic stats
+  const stats = [
+    { label: "Mata Pelajaran Aktif", val: 12, sub: "Kurikulum berjalan", color: "text-blue-200", icon: <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> },
+    { label: "Jadwal Aktif", val: jadwal.length, sub: "Total jadwal di sistem", color: "text-green-200", icon: <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> },
+    { label: "Konflik Jadwal", val: currentConflicts.length, sub: currentConflicts.length > 0 ? "Perlu diselesaikan" : "Aman", color: currentConflicts.length > 0 ? "text-amber-200" : "text-green-200", icon: <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="1.8"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> },
+  ];
+
   return (
     <div className="p-6 md:p-8 space-y-8 animate-fadeIn bg-[#F5F7FA] min-h-full font-sans">
       
@@ -142,29 +168,44 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
             <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse"/>
-                  <h3 className="text-[15px] font-bold text-gray-800">⚠️ Konflik Jadwal Aktif</h3>
+                  {currentConflicts.length > 0 ? (
+                    <>
+                      <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse"/>
+                      <h3 className="text-[15px] font-bold text-gray-800">⚠️ Konflik Jadwal Aktif</h3>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-2 h-2 bg-green-400 rounded-full"/>
+                      <h3 className="text-[15px] font-bold text-gray-800">✅ Jadwal Aman</h3>
+                    </>
+                  )}
                 </div>
-                <button onClick={() => onNavigate("Jadwal Pelajaran")} className="text-[12px] font-bold text-[#1F3A5F] hover:underline bg-transparent border-none cursor-pointer">Lihat Semua →</button>
+                <button onClick={() => onNavigate("Jadwal Pelajaran")} className="text-[12px] font-bold text-[#1F3A5F] hover:underline bg-transparent border-none cursor-pointer">Kelola Jadwal →</button>
               </div>
               <div className="divide-y divide-gray-50">
-                {conflicts.map((c, i) => (
-                  <div key={i} className="px-5 py-4 flex items-start justify-between gap-4 hover:bg-amber-50/30 transition-colors">
-                    <div className="flex items-start gap-3">
-                      <div className="w-9 h-9 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#d97706" strokeWidth="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
-                      </div>
-                      <div>
-                        <p className="text-[13px] font-bold text-gray-800">{c.guru} — {c.mapel}</p>
-                        <p className="text-[12px] text-gray-500 mt-0.5">Kelas: {c.kelas} | Ruang: {c.ruang}</p>
-                        <p className="text-[12px] text-amber-600 font-semibold mt-0.5">{c.waktu}</p>
-                      </div>
-                    </div>
-                    <button onClick={() => onNavigate("Jadwal Pelajaran")} className="flex-shrink-0 px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-lg text-[11px] font-bold transition-colors cursor-pointer border-none">
-                      Perbaiki
-                    </button>
+                {currentConflicts.length === 0 ? (
+                  <div className="px-5 py-8 text-center">
+                    <p className="text-[13px] font-semibold text-gray-400">Tidak ada konflik jadwal saat ini.</p>
                   </div>
-                ))}
+                ) : (
+                  currentConflicts.map((c, i) => (
+                    <div key={i} className="px-5 py-4 flex items-start justify-between gap-4 hover:bg-amber-50/30 transition-colors">
+                      <div className="flex items-start gap-3">
+                        <div className="w-9 h-9 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#d97706" strokeWidth="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
+                        </div>
+                        <div>
+                          <p className="text-[13px] font-bold text-gray-800">{c.guru} — {c.mapel}</p>
+                          <p className="text-[12px] text-gray-500 mt-0.5">Kelas: {c.kelas} | Ruang: {c.ruang}</p>
+                          <p className="text-[12px] text-amber-600 font-semibold mt-0.5">{c.waktu}</p>
+                        </div>
+                      </div>
+                      <button onClick={() => onNavigate("Jadwal Pelajaran")} className="flex-shrink-0 px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-lg text-[11px] font-bold transition-colors cursor-pointer border-none">
+                        Perbaiki
+                      </button>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 

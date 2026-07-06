@@ -217,18 +217,6 @@ const menuSections = [
     roles: ["Wakil Kepala"]
   },
 
-
-  {
-    section: "AKADEMIK",
-    items: [
-      { label: "Jadwal Mengajar", icon: <CalendarIcon /> },
-      { label: "Input Nilai", icon: <BookIcon /> },
-      { label: "Absensi Siswa", icon: <UsersIcon /> },
-      { label: "Rekap Absensi Siswa", icon: <BarChartIcon /> },
-      { label: "Catatan Siswa", icon: <ChatIcon /> }
-    ],
-    roles: ["Guru", "Wali Kelas"]
-  },
   {
     section: "AKADEMIK",
     items: [
@@ -237,7 +225,16 @@ const menuSections = [
       { label: "Absensi Siswa", icon: <UsersIcon /> },
       { label: "Rekap Absensi Siswa", icon: <BarChartIcon /> }
     ],
-    roles: ["Guru Mapel"]
+    roles: ["Guru", "Guru Mapel"]
+  },
+  {
+    section: "MANAJEMEN KELAS",
+    items: [
+      { label: "Data Siswa Kelas", icon: <UsersIcon /> },
+      { label: "Catatan Siswa", icon: <ChatIcon /> },
+      { label: "Rapor Siswa", icon: <FileChartIcon /> }
+    ],
+    roles: ["Wali Kelas"]
   },
   {
     section: "PERSETUJUAN & VALIDASI",
@@ -261,7 +258,7 @@ const menuSections = [
     items: [
       { label: "Riwayat Terima Gaji", icon: <CalendarIcon /> }
     ],
-    roles: ["Admin TU", "Kepala Sekolah", "Wakil Kepala", "Bendahara"]
+    roles: ["Admin TU", "Kepala Sekolah", "Wakil Kepala", "Bendahara", "Guru", "Guru Mapel"]
   }
 ];
 const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) => {
