@@ -17,6 +17,14 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
     const fetchStudents = async () => {
       try {
         setLoading(true);
+        let semId = '00000002-0000-0000-0000-000000000001';
+        try {
+          const semRes = await api.get('/semester');
+          const semesters = semRes.data?.data || [];
+          const activeSem = semesters.find(s => s.is_aktif) || semesters[0];
+          if (activeSem) semId = activeSem.id;
+        } catch(e) {}
+
         let allSiswa = [];
         try {
           const res = await api.get('/siswa?kelas_id=' + cls?.kode + '&limit=1000');
@@ -29,6 +37,18 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
           allLulus = res.data?.data || [];
         } catch(e) { console.error("Kelulusan err", e); }
         
+        let dbNilai = [];
+        try {
+          const res = await api.get('/nilai/kelas/' + cls?.kode + '?semester_id=' + semId);
+          dbNilai = res.data?.data || [];
+        } catch(e) { console.error("Nilai err", e); }
+
+        let dbAbsensi = [];
+        try {
+          const res = await api.get('/absensi/rekap/semester?kelas_id=' + cls?.kode + '&semester_id=' + semId);
+          dbAbsensi = res.data?.data || [];
+        } catch(e) { console.error("Absensi err", e); }
+        
         // Filter siswa by class
         const classSiswa = allSiswa.filter(s => s.kelas_id === cls?.kode);
         
@@ -40,17 +60,41 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
           if (lulusData.status === "Lulus") status = "Lulus";
           if (lulusData.status === "Tidak Lulus") status = "Tidak Lulus";
 
+          const studentGrades = dbNilai.filter(n => n.siswa_id === s.id);
+          let totalAkhir = 0, totalUas = 0;
+          
+          studentGrades.forEach(n => {
+            totalAkhir += (Number(n.nilai_akhir) || 0);
+            totalUas += (Number(n.nilai_uas) || 0);
+          });
+          
+          const mapelCount = studentGrades.length || 1; 
+          const nilaiSek = studentGrades.length ? Number((totalAkhir / mapelCount).toFixed(1)) : 0;
+          const nilaiUS = studentGrades.length ? Number((totalUas / mapelCount).toFixed(1)) : 0;
+          const nilaiAkhir = Number(((nilaiSek * 0.6) + (nilaiUS * 0.4)).toFixed(1));
+
+          const studentAbsensi = dbAbsensi.find(a => a.siswa_id === s.id);
+          let kehadiranPct = 0;
+          if (studentAbsensi) {
+            const hadir = Number(studentAbsensi.total_hadir) || 0;
+            const izin = Number(studentAbsensi.total_izin) || 0;
+            const sakit = Number(studentAbsensi.total_sakit) || 0;
+            const alpha = Number(studentAbsensi.total_alpha) || 0;
+            const total = hadir + izin + sakit + alpha;
+            if (total > 0) kehadiranPct = Math.round((hadir / total) * 100);
+          }
+
           return {
             id: s.id,
             no: i + 1,
-            nis: s.nis,
+            nis: s.nis || "-",
             nama: s.nama_lengkap,
-            init: s.nama_lengkap.charAt(0).toUpperCase(),
+            init: (s.nama_lengkap || "S").charAt(0).toUpperCase(),
             color: colors[i % colors.length],
-            nilaiSek: parseFloat((80 + (i % 15)).toFixed(1)),
-            nilaiUS: parseFloat((75 + (i % 20)).toFixed(1)),
-            nilaiAkhir: parseFloat((77.5 + (i % 17)).toFixed(1)),
-            kehadiran: 90 + (i % 10),
+            nilaiSek: nilaiSek,
+            nilaiUS: nilaiUS,
+            nilaiAkhir: nilaiAkhir,
+            kehadiran: kehadiranPct,
             star: i === 0 || i === 1,
             status: status,
             catatan: ""
