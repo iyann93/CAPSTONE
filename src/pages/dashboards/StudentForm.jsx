@@ -326,7 +326,7 @@ const StudentForm = ({ onBack, onSave }) => {
                   type="text" 
                   value={formData.provinsi}
                   onChange={(e) => setFormData({ ...formData, provinsi: e.target.value })}
-                  placeholder="DKI Jakarta" 
+                  placeholder="DI Yogyakarta" 
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-[14px] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-colors bg-white" 
                 />
               </div>

@@ -3,12 +3,12 @@
 const { query } = require('../config/db');
 const { whereBuilder, buildOrderBy } = require('../utils/queryBuilder');
 
-const SORT_MAP = { tanggal: 'a.tanggal', created_at: 'a.created_at', siswa: 's.nama' };
+const SORT_MAP = { tanggal: 'a.tanggal', created_at: 'a.created_at', siswa: 's.nama_lengkap' };
 
 const AbsensiRepository = {
   findAll: async ({ limit, offset, search, sort, jadwalId, siswaId, kelasId, status, tanggal }) => {
     const wb = whereBuilder();
-    wb.addLike(search, ['s.nama', 's.nis', 'm.nama_mapel']);
+    wb.addLike(search, ['s.nama_lengkap', 's.nis', 'k.nama_kelas']);
     wb.addExact(jadwalId, 'a.jadwal_id');
     wb.addExact(siswaId, 'a.siswa_id');
     wb.addExact(status, 'a.status');
@@ -20,19 +20,19 @@ const AbsensiRepository = {
     }
     
     const { where, values, nextIdx } = wb.build();
-    const orderBy = buildOrderBy(sort, SORT_MAP, 'a.tanggal DESC, s.nama ASC');
+    const orderBy = buildOrderBy(sort, SORT_MAP, 'a.tanggal DESC, s.nama_lengkap ASC');
 
     const sql = `
       SELECT a.id, a.siswa_id, a.jadwal_id, a.tanggal, a.status, a.keterangan, a.dicatat_oleh, a.created_at,
-             s.nama AS siswa_nama, s.nis,
+             s.nama_lengkap AS siswa_nama, s.nis,
              jp.kelas_id, k.nama_kelas,
-             jp.mapel_id, m.nama_mapel,
+             jp.mata_pelajaran_id, m.nama AS nama_mapel,
              u.nama AS pencatat_nama
       FROM academic.absensi a
       LEFT JOIN academic.siswa s ON a.siswa_id = s.id
       LEFT JOIN academic.jadwal_pelajaran jp ON a.jadwal_id = jp.id
       LEFT JOIN academic.kelas k ON jp.kelas_id = k.id
-      LEFT JOIN academic.mapel m ON jp.mapel_id = m.id
+      LEFT JOIN academic.mata_pelajaran m ON jp.mata_pelajaran_id = m.id
       LEFT JOIN shared.users u ON a.dicatat_oleh = u.id
       ${where}
       ${orderBy}
@@ -55,12 +55,12 @@ const AbsensiRepository = {
 
   findById: async (id) => {
     const sql = `
-      SELECT a.*, s.nama AS siswa_nama, jp.kelas_id, k.nama_kelas, m.nama_mapel
+      SELECT a.*, s.nama_lengkap AS siswa_nama, jp.kelas_id, k.nama_kelas, m.nama AS nama_mapel
       FROM academic.absensi a
       LEFT JOIN academic.siswa s ON a.siswa_id = s.id
       LEFT JOIN academic.jadwal_pelajaran jp ON a.jadwal_id = jp.id
       LEFT JOIN academic.kelas k ON jp.kelas_id = k.id
-      LEFT JOIN academic.mapel m ON jp.mapel_id = m.id
+      LEFT JOIN academic.mata_pelajaran m ON jp.mata_pelajaran_id = m.id
       WHERE a.id = $1
     `;
     const result = await query(sql, [id]);
@@ -144,7 +144,7 @@ const AbsensiRepository = {
     }
     
     const sql = `
-      SELECT s.id AS siswa_id, s.nama AS siswa_nama, s.nis,
+      SELECT s.id AS siswa_id, s.nama_lengkap AS siswa_nama, s.nis,
              SUM(CASE WHEN a.status = 'Hadir' THEN 1 ELSE 0 END) AS total_hadir,
              SUM(CASE WHEN a.status = 'Izin' THEN 1 ELSE 0 END) AS total_izin,
              SUM(CASE WHEN a.status = 'Sakit' THEN 1 ELSE 0 END) AS total_sakit,
@@ -154,8 +154,8 @@ const AbsensiRepository = {
       INNER JOIN academic.jadwal_pelajaran jp ON a.jadwal_id = jp.id
       WHERE EXTRACT(MONTH FROM a.tanggal) = $1 AND EXTRACT(YEAR FROM a.tanggal) = $2
       ${kelasFilter}
-      GROUP BY s.id, s.nama, s.nis
-      ORDER BY s.nama ASC
+      GROUP BY s.id, s.nama_lengkap, s.nis
+      ORDER BY s.nama_lengkap ASC
     `;
     const result = await query(sql, values);
     return result.rows;
@@ -170,7 +170,7 @@ const AbsensiRepository = {
     }
 
     const sql = `
-      SELECT s.id AS siswa_id, s.nama AS siswa_nama, s.nis,
+      SELECT s.id AS siswa_id, s.nama_lengkap AS siswa_nama, s.nis,
              SUM(CASE WHEN a.status = 'Hadir' THEN 1 ELSE 0 END) AS total_hadir,
              SUM(CASE WHEN a.status = 'Izin' THEN 1 ELSE 0 END) AS total_izin,
              SUM(CASE WHEN a.status = 'Sakit' THEN 1 ELSE 0 END) AS total_sakit,
@@ -180,8 +180,8 @@ const AbsensiRepository = {
       INNER JOIN academic.jadwal_pelajaran jp ON a.jadwal_id = jp.id
       WHERE jp.semester_id = $1
       ${kelasFilter}
-      GROUP BY s.id, s.nama, s.nis
-      ORDER BY s.nama ASC
+      GROUP BY s.id, s.nama_lengkap, s.nis
+      ORDER BY s.nama_lengkap ASC
     `;
     const result = await query(sql, values);
     return result.rows;

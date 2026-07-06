@@ -23,8 +23,8 @@ const AbsensiController = {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) return next(Object.assign(new Error('Validation failed'), { type: 'validation', errors: errors.array() }));
-      // req.user.id didapat dari verifyToken middleware
-      const data = await AbsensiService.create(req.body, req.user.id);
+      // req.user.userId didapat dari verifyToken middleware
+      const data = await AbsensiService.create(req.body, req.user.userId);
       return response.success(res, 201, 'Data absensi berhasil disimpan', data);
     } catch (err) { next(err); }
   },
@@ -33,7 +33,7 @@ const AbsensiController = {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) return next(Object.assign(new Error('Validation failed'), { type: 'validation', errors: errors.array() }));
-      const data = await AbsensiService.update(req.params.id, req.body, req.user.id);
+      const data = await AbsensiService.update(req.params.id, req.body, req.user.userId);
       return response.success(res, 200, 'Data absensi berhasil diperbarui', data);
     } catch (err) { next(err); }
   },

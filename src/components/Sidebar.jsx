@@ -217,6 +217,7 @@ const menuSections = [
     roles: ["Wakil Kepala"]
   },
 
+<<<<<<< HEAD
   {
     section: "KEUANGAN KELAS",
     items: [
@@ -224,6 +225,9 @@ const menuSections = [
     ],
     roles: []
   },
+=======
+
+>>>>>>> b7de6e958f516ccc642a2b491e40f3e544911fa2
   {
     section: "AKADEMIK",
     items: [
@@ -233,6 +237,7 @@ const menuSections = [
       { label: "Rekap Absensi Siswa", icon: <BarChartIcon /> },
       { label: "Catatan Siswa", icon: <ChatIcon /> }
     ],
+<<<<<<< HEAD
     roles: ["Guru", "Guru Mapel"]
   },
   {
@@ -243,14 +248,23 @@ const menuSections = [
       { label: "Rapor Siswa", icon: <FileChartIcon /> }
     ],
     roles: ["Wali Kelas"]
+=======
+    roles: ["Guru", "Wali Kelas"]
+>>>>>>> b7de6e958f516ccc642a2b491e40f3e544911fa2
   },
   {
-    section: "PRIBADI",
+    section: "AKADEMIK",
     items: [
-      { label: "Slip Gaji", icon: <FileChartIcon /> },
-      { label: "Riwayat Terima Gaji", icon: <CalendarIcon /> }
+      { label: "Jadwal Mengajar", icon: <CalendarIcon /> },
+      { label: "Input Nilai", icon: <BookIcon /> },
+      { label: "Absensi Siswa", icon: <UsersIcon /> },
+      { label: "Rekap Absensi Siswa", icon: <BarChartIcon /> }
     ],
+<<<<<<< HEAD
     roles: ["Guru", "Guru Mapel"]
+=======
+    roles: ["Guru Mapel"]
+>>>>>>> b7de6e958f516ccc642a2b491e40f3e544911fa2
   },
   {
     section: "PERSETUJUAN & VALIDASI",
@@ -274,7 +288,11 @@ const menuSections = [
     items: [
       { label: "Riwayat Terima Gaji", icon: <CalendarIcon /> }
     ],
+<<<<<<< HEAD
     roles: ["Admin TU", "Kepala Sekolah", "Bendahara", "Guru", "Guru Mapel"]
+=======
+    roles: ["Admin TU", "Kepala Sekolah", "Wakil Kepala", "Bendahara"]
+>>>>>>> b7de6e958f516ccc642a2b491e40f3e544911fa2
   }
 ];
 const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) => {
@@ -289,7 +307,7 @@ const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) =>
     />}
 
     <aside className={`
-        fixed lg:sticky top-0 left-0 z-50 h-screen 
+        fixed lg:sticky top-0 left-0 z-40 h-screen 
         bg-[#F9FAFB] border-r border-gray-100
         transition-all duration-300 ease-in-out
         flex flex-col overflow-hidden

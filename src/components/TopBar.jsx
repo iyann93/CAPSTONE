@@ -23,9 +23,7 @@ const TopBar = ({ user, onToggle, onLogout, onProfileClick }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const getInitials = (name, role) => {
-    if (role === "Bendahara") return "SA";
-    if (role === "Wali Kelas") return "AK";
+  const getInitials = (name) => {
     if (!name) return "??";
     const parts = name.split(" ");
     if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
@@ -33,7 +31,7 @@ const TopBar = ({ user, onToggle, onLogout, onProfileClick }) => {
   };
 
   return (
-    <header className="bg-[#1A3D63] text-white h-16 flex items-center justify-between px-6 sticky top-0 z-50 shadow-md">
+    <header className="bg-[#1A3D63] text-white h-16 flex items-center justify-between px-6 sticky top-0 z-40 shadow-md">
       {/* Left: Logo & Toggle */}
       <div className="flex items-center gap-4">
         <button
@@ -61,14 +59,14 @@ const TopBar = ({ user, onToggle, onLogout, onProfileClick }) => {
           >
             <div className="hidden md:flex flex-col items-end">
               <span className="text-[13px] font-black leading-tight text-white">
-                {user?.role === "Bendahara" ? "Siti Aminah" : user?.role === "Wali Kelas" ? "Asih Kinanti, S.Pd" : (user?.fullName || user?.nama || user?.name || "Guest")}
+                {user?.fullName || user?.nama || user?.name || "Guest"}
               </span>
               <span className="text-[10px] font-bold opacity-60 uppercase tracking-widest mt-0.5 text-white">{user?.role || "Visitor"}</span>
             </div>
             <div className="relative">
               <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-white font-black text-xs border border-white/10 shadow-sm overflow-hidden">
                  <div className="w-full h-full bg-[#7C8FA9] flex items-center justify-center text-white font-bold text-xs">
-                   {getInitials(user?.nama, user?.role)}
+                   {getInitials(user?.fullName || user?.nama)}
                  </div>
               </div>
             </div>

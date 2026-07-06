@@ -91,7 +91,7 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2" className="mt-1"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                   <div>
                     <p className="text-[12px] text-gray-400 font-medium">Tempat, Tgl Lahir</p>
-                    <p className="text-[14px] text-[#1e293b] font-bold">Jakarta, 15 Maret 2006</p>
+                    <p className="text-[14px] text-[#1e293b] font-bold">Yogyakarta, 15 Maret 2006</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
@@ -112,7 +112,7 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2" className="mt-1"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                   <div>
                     <p className="text-[12px] text-gray-400 font-medium">Kota</p>
-                    <p className="text-[14px] text-[#1e293b] font-bold">Jakarta Selatan, DKI Jakarta</p>
+                    <p className="text-[14px] text-[#1e293b] font-bold">Sleman, DI Yogyakarta</p>
                   </div>
                 </div>
                 <div className="flex gap-3">
