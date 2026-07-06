@@ -71,6 +71,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
   const [categoryFilter, setCategoryFilter] = useState("Semua Kategori");
   const [showAddModal, setShowAddModal] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [fileUploadError, setFileUploadError] = useState("");
 
   // Form State
   const [formData, setFormData] = useState({
@@ -142,6 +143,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
     setShowAddModal(false);
     setFormData({ tanggal: "", kategori: "", nama: "", nominal: "", sumberDana: "", keterangan: "" });
     setUploadedFiles([]);
+    setFileUploadError("");
     setIsDirty(false);
   };
 
@@ -150,7 +152,12 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
       triggerToast ? triggerToast("Mohon isi semua kolom yang wajib (*)", "error") : alert("Mohon isi semua kolom yang wajib (*)");
       return;
     }
-    
+    // Require at least one uploaded proof file
+    if (uploadedFiles.length === 0) {
+      setFileUploadError("Harap unggah bukti pembayaran sebelum menyimpan!");
+      return;
+    }
+
     setIsSaving(true);
     // Simulasi API call
     setTimeout(() => {
@@ -179,6 +186,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
       setShowAddModal(false);
       setFormData({ tanggal: "", kategori: "", nama: "", nominal: "", sumberDana: "", keterangan: "" });
       setUploadedFiles([]);
+      setFileUploadError("");
       setIsDirty(false);
       const msg = activeTab === "pemasukan" ? "Data pemasukan berhasil disimpan!" : "Data pengeluaran berhasil disimpan!";
       triggerToast ? triggerToast(msg, "success") : alert(msg);
@@ -676,7 +684,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1.5">Upload Bukti Pembayaran</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Upload Bukti Pembayaran <span className="text-red-500">*</span></label>
                 <label className="border-2 border-dashed border-gray-200 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-all text-center">
                   <div className="text-gray-400 mb-2">
                     <IconUpload />
@@ -692,62 +700,68 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
                       const files = Array.from(e.target.files);
                       if (files.length === 0) return;
 
-                      let hasInvalid = false;
-                      const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-                      const validFiles = [];
+                        setFileUploadError("");
+                        let hasInvalid = false;
+                        const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+                        const validFiles = [];
 
-                      for (const file of files) {
-                        if (!allowedTypes.includes(file.type)) {
-                          triggerToast ? triggerToast(`Format file tidak didukung! Harap upload file JPG, PNG, atau PDF.`, "error") : alert(`Format ${file.name} tidak didukung!`);
-                          hasInvalid = true;
-                          continue;
+                        for (const file of files) {
+                          if (!allowedTypes.includes(file.type)) {
+                            const message = `Format file tidak didukung! Harap upload file JPG, PNG, atau PDF.`;
+                            setFileUploadError(message);
+                            hasInvalid = true;
+                            continue;
+                          }
+                          if (file.size > 2 * 1024 * 1024) {
+                            const message = `Ukuran file terlalu besar! Maksimal 2 MB.`;
+                            setFileUploadError(message);
+                            hasInvalid = true;
+                            continue;
+                          }
+                          validFiles.push(file);
                         }
-                        if (file.size > 2 * 1024 * 1024) {
-                          triggerToast ? triggerToast(`Ukuran file terlalu besar! Maksimal 2 MB.`, "error") : alert(`Ukuran ${file.name} terlalu besar!`);
-                          hasInvalid = true;
-                          continue;
-                        }
-                        validFiles.push(file);
-                      }
 
-                      if (validFiles.length > 0) {
-                        setUploadedFiles(prev => [...prev, ...validFiles]);
-                        if (!hasInvalid) {
-                          triggerToast ? triggerToast("File berhasil diunggah dan memenuhi syarat!") : alert("File berhasil ditambahkan.");
+                        if (validFiles.length > 0) {
+                          setUploadedFiles(prev => [...prev, ...validFiles]);
+                          if (!hasInvalid) {
+                            // clear any previous upload error; keep toast for success optional
+                            setFileUploadError("");
+                          }
                         }
-                      }
-                      e.target.value = ''; // Reset input to allow selecting the same file again if removed
-                    }}
-                  />
-                </label>
-
-                {uploadedFiles.length > 0 && (
-                  <div className="mt-3 space-y-2">
-                    {uploadedFiles.map((f, idx) => (
-                      <div key={idx} className="flex items-center justify-between bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl">
-                        <div className="flex items-center gap-3 overflow-hidden">
-                          <div className="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center shrink-0">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+                        e.target.value = ''; // Reset input to allow selecting the same file again if removed
+                      }}
+                    />
+                  </label>
+                  {fileUploadError && (
+                    <p className="mt-2 text-[11px] text-red-600 font-medium">{fileUploadError}</p>
+                  )}
+                  {uploadedFiles.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {uploadedFiles.map((file, idx) => (
+                        <div key={idx} className="flex items-center justify-between bg-emerald-50 border border-emerald-200 p-3 rounded-xl">
+                          <div className="flex items-center gap-3 overflow-hidden">
+                            <div className="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center shrink-0">
+                              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                              </svg>
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold text-emerald-800 truncate">{file.name}</p>
+                              <p className="text-[11px] text-emerald-600 font-medium">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                            </div>
                           </div>
-                          <div className="min-w-0">
-                            <p className="text-xs font-bold text-emerald-800 truncate">{f.name}</p>
-                            <p className="text-[10px] text-emerald-600 font-medium">{(f.size / 1024 / 1024).toFixed(2)} MB</p>
-                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setUploadedFiles(prev => prev.filter((_, i) => i !== idx))}
+                            className="text-emerald-600 hover:text-emerald-800 bg-transparent border-none cursor-pointer p-1.5 rounded-lg hover:bg-emerald-100/50 transition-colors shrink-0"
+                            title="Hapus File"
+                          >
+                            <IconX />
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => setUploadedFiles(prev => prev.filter((_, i) => i !== idx))}
-                          className="text-emerald-600 hover:text-emerald-800 bg-transparent border-none cursor-pointer p-1.5 rounded-lg hover:bg-emerald-100/50 transition-colors shrink-0"
-                          title="Hapus File"
-                        >
-                          <IconX />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
               </div>
 
               <div>

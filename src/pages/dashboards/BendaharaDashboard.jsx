@@ -349,6 +349,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
   // Transaction Modal States
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const [transactionFile, setTransactionFile] = useState(null);
+  const [transactionFileError, setTransactionFileError] = useState("");
   const [transactionTab, setTransactionTab] = useState("Pemasukan");
   const [transactionCategory, setTransactionCategory] = useState("SPP"); // SPP for Pemasukan, Gaji/Operasional for Pengeluaran
 
@@ -3315,7 +3316,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+
           />
           {/* Content */}
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full relative z-10 shadow-2xl animate-scaleUp border border-gray-100 font-sans">
@@ -3380,7 +3382,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       {showGenerateMonthModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+
           />
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-[480px] w-full relative z-10 shadow-2xl animate-scaleUp font-sans">
             <div className="mb-6">
@@ -3506,7 +3509,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       {showCancelMonthModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+
           />
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-[480px] w-full relative z-10 shadow-2xl animate-scaleUp font-sans border-t-4 border-red-500">
             <div className="mb-6">
@@ -4221,7 +4225,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       {showTransactionModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+
           />
           <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl relative animate-scaleIn z-10 flex flex-col font-sans">
             {/* Header */}
@@ -4335,8 +4340,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
                 {/* Bukti Pembayaran */}
                 <div>
-                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5">Bukti Pembayaran (Max 2MB, JPG/PNG/PDF)</label>
-                  {!transactionFile ? (
+                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5">Bukti Pembayaran <span className="text-red-500">*</span> <span className="text-[11px] text-gray-400">(Max 2MB, JPG/PNG/PDF)</span></label>
+                    {!transactionFile ? (
                     <input
                       type="file"
                       accept=".jpg,.jpeg,.png,.pdf"
@@ -4344,28 +4349,31 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                         const file = e.target.files[0];
                         if (!file) {
                           setTransactionFile(null);
+                          setTransactionFileError("");
                           return;
                         }
 
                         // Validate file type
                         const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
                         if (!allowedTypes.includes(file.type)) {
-                          triggerToast("Format file tidak didukung! Harap upload file JPG, PNG, atau PDF.", "error");
+                          const message = "Format file tidak didukung! Harap upload file JPG, PNG, atau PDF.";
                           e.target.value = ''; // Reset
                           setTransactionFile(null);
+                          setTransactionFileError(message);
                           return;
                         }
 
                         // Validate file size (2 MB = 2 * 1024 * 1024 bytes)
                         if (file.size > 2 * 1024 * 1024) {
-                          triggerToast("Ukuran file terlalu besar! Maksimal 2 MB.", "error");
+                          const message = "Ukuran file terlalu besar! Maksimal 2 MB.";
                           e.target.value = ''; // Reset
                           setTransactionFile(null);
+                          setTransactionFileError(message);
                           return;
                         }
 
                         setTransactionFile(file);
-                        triggerToast("File berhasil diunggah dan memenuhi syarat!");
+                        setTransactionFileError("");
                       }}
                       className="w-full border border-gray-200 rounded-xl px-4 py-2 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[11px] file:font-bold file:bg-[#1A3D63]/10 file:text-[#1A3D63] hover:file:bg-[#1A3D63]/20"
                     />
@@ -4382,13 +4390,16 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                       </div>
                       <button
                         type="button"
-                        onClick={() => setTransactionFile(null)}
+                        onClick={() => { setTransactionFile(null); setTransactionFileError(""); }}
                         className="text-emerald-600 hover:text-emerald-800 bg-transparent border-none cursor-pointer p-2 rounded-full hover:bg-emerald-100/50 transition-colors shrink-0"
                         title="Hapus File"
                       >
                         <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                       </button>
                     </div>
+                  )}
+                  {transactionFileError && (
+                    <p className="mt-2 text-[11px] text-red-600 font-medium">{transactionFileError}</p>
                   )}
                 </div>
               </div>
@@ -4404,6 +4415,10 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
               </button>
               <button
                 onClick={() => {
+                  if (!transactionFile) {
+                    setTransactionFileError("Harap unggah bukti pembayaran sebelum menyimpan!");
+                    return;
+                  }
                   setShowTransactionModal(false);
                   setTransactionFile(null);
                   triggerToast("Catatan transaksi berhasil disimpan!");
