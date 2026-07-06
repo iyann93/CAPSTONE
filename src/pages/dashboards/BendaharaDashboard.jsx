@@ -348,6 +348,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
   // Transaction Modal States
   const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [transactionFile, setTransactionFile] = useState(null);
   const [transactionTab, setTransactionTab] = useState("Pemasukan");
   const [transactionCategory, setTransactionCategory] = useState("SPP"); // SPP for Pemasukan, Gaji/Operasional for Pengeluaran
 
@@ -3314,8 +3315,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={() => setShowBillingModal(false)}
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
           />
           {/* Content */}
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full relative z-10 shadow-2xl animate-scaleUp border border-gray-100 font-sans">
@@ -3380,8 +3380,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       {showGenerateMonthModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={() => setShowGenerateMonthModal(false)}
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
           />
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-[480px] w-full relative z-10 shadow-2xl animate-scaleUp font-sans">
             <div className="mb-6">
@@ -3507,8 +3506,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       {showCancelMonthModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={() => setShowCancelMonthModal(false)}
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
           />
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-[480px] w-full relative z-10 shadow-2xl animate-scaleUp font-sans border-t-4 border-red-500">
             <div className="mb-6">
@@ -3600,7 +3598,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
       {showAddProgramModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-6 md:p-10">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCancelProgram} />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
           <div className="bg-white rounded-[24px] p-5 sm:p-6 max-w-2xl w-full relative z-10 shadow-2xl animate-scaleUp font-sans border border-gray-100 flex flex-col max-h-[calc(100vh-100px)] overflow-hidden">
             <div className="flex justify-between items-center mb-4 shrink-0">
               <h2 className="text-lg font-bold text-gray-800">{editingProgramTitle ? "Edit Program Beasiswa" : "Tambah Program Baru"}</h2>
@@ -3770,7 +3768,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       
       {showDeleteProgramConfirmModal && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDeleteProgramConfirmModal(false)} />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full relative z-10 shadow-xl animate-scaleUp">
             <div className="w-12 h-12 rounded-full bg-red-100 text-red-500 flex items-center justify-center mb-4">
               <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
@@ -3786,7 +3784,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       )}
 {showProgramCancelConfirm && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowProgramCancelConfirm(false)} />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full relative z-10 shadow-xl animate-scaleUp">
             <h3 className="text-lg font-bold text-gray-800 mb-2">Batalkan Perubahan?</h3>
             <p className="text-sm text-gray-600 mb-6">Data yang sudah Anda isi belum disimpan dan akan hilang. Apakah Anda yakin ingin membatalkan?</p>
@@ -3800,7 +3798,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
       {showKelolaDanaModal && (
         <div className="fixed inset-0 z-[998] flex items-center justify-center p-4 md:p-6 lg:p-10">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowKelolaDanaModal(false)} />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
           <div className="bg-white rounded-[24px] p-0 w-full max-w-4xl relative z-10 shadow-2xl animate-scaleUp font-sans border border-gray-100 flex flex-col overflow-hidden max-h-[90vh]">
             <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100 shrink-0 bg-white">
               <div>
@@ -3871,7 +3869,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
       {showAddDanaModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-6 md:p-10">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCancelDana} />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
           <div className="bg-white rounded-[24px] p-5 sm:p-6 max-w-lg w-full relative z-10 shadow-2xl animate-scaleUp font-sans border border-gray-100 flex flex-col">
             <div className="flex justify-between items-center mb-6 shrink-0">
               <h2 className="text-lg font-bold text-gray-800">Tambah Dana Masuk</h2>
@@ -3967,7 +3965,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       {/* Modal Tambah Penerima */}
       {showAddPenerimaModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCancelBeasiswa}></div>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" ></div>
           <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl relative animate-scaleIn z-10">
             {/* Modal Header */}
             <div className="flex justify-between items-center p-6 border-b border-gray-100">
@@ -4172,7 +4170,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       {/* Modal Cancel Konfirmasi Penerima */}
       {showBeasiswaCancelConfirm && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowBeasiswaCancelConfirm(false)}></div>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" ></div>
           <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl relative animate-scaleIn z-10 p-6 text-center">
             <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
@@ -4190,7 +4188,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       {/* Modal Hapus Beasiswa */}
       {showDeleteBeasiswaModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDeleteBeasiswaModal(false)}></div>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" ></div>
           <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl relative animate-scaleIn z-10 overflow-hidden">
             <div className="p-6 pb-0 flex flex-col items-center text-center">
               <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
@@ -4223,8 +4221,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       {showTransactionModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={() => setShowTransactionModal(false)}
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
           />
           <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl relative animate-scaleIn z-10 flex flex-col font-sans">
             {/* Header */}
@@ -4234,7 +4231,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                 <p className="text-[13px] text-gray-400 mt-1">Tambah catatan pengeluaran atau pemasukan</p>
               </div>
               <button
-                onClick={() => setShowTransactionModal(false)}
+                onClick={() => { setShowTransactionModal(false); setTransactionFile(null); }}
                 className="text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer p-1 transition-colors rounded-full hover:bg-gray-50"
               >
                 <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -4335,13 +4332,72 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all"
                   />
                 </div>
+
+                {/* Bukti Pembayaran */}
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5">Bukti Pembayaran (Max 2MB, JPG/PNG/PDF)</label>
+                  {!transactionFile ? (
+                    <input
+                      type="file"
+                      accept=".jpg,.jpeg,.png,.pdf"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (!file) {
+                          setTransactionFile(null);
+                          return;
+                        }
+
+                        // Validate file type
+                        const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+                        if (!allowedTypes.includes(file.type)) {
+                          triggerToast("Format file tidak didukung! Harap upload file JPG, PNG, atau PDF.", "error");
+                          e.target.value = ''; // Reset
+                          setTransactionFile(null);
+                          return;
+                        }
+
+                        // Validate file size (2 MB = 2 * 1024 * 1024 bytes)
+                        if (file.size > 2 * 1024 * 1024) {
+                          triggerToast("Ukuran file terlalu besar! Maksimal 2 MB.", "error");
+                          e.target.value = ''; // Reset
+                          setTransactionFile(null);
+                          return;
+                        }
+
+                        setTransactionFile(file);
+                        triggerToast("File berhasil diunggah dan memenuhi syarat!");
+                      }}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[11px] file:font-bold file:bg-[#1A3D63]/10 file:text-[#1A3D63] hover:file:bg-[#1A3D63]/20"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 p-3 rounded-xl">
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center shrink-0">
+                          <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-emerald-800 truncate">{transactionFile.name}</p>
+                          <p className="text-[11px] text-emerald-600 font-medium">{(transactionFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setTransactionFile(null)}
+                        className="text-emerald-600 hover:text-emerald-800 bg-transparent border-none cursor-pointer p-2 rounded-full hover:bg-emerald-100/50 transition-colors shrink-0"
+                        title="Hapus File"
+                      >
+                        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
             {/* Footer */}
             <div className="p-6 border-t border-gray-50 flex gap-3">
               <button
-                onClick={() => setShowTransactionModal(false)}
+                onClick={() => { setShowTransactionModal(false); setTransactionFile(null); }}
                 className="flex-1 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 py-3.5 rounded-xl text-[13px] font-bold cursor-pointer transition-colors"
               >
                 Batal
@@ -4349,6 +4405,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
               <button
                 onClick={() => {
                   setShowTransactionModal(false);
+                  setTransactionFile(null);
                   triggerToast("Catatan transaksi berhasil disimpan!");
                 }}
                 className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-400 py-3.5 rounded-xl text-[13px] font-bold cursor-pointer border-none flex items-center justify-center gap-2 transition-colors"
@@ -4363,7 +4420,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       {/* Delete Komponen Gaji Confirmation Modal */}
       {showDeleteKomponenModal && selectedKomponen && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDeleteKomponenModal(false)} />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
           <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl relative z-10 font-sans">
             <div className="p-6 pb-4 border-b border-gray-100 flex justify-between items-center">
               <div>
@@ -4420,7 +4477,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       {/* Detail Gaji Modal */}
       {showDetailGajiModal && selectedDetailGaji && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDetailGajiModal(false)} />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
           <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl relative z-10 font-sans overflow-hidden">
             {/* Header */}
             <div className="bg-[#1A3D63] p-6 pb-5 flex justify-between items-start text-white">
@@ -4669,7 +4726,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
       {showDanaCancelConfirm && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDanaCancelConfirm(false)} />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full relative z-10 shadow-xl animate-scaleUp">
             <h3 className="text-lg font-bold text-gray-800 mb-2">Batalkan Perubahan?</h3>
             <p className="text-sm text-gray-600 mb-6">Data dana yang sudah Anda isi belum disimpan dan akan hilang. Apakah Anda yakin ingin membatalkan?</p>

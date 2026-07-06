@@ -119,9 +119,7 @@ const RiwayatPembayaranSiswa = ({ user, onNavigate }) => {
       {/* Detail Modal — rendered via Portal to escape overflow-y-auto scroll container */}
       {detail && ReactDOM.createPortal(
         <div
-          style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0,0,0,0.65)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", padding: "1rem" }}
-          onClick={(e) => { if (e.target === e.currentTarget) setDetail(null); }}
-        >
+          style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0,0,0,0.65)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", padding: "1rem" }}>
           <div className="bg-white rounded-2xl w-full max-w-[440px] shadow-2xl overflow-hidden">
             {/* Header */}
             <div className="px-6 py-4 border-b border-gray-100">
