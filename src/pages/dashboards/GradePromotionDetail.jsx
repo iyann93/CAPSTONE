@@ -27,7 +27,7 @@ const initStudentsSelesai = [
 ];
 
 function autoStatus(s) {
-  if (s.nilai >= 70 && s.kehadiran >= 80 && s.mapel <= 2) return "Naik Kelas";
+  if (s.nilaiAkhir >= 70 && s.kehadiran >= 80 && s.mapel <= 2) return "Naik Kelas";
   return "Tidak Naik";
 }
 
@@ -42,27 +42,70 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
       try {
         const { default: api } = await import('../../api/axios');
         
-        // Ambil data siswa asli dari database
-        const siswaRes = await api.get('/siswa');
+        const [siswaRes, nilaiRes, absensiRes] = await Promise.all([
+          api.get('/siswa'),
+          api.get('/nilai/kelas/' + classData.kode + '?semester_id=1'),
+          api.get('/absensi/rekap/semester?kelas_id=' + classData.kode + '&semester_id=1')
+        ]);
+        
         const dbSiswa = siswaRes.data?.data || [];
+        const dbNilai = nilaiRes.data?.data || [];
+        const dbAbsensi = absensiRes.data?.data || [];
         
         // Filter siswa berdasarkan kelas yang dipilih
         const classStudents = dbSiswa.filter(s => s.kelas_id === classData?.kode);
         
         const colors = ["bg-blue-500", "bg-green-500", "bg-purple-500", "bg-orange-500", "bg-pink-500", "bg-teal-500", "bg-red-500", "bg-indigo-500"];
         
-        const mappedStudents = classStudents.map((s, i) => ({
-          no: i + 1,
-          nis: s.nis || "-",
-          nama: s.nama_lengkap,
-          init: (s.nama_lengkap || "S").charAt(0).toUpperCase(),
-          color: colors[i % colors.length],
-          // Simulasi nilai & kehadiran sementara sampai API nilai jadi
-          nilai: Math.floor(Math.random() * (95 - 65 + 1) + 65),
-          kehadiran: Math.floor(Math.random() * (100 - 75 + 1) + 75),
-          mapel: Math.floor(Math.random() * 4),
-          status: "Belum Ditentukan"
-        }));
+        const mappedStudents = classStudents.map((s, i) => {
+          // Hitung rata-rata nilai per siswa (dari semua mapel)
+          const studentGrades = dbNilai.filter(n => n.siswa_id === s.id);
+          let totalHarian = 0, totalUts = 0, totalUas = 0, totalAkhir = 0;
+          let mapelTdkLulus = 0;
+          
+          studentGrades.forEach(n => {
+            totalHarian += (Number(n.nilai_harian) || 0);
+            totalUts += (Number(n.nilai_uts) || 0);
+            totalUas += (Number(n.nilai_uas) || 0);
+            totalAkhir += (Number(n.nilai_akhir) || 0);
+            if ((Number(n.nilai_akhir) || 0) < 70) mapelTdkLulus++;
+          });
+          
+          const mapelCount = studentGrades.length || 1; 
+          const avgHarian = studentGrades.length ? Math.round(totalHarian / mapelCount) : 0;
+          const avgUts = studentGrades.length ? Math.round(totalUts / mapelCount) : 0;
+          const avgUas = studentGrades.length ? Math.round(totalUas / mapelCount) : 0;
+          const avgAkhir = studentGrades.length ? Math.round(totalAkhir / mapelCount) : 0;
+
+          // Hitung persentase kehadiran
+          const studentAbsensi = dbAbsensi.find(a => a.siswa_id === s.id);
+          let kehadiranPct = 0;
+          if (studentAbsensi) {
+            const hadir = Number(studentAbsensi.total_hadir) || 0;
+            const izin = Number(studentAbsensi.total_izin) || 0;
+            const sakit = Number(studentAbsensi.total_sakit) || 0;
+            const alpha = Number(studentAbsensi.total_alpha) || 0;
+            const total = hadir + izin + sakit + alpha;
+            if (total > 0) {
+              kehadiranPct = Math.round((hadir / total) * 100);
+            }
+          }
+
+          return {
+            no: i + 1,
+            nis: s.nis || "-",
+            nama: s.nama_lengkap,
+            init: (s.nama_lengkap || "S").charAt(0).toUpperCase(),
+            color: colors[i % colors.length],
+            nilaiHarian: avgHarian,
+            nilaiUts: avgUts,
+            nilaiUas: avgUas,
+            nilaiAkhir: avgAkhir,
+            kehadiran: kehadiranPct,
+            mapel: mapelTdkLulus,
+            status: "Belum Ditentukan"
+          };
+        });
 
         // Gabungkan dengan state yang sudah disimpan sebelumnya (jika ada)
         let finalStudents = mappedStudents;
@@ -280,7 +323,7 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="border-b border-gray-100">
-                  <tr>{["NO","NIS","NAMA SISWA","NILAI RATA-RATA","KEHADIRAN","MAPEL TDK LULUS","STATUS","AKSI"].map(h=>(
+                  <tr>{["NO","NIS","NAMA SISWA","NILAI HARIAN","NILAI UTS","NILAI UAS","KEHADIRAN","MAPEL TDK LULUS","STATUS","AKSI"].map(h=>(
                     <th key={h} className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
                   ))}</tr>
                 </thead>
@@ -297,8 +340,17 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
                       </td>
                       <td className="px-4 py-3.5">
                         <div className="flex items-center gap-1">
-                          <span className={`text-[13px] font-bold ${s.nilai<70?"text-red-500":"text-gray-700"}`}>{s.nilai}</span>
-                          {s.nilai<70&&<svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#ef4444" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>}
+                          <span className={`text-[13px] font-bold ${s.nilaiHarian<70?"text-red-500":"text-gray-700"}`}>{s.nilaiHarian}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <div className="flex items-center gap-1">
+                          <span className={`text-[13px] font-bold ${s.nilaiUts<70?"text-red-500":"text-gray-700"}`}>{s.nilaiUts}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <div className="flex items-center gap-1">
+                          <span className={`text-[13px] font-bold ${s.nilaiUas<70?"text-red-500":"text-gray-700"}`}>{s.nilaiUas}</span>
                         </div>
                       </td>
                       <td className="px-4 py-3.5">
