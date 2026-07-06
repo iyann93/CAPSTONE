@@ -61,8 +61,8 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
         const mapped = classSiswa.map((s, i) => {
           const lulusData = allLulus.find(l => l.siswa_id === s.id) || {};
           let status = "Pending";
-          if (lulusData.status === "Lulus") status = "Lulus";
-          if (lulusData.status === "Tidak Lulus") status = "Tidak Lulus";
+          if (lulusData.status?.toLowerCase() === "lulus") status = "Lulus";
+          if (lulusData.status?.toLowerCase() === "tidak lulus") status = "Tidak Lulus";
 
           const studentGrades = dbNilai.filter(n => n.siswa_id === s.id);
           let totalHarian = 0, totalUts = 0, totalUas = 0, totalAkhir = 0;
@@ -142,7 +142,7 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
         if (s.status !== "Pending") {
           await api.post('/kelulusan', {
             siswaId: s.id,
-            status: s.status,
+            status: s.status.toLowerCase(),
             divalidasi_kepsek: false,
             tahun_ajaran_id: tahunAjaranId
           });
