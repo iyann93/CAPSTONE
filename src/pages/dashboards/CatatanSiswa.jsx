@@ -1,28 +1,33 @@
-﻿import React, { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import ReactDOM from "react-dom";
 
 const CatatanSiswa = ({ user }) => {
-  const [selectedClass, setSelectedClass] = useState("VII IPA 1");
+  const [selectedClass, setSelectedClass] = useState("VII A");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStudentId, setSelectedStudentId] = useState("2023001");
+  const [selectedStudentId, setSelectedStudentId] = useState(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [notification, setNotification] = useState(null);
 
   // Mock student records
-  const [studentsData, setStudentsData] = useState({
-    "VII IPA 1": [
-      { id: "2023001", name: "Andi Pratama", gender: "Laki-laki", note: "Aktif dan rajin. Kemampuan aljabar meningkat pesat.", lastUpdated: "15 Nov 2023", avatarBg: "bg-blue-500" },
-      { id: "2023002", name: "Dewi Sartika", gender: "Perempuan", note: "Nilai tertinggi di kelas. Sangat direkomendasikan mengikuti olimpiade.", lastUpdated: "12 Nov 2023", avatarBg: "bg-slate-700" },
-      { id: "2023003", name: "Ricky Firmansyah", gender: "Laki-laki", note: "Perlu bimbingan tambahan. Kesulitan pada materi limit.", lastUpdated: "10 Nov 2023", avatarBg: "bg-amber-600" },
-      { id: "2023004", name: "Nurul Hidayah", gender: "Perempuan", note: "", lastUpdated: null, avatarBg: "bg-red-500" },
-      { id: "2023005", name: "Fajar Setiawan", gender: "Laki-laki", note: "Konsisten mengerjakan tugas.", lastUpdated: "08 Nov 2023", avatarBg: "bg-purple-600" },
-      { id: "2023006", name: "Ayu Lestari", gender: "Perempuan", note: "Juara 2 olimpiade kota. Sangat berbakat.", lastUpdated: "05 Nov 2023", avatarBg: "bg-pink-500" },
-    ],
-    "VII IPA 2": [
-      { id: "2023007", name: "Bagus Cahyo", gender: "Laki-laki", note: "Paham materi matriks dengan baik.", lastUpdated: "18 Nov 2023", avatarBg: "bg-blue-500" },
-      { id: "2023008", name: "Citra Lestari", gender: "Perempuan", note: "", lastUpdated: null, avatarBg: "bg-pink-500" },
-      { id: "2023009", name: "Dimas Anggara", gender: "Laki-laki", note: "Perlu remedial materi trigonometri.", lastUpdated: "14 Nov 2023", avatarBg: "bg-amber-600" },
-    ]
+  // Load from localStorage or use default
+  const [studentsData, setStudentsData] = useState(() => {
+    const saved = localStorage.getItem("wali_kelas_students");
+    if (saved) return JSON.parse(saved);
+    return {
+      "VII A": [
+        { id: "2023001", name: "Andi Pratama", gender: "Laki-laki", note: "Aktif dan rajin. Kemampuan aljabar meningkat pesat.", lastUpdated: "15 Nov 2023", avatarBg: "bg-blue-500", statusRapor: "Belum Terbit", hadir: 90, mapel: 12 },
+        { id: "2023002", name: "Dewi Sartika", gender: "Perempuan", note: "Nilai tertinggi di kelas. Sangat direkomendasikan mengikuti olimpiade.", lastUpdated: "12 Nov 2023", avatarBg: "bg-slate-700", statusRapor: "Terbit", hadir: 100, mapel: 12 },
+        { id: "2023003", name: "Ricky Firmansyah", gender: "Laki-laki", note: "", lastUpdated: null, avatarBg: "bg-amber-600", statusRapor: "Belum Terbit", hadir: 85, mapel: 10 },
+        { id: "2023004", name: "Nurul Hidayah", gender: "Perempuan", note: "Sangat baik", lastUpdated: "12 Nov 2023", avatarBg: "bg-red-500", statusRapor: "Terbit", hadir: 98, mapel: 12 },
+      ]
+    };
   });
+
+  // Save changes to localStorage whenever studentsData changes (via handleSave)
+  const persistData = (newData) => {
+    setStudentsData(newData);
+    localStorage.setItem("wali_kelas_students", JSON.stringify(newData));
+  };
 
   const classes = Object.keys(studentsData);
   const currentClassStudents = studentsData[selectedClass] || [];
@@ -98,6 +103,7 @@ const CatatanSiswa = ({ user }) => {
       year: "numeric"
     });
 
+    let newData;
     setStudentsData((prev) => {
       let foundClass = selectedClass;
       for (const cls of classes) {
@@ -114,28 +120,20 @@ const CatatanSiswa = ({ user }) => {
         return s;
       });
 
-      return { ...prev, [foundClass]: updatedList };
+      newData = { ...prev, [foundClass]: updatedList };
+      return newData;
     });
 
-    setNotification(`Catatan untuk ${selectedStudent.name} berhasil disimpan!`);
-    setTimeout(() => setNotification(null), 4000);
+    // Save to localStorage immediately
+    setTimeout(() => persistData(newData), 0);
+
+    // Hilangkan form dan ganti dengan tampilan sukses
+    setSaveSuccess(true);
+    // Kita biarkan selectedStudentId tetap ada agar kita tahu siapa yg baru disimpan
   };
 
   return (
     <div className="p-6 md:p-8 space-y-6 animate-fadeIn bg-[#F8FAFC] min-h-screen relative">
-      {/* Toast Notification — portal */}
-      {notification && ReactDOM.createPortal(
-        <div style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 9999 }} className="flex items-center gap-3 bg-slate-900 text-white px-5 py-4 rounded-2xl shadow-xl animate-slideIn">
-          <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          </div>
-          <span className="text-xs font-black tracking-tight">{notification}</span>
-        </div>,
-        document.body
-      )}
-
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex flex-col gap-1">
@@ -185,9 +183,10 @@ const CatatanSiswa = ({ user }) => {
                 onChange={(e) => {
                   setSelectedClass(e.target.value);
                   setSearchQuery("");
-                  // Select first student of the new class
+                  setSaveSuccess(false);
                   const firstS = studentsData[e.target.value]?.[0];
                   if (firstS) setSelectedStudentId(firstS.id);
+                  else setSelectedStudentId(null);
                 }}
                 className="w-full bg-white border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 appearance-none shadow-sm transition-all"
               >
@@ -215,16 +214,16 @@ const CatatanSiswa = ({ user }) => {
                 return (
                   <button
                     key={student.id}
-                    onClick={() => setSelectedStudentId(student.id)}
+                    onClick={() => { setSelectedStudentId(student.id); setSaveSuccess(false); }}
                     className={`w-full text-left p-4 rounded-2xl transition-all flex items-center gap-3.5 border ${
-                      isSelected
+                      isSelected && !saveSuccess
                         ? "bg-[#1A3D63] text-white border-transparent shadow-lg shadow-[#1A3D63]/10"
                         : "bg-white hover:bg-slate-50 border-gray-100 text-gray-800"
                     }`}
                   >
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center font-extrabold text-sm shadow-sm flex-shrink-0 ${
-                        isSelected ? "bg-white/20 text-white" : `${student.avatarBg} text-white`
+                        isSelected && !saveSuccess ? "bg-white/20 text-white" : `${student.avatarBg} text-white`
                       }`}
                     >
                       {student.name[0]}
@@ -269,7 +268,26 @@ const CatatanSiswa = ({ user }) => {
 
         {/* Right Side: Detail Panel / Textarea form */}
         <div className="lg:col-span-8 bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col h-[650px]">
-          {selectedStudent ? (
+          {saveSuccess && selectedStudent ? (
+             <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-green-50/30">
+                <div className="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-6 animate-slideUp">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
+                <h3 className="text-[24px] font-black text-gray-800 mb-2 animate-slideUp" style={{animationDelay: '100ms'}}>Tersimpan!</h3>
+                <p className="text-[14px] font-medium text-gray-500 mb-8 max-w-sm animate-slideUp" style={{animationDelay: '150ms'}}>
+                  Catatan untuk <strong className="text-gray-700">{selectedStudent.name}</strong> berhasil disimpan dan akan dilampirkan pada rapornya.
+                </p>
+                <button 
+                  onClick={() => setSaveSuccess(false)}
+                  className="px-6 py-3 bg-white border border-gray-200 text-gray-700 font-bold text-sm rounded-xl hover:bg-gray-50 transition-colors animate-slideUp shadow-sm"
+                  style={{animationDelay: '200ms'}}
+                >
+                  Edit Kembali
+                </button>
+             </div>
+          ) : selectedStudent ? (
             <>
               {/* Header Panel */}
               <div className="bg-[#1A3D63] p-6 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 flex-shrink-0">
