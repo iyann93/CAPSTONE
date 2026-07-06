@@ -64,11 +64,7 @@ const StudentForm = ({ onBack, onSave }) => {
     if (formData.kelas.startsWith("XI ") || formData.kelas.startsWith("XI")) tingkat = "Kelas XI";
     if (formData.kelas.startsWith("XII ") || formData.kelas.startsWith("XII")) tingkat = "Kelas XII";
 
-    let jurusan = "IPA";
-    if (formData.kelas.includes("IPS")) jurusan = "IPS";
-    if (formData.kelas.includes("Bahasa")) jurusan = "Bahasa";
 
-    // Initials
     const initials = formData.namaLengkap
       .split(" ")
       .map((n) => n[0])
@@ -91,7 +87,6 @@ const StudentForm = ({ onBack, onSave }) => {
       kelas: formData.kelas,
       kelas_id: matchedKelasId,
       tingkat,
-      jurusan,
       gender: formData.jenisKelamin,
       nilaiRataRata: 0.0,
       kehadiran: 100,
@@ -128,14 +123,6 @@ const StudentForm = ({ onBack, onSave }) => {
       .join("")
       .substring(0, 2)
       .toUpperCase();
-  };
-
-  const getJurusan = () => {
-    if (!formData.kelas) return "—";
-    if (formData.kelas.includes("IPA")) return "IPA";
-    if (formData.kelas.includes("IPS")) return "IPS";
-    if (formData.kelas.includes("Bahasa")) return "Bahasa";
-    return "Lainnya";
   };
 
   return (
@@ -359,7 +346,7 @@ const StudentForm = ({ onBack, onSave }) => {
                   value={formData.kelas_id}
                   onChange={(e) => {
                     const selectedId = e.target.value;
-                    const found = classes.find(c => c.id === selectedId);
+                    const found = classes.find(c => String(c.id) === selectedId);
                     setFormData({ 
                       ...formData, 
                       kelas_id: selectedId,
@@ -473,10 +460,7 @@ const StudentForm = ({ onBack, onSave }) => {
                 <span className="text-gray-500">Kelas</span>
                 <span className="font-bold text-[#1e293b]">{formData.kelas || '—'}</span>
               </div>
-              <div className="flex justify-between items-center text-[13px]">
-                <span className="text-gray-500">Jurusan</span>
-                <span className="font-bold text-[#1e293b]">{getJurusan()}</span>
-              </div>
+
               <div className="flex justify-between items-center text-[13px]">
                 <span className="text-gray-500">Tahun Masuk</span>
                 <span className="font-bold text-[#1e293b]">{formData.tahunMasuk || '2023'}</span>

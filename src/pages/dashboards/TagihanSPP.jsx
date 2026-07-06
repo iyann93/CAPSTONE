@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { getTagihan, uploadBuktiSpp } from "../../api/finance";
 
 const fmt = (n) => "Rp " + Number(n).toLocaleString("id-ID");
@@ -214,3 +214,5 @@ const TagihanSPP = ({ onNavigate }) => {
 };
 
 export default TagihanSPP;
+
+

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 
 const mockSubjects = [
   { mapel: "Matematika", guru: "Bpk. Hendra", nilai: [82, 78, 85, 88], kkmPassed: true },
@@ -213,3 +213,5 @@ const AkademikSiswa = ({ user }) => {
 };
 
 export default AkademikSiswa;
+
+

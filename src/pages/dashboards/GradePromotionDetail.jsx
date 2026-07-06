@@ -1,16 +1,16 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 
 const initStudentsProcess = [
-  { no:1,nis:"2023100",nama:"Siswa Kelas X IPS 1 1",init:"S",color:"bg-blue-500",nilai:76,kehadiran:94,mapel:2 },
-  { no:2,nis:"2023101",nama:"Siswa Kelas X IPS 1 2",init:"S",color:"bg-green-500",nilai:84,kehadiran:89,mapel:0 },
-  { no:3,nis:"2023102",nama:"Siswa Kelas X IPS 1 3",init:"S",color:"bg-purple-500",nilai:74,kehadiran:91,mapel:2 },
-  { no:4,nis:"2023103",nama:"Siswa Kelas X IPS 1 4",init:"S",color:"bg-orange-500",nilai:78,kehadiran:97,mapel:2 },
-  { no:5,nis:"2023104",nama:"Siswa Kelas X IPS 1 5",init:"S",color:"bg-pink-500",nilai:79,kehadiran:97,mapel:3 },
-  { no:6,nis:"2023105",nama:"Siswa Kelas X IPS 1 6",init:"S",color:"bg-teal-500",nilai:74,kehadiran:94,mapel:2 },
-  { no:7,nis:"2023106",nama:"Siswa Kelas X IPS 1 7",init:"S",color:"bg-red-500",nilai:83,kehadiran:78,mapel:2 },
-  { no:8,nis:"2023107",nama:"Siswa Kelas X IPS 1 8",init:"S",color:"bg-indigo-500",nilai:73,kehadiran:85,mapel:1 },
-  { no:9,nis:"2023108",nama:"Siswa Kelas X IPS 1 9",init:"S",color:"bg-yellow-500",nilai:79,kehadiran:87,mapel:3 },
-  { no:10,nis:"2023109",nama:"Siswa Kelas X IPS 1 10",init:"S",color:"bg-cyan-500",nilai:69,kehadiran:86,mapel:3 },
+  { no:1,nis:"2023100",nama:"Siswa Kelas VII 1",init:"S",color:"bg-blue-500",nilai:76,kehadiran:94,mapel:2 },
+  { no:2,nis:"2023101",nama:"Siswa Kelas VII 2",init:"S",color:"bg-green-500",nilai:84,kehadiran:89,mapel:0 },
+  { no:3,nis:"2023102",nama:"Siswa Kelas VII 3",init:"S",color:"bg-purple-500",nilai:74,kehadiran:91,mapel:2 },
+  { no:4,nis:"2023103",nama:"Siswa Kelas VII 4",init:"S",color:"bg-orange-500",nilai:78,kehadiran:97,mapel:2 },
+  { no:5,nis:"2023104",nama:"Siswa Kelas VII 5",init:"S",color:"bg-pink-500",nilai:79,kehadiran:97,mapel:3 },
+  { no:6,nis:"2023105",nama:"Siswa Kelas VII 6",init:"S",color:"bg-teal-500",nilai:74,kehadiran:94,mapel:2 },
+  { no:7,nis:"2023106",nama:"Siswa Kelas VII 7",init:"S",color:"bg-red-500",nilai:83,kehadiran:78,mapel:2 },
+  { no:8,nis:"2023107",nama:"Siswa Kelas VII 8",init:"S",color:"bg-indigo-500",nilai:73,kehadiran:85,mapel:1 },
+  { no:9,nis:"2023108",nama:"Siswa Kelas VII 9",init:"S",color:"bg-yellow-500",nilai:79,kehadiran:87,mapel:3 },
+  { no:10,nis:"2023109",nama:"Siswa Kelas VII 10",init:"S",color:"bg-cyan-500",nilai:69,kehadiran:86,mapel:3 },
 ];
 
 const initStudentsSelesai = [
@@ -129,7 +129,7 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
 
       {/* Breadcrumb */}
       <div className="text-[13px] font-medium text-gray-400 mb-4">
-        Dashboard &gt; <button onClick={() => setView("list")} className="text-gray-500 hover:text-[#2A4365]">Kenaikan Kelas</button> &gt; <span className="text-[#2A4365] font-semibold">{classData?.kelas || "Kelas X IPS 1"}</span>
+        Dashboard &gt; <button onClick={() => setView("list")} className="text-gray-500 hover:text-[#2A4365]">Kenaikan Kelas</button> &gt; <span className="text-[#2A4365] font-semibold">{classData?.kelas || "Kelas VII A"}</span>
       </div>
 
       {/* Header */}
@@ -140,8 +140,8 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
           </button>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[24px] font-bold text-[#1e293b]">{classData?.kelas || (isSelesai ? "Kelas X IPA 1" : "Kelas X IPS 1")}</h1>
-              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600">{classData?.kode || (isSelesai ? "X-IPA-1" : "X-IPS-1")}</span>
+              <h1 className="text-[24px] font-bold text-[#1e293b]">{classData?.kelas || (isSelesai ? "Kelas VIII A" : "Kelas VII A")}</h1>
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600">{classData?.kode || (isSelesai ? "VIII-A" : "VII-A")}</span>
               <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border ${(isSelesai || processed || classData?.status === "Selesai") ? "bg-green-50 text-green-600 border-green-100" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
                 {(isSelesai || processed || classData?.status === "Selesai") ? "Selesai" : "Belum Diproses"}
               </span>
@@ -304,7 +304,7 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <h3 className="text-[14px] font-bold text-gray-700 mb-4">Informasi Kelas</h3>
             <div className="space-y-3">
-              {[["Total Siswa","30"],["Jurusan","IPS"],["Kelas Tujuan","XI IPS 1"],["Semester","Ganjil 2023/2024"]].map(([l,v],i)=>(
+              {[["Total Siswa","30"],["Semester","Ganjil 2023/2024"]].map(([l,v],i)=>(
                 <div key={i} className="flex items-center justify-between">
                   <span className="text-[13px] text-gray-400">{l}</span>
                   <span className="text-[13px] font-semibold text-gray-700">{v}</span>
@@ -374,3 +374,7 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
 };
 
 export default GradePromotionDetail;
+
+
+
+

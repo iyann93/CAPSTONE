@@ -1,18 +1,17 @@
 import React, { useState } from "react";
 
 const mockSiswaList = [
-  { id: 1, nama: "Ahmad Fauzi", nisn: "0012345678", kelas: "XII IPA 1", rataRata: 88.5, kehadiran: "98%", status: "Sangat Baik" },
-  { id: 2, nama: "Siti Aminah", nisn: "0012345679", kelas: "XII IPA 1", rataRata: 82.0, kehadiran: "95%", status: "Baik" },
-  { id: 3, nama: "Budi Santoso", nisn: "0012345680", kelas: "XII IPS 2", rataRata: 65.5, kehadiran: "75%", status: "Perlu Perhatian" },
-  { id: 4, nama: "Dina Mariana", nisn: "0012345681", kelas: "XI IPA 3", rataRata: 92.0, kehadiran: "100%", status: "Sangat Baik" },
+  { id: 1, nama: "Ahmad Fauzi", nisn: "0012345678", kelas: "IX IPA 1", rataRata: 88.5, kehadiran: "98%", status: "Sangat Baik" },
+  { id: 2, nama: "Siti Aminah", nisn: "0012345679", kelas: "IX IPA 1", rataRata: 82.0, kehadiran: "95%", status: "Baik" },
+  { id: 3, nama: "Budi Santoso", nisn: "0012345680", kelas: "IX IPS 2", rataRata: 65.5, kehadiran: "75%", status: "Perlu Perhatian" },
+  { id: 4, nama: "Dina Mariana", nisn: "0012345681", kelas: "VIII IPA 3", rataRata: 92.0, kehadiran: "100%", status: "Sangat Baik" },
 ];
 
 const MonitoringSiswaKepsek = () => {
-  const [filter, setFilter] = useState({ tahunAjaran: "2024/2025", semester: "Ganjil", kelas: "Semua", search: "" });
+  const [filter, setFilter] = useState({ semester: "Ganjil 2024/2025", search: "" });
   const [selectedSiswa, setSelectedSiswa] = useState(null);
 
   const filteredData = mockSiswaList.filter(s => 
-    (filter.kelas === "Semua" || s.kelas === filter.kelas) &&
     s.nama.toLowerCase().includes(filter.search.toLowerCase())
   );
 
@@ -38,39 +37,17 @@ const MonitoringSiswaKepsek = () => {
             className="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-[#1A3D63] focus:border-[#1A3D63] block p-2.5"
           />
         </div>
-        <div className="flex-1 min-w-[150px]">
-          <label className="block text-[12px] font-bold text-gray-500 mb-1">Tahun Ajaran</label>
-          <select 
-            value={filter.tahunAjaran} 
-            onChange={(e) => setFilter({...filter, tahunAjaran: e.target.value})}
-            className="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-[#1A3D63] focus:border-[#1A3D63] block p-2.5"
-          >
-            <option>2023/2024</option>
-            <option>2024/2025</option>
-          </select>
-        </div>
-        <div className="flex-1 min-w-[150px]">
+        <div className="flex-1 min-w-[200px] max-w-[300px]">
           <label className="block text-[12px] font-bold text-gray-500 mb-1">Semester</label>
           <select 
             value={filter.semester} 
             onChange={(e) => setFilter({...filter, semester: e.target.value})}
             className="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-[#1A3D63] focus:border-[#1A3D63] block p-2.5"
           >
-            <option>Ganjil</option>
-            <option>Genap</option>
-          </select>
-        </div>
-        <div className="flex-1 min-w-[150px]">
-          <label className="block text-[12px] font-bold text-gray-500 mb-1">Kelas</label>
-          <select 
-            value={filter.kelas} 
-            onChange={(e) => setFilter({...filter, kelas: e.target.value})}
-            className="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-xl focus:ring-[#1A3D63] focus:border-[#1A3D63] block p-2.5"
-          >
-            <option>Semua</option>
-            <option>XI IPA 3</option>
-            <option>XII IPA 1</option>
-            <option>XII IPS 2</option>
+            <option>Ganjil 2024/2025</option>
+            <option>Genap 2024/2025</option>
+            <option>Ganjil 2023/2024</option>
+            <option>Genap 2023/2024</option>
           </select>
         </div>
       </div>
@@ -214,3 +191,5 @@ const MonitoringSiswaKepsek = () => {
 };
 
 export default MonitoringSiswaKepsek;
+
+

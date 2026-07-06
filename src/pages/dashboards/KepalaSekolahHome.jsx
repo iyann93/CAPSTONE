@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import StatCard from "../../components/StatCard";
 
 const UsersIcon = () => (
@@ -195,3 +195,5 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
 };
 
 export default KepalaSekolahHome;
+
+

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+﻿import React, { useState, useMemo, useEffect } from "react";
 import ReactDOM from "react-dom";
 
 const studentMetadata = {
@@ -14,7 +14,7 @@ const studentMetadata = {
 };
 
 const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
-  const [selectedClass, setSelectedClass] = useState("X IPA 1");
+  const [selectedClass, setSelectedClass] = useState("VII IPA 1");
   const [activeTab, setActiveTab] = useState("Semua");
   const [searchQuery, setSearchQuery] = useState("");
   const [notification, setNotification] = useState(null);
@@ -25,7 +25,7 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
 
     // Standard lists of students for fallback if no session exists yet for a class
     const fallbackStudents = {
-      "X IPA 1": [
+      "VII IPA 1": [
         { id: "2023001", name: "Andi Pratama", gender: "L", avatarBg: "bg-blue-500" },
         { id: "2023002", name: "Dewi Sartika", gender: "P", avatarBg: "bg-slate-700" },
         { id: "2023003", name: "Ricky Firmansyah", gender: "L", avatarBg: "bg-amber-600" },
@@ -33,7 +33,7 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
         { id: "2023005", name: "Fajar Setiawan", gender: "L", avatarBg: "bg-purple-600" },
         { id: "2023006", name: "Ayu Lestari", gender: "P", avatarBg: "bg-pink-500" },
       ],
-      "X IPA 2": [
+      "VII IPA 2": [
         { id: "2023007", name: "Bagus Cahyo", gender: "L", avatarBg: "bg-blue-500" },
         { id: "2023008", name: "Citra Lestari", gender: "P", avatarBg: "bg-pink-500" },
         { id: "2023009", name: "Dimas Anggara", gender: "L", avatarBg: "bg-amber-600" },
@@ -180,7 +180,7 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
           <div className="flex items-center text-xs font-semibold text-gray-400 gap-1.5">
             <span>Rekap Absensi Siswa</span>
             <span>•</span>
-            <span>Semester Ganjil 2023/2024 • SMAN 1 Contoh</span>
+            <span>Semester Ganjil 2023/2024 • SMPN 1 Contoh</span>
           </div>
           <h1 className="text-[26px] font-black text-[#1e293b] tracking-tight">Rekap Absensi Siswa</h1>
           <p className="text-xs text-gray-400 font-semibold mt-0.5">
@@ -462,3 +462,6 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
 };
 
 export default RekapAbsensiSiswa;
+
+
+

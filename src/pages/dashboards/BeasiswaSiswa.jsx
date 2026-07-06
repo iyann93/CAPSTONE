@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { getBeasiswa } from "../../api/finance";
 
 const BeasiswaSiswa = ({ user }) => {
@@ -121,3 +121,5 @@ const BeasiswaSiswa = ({ user }) => {
 };
 
 export default BeasiswaSiswa;
+
+

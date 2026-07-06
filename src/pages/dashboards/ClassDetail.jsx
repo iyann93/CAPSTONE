@@ -1,10 +1,10 @@
-import React from "react";
+﻿import React from "react";
 
 const ClassDetail = ({ setView, selectedClass }) => {
   return (
     <div className="p-6 md:p-8 animate-fadeIn space-y-6 bg-[#F4F6FA] min-h-full">
       <div className="text-[13px] font-medium text-gray-500 mb-1">
-        Dashboard <span className="mx-2">›</span> Data Kelas <span className="mx-2">›</span> <span className="text-[#1e293b] font-bold">Detail</span>
+        Dashboard <span className="mx-2">&rsaquo;</span> Data Kelas <span className="mx-2">&rsaquo;</span> <span className="text-[#1e293b] font-bold">Detail</span>
       </div>
 
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
@@ -226,10 +226,7 @@ const ClassDetail = ({ setView, selectedClass }) => {
                 <span className="text-[13px] text-gray-500">Tingkat</span>
                 <span className="text-[13px] font-bold text-[#1e293b]">{selectedClass?.level || "-"}</span>
               </div>
-              <div className="flex justify-between items-center pb-3 border-b border-gray-50">
-                <span className="text-[13px] text-gray-500">Jurusan</span>
-                <span className="bg-[#EFF6FF] text-[#3B82F6] text-[11px] font-bold px-2 py-0.5 rounded">{selectedClass?.major || "-"}</span>
-              </div>
+
               <div className="flex justify-between items-center pb-3 border-b border-gray-50">
                 <span className="text-[13px] text-gray-500">Tahun Ajaran</span>
                 <span className="text-[13px] font-bold text-[#1e293b]">{selectedClass?.year || "-"}</span>
@@ -305,3 +302,6 @@ const ClassDetail = ({ setView, selectedClass }) => {
 };
 
 export default ClassDetail;
+
+
+

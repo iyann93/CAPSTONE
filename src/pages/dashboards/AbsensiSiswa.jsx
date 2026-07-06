@@ -1,15 +1,15 @@
-import React, { useState, useMemo } from "react";
+﻿import React, { useState, useMemo } from "react";
 import ReactDOM from "react-dom";
 
 const AbsensiSiswa = ({ user, onSaveAttendance }) => {
-  const [selectedClass, setSelectedClass] = useState("X IPA 1");
+  const [selectedClass, setSelectedClass] = useState("VII IPA 1");
   const [selectedDate, setSelectedDate] = useState("2026-06-30");
   const [searchQuery, setSearchQuery] = useState("");
   const [notification, setNotification] = useState(null);
 
   // Mock student data grouped by class
   const [studentsData, setStudentsData] = useState({
-    "X IPA 1": [
+    "VII IPA 1": [
       { id: "2023001", name: "Andi Pratama", gender: "Laki-laki", status: "Hadir", avatarBg: "bg-blue-500" },
       { id: "2023002", name: "Dewi Sartika", gender: "Perempuan", status: "Hadir", avatarBg: "bg-slate-700" },
       { id: "2023003", name: "Ricky Firmansyah", gender: "Laki-laki", status: "Sakit", avatarBg: "bg-amber-600" },
@@ -17,7 +17,7 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
       { id: "2023005", name: "Fajar Setiawan", gender: "Laki-laki", status: "Izin", avatarBg: "bg-purple-600" },
       { id: "2023006", name: "Ayu Lestari", gender: "Perempuan", status: "Hadir", avatarBg: "bg-pink-500" },
     ],
-    "X IPA 2": [
+    "VII IPA 2": [
       { id: "2023007", name: "Bagus Cahyo", gender: "Laki-laki", status: "Hadir", avatarBg: "bg-blue-500" },
       { id: "2023008", name: "Citra Lestari", gender: "Perempuan", status: "Izin", avatarBg: "bg-pink-500" },
       { id: "2023009", name: "Dimas Anggara", gender: "Laki-laki", status: "Sakit", avatarBg: "bg-amber-600" },
@@ -98,7 +98,7 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
       <div className="flex flex-col gap-1.5">
         <h1 className="text-[26px] font-black text-[#1e293b] tracking-tight">Absensi Siswa</h1>
         <p className="text-sm text-gray-400 font-semibold">
-          Semester Ganjil 2023/2024 • SMAN 1 Contoh
+          Semester Ganjil 2023/2024 • SMPN 1 Contoh
         </p>
       </div>
 
@@ -358,3 +358,6 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
 };
 
 export default AbsensiSiswa;
+
+
+

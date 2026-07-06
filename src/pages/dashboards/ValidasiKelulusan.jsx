@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import ReactDOM from "react-dom";
 
 const mockSiswa = [
-  { id: 1, nisn: "0012345678", nama: "Ahmad Fauzi", kelas: "XII IPA 1", nilaiRata: 88.5, kehadiran: "98%", status: "Menunggu Validasi" },
-  { id: 2, nisn: "0012345679", nama: "Siti Aminah", kelas: "XII IPA 1", nilaiRata: 82.0, kehadiran: "95%", status: "Valid (Lulus)" },
-  { id: 3, nisn: "0012345680", nama: "Budi Santoso", kelas: "XII IPS 2", nilaiRata: 74.5, kehadiran: "80%", status: "Belum Valid" },
+  { id: 1, nisn: "0012345678", nama: "Ahmad Fauzi", kelas: "IX IPA 1", nilaiRata: 88.5, kehadiran: "98%", status: "Menunggu Validasi" },
+  { id: 2, nisn: "0012345679", nama: "Siti Aminah", kelas: "IX IPA 1", nilaiRata: 82.0, kehadiran: "95%", status: "Valid (Lulus)" },
+  { id: 3, nisn: "0012345680", nama: "Budi Santoso", kelas: "IX IPS 2", nilaiRata: 74.5, kehadiran: "80%", status: "Belum Valid" },
 ];
 
 const ValidasiKelulusan = () => {
@@ -17,7 +17,7 @@ const ValidasiKelulusan = () => {
     if (newStatus === "Valid (Lulus)") {
       alert("✅ Data berhasil divalidasi. Siswa dinyatakan Lulus!");
     } else {
-      alert("⚠️ Data dikembalikan ke Wali Kelas untuk diperbaiki.");
+      alert("⚠️ Data dikembalikan ke Wali Kelas untuk diperbaiki.");
     }
   };
 
@@ -226,3 +226,5 @@ const ValidasiKelulusan = () => {
 };
 
 export default ValidasiKelulusan;
+
+

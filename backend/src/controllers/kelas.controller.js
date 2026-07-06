@@ -25,8 +25,8 @@ const KelasController = {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) return next(Object.assign(new Error('Validation failed'), { type: 'validation', errors: errors.array() }));
-      const { nama_kelas, tingkat, tahun_ajaran, jurusan_id } = req.body;
-      const data = await KelasService.create({ namaKelas: nama_kelas, tingkat, tahunAjaran: tahun_ajaran, jurusanId: jurusan_id });
+      const { nama_kelas, tingkat, tahun_ajaran, jurusan_id, wali_kelas_id, kapasitas } = req.body;
+      const data = await KelasService.create({ namaKelas: nama_kelas, tingkat, tahunAjaran: tahun_ajaran, jurusanId: jurusan_id, waliKelasId: wali_kelas_id, kapasitas });
       return response.success(res, 201, 'Kelas berhasil dibuat', data);
     } catch (err) { next(err); }
   },
@@ -35,8 +35,8 @@ const KelasController = {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) return next(Object.assign(new Error('Validation failed'), { type: 'validation', errors: errors.array() }));
-      const { nama_kelas, tingkat, tahun_ajaran, jurusan_id } = req.body;
-      const data = await KelasService.update(req.params.id, { namaKelas: nama_kelas, tingkat, tahunAjaran: tahun_ajaran, jurusanId: jurusan_id });
+      const { nama_kelas, tingkat, tahun_ajaran, jurusan_id, wali_kelas_id, kapasitas } = req.body;
+      const data = await KelasService.update(req.params.id, { namaKelas: nama_kelas, tingkat, tahunAjaran: tahun_ajaran, jurusanId: jurusan_id, waliKelasId: wali_kelas_id, kapasitas });
       return response.success(res, 200, 'Kelas berhasil diperbarui', data);
     } catch (err) { next(err); }
   },

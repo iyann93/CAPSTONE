@@ -23,9 +23,9 @@ const mapSiswa = (s, index) => {
     ? (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase()
     : (nameParts[0][0] || "U").toUpperCase();
 
-  const isX  = s.nama_kelas?.toUpperCase().startsWith("X ");
-  const isXI = s.nama_kelas?.toUpperCase().startsWith("XI ");
-  const tingkat = isX ? "Kelas X" : isXI ? "Kelas XI" : "Kelas XII";
+  const isVII  = s.nama_kelas?.toUpperCase().includes("VII");
+  const isVIII = s.nama_kelas?.toUpperCase().includes("VIII");
+  const tingkat = isVII ? "Kelas VII" : isVIII ? "Kelas VIII" : "Kelas IX";
 
   return {
     id:           s.id,
@@ -45,7 +45,7 @@ const mapSiswa = (s, index) => {
     gender:       s.jenis_kelamin,
     email:        `${s.nis}@student.mbsprambanan.sch.id`,
     nisn:         s.nisn || (s.nis + "000"),
-    jurusan:      s.nama_jurusan || "-",
+
     nilaiRataRata:80 + (index % 15),
     kehadiran:    90 + (index % 10),
   };
@@ -414,3 +414,5 @@ const StudentData = () => {
 };
 
 export default StudentData;
+
+

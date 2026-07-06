@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 
 const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
   if (!data) return null;
@@ -99,7 +99,7 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
             <div className="space-y-6">
               <div>
                 <div className="flex justify-between items-end mb-2">
-                  <div className="text-[13px] font-bold text-gray-700">Kelas X</div>
+                  <div className="text-[13px] font-bold text-gray-700">Kelas VII</div>
                   <div className="text-[12px] text-gray-500 flex gap-3">
                     <span>Rata-rata: <span className="font-bold text-gray-800">80.2</span></span>
                     <span>KKM: 75</span>
@@ -113,7 +113,7 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
 
               <div>
                 <div className="flex justify-between items-end mb-2">
-                  <div className="text-[13px] font-bold text-gray-700">Kelas XI</div>
+                  <div className="text-[13px] font-bold text-gray-700">Kelas VIII</div>
                   <div className="text-[12px] text-gray-500 flex gap-3">
                     <span>Rata-rata: <span className="font-bold text-gray-800">77.8</span></span>
                     <span>KKM: 75</span>
@@ -127,7 +127,7 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
 
               <div>
                 <div className="flex justify-between items-end mb-2">
-                  <div className="text-[13px] font-bold text-gray-700">Kelas XII</div>
+                  <div className="text-[13px] font-bold text-gray-700">Kelas IX</div>
                   <div className="text-[12px] text-gray-500 flex gap-3">
                     <span>Rata-rata: <span className="font-bold text-gray-800">76.4</span></span>
                     <span>KKM: 75</span>
@@ -171,7 +171,7 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   <tr className="hover:bg-gray-50/50">
-                    <td className="px-6 py-4 text-[13px] font-bold text-gray-800">X-IPA 1</td>
+                    <td className="px-6 py-4 text-[13px] font-bold text-gray-800">VII-IPA 1</td>
                     <td className="px-6 py-4 text-[13px] font-medium text-gray-600">Senin, Rabu</td>
                     <td className="px-6 py-4 text-[13px] font-medium text-gray-500 font-mono tracking-tighter">07.30 - 09.30</td>
                     <td className="px-6 py-4 text-[13px] font-medium text-gray-600">36</td>
@@ -179,7 +179,7 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
                     <td className="px-6 py-4 text-[13px] font-bold text-gray-700">96%</td>
                   </tr>
                   <tr className="hover:bg-gray-50/50">
-                    <td className="px-6 py-4 text-[13px] font-bold text-gray-800">X-IPA 2</td>
+                    <td className="px-6 py-4 text-[13px] font-bold text-gray-800">VII-IPA 2</td>
                     <td className="px-6 py-4 text-[13px] font-medium text-gray-600">Selasa, Kamis</td>
                     <td className="px-6 py-4 text-[13px] font-medium text-gray-500 font-mono tracking-tighter">08.00 - 10.00</td>
                     <td className="px-6 py-4 text-[13px] font-medium text-gray-600">35</td>
@@ -187,7 +187,7 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
                     <td className="px-6 py-4 text-[13px] font-bold text-gray-700">94%</td>
                   </tr>
                   <tr className="hover:bg-gray-50/50">
-                    <td className="px-6 py-4 text-[13px] font-bold text-gray-800">XI-IPA 1</td>
+                    <td className="px-6 py-4 text-[13px] font-bold text-gray-800">VIII-IPA 1</td>
                     <td className="px-6 py-4 text-[13px] font-medium text-gray-600">Senin, Jumat</td>
                     <td className="px-6 py-4 text-[13px] font-medium text-gray-500 font-mono tracking-tighter">10.00 - 12.00</td>
                     <td className="px-6 py-4 text-[13px] font-medium text-gray-600">38</td>
@@ -195,7 +195,7 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
                     <td className="px-6 py-4 text-[13px] font-bold text-gray-700">95%</td>
                   </tr>
                   <tr className="hover:bg-gray-50/50">
-                    <td className="px-6 py-4 text-[13px] font-bold text-gray-800">XI-IPA 2</td>
+                    <td className="px-6 py-4 text-[13px] font-bold text-gray-800">VIII-IPA 2</td>
                     <td className="px-6 py-4 text-[13px] font-medium text-gray-600">Rabu, Jumat</td>
                     <td className="px-6 py-4 text-[13px] font-medium text-gray-500 font-mono tracking-tighter">07.30 - 09.30</td>
                     <td className="px-6 py-4 text-[13px] font-medium text-gray-600">37</td>
@@ -203,7 +203,7 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
                     <td className="px-6 py-4 text-[13px] font-bold text-gray-700">91%</td>
                   </tr>
                   <tr className="hover:bg-gray-50/50">
-                    <td className="px-6 py-4 text-[13px] font-bold text-gray-800">XII-IPA 1</td>
+                    <td className="px-6 py-4 text-[13px] font-bold text-gray-800">IX-IPA 1</td>
                     <td className="px-6 py-4 text-[13px] font-medium text-gray-600">Selasa, Kamis</td>
                     <td className="px-6 py-4 text-[13px] font-medium text-gray-500 font-mono tracking-tighter">10.00 - 12.00</td>
                     <td className="px-6 py-4 text-[13px] font-medium text-gray-600">39</td>
@@ -416,3 +416,6 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
 };
 
 export default SubjectDetail;
+
+
+

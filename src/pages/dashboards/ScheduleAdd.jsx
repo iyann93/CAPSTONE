@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+﻿import React, { useState, useMemo, useEffect } from "react";
 
 const timeSlots = [
   { label: "Jam 1-2",  time: "07:00 - 08:30" },
@@ -36,18 +36,18 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
     }
     // Default fallback jika data di localStorage kosong
     return [
-      { code: "MTK", name: "Matematika", group: "Wajib", levels: "X, XI, XII", teacher: "Drs. Hendra, M.Pd.", status: "Aktif" },
-      { code: "BIN", name: "Bahasa Indonesia", group: "Wajib", levels: "X, XI, XII", teacher: "Ibu Nuraini, S.Pd.", status: "Aktif" },
-      { code: "BIG", name: "Bahasa Inggris", group: "Wajib", levels: "X, XI, XII", teacher: "Mr. Andrian, M.A.", status: "Aktif" },
-      { code: "FIS", name: "Fisika", group: "IPA", levels: "X, XI, XII", teacher: "Ibu Sari, S.Pd.", status: "Aktif" },
-      { code: "KIM", name: "Kimia", group: "IPA", levels: "X, XI, XII", teacher: "Bpk. Rudi, M.Si.", status: "Aktif" },
-      { code: "BIO", name: "Biologi", group: "IPA", levels: "X, XI, XII", teacher: "Ibu Dewi, S.Pd.", status: "Aktif" },
-      { code: "EKO", name: "Ekonomi", group: "IPS", levels: "X, XI, XII", teacher: "Ibu Kartika, S.E.", status: "Aktif" },
-      { code: "SEJ", name: "Sejarah", group: "IPS", levels: "X, XI, XII", teacher: "Bpk. Suherman, M.Pd.", status: "Aktif" },
-      { code: "SOS", name: "Sosiologi", group: "IPS", levels: "XI, XII", teacher: "Ibu Ratna, S.Pd.", status: "Aktif" },
-      { code: "GEO", name: "Geografi", group: "IPS", levels: "X, XI, XII", teacher: "Bpk. Wahyu, M.Pd.", status: "Aktif" },
-      { code: "PKN", name: "PKn", group: "Wajib", levels: "X, XI, XII", teacher: "Ibu Marlina, S.Pd.", status: "Aktif" },
-      { code: "PJK", name: "Penjaskes", group: "Wajib", levels: "X, XI, XII", teacher: "Bpk. Eko, S.Pd.", status: "Nonaktif" }
+      { code: "MTK", name: "Matematika", group: "Wajib", levels: "VII, VIII, IX", teacher: "Drs. Hendra, M.Pd.", status: "Aktif" },
+      { code: "BIN", name: "Bahasa Indonesia", group: "Wajib", levels: "VII, VIII, IX", teacher: "Ibu Nuraini, S.Pd.", status: "Aktif" },
+      { code: "BIG", name: "Bahasa Inggris", group: "Wajib", levels: "VII, VIII, IX", teacher: "Mr. Andrian, M.A.", status: "Aktif" },
+      { code: "FIS", name: "Fisika", group: "IPA", levels: "VII, VIII, IX", teacher: "Ibu Sari, S.Pd.", status: "Aktif" },
+      { code: "KIM", name: "Kimia", group: "IPA", levels: "VII, VIII, IX", teacher: "Bpk. Rudi, M.Si.", status: "Aktif" },
+      { code: "BIO", name: "Biologi", group: "IPA", levels: "VII, VIII, IX", teacher: "Ibu Dewi, S.Pd.", status: "Aktif" },
+      { code: "EKO", name: "Ekonomi", group: "IPS", levels: "VII, VIII, IX", teacher: "Ibu Kartika, S.E.", status: "Aktif" },
+      { code: "SEJ", name: "Sejarah", group: "IPS", levels: "VII, VIII, IX", teacher: "Bpk. Suherman, M.Pd.", status: "Aktif" },
+      { code: "SOS", name: "Sosiologi", group: "IPS", levels: "VIII, IX", teacher: "Ibu Ratna, S.Pd.", status: "Aktif" },
+      { code: "GEO", name: "Geografi", group: "IPS", levels: "VII, VIII, IX", teacher: "Bpk. Wahyu, M.Pd.", status: "Aktif" },
+      { code: "PKN", name: "PKn", group: "Wajib", levels: "VII, VIII, IX", teacher: "Ibu Marlina, S.Pd.", status: "Aktif" },
+      { code: "PJK", name: "Penjaskes", group: "Wajib", levels: "VII, VIII, IX", teacher: "Bpk. Eko, S.Pd.", status: "Nonaktif" }
     ];
   }, []);
 
@@ -55,8 +55,8 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
   const availableSubjects = useMemo(() => {
     if (!formData.class) return [];
     
-    // Cari tingkat kelas (misal: "X", "XI", "XII")
-    const gradeMatch = formData.class.match(/^(X|XI|XII)\b/);
+    // Cari tingkat kelas (misal: "VII", "VIII", "IX")
+    const gradeMatch = formData.class.match(/^(VII|VIII|IX)\b/);
     const grade = gradeMatch ? gradeMatch[1] : "";
     
     const isIpa = formData.class.includes("IPA");
@@ -66,7 +66,7 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
       // Hanya tampilkan mapel yang berstatus Aktif
       if (subj.status !== "Aktif") return false;
 
-      // Filter berdasarkan Jenjang/Level (misal: subj.levels = "X, XI, XII")
+      // Filter berdasarkan Jenjang/Level (misal: subj.levels = "VII, VIII, IX")
       const subjLevels = subj.levels ? subj.levels.toString().toUpperCase() : "";
       const matchesGrade = subjLevels.includes(grade.toUpperCase());
       if (!matchesGrade) return false;
@@ -170,20 +170,20 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
   };
 
   const allClasses = [
-    "X IPA 1",
-    "X IPA 2",
-    "X IPS 1",
-    "XI IPA 1",
-    "XI IPS 1",
-    "XII IPA 1",
-    "XII IPS 1"
+    "VII IPA 1",
+    "VII IPA 2",
+    "VII IPS 1",
+    "VIII IPA 1",
+    "VIII IPS 1",
+    "IX IPA 1",
+    "IX IPS 1"
   ];
 
   return (
     <div className="p-6 md:p-8 animate-fadeIn space-y-6 bg-[#F4F6FA] min-h-full font-sans">
       {/* Breadcrumb */}
       <div className="text-[13px] font-medium text-gray-500 mb-1">
-        Dashboard <span className="mx-2">›</span> Jadwal Pelajaran <span className="mx-2">›</span>{" "}
+        Dashboard <span className="mx-2">&rsaquo;</span> Jadwal Pelajaran <span className="mx-2">&rsaquo;</span>{" "}
         <span className="text-[#1e293b] font-bold">Tambah Jadwal</span>
       </div>
 
@@ -329,10 +329,10 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
                   <span className="text-[14px] font-bold text-[#1e293b]">{formData.subject}</span>
                 </div>
                 <div className="text-[12px] text-gray-500 space-y-1">
-                  <p>🏫 <strong>{formData.class}</strong></p>
-                  <p>👨‍🏫 {formData.teacher}</p>
+                  <p>ðŸ« <strong>{formData.class}</strong></p>
+                  <p>ðŸ‘¨â€ðŸ« {formData.teacher}</p>
                   {selectedDay && <p>📅 {selectedDay} · {selectedSlot}</p>}
-                  {formData.room && <p>📍 {formData.room}</p>}
+                  {formData.room && <p>ðŸ“ {formData.room}</p>}
                 </div>
               </div>
             ) : (
@@ -356,7 +356,7 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
               </div>
               <div onClick={() => setIsActive(!isActive)}
                 className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors ${isActive ? "bg-[#3B82F6]" : "bg-gray-200"}`}>
-                <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${isActive ? "translate-x-6" : ""}`}></div>
+                <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${isActive ? "translate-VII-6" : ""}`}></div>
               </div>
             </div>
           </div>
@@ -391,3 +391,6 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
 };
 
 export default ScheduleAdd;
+
+
+

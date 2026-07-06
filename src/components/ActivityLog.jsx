@@ -1,10 +1,10 @@
-const logs = [
+﻿const logs = [
   {
     time: "10:45 AM",
     userName: "Dra. Sri Wahyuni",
     userRole: "Guru",
     module: "Akademik",
-    activity: "Input nilai UTS untuk Kelas X IPA 1"
+    activity: "Input nilai UTS untuk Kelas VII IPA 1"
   },
   {
     time: "10:12 AM",
@@ -86,3 +86,4 @@ var ActivityLog_default = ActivityLog;
 export {
   ActivityLog_default as default
 };
+

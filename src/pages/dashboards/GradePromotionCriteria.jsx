@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 
 const criteriaData = [
   {
@@ -242,3 +242,6 @@ const GradePromotionCriteria = ({ setView }) => {
 };
 
 export default GradePromotionCriteria;
+
+
+

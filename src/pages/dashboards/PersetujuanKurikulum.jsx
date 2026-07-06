@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import ReactDOM from "react-dom";
 
 const mockKurikulum = [
@@ -174,7 +174,7 @@ const PersetujuanKurikulum = () => {
                     <p className="text-[11px] text-blue-500">Klik untuk melihat berkas PDF lengkap</p>
                   </div>
                 </div>
-                <div className="text-blue-600 group-hover:translate-x-1 transition-transform">
+                <div className="text-blue-600 group-hover:translate-VII-1 transition-transform">
                   <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
@@ -226,3 +226,6 @@ const PersetujuanKurikulum = () => {
 };
 
 export default PersetujuanKurikulum;
+
+
+

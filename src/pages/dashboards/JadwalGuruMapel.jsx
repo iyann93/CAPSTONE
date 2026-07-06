@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 
 const mockJadwal = [
   { hari: "Senin", jam: "07:30 - 09:00", kelas: "VII A", subject: "Bahasa Indonesia" },
@@ -88,3 +88,5 @@ const JadwalGuruMapel = ({ user, onNavigate }) => {
 };
 
 export default JadwalGuruMapel;
+
+

@@ -28,16 +28,16 @@ const IconChart = () => (
 );
 
 const MOCK_CLASSES = [
-  { id: 1, code: "X-IPA-1", name: "Kelas X IPA 1", level: "Kelas X", major: "IPA", teacher: "Ibu Sari Dewi, S.Pd", students: 32, capacity: 36, room: "Ruang 101", status: "Aktif" },
-  { id: 2, code: "X-IPA-2", name: "Kelas X IPA 2", level: "Kelas X", major: "IPA", teacher: "Bpk. Ahmad Fauzi, M.Pd", students: 31, capacity: 36, room: "Ruang 102", status: "Aktif" },
-  { id: 3, code: "X-IPS-1", name: "Kelas X IPS 1", level: "Kelas X", major: "IPS", teacher: "Ibu Dewi Anggraini, S.Pd", students: 30, capacity: 36, room: "Ruang 201", status: "Aktif" },
-  { id: 4, code: "X-IPS-2", name: "Kelas X IPS 2", level: "Kelas X", major: "IPS", teacher: "Bpk. Budi Hartono, S.Pd", students: 29, capacity: 36, room: "Ruang 202", status: "Aktif" },
-  { id: 5, code: "X-BHS-1", name: "Kelas X Bahasa 1", level: "Kelas X", major: "Bahasa", teacher: "Ibu Nurdiana, S.Pd", students: 28, capacity: 36, room: "Ruang 203", status: "Aktif" },
-  { id: 6, code: "XI-IPA-1", name: "Kelas XI IPA 1", level: "Kelas XI", major: "IPA", teacher: "Ibu Rani Kusuma, S.Pd", students: 33, capacity: 36, room: "Ruang 301", status: "Aktif" },
-  { id: 7, code: "XI-IPA-2", name: "Kelas XI IPA 2", level: "Kelas XI", major: "IPA", teacher: "Bpk. Hendra Wijaya, M.Pd", students: 32, capacity: 36, room: "Ruang 302", status: "Aktif" },
-  { id: 8, code: "XI-IPS-1", name: "Kelas XI IPS 1", level: "Kelas XI", major: "IPS", teacher: "Ibu Maya Sari, S.Pd", students: 30, capacity: 36, room: "Ruang 303", status: "Aktif" },
-  { id: 9, code: "XI-IPS-2", name: "Kelas XI IPS 2", level: "Kelas XI", major: "IPS", teacher: "Bpk. Agus Santoso, S.Pd", students: 31, capacity: 36, room: "Ruang 304", status: "Aktif" },
-  { id: 10, code: "XII-IPA-1", name: "Kelas XII IPA 1", level: "Kelas XII", major: "IPA", teacher: "Ibu Siti Aminah, M.Pd", students: 28, capacity: 36, room: "Ruang 401", status: "Aktif" }
+  { id: 1, code: "VII-IPA-1", name: "Kelas VII IPA 1", level: "Kelas VII", major: "IPA", teacher: "Ibu Sari Dewi, S.Pd", students: 32, capacity: 36, room: "Ruang 101", status: "Aktif" },
+  { id: 2, code: "VII-IPA-2", name: "Kelas VII IPA 2", level: "Kelas VII", major: "IPA", teacher: "Bpk. Ahmad Fauzi, M.Pd", students: 31, capacity: 36, room: "Ruang 102", status: "Aktif" },
+  { id: 3, code: "VII-IPS-1", name: "Kelas VII IPS 1", level: "Kelas VII", major: "IPS", teacher: "Ibu Dewi Anggraini, S.Pd", students: 30, capacity: 36, room: "Ruang 201", status: "Aktif" },
+  { id: 4, code: "VII-IPS-2", name: "Kelas VII IPS 2", level: "Kelas VII", major: "IPS", teacher: "Bpk. Budi Hartono, S.Pd", students: 29, capacity: 36, room: "Ruang 202", status: "Aktif" },
+  { id: 5, code: "VII-BHS-1", name: "Kelas VII Bahasa 1", level: "Kelas VII", major: "Bahasa", teacher: "Ibu Nurdiana, S.Pd", students: 28, capacity: 36, room: "Ruang 203", status: "Aktif" },
+  { id: 6, code: "VIII-IPA-1", name: "Kelas VIII IPA 1", level: "Kelas VIII", major: "IPA", teacher: "Ibu Rani Kusuma, S.Pd", students: 33, capacity: 36, room: "Ruang 301", status: "Aktif" },
+  { id: 7, code: "VIII-IPA-2", name: "Kelas VIII IPA 2", level: "Kelas VIII", major: "IPA", teacher: "Bpk. Hendra Wijaya, M.Pd", students: 32, capacity: 36, room: "Ruang 302", status: "Aktif" },
+  { id: 8, code: "VIII-IPS-1", name: "Kelas VIII IPS 1", level: "Kelas VIII", major: "IPS", teacher: "Ibu Maya Sari, S.Pd", students: 30, capacity: 36, room: "Ruang 303", status: "Aktif" },
+  { id: 9, code: "VIII-IPS-2", name: "Kelas VIII IPS 2", level: "Kelas VIII", major: "IPS", teacher: "Bpk. Agus Santoso, S.Pd", students: 31, capacity: 36, room: "Ruang 304", status: "Aktif" },
+  { id: 10, code: "IX-IPA-1", name: "Kelas IX IPA 1", level: "Kelas IX", major: "IPA", teacher: "Ibu Siti Aminah, M.Pd", students: 28, capacity: 36, room: "Ruang 401", status: "Aktif" }
 ];
 
 const Classes = () => {
@@ -47,38 +47,43 @@ const Classes = () => {
   const [activeTab, setActiveTab] = useState("Semua Tingkat");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClass, setSelectedClass] = useState(null);
+  const [teachers, setTeachers] = useState([]);
 
   // Add form state
   const [addForm, setAddForm] = useState({
-    code: "", name: "", desc: "", major: "IPA", room: "", capacity: 36, year: "2025/2026", semester: "Ganjil", teacher: ""
+    code: "", name: "", desc: "", room: "", capacity: 36, year: "2025/2026", semester: "Ganjil", teacher: ""
   });
-  const [level, setLevel] = useState("Kelas X");
+  const [level, setLevel] = useState("Kelas VII");
   const [isActive, setIsActive] = useState(true);
 
   const fetchClassesAndStudents = async () => {
     setLoading(true);
     try {
-      const [resKelas, resSiswa] = await Promise.all([
+      const [resKelas, resSiswa, resGuru] = await Promise.all([
         api.get('/kelas?limit=100'),
-        api.get('/siswa?limit=1000')
+        api.get('/siswa?limit=1000'),
+        api.get('/guru?limit=100').catch(() => ({ data: { data: [] } }))
       ]);
 
       const listKelas = resKelas.data.data || [];
       const listSiswa = resSiswa.data.data || [];
+      const listGuru = resGuru.data.data || [];
+      setTeachers(listGuru);
 
       const mapped = listKelas.map((k) => {
         const countSiswa = listSiswa.filter(s => s.kelas_id === k.id).length;
         
-        let displayLevel = "Kelas X";
-        if (k.tingkat === "11" || k.tingkat === "Kelas XI") displayLevel = "Kelas XI";
-        if (k.tingkat === "12" || k.tingkat === "Kelas XII") displayLevel = "Kelas XII";
+        let displayLevel = "Kelas VII";
+        if (k.tingkat === "7" || k.tingkat === "VII" || k.tingkat === "Kelas VII") displayLevel = "Kelas VII";
+        if (k.tingkat === "8" || k.tingkat === "VIII" || k.tingkat === "Kelas VIII") displayLevel = "Kelas VIII";
+        if (k.tingkat === "9" || k.tingkat === "IX" || k.tingkat === "Kelas IX") displayLevel = "Kelas IX";
 
         return {
           id: k.id,
           code: k.kode_kelas || "TBA",
           name: k.nama_kelas,
           level: displayLevel,
-          major: k.kode_jurusan || k.nama_jurusan || "Umum",
+          teacherId: k.wali_kelas_id || "",
           teacher: k.wali_kelas_nama || "Belum Ditentukan",
           students: countSiswa,
           studentsList: listSiswa.filter(s => s.kelas_id === k.id),
@@ -102,8 +107,8 @@ const Classes = () => {
   }, []);
 
   const handleExport = () => {
-    const headers = ["ID", "KODE", "NAMA KELAS", "TINGKAT", "JURUSAN", "WALI KELAS", "SISWA", "KAPASITAS", "RUANGAN", "STATUS"];
-    const rows = classes.map((c, idx) => [idx + 1, c.code, c.name, c.level, c.major, c.teacher, c.students, c.capacity, c.room, c.status]);
+    const headers = ["ID", "KODE", "NAMA KELAS", "TINGKAT", "WALI KELAS", "SISWA", "KAPASITAS", "RUANGAN", "STATUS"];
+    const rows = classes.map((c, idx) => [idx + 1, c.code, c.name, c.level, c.teacher, c.students, c.capacity, c.room, c.status]);
     const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
@@ -120,31 +125,26 @@ const Classes = () => {
       return;
     }
 
-    let dbTingkat = "10";
-    if (level === "Kelas XI") dbTingkat = "11";
-    if (level === "Kelas XII") dbTingkat = "12";
+    let dbTingkat = "7";
+    if (level === "Kelas VIII") dbTingkat = "8";
+    if (level === "Kelas IX") dbTingkat = "9";
 
-    let dbJurusanId = "e0d0467a-6a5e-41cd-b274-10c08b53b66c"; 
-    const majUpper = (addForm.major || "").toUpperCase().trim();
-    if (majUpper.includes("IPA")) {
-      dbJurusanId = "e21a3ed9-3e46-4d9e-95e8-19ffac1dfaf5";
-    } else if (majUpper.includes("IPS")) {
-      dbJurusanId = "9c659b33-26eb-4d1d-8085-cd2880ea80bd";
-    } else if (majUpper.includes("BHS") || majUpper.includes("BAHASA")) {
-      dbJurusanId = "58b38f21-c7a6-4f0a-9995-29f7c693b558";
-    }
+    let dbJurusanId = null; 
+
 
     try {
       await api.post("/kelas", {
         nama_kelas: addForm.name,
         tingkat: dbTingkat,
         tahun_ajaran: addForm.year || "2025/2026",
-        jurusan_id: dbJurusanId
+        jurusan_id: null,
+        wali_kelas_id: addForm.teacher || null,
+        kapasitas: parseInt(addForm.capacity) || 36
       });
       await fetchClassesAndStudents();
       setView("list");
       setAddForm({
-        code: "", name: "", desc: "", major: "IPA", room: "", capacity: 36, year: "2025/2026", semester: "Ganjil", teacher: ""
+        code: "", name: "", desc: "", room: "", capacity: 36, year: "2025/2026", semester: "Ganjil", teacher: ""
       });
     } catch (err) {
       console.error(err);
@@ -169,27 +169,21 @@ const Classes = () => {
   }
 
   if (view === "edit") {
-    return <ClassEdit setView={setView} initialData={selectedClass} onSave={async (updatedData) => {
-      let dbTingkat = "10";
-      if (updatedData.level === "Kelas XI" || updatedData.level === "XI") dbTingkat = "11";
-      if (updatedData.level === "Kelas XII" || updatedData.level === "XII") dbTingkat = "12";
+    return <ClassEdit setView={setView} initialData={selectedClass} teachers={teachers} onDelete={handleDelete} onSave={async (updatedData) => {
+      let dbTingkat = "7";
+      if (updatedData.level === "Kelas VIII" || updatedData.level === "VIII") dbTingkat = "8";
+      if (updatedData.level === "Kelas IX" || updatedData.level === "IX") dbTingkat = "9";
 
-      let dbJurusanId = "e0d0467a-6a5e-41cd-b274-10c08b53b66c";
-      const majUpper = (updatedData.major || "").toUpperCase().trim();
-      if (majUpper.includes("IPA")) {
-        dbJurusanId = "e21a3ed9-3e46-4d9e-95e8-19ffac1dfaf5";
-      } else if (majUpper.includes("IPS")) {
-        dbJurusanId = "9c659b33-26eb-4d1d-8085-cd2880ea80bd";
-      } else if (majUpper.includes("BHS") || majUpper.includes("BAHASA")) {
-        dbJurusanId = "58b38f21-c7a6-4f0a-9995-29f7c693b558";
-      }
+      let dbJurusanId = null;
 
       try {
         await api.put(`/kelas/${updatedData.id}`, {
           nama_kelas: updatedData.name,
           tingkat: dbTingkat,
           tahun_ajaran: updatedData.year || "2025/2026",
-          jurusan_id: dbJurusanId
+          jurusan_id: null,
+          wali_kelas_id: updatedData.teacherId || null,
+          kapasitas: parseInt(updatedData.capacity) || 36
         });
         await fetchClassesAndStudents();
         setView("list");
@@ -205,7 +199,7 @@ const Classes = () => {
     return (
       <div className="p-6 md:p-8 animate-fadeIn font-sans bg-[#F4F6FA] min-h-full">
         <div className="text-[13px] font-medium text-gray-500 mb-4">
-          Dashboard <span className="mx-2">›</span> Data Kelas <span className="mx-2">›</span> <span className="text-[#1A3D63] font-bold">Tambah Kelas</span>
+          Dashboard <span className="mx-2">&rsaquo;</span> Data Kelas <span className="mx-2">&rsaquo;</span> <span className="text-[#1A3D63] font-bold">Tambah Kelas</span>
         </div>
 
         <div className="flex items-center gap-4 mb-6">
@@ -233,7 +227,7 @@ const Classes = () => {
 
                 <div className="md:col-span-2">
                   <label className="block text-[13px] font-bold text-gray-700 mb-2">Nama Kelas<span className="text-red-500">*</span></label>
-                  <input type="text" value={addForm.name} onChange={(e) => setAddForm({...addForm, name: e.target.value})} placeholder="cth. Kelas X IPA 1" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
+                  <input type="text" value={addForm.name} onChange={(e) => setAddForm({...addForm, name: e.target.value})} placeholder="cth. Kelas VII IPA 1" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
                 </div>
               </div>
 
@@ -243,15 +237,15 @@ const Classes = () => {
               </div>
             </div>
 
-            {/* Tingkat & Jurusan */}
+            {/* Tingkat */}
             <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-sm">
-              <h3 className="text-[15px] font-bold text-[#1e293b] mb-5">Tingkat & Jurusan</h3>
+              <h3 className="text-[15px] font-bold text-[#1e293b] mb-5">Tingkat Kelas</h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 gap-5">
                 <div>
                   <label className="block text-[13px] font-bold text-gray-700 mb-2">Tingkat Kelas<span className="text-red-500">*</span></label>
                   <div className="flex gap-2">
-                    {["Kelas X", "Kelas XI", "Kelas XII"].map(t => (
+                    {["Kelas VII", "Kelas VIII", "Kelas IX"].map(t => (
                       <button 
                         key={t}
                         onClick={() => setLevel(t)}
@@ -261,10 +255,6 @@ const Classes = () => {
                       </button>
                     ))}
                   </div>
-                </div>
-                <div>
-                  <label className="block text-[13px] font-bold text-gray-700 mb-2">Jurusan / Program<span className="text-red-500">*</span></label>
-                  <input type="text" value={addForm.major} onChange={(e) => setAddForm({...addForm, major: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
                 </div>
               </div>
             </div>
@@ -321,7 +311,16 @@ const Classes = () => {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                 <p className="text-[12px]">Pilih wali kelas dari daftar di bawah</p>
               </div>
-              <input type="text" value={addForm.teacher} onChange={(e) => setAddForm({...addForm, teacher: e.target.value})} placeholder="Nama Wali Kelas" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700" />
+              <select 
+                value={addForm.teacher} 
+                onChange={(e) => setAddForm({...addForm, teacher: e.target.value})} 
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700"
+              >
+                <option value="">-- Pilih Wali Kelas --</option>
+                {teachers.map(t => (
+                  <option key={t.id} value={t.id}>{t.nama}</option>
+                ))}
+              </select>
             </div>
 
             {/* Status Kelas */}
@@ -336,7 +335,7 @@ const Classes = () => {
                   onClick={() => setIsActive(!isActive)}
                   className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors ${isActive ? 'bg-[#3B82F6]' : 'bg-gray-300'}`}
                 >
-                  <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${isActive ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                  <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${isActive ? 'translate-VII-6' : 'translate-VII-0'}`}></div>
                 </div>
               </div>
             </div>
@@ -378,7 +377,7 @@ const Classes = () => {
   // LIST VIEW
   return (
     <div className="p-6 md:p-8 animate-fadeIn space-y-6 bg-[#F4F6FA] min-h-full">
-      <div className="text-[13px] font-medium text-gray-500 mb-1">Dashboard <span className="mx-2">›</span> Kelola Akademik <span className="mx-2">›</span> <span className="text-[#1e293b] font-bold">Semester</span></div>
+      <div className="text-[13px] font-medium text-gray-500 mb-1">Dashboard <span className="mx-2">&rsaquo;</span> Kelola Akademik <span className="mx-2">&rsaquo;</span> <span className="text-[#1e293b] font-bold">Semester</span></div>
       
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
@@ -448,7 +447,7 @@ const Classes = () => {
         {/* Filters and Search */}
         <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex gap-2 bg-gray-50 p-1 rounded-xl">
-            {["Semua Tingkat", "Kelas X", "Kelas XI", "Kelas XII"].map(t => (
+            {["Semua Tingkat", "Kelas VII", "Kelas VIII", "Kelas IX"].map(t => (
               <button 
                 key={t}
                 onClick={() => setActiveTab(t)}
@@ -460,16 +459,7 @@ const Classes = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="relative">
-              <select className="appearance-none pl-10 pr-8 py-2.5 bg-white border border-gray-200 rounded-xl text-[13px] font-bold text-gray-600 focus:outline-none focus:border-[#1A3D63]">
-                <option>Semua Jurusan</option>
-                <option>IPA</option>
-                <option>IPS</option>
-                <option>Bahasa</option>
-              </select>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="absolute left-3.5 top-3 text-gray-400"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-3.5 text-gray-400"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </div>
+
             <div className="relative">
               <input 
                 type="text" 
@@ -492,7 +482,7 @@ const Classes = () => {
 
                 <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest">NAMA KELAS</th>
                 <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest text-center">TINGKAT</th>
-                <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest text-center">JURUSAN</th>
+
                 <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest">WALI KELAS</th>
                 <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest">SISWA / KAPASITAS</th>
                 <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-widest">RUANGAN</th>
@@ -514,15 +504,7 @@ const Classes = () => {
                       {item.level}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className={`text-[11px] font-bold px-2.5 py-1 rounded-md border ${
-                      item.major === 'IPA' ? 'bg-[#1A3D63]/10 text-[#1A3D63] border-[#1A3D63]/20' :
-                      item.major === 'IPS' ? 'bg-slate-100 text-slate-700 border-slate-200' :
-                      'bg-gray-100 text-gray-700 border-gray-200'
-                    }`}>
-                      {item.major}
-                    </span>
-                  </td>
+
                   <td className="px-6 py-4 text-[13px] text-gray-600 font-medium">{item.teacher}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -588,3 +570,5 @@ const Classes = () => {
 };
 
 export default Classes;
+
+

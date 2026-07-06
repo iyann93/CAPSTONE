@@ -28,7 +28,7 @@ const KelasRepository = {
     const sql = `
       SELECT k.id, k.kode_kelas, k.nama_kelas, k.tingkat, k.kapasitas,
              ta.nama AS tahun_ajaran, j.nama AS nama_jurusan, j.kode AS kode_jurusan, 
-             k.jurusan_id, g.nama_lengkap AS wali_kelas_nama
+             k.jurusan_id, k.wali_kelas_id, g.nama_lengkap AS wali_kelas_nama
       FROM academic.kelas k
       LEFT JOIN academic.jurusan j ON k.jurusan_id = j.id
       LEFT JOIN academic.tahun_ajaran ta ON k.tahun_ajaran_id = ta.id
@@ -59,21 +59,22 @@ const KelasRepository = {
     return result.rows[0] || null;
   },
 
-  create: async ({ namaKelas, tingkat, tahunAjaran, jurusanId }) => {
+  create: async ({ namaKelas, tingkat, tahunAjaran, jurusanId, waliKelasId, kapasitas }) => {
     const taId = await getTahunAjaranId(tahunAjaran);
     
     // Generate a simple class code, e.g. "X-IPA-5" from namaKelas or just clean it
     const kodeKelas = namaKelas.replace(/\s+/g, '-').toUpperCase();
+    const kap = kapasitas || 36;
 
     const sql = `
-      INSERT INTO academic.kelas (kode_kelas, nama_kelas, tingkat, tahun_ajaran_id, jurusan_id, kapasitas)
-      VALUES ($1, $2, $3, $4, $5, 36) RETURNING *
+      INSERT INTO academic.kelas (kode_kelas, nama_kelas, tingkat, tahun_ajaran_id, jurusan_id, kapasitas, wali_kelas_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *
     `;
-    const result = await query(sql, [kodeKelas, namaKelas, tingkat, taId, jurusanId]);
+    const result = await query(sql, [kodeKelas, namaKelas, tingkat, taId, jurusanId, kap, waliKelasId || null]);
     return result.rows[0];
   },
 
-  update: async (id, { namaKelas, tingkat, tahunAjaran, jurusanId }) => {
+  update: async (id, { namaKelas, tingkat, tahunAjaran, jurusanId, waliKelasId, kapasitas }) => {
     const taId = tahunAjaran ? await getTahunAjaranId(tahunAjaran) : null;
     const kodeKelas = namaKelas ? namaKelas.replace(/\s+/g, '-').toUpperCase() : null;
 
@@ -83,10 +84,12 @@ const KelasRepository = {
           kode_kelas      = COALESCE($2, kode_kelas),
           tingkat         = COALESCE($3, tingkat),
           tahun_ajaran_id = COALESCE($4, tahun_ajaran_id),
-          jurusan_id      = COALESCE($5, jurusan_id)
-      WHERE id = $6 RETURNING *
+          jurusan_id      = COALESCE($5, jurusan_id),
+          wali_kelas_id   = COALESCE($6, wali_kelas_id),
+          kapasitas       = COALESCE($7, kapasitas)
+      WHERE id = $8 RETURNING *
     `;
-    const result = await query(sql, [namaKelas, kodeKelas, tingkat, taId, jurusanId, id]);
+    const result = await query(sql, [namaKelas, kodeKelas, tingkat, taId, jurusanId, waliKelasId, kapasitas, id]);
     return result.rows[0] || null;
   },
 

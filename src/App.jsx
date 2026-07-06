@@ -191,11 +191,12 @@ const App = () => {
     if (!user) return null;
 
     const roleStr = user.role ? user.role.trim().toLowerCase() : "";
+    const jabatanStr = user.jabatan_tugas ? user.jabatan_tugas.trim().toLowerCase() : "";
 
     if (roleStr === "admin tu" || roleStr === "admin") {
-      return <AdminTUDashboard user={user} activeMenu={activeMenu} />;
+      return <AdminTUDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
     } else if (roleStr === "super admin") {
-      return <SuperAdminDashboard user={user} activeMenu={activeMenu} />;
+      return <SuperAdminDashboard user={user} activeMenu={activeMenu} onViewChange={setActiveMenu} />;
     } else if (roleStr === "bendahara") {
       return (
         <BendaharaDashboard
@@ -222,6 +223,15 @@ const App = () => {
         />
       );
     } else if (roleStr === "guru" || roleStr === "guru mapel") {
+      if (jabatanStr === "wali kelas") {
+        return (
+          <WaliKelasDashboard
+            user={user}
+            activeMenu={activeMenu}
+            onViewChange={setActiveMenu}
+          />
+        );
+      }
       return (
         <GuruDashboard
           user={user}

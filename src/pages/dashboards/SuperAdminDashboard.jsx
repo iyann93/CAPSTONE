@@ -302,7 +302,7 @@ const ReactivateAccountModal = ({ user, onClose }) => {
               <div className="flex items-center gap-1.5 text-xs text-gray-400 font-semibold mt-1">
                 <span>💼 {user.role}</span>
                 <span>•</span>
-                <span>🗓️ Nonaktif: {user.date}</span>
+                <span>ðŸ—“ï¸ Nonaktif: {user.date}</span>
               </div>
             </div>
           </div>
@@ -444,7 +444,12 @@ const ActivationModule = () => {
     return nama.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
   };
 
-  const filteredUsers = allUsers;
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredUsers = allUsers.filter(u => 
+    (u.nama || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (u.email || '').toLowerCase().includes(searchQuery.toLowerCase())
+  ).filter(u => activeTab === "Pending" ? !u.is_active : !u.is_active);
 
   return (
     <div className="flex flex-col gap-6 animate-fadeIn">
@@ -544,6 +549,8 @@ const ActivationModule = () => {
             <input 
               type="text" 
               placeholder="Cari nama atau email..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="border border-gray-200 focus:border-gray-300 rounded-xl pl-10 pr-4 py-2 text-sm w-full md:w-[280px] outline-none transition-all placeholder:text-gray-400 text-gray-700 bg-white" 
             />
           </div>
@@ -987,8 +994,9 @@ const RolePermissionModule = () => {
   );
 };
 
-const SuperAdminOverview = ({ onExportClick }) => {
+const SuperAdminOverview = ({ onExportClick, onViewChange }) => {
   const [showQuickAction, setShowQuickAction] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const rbacChanges = [
     { name: "Dr. Wahyu", oldRole: "Guru", newRole: "Admin TU", time: "10:45" },
@@ -1010,6 +1018,15 @@ const SuperAdminOverview = ({ onExportClick }) => {
     { time: "07:00:05", message: "Service [PaymentGateway] restarted" },
   ];
 
+  const filteredRbacChanges = rbacChanges.filter(row =>
+    row.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    row.newRole.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredSystemLogs = systemLogs.filter(log =>
+    log.message.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="flex flex-col gap-6 animate-fadeIn">
       {/* Header Section */}
@@ -1025,6 +1042,8 @@ const SuperAdminOverview = ({ onExportClick }) => {
             <input 
               type="text" 
               placeholder="Cari user, role, atau log..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-white border border-gray-200 rounded-xl pl-11 pr-4 py-2.5 text-sm w-full md:w-[280px] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/10 focus:border-[#1A3D63] transition-all"
             />
           </div>
@@ -1045,7 +1064,7 @@ const SuperAdminOverview = ({ onExportClick }) => {
                     Manajemen Akun
                   </div>
                   <div className="p-1.5 space-y-0.5">
-                    <button className="w-full text-left px-3 py-2 text-[13px] font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
+                    <button onClick={() => { onViewChange?.("Kelola Pengguna"); setShowQuickAction(false); }} className="w-full text-left px-3 py-2 text-[13px] font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-[#1A3D63]">
                         <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                         <circle cx="8.5" cy="7" r="4" />
@@ -1054,7 +1073,7 @@ const SuperAdminOverview = ({ onExportClick }) => {
                       </svg>
                       Tambah Akun User
                     </button>
-                    <button className="w-full text-left px-3 py-2 text-[13px] font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
+                    <button onClick={() => { onViewChange?.("Aktivasi & Nonaktif"); setShowQuickAction(false); }} className="w-full text-left px-3 py-2 text-[13px] font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-[#1A3D63]">
                         <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
                         <circle cx="8.5" cy="7" r="4" />
@@ -1062,7 +1081,7 @@ const SuperAdminOverview = ({ onExportClick }) => {
                       </svg>
                       Aktivasi / Nonaktif User
                     </button>
-                    <button className="w-full text-left px-3 py-2 text-[13px] font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
+                    <button onClick={() => { onViewChange?.("Kelola Pengguna"); setShowQuickAction(false); }} className="w-full text-left px-3 py-2 text-[13px] font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500">
                         <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zM12 12l.5-1.5L14 11l.5-1.5L16 10l3.5-3.5L21 4" />
                       </svg>
@@ -1074,13 +1093,13 @@ const SuperAdminOverview = ({ onExportClick }) => {
                     Sistem & Akses
                   </div>
                   <div className="p-1.5 space-y-0.5">
-                    <button className="w-full text-left px-3 py-2 text-[13px] font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
+                    <button onClick={() => { onViewChange?.("Role & Permission"); setShowQuickAction(false); }} className="w-full text-left px-3 py-2 text-[13px] font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-[#1A3D63]">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                       </svg>
                       Kelola Role (RBAC)
                     </button>
-                    <button className="w-full text-left px-3 py-2 text-[13px] font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
+                    <button onClick={() => { onViewChange?.("Backup & Maintenance"); setShowQuickAction(false); }} className="w-full text-left px-3 py-2 text-[13px] font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600">
                         <ellipse cx="12" cy="5" rx="9" ry="3" />
                         <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
@@ -1088,7 +1107,7 @@ const SuperAdminOverview = ({ onExportClick }) => {
                       </svg>
                       Backup Sistem Manual
                     </button>
-                    <button className="w-full text-left px-3 py-2 text-[13px] font-bold text-red-600 hover:bg-red-50 rounded-xl flex items-center gap-3 transition-colors">
+                    <button onClick={() => { onViewChange?.("Hak Akses Sistem"); setShowQuickAction(false); }} className="w-full text-left px-3 py-2 text-[13px] font-bold text-red-600 hover:bg-red-50 rounded-xl flex items-center gap-3 transition-colors">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500">
                         <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
                         <line x1="12" y1="2" x2="12" y2="12" />
@@ -1137,7 +1156,7 @@ const SuperAdminOverview = ({ onExportClick }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {rbacChanges.map((row, i) => (
+                {filteredRbacChanges.map((row, i) => (
                   <tr key={i} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4 text-sm font-bold text-gray-800">{row.name}</td>
                     <td className="px-6 py-4 text-sm text-gray-400 font-medium">{row.oldRole}</td>
@@ -1145,6 +1164,9 @@ const SuperAdminOverview = ({ onExportClick }) => {
                     <td className="px-6 py-4 text-sm text-gray-400 font-medium">{row.time}</td>
                   </tr>
                 ))}
+                {filteredRbacChanges.length === 0 && (
+                  <tr><td colSpan={4} className="px-6 py-8 text-center text-gray-400">Tidak ada perubahan role yang cocok</td></tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -1167,12 +1189,15 @@ const SuperAdminOverview = ({ onExportClick }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 font-mono">
-                {systemLogs.map((log, i) => (
+                {filteredSystemLogs.map((log, i) => (
                   <tr key={i} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4 text-[13px] text-gray-400 font-medium">{log.time}</td>
                     <td className="px-6 py-4 text-[13px] text-gray-700 leading-relaxed min-w-[300px]">{log.message}</td>
                   </tr>
                 ))}
+                {filteredSystemLogs.length === 0 && (
+                  <tr><td colSpan={2} className="px-6 py-8 text-center text-gray-400 font-sans">Tidak ada log aktivitas yang cocok</td></tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -1192,7 +1217,7 @@ const Toggle = ({ checked, onChange, disabled = false }) => (
   >
     <span
       className={`inline-block w-4 h-4 bg-white rounded-full shadow-sm transform transition-all duration-300 ${
-        checked ? "translate-x-6" : "translate-x-1"
+        checked ? "translate-VII-6" : "translate-VII-1"
       }`}
     />
   </button>
@@ -1626,12 +1651,12 @@ const AksesSeluruhDataModule = () => {
   };
 
   const previewStudents = [
-    { id: "1001", nisn: "0012345678", name: "Andi Setiawan", class: "X-A", gender: "L", status: "AKTIF" },
-    { id: "1002", nisn: "0012345679", name: "Budi Santoso", class: "X-A", gender: "L", status: "AKTIF" },
-    { id: "1003", nisn: "0012345680", name: "Citra Kirana", class: "X-B", gender: "P", status: "AKTIF" },
-    { id: "1004", nisn: "0012345681", name: "Dewi Lestari", class: "X-B", gender: "P", status: "AKTIF" },
-    { id: "1005", nisn: "0012345682", name: "Eko Prasetyo", class: "X-C", gender: "L", status: "CUTI" },
-    { id: "1006", nisn: "0012345683", name: "Fajar Hidayat", class: "XI-A", gender: "L", status: "AKTIF" },
+    { id: "1001", nisn: "0012345678", name: "Andi Setiawan", class: "VII-A", gender: "L", status: "AKTIF" },
+    { id: "1002", nisn: "0012345679", name: "Budi Santoso", class: "VII-A", gender: "L", status: "AKTIF" },
+    { id: "1003", nisn: "0012345680", name: "Citra Kirana", class: "VII-B", gender: "P", status: "AKTIF" },
+    { id: "1004", nisn: "0012345681", name: "Dewi Lestari", class: "VII-B", gender: "P", status: "AKTIF" },
+    { id: "1005", nisn: "0012345682", name: "Eko Prasetyo", class: "VII-C", gender: "L", status: "CUTI" },
+    { id: "1006", nisn: "0012345683", name: "Fajar Hidayat", class: "VIII-A", gender: "L", status: "AKTIF" },
   ];
 
   const filteredStudents = previewStudents.filter(student => 
@@ -2360,7 +2385,7 @@ const AksesSeluruhDataModule = () => {
                 <div className="border border-gray-100 rounded-xl overflow-hidden divide-y divide-gray-100">
                   {[
                     { state: pdfKopSurat, setter: setPdfKopSurat, label: "Sertakan Kop Surat & Logo Sekolah", desc: "Menambahkan header resmi sekolah di halaman pertama." },
-                    { state: pdfPageNum, setter: setPdfPageNum, label: "Penomoran Halaman", desc: "Format: Halaman X dari Y di bagian bawah." },
+                    { state: pdfPageNum, setter: setPdfPageNum, label: "Penomoran Halaman", desc: "Format: Halaman VII dari Y di bagian bawah." },
                     { state: pdfPassword, setter: setPdfPassword, label: "Lindungi dengan Password", desc: "Enkripsi file PDF agar hanya bisa dibuka dengan kata sandi." },
                   ].map((opt, i) => (
                     <label key={i} className="flex items-start gap-3.5 p-4 cursor-pointer hover:bg-gray-50/50 transition-colors">
@@ -2699,7 +2724,7 @@ const BackupMaintenanceModule = () => {
                   onClick={() => setDailyBackup(!dailyBackup)}
                   className={`w-11 h-6 rounded-full flex items-center transition-colors px-0.5 shrink-0 ${dailyBackup ? 'bg-[#1A3D63]' : 'bg-gray-200'}`}
                 >
-                  <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${dailyBackup ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                  <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${dailyBackup ? 'translate-VII-5' : 'translate-VII-0'}`}></div>
                 </button>
               </div>
               
@@ -3229,7 +3254,7 @@ const LogAktivitasModule = () => {
             Refresh
           </button>
           <div className="flex items-center gap-2">
-            <button className="px-4 py-2 text-xs font-black text-gray-500 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all shadow-sm">← Prev</button>
+            <button className="px-4 py-2 text-xs font-black text-gray-500 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all shadow-sm">â† Prev</button>
             {[1, 2, 3].map(p => (
               <button key={p} className={`w-9 h-9 flex items-center justify-center rounded-xl text-sm font-black transition-all ${
                 p === 1 ? "bg-[#1A3D63] text-white shadow-md shadow-[#1A3D63]/25" : "text-gray-500 hover:bg-white hover:shadow-sm"
@@ -3245,7 +3270,7 @@ const LogAktivitasModule = () => {
 };
 // ============================================================================================================================
 
-const SuperAdminDashboard = ({ user, activeMenu }) => {
+const SuperAdminDashboard = ({ user, activeMenu, onViewChange }) => {
   const [showExportModal, setShowExportModal] = useState(false);
 
   const content = () => {
@@ -3274,7 +3299,7 @@ const SuperAdminDashboard = ({ user, activeMenu }) => {
       case "My Profile":
         return <Profile user={user} />;
       default:
-        return <SuperAdminOverview onExportClick={() => setShowExportModal(true)} />;
+        return <SuperAdminOverview onExportClick={() => setShowExportModal(true)} onViewChange={onViewChange} />;
     }
   };
 
@@ -3287,3 +3312,6 @@ const SuperAdminDashboard = ({ user, activeMenu }) => {
 };
 
 export default SuperAdminDashboard;
+
+
+

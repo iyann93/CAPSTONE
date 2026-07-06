@@ -44,9 +44,6 @@ const StudentEdit = ({ student, onBack, onSave, onDelete }) => {
     if (formData.kelas.startsWith("XI ")) tingkat = "Kelas XI";
     if (formData.kelas.startsWith("XII ")) tingkat = "Kelas XII";
 
-    let jurusan = "IPA";
-    if (formData.kelas.includes("IPS")) jurusan = "IPS";
-    if (formData.kelas.includes("Bahasa")) jurusan = "Bahasa";
 
     // Initials
     const initials = formData.namaLengkap
@@ -68,7 +65,6 @@ const StudentEdit = ({ student, onBack, onSave, onDelete }) => {
       kelas: formData.kelas,
       kelas_id: matchedKelasId,
       tingkat,
-      jurusan,
       gender: formData.jenisKelamin,
       status: formData.isAktif ? "aktif" : "tidak_aktif",
       initials,

@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 
 const studentsRecap = [
   { id: 1, name: "Andi Pratama", nis: "2023001", initials: "A", color: "bg-[#10B981]", hadir: 18, sakit: 0, izin: 1, alpha: 0, total: 19, pct: 95, status: "Baik" },
@@ -28,7 +28,7 @@ const StudentAttendanceRecap = ({ classData, onBack }) => {
       <div className="flex flex-col lg:flex-row justify-between lg:items-start gap-4">
         <div className="space-y-3">
           <div className="flex items-center text-[13px] text-gray-500 gap-2">
-            <span>Dashboard</span><span>›</span><span>Absensi Siswa</span><span>›</span>
+            <span>Dashboard</span><span>&rsaquo;</span><span>Absensi Siswa</span><span>&rsaquo;</span>
             <span className="font-bold text-[#1e293b]">Rekap — {classData.name}</span>
           </div>
           <div className="flex items-start gap-4">
@@ -211,12 +211,12 @@ const StudentAttendanceRecap = ({ classData, onBack }) => {
                 {/* SVG Line */}
                 <svg viewBox="0 0 240 100" preserveAspectRatio="none" className="w-full h-full relative z-10">
                   <polyline fill="none" stroke="#3B82F6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" points="20,62 70,38 120,72 170,45 220,30" />
-                  {[{x:20,y:62},{x:70,y:38},{x:120,y:72},{x:170,y:45},{x:220,y:30}].map((p,i) => (
-                    <circle key={i} cx={p.x} cy={p.y} r="5" fill="white" stroke="#3B82F6" strokeWidth="2.5" />
+                  {[{VII:20,y:62},{VII:70,y:38},{VII:120,y:72},{VII:170,y:45},{VII:220,y:30}].map((p,i) => (
+                    <circle key={i} cx={p.VII} cy={p.y} r="5" fill="white" stroke="#3B82F6" strokeWidth="2.5" />
                   ))}
                 </svg>
               </div>
-              {/* X-axis labels */}
+              {/* VII-axis labels */}
               <div className="flex justify-between text-[11px] text-gray-400 font-medium mt-2">
                 <span>Jul</span><span>Ags</span><span>Sep</span><span>Okt</span><span>Nov</span>
               </div>
@@ -272,3 +272,6 @@ const StudentAttendanceRecap = ({ classData, onBack }) => {
 };
 
 export default StudentAttendanceRecap;
+
+
+

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import api from "../../api/axios";
 import { getTagihan } from "../../api/finance";
 
@@ -359,3 +359,7 @@ const OrangTuaHome = ({ user, onNavigate }) => {
 };
 
 export default OrangTuaHome;
+
+
+
+

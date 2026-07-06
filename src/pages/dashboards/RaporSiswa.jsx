@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 
 const mockRapor = [
   { id: 1, semester: "Genap 2024/2025", tanggal: "15 Jun 2025", status: "Tersedia", rataRata: 84.5, peringkat: 5 },
@@ -200,3 +200,6 @@ const RaporSiswa = ({ user }) => {
 };
 
 export default RaporSiswa;
+
+
+

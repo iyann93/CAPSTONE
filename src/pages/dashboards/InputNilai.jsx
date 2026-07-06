@@ -1,14 +1,14 @@
-import React, { useState, useMemo } from "react";
+﻿import React, { useState, useMemo } from "react";
 import ReactDOM from "react-dom";
 
 const InputNilai = ({ user }) => {
-  const [selectedClass, setSelectedClass] = useState("X IPA 1");
+  const [selectedClass, setSelectedClass] = useState("VII IPA 1");
   const [searchQuery, setSearchQuery] = useState("");
   const [notification, setNotification] = useState(null);
 
   // Mock student data grouped by class
   const [studentsData, setStudentsData] = useState({
-    "X IPA 1": [
+    "VII IPA 1": [
       { id: "2023001", name: "Andi Pratama", gender: "L", grade: "87", note: "Aktif dan rajin. Kemampuan aljabar meningkat pesat.", avatarBg: "bg-blue-500" },
       { id: "2023002", name: "Dewi Sartika", gender: "P", grade: "94", note: "Nilai tertinggi di kelas. Sangat direkomendasikan mengikuti olimpiade.", avatarBg: "bg-slate-700" },
       { id: "2023003", name: "Ricky Firmansyah", gender: "L", grade: "72", note: "Perlu bimbingan tambahan. Kesulitan pada materi limit.", avatarBg: "bg-amber-600" },
@@ -16,12 +16,12 @@ const InputNilai = ({ user }) => {
       { id: "2023005", name: "Fajar Setiawan", gender: "L", grade: "79", note: "Konsisten mengerjakan tugas.", avatarBg: "bg-purple-600" },
       { id: "2023006", name: "Ayu Lestari", gender: "P", grade: "91", note: "Juara 2 olimpiade kota. Sangat berbakat.", avatarBg: "bg-pink-500" },
     ],
-    "X IPA 2": [
+    "VII IPA 2": [
       { id: "2023007", name: "Bagus Cahyo", gender: "L", grade: "82", note: "Paham materi matriks dengan baik.", avatarBg: "bg-blue-500" },
       { id: "2023008", name: "Citra Lestari", gender: "P", grade: "", note: "", avatarBg: "bg-pink-500" },
       { id: "2023009", name: "Dimas Anggara", gender: "L", grade: "65", note: "Perlu remedial materi trigonometri.", avatarBg: "bg-amber-600" },
     ],
-    "XI IPA 1": [
+    "VIII IPA 1": [
       { id: "2023010", name: "Eka Saputra", gender: "L", grade: "90", note: "Sangat antusias belajar.", avatarBg: "bg-purple-600" },
       { id: "2023011", name: "Fitri Handayani", gender: "P", grade: "88", note: "Aktif bertanya saat kelas.", avatarBg: "bg-pink-500" },
     ]
@@ -105,7 +105,7 @@ const InputNilai = ({ user }) => {
       <div className="flex flex-col gap-1.5">
         <h1 className="text-[26px] font-black text-[#1e293b] tracking-tight">Input Nilai</h1>
         <p className="text-sm text-gray-400 font-semibold">
-          Semester Ganjil 2023/2024 • SMAN 1 Contoh
+          Semester Ganjil 2023/2024 • SMPN 1 Contoh
         </p>
       </div>
 
@@ -308,3 +308,6 @@ const InputNilai = ({ user }) => {
 };
 
 export default InputNilai;
+
+
+
