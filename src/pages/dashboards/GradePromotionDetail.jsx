@@ -217,7 +217,7 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-[24px] font-bold text-[#1e293b]">{classData?.kelas || (isSelesai ? "Kelas VIII A" : "Kelas VII A")}</h1>
-              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600">{classData?.kode || (isSelesai ? "VIII-A" : "VII-A")}</span>
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600">{classData?.kode_kelas || classData?.kode || (isSelesai ? "VIII-A" : "VII-A")}</span>
               <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border ${(isSelesai || processed || classData?.status === "Selesai") ? "bg-green-50 text-green-600 border-green-100" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
                 {(isSelesai || processed || classData?.status === "Selesai") ? "Selesai" : "Belum Diproses"}
               </span>
