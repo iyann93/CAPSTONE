@@ -1,5 +1,7 @@
-﻿import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import StatCard from "../../components/StatCard";
+import { getPembayaran, getDanaBeasiswa, getBeasiswa, getOperasional } from "../../api/finance";
+import { getAllSlips } from "../../api/payroll";
 
 const UsersIcon = () => (
   <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
@@ -24,19 +26,24 @@ const GraduationIcon = () => (
   </svg>
 );
 
-const ReceiptIcon = () => (
-  <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
-    <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1z" />
-    <path d="M12 7v5M9 15h6" />
-  </svg>
-);
-
 const WalletIcon = () => (
   <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5z" />
     <path strokeLinecap="round" strokeLinejoin="round" d="M16 12h5v4h-5z" />
   </svg>
 );
+
+const BULAN_NAMES = [
+  "Januari","Februari","Maret","April","Mei","Juni",
+  "Juli","Agustus","September","Oktober","November","Desember"
+];
+
+const formatCurrencySingkat = (amount) => {
+  if (amount >= 1000000000) return "Rp " + (amount / 1000000000).toFixed(2) + " M";
+  if (amount >= 1000000) return "Rp " + Math.round(amount / 1000000) + " Jt";
+  if (amount >= 1000) return "Rp " + Math.round(amount / 1000) + " Rb";
+  return "Rp " + amount.toLocaleString("id-ID");
+};
 
 const KepalaSekolahHome = ({ user, onNavigate }) => {
   const getGreeting = () => {
@@ -45,6 +52,63 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
     if (hour < 18) return "Selamat Siang";
     return "Selamat Malam";
   };
+
+  const [keuangan, setKeuangan] = useState({
+    pemasukan: 0,
+    pengeluaran: 0,
+    saldo: 0
+  });
+  const [isLoadingKeuangan, setIsLoadingKeuangan] = useState(true);
+
+  const loadKeuangan = useCallback(async () => {
+    setIsLoadingKeuangan(true);
+    try {
+      const [pembayaran, slipsRes, dana, beasiswa, operasional] = await Promise.all([
+        getPembayaran().catch(() => []),
+        getAllSlips({ limit: 1000, status: "dibayar" }).catch(() => ({ data: [] })),
+        getDanaBeasiswa().catch(() => []),
+        getBeasiswa().catch(() => []),
+        getOperasional().catch(() => [])
+      ]);
+
+      const pembayaranArr = Array.isArray(pembayaran) ? pembayaran : [];
+      const slipsArr = slipsRes?.data || [];
+      const danaArr = Array.isArray(dana) ? dana : [];
+      const beasiswaArr = Array.isArray(beasiswa) ? beasiswa : [];
+      const operasionalArr = Array.isArray(operasional) ? operasional : [];
+
+      // ── Pemasukan ────────────────────────────────────────────────────────
+      const sppIncome = pembayaranArr.reduce((acc, p) => acc + (Number(p.jumlah_bayar) || 0), 0);
+      const otherIncome = operasionalArr.filter(o => o.tipe === 'pemasukan').reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+      const beasiswaIncome = danaArr.reduce((acc, d) => acc + (Number(d.nominal) || 0), 0);
+      const totalPemasukan = sppIncome + otherIncome + beasiswaIncome;
+
+      // ── Pengeluaran ──────────────────────────────────────────────────────
+      const payrollExpense = slipsArr.reduce((acc, s) => acc + (Number(s.gaji_bersih) || 0), 0);
+      const operationalExpense = operasionalArr.filter(o => o.tipe === 'pengeluaran').reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+      const beasiswaDisbursed = beasiswaArr.reduce((acc, b) => acc + (Number(b.nominal) || 0), 0);
+      const totalPengeluaran = payrollExpense + operationalExpense + beasiswaDisbursed;
+
+      setKeuangan({
+        pemasukan: totalPemasukan,
+        pengeluaran: totalPengeluaran,
+        saldo: totalPemasukan - totalPengeluaran
+      });
+    } catch (e) {
+      console.error("KepalaSekolahHome loadKeuangan:", e);
+    } finally {
+      setIsLoadingKeuangan(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadKeuangan();
+  }, [loadKeuangan]);
+
+  // Progress bar widths relative to each other
+  const maxKeuangan = Math.max(keuangan.pemasukan, keuangan.pengeluaran, 1);
+  const pemasukanPct = Math.round((keuangan.pemasukan / maxKeuangan) * 100);
+  const pengeluaranPct = Math.round((keuangan.pengeluaran / maxKeuangan) * 100);
 
   return (
     <div className="p-4 md:p-8 flex flex-col gap-6 md:gap-8 overflow-y-auto animate-fadeIn min-h-full">
@@ -95,7 +159,7 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
         <div className="animate-fadeIn cursor-pointer" onClick={() => onNavigate("Monitoring Keuangan")} style={{ animationDelay: "240ms" }}>
           <StatCard
             title="Saldo Keuangan"
-            value="Rp 1.33 M"
+            value={isLoadingKeuangan ? "..." : formatCurrencySingkat(Math.max(0, keuangan.saldo))}
             subtitle="Total Arus Kas Aktif"
             icon={<WalletIcon />}
             iconBg="#ecfdf5"
@@ -113,34 +177,44 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h3 className="text-[16px] font-bold text-gray-800">Ringkasan Arus Kas</h3>
-                <p className="text-[12px] text-gray-500 mt-0.5">Pemantauan singkat kondisi keuangan bulan ini</p>
+                <p className="text-[12px] text-gray-500 mt-0.5">Pemantauan singkat kondisi keuangan keseluruhan</p>
               </div>
               <span className="text-[10px] font-bold bg-green-50 text-green-600 px-3 py-1.5 rounded-lg tracking-wider uppercase border border-green-100">
-                BULAN INI
+                REAL-TIME
               </span>
             </div>
             
-            <div className="space-y-5">
-              <div>
-                <div className="flex justify-between text-[13px] font-medium text-gray-500 mb-2">
-                  <span>Pemasukan</span>
-                  <span className="text-gray-800 font-black">Rp 245 Jt</span>
+            {isLoadingKeuangan ? (
+              <div className="flex items-center justify-center py-8">
+                <svg className="animate-spin h-6 w-6 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span className="ml-2 text-[13px] text-gray-400">Memuat data keuangan...</span>
+              </div>
+            ) : (
+              <div className="space-y-5">
+                <div>
+                  <div className="flex justify-between text-[13px] font-medium text-gray-500 mb-2">
+                    <span>Pemasukan</span>
+                    <span className="text-gray-800 font-black">{formatCurrencySingkat(keuangan.pemasukan)}</span>
+                  </div>
+                  <div className="w-full bg-gray-50 rounded-full h-2.5 overflow-hidden border border-gray-100">
+                    <div className="bg-[#1A3D63] h-full rounded-full transition-all duration-700" style={{ width: `${pemasukanPct}%` }}></div>
+                  </div>
                 </div>
-                <div className="w-full bg-gray-50 rounded-full h-2.5 overflow-hidden border border-gray-100">
-                  <div className="bg-[#1A3D63] h-full rounded-full" style={{ width: '80%' }}></div>
+                
+                <div>
+                  <div className="flex justify-between text-[13px] font-medium text-gray-500 mb-2">
+                    <span>Pengeluaran</span>
+                    <span className="text-gray-800 font-black">{formatCurrencySingkat(keuangan.pengeluaran)}</span>
+                  </div>
+                  <div className="w-full bg-gray-50 rounded-full h-2.5 overflow-hidden border border-gray-100">
+                    <div className="bg-[#e11d48] h-full rounded-full transition-all duration-700" style={{ width: `${pengeluaranPct}%` }}></div>
+                  </div>
                 </div>
               </div>
-              
-              <div>
-                <div className="flex justify-between text-[13px] font-medium text-gray-500 mb-2">
-                  <span>Pengeluaran</span>
-                  <span className="text-gray-800 font-black">Rp 112 Jt</span>
-                </div>
-                <div className="w-full bg-gray-50 rounded-full h-2.5 overflow-hidden border border-gray-100">
-                  <div className="bg-[#e11d48] h-full rounded-full" style={{ width: '45%' }}></div>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
           
           <button 
@@ -195,5 +269,3 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
 };
 
 export default KepalaSekolahHome;
-
-

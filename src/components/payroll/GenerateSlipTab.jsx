@@ -53,34 +53,45 @@ const GenerateSlipTab = ({ triggerToast, onGeneratingChange, cancelRef }) => {
       // 2. Generate sequentially or in chunks to avoid overwhelming the server
       let successCount = 0;
       let failCount = 0;
+      const BATCH_SIZE = 10;
 
-      for (let i = 0; i < employees.length; i++) {
+      for (let i = 0; i < employees.length; i += BATCH_SIZE) {
         // Check if cancelled
         if (cancelledRef.current) break;
 
-        const emp = employees[i];
-        try {
-          const res = await generateSlip({
-            userId: emp.id,
-            bulan: parseInt(bulan, 10),
-            tahun: parseInt(tahun, 10),
-            hariHadir: 20, 
-            jumlahAlpha: 0,
-            jamLembur: 0
-          });
-          if (res && res.id) {
-            generatedIdsRef.current.push(res.id);
+        const batch = employees.slice(i, i + BATCH_SIZE);
+        const promises = batch.map(async (emp) => {
+          try {
+            const res = await generateSlip({
+              userId: emp.id,
+              bulan: parseInt(bulan, 10),
+              tahun: parseInt(tahun, 10),
+              hariHadir: 20, 
+              jumlahAlpha: 0,
+              jamLembur: 0
+            });
+            return { success: true, id: res?.id, emp };
+          } catch (err) {
+            return { success: false, err, emp };
           }
-          successCount++;
-          // setLogs(prev => [...prev, { status: 'success', message: `[OK] Slip untuk ${emp.nama_lengkap} berhasil dibuat.` }]);
-        } catch (err) {
-          failCount++;
-          const msg = err.response?.data?.message || err.message;
-          setLogs(prev => [...prev, { status: 'error', message: `[ERROR] Gagal generate untuk ${emp.name}: ${msg}` }]);
+        });
+
+        const results = await Promise.all(promises);
+
+        for (const r of results) {
+          if (r.success) {
+            if (r.id) generatedIdsRef.current.push(r.id);
+            successCount++;
+          } else {
+            failCount++;
+            const msg = r.err.response?.data?.message || r.err.message;
+            const empName = r.emp.nama || r.emp.name || r.emp.nama_lengkap || 'Pegawai';
+            setLogs(prev => [...prev, { status: 'error', message: `[ERROR] Gagal generate untuk ${empName}: ${msg}` }]);
+          }
         }
         
         // Update progress
-        setProgress(Math.round(((i + 1) / employees.length) * 100));
+        setProgress(Math.round((Math.min(i + BATCH_SIZE, employees.length) / employees.length) * 100));
       }
 
       if (cancelledRef.current) {
