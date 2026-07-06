@@ -170,11 +170,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
         nominal: Number(String(formData.nominal).replace(/[^0-9]/g, '')),
         sumber_dana: formData.sumberDana,
         keterangan: formData.keterangan,
-<<<<<<< HEAD
         bukti: []
-=======
-        bukti: uploadedFiles.map(f => f.name)
->>>>>>> 90d46930a3627f280f940e78ecffe693c345205a
       };
 
       await createOperasional(payload);

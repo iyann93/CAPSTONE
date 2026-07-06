@@ -33,20 +33,19 @@ const EyeIcon = () => (
   </svg>
 );
 
-<<<<<<< HEAD
 // --- Dummy Data (Akademik) ---
 const stats = [
   { label: "Mata Pelajaran Aktif", val: 12, sub: "Kurikulum berjalan" },
   { label: "Jadwal Aktif", val: 38, sub: "Minggu ini" },
   { label: "Konflik Jadwal", val: 2, sub: "Perlu diselesaikan" },
-=======
+];
+
 const initJadwal = [
   { id: 1, mapel: "Matematika", guru: "Bpk. Hendra", kelas: "VIII IPA 1", hari: "Senin", jam: "07:00", ruang: "R. 01", semester: "Genap 2023/2024" },
   { id: 2, mapel: "Fisika", guru: "Bpk. Hendra", kelas: "VIII IPA 2", hari: "Senin", jam: "08:00", ruang: "Lab Fisika", semester: "Genap 2023/2024" },
   { id: 3, mapel: "Kimia", guru: "Ibu Rina", kelas: "VIII IPA 1", hari: "Selasa", jam: "07:00", ruang: "Lab Kimia", semester: "Genap 2023/2024" },
   { id: 4, mapel: "B. Indonesia", guru: "Ibu Sari", kelas: "VII IPS 1", hari: "Rabu", jam: "10:00", ruang: "R. 12", semester: "Genap 2023/2024" },
   { id: 5, mapel: "B. Inggris", guru: "Ibu Lena", kelas: "VII IPA 1", hari: "Kamis", jam: "09:00", ruang: "R. 03", semester: "Genap 2023/2024" },
->>>>>>> 90d46930a3627f280f940e78ecffe693c345205a
 ];
 
 const detectConflicts = (jadwal) => {
@@ -72,13 +71,11 @@ const recentCurriculum = [
   { mapel: "Bahasa Inggris", kelas: "VII-A", tingkat: "SMP", status: "Aktif" },
 ];
 
-<<<<<<< HEAD
 const conflicts = [
   { guru: "Bpk. Hendra", mapel: "IPA", kelas: "VIII-A & VIII-B", waktu: "Senin, 08:00", ruang: "Lab IPA" },
   { guru: "Ibu Sari", mapel: "B. Indonesia", kelas: "VII-A & VII-B", waktu: "Rabu, 10:00", ruang: "R. 12" },
 ];
 
-=======
 // --- Dummy Data (Keuangan) ---
 const chartData = [
   { name: 'Juli', nominal: 15000000 },
@@ -92,9 +89,8 @@ const chartData = [
   { name: 'Maret', nominal: 19500000 },
   { name: 'April', nominal: 18000000 },
   { name: 'Mei', nominal: 18500000 },
-  { name: 'Juni', nominal: initialPengeluaranData.reduce((acc, curr) => acc + curr.nominal, 0) + 12000000 }
+  { name: 'Juni', nominal: 12000000 }
 ];
->>>>>>> 90d46930a3627f280f940e78ecffe693c345205a
 
 
 const formatRupiah = (value) => {
