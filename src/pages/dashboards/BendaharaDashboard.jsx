@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { jsPDF } from "jspdf";
 import * as htmlToImage from "html-to-image";
 import {
@@ -1162,17 +1162,23 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
         const currentMonthBills = studentsBill.filter(b => b.bulan === dashboardBulan || b.period?.startsWith(dashboardBulan));
         
-        const totalSiswaBulanIni = currentMonthBills.length;
-        const lunasBulanIni = currentMonthBills.filter(b => b.status === "Lunas" || b.status?.toLowerCase() === "lunas");
-        const belumBayarBulanIni = currentMonthBills.filter(b => b.status !== "Lunas" && b.status?.toLowerCase() !== "lunas");
+        // Sync Lunas count with actual payments for the current month
+        const lunasBulanIni = sppPayments.filter(p => (p.status === "Lunas" || p.status?.toLowerCase() === "lunas") && (p.month === dashboardBulan || p.period?.startsWith(dashboardBulan)));
+        
+        // Use currentMonthBills.length as the definitive total number of billed students
+        const totalSiswaBulanIni = currentMonthBills.length > 0 ? currentMonthBills.length : siswaList.length;
         
         const countLunas = lunasBulanIni.length;
-        const countBelum = belumBayarBulanIni.length;
+        const countBelum = Math.max(0, totalSiswaBulanIni - countLunas);
         
-        const nominalTerkumpul = lunasBulanIni.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+        const nominalTerkumpul = lunasBulanIni.reduce((acc, curr) => {
+          const amountStr = String(curr.amount || "0").replace(/[^0-9]/g, '');
+          return acc + (Number(amountStr) || 0);
+        }, 0);
+        
+        const belumBayarBulanIni = studentsBill.filter(b => (b.bulan === dashboardBulan || b.period?.startsWith(dashboardBulan)) && b.status !== "Lunas" && b.status?.toLowerCase() !== "lunas");
         const nominalTunggakan = belumBayarBulanIni.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
 
-        
         const dynamicDonutData = totalSiswaBulanIni > 0 ? [
           { name: "Lunas SPP", value: countLunas, fill: "#22c55e" },
           { name: "Belum Bayar", value: countBelum, fill: "#ef4444" }
@@ -1185,10 +1191,15 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
         
         const dynamicSppRecapData = monthsArray.slice(0, currentMonthIndex + 1).map(month => {
           const monthBills = studentsBill.filter(b => b.bulan === month || b.period?.startsWith(month));
+          const monthTotal = monthBills.length > 0 ? monthBills.length : siswaList.length;
+          
+          const monthPayments = sppPayments.filter(p => (p.status === "Lunas" || p.status?.toLowerCase() === "lunas") && (p.month === month || p.period?.startsWith(month)));
+          const monthLunasCount = monthPayments.length;
+          const monthBelumCount = Math.max(0, monthTotal - monthLunasCount);
           return {
             name: month.substring(0, 3),
-            Lunas: monthBills.filter(b => b.status === "Lunas" || b.status?.toLowerCase() === "lunas").length,
-            Belum: monthBills.filter(b => b.status !== "Lunas" && b.status?.toLowerCase() !== "lunas").length,
+            Lunas: monthLunasCount,
+            Belum: monthBelumCount,
           };
         });
 
@@ -1227,6 +1238,23 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                 <p className="text-sm text-gray-500 mt-1">Monitor keuangan sekolah, SPP siswa, dan penggajian guru & staf.</p>
               </div>
               <div className="flex gap-2 sm:gap-3 items-center flex-wrap">
+                {/* Month Selector for Dashboard Cards */}
+                <div className="relative group w-full sm:w-auto">
+                  <select
+                    value={dashboardBulan}
+                    onChange={(e) => setDashboardBulan(e.target.value)}
+                    className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
+                  >
+                    {["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"].map(m => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+                    <IconChevronDown />
+                  </div>
+                </div>
+
+                {/* Year Selector */}
                 <div className="relative group w-full sm:w-auto">
                   <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                     <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
@@ -2532,12 +2560,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                           }).format(dateObj);
                         };
                         
-                        let tglBerlaku = "-";
-                        let jatuhTempo = "-";
-                        if (activeProgram.periodePendaftaran && activeProgram.periodePendaftaran !== "-" && activeProgram.periodePendaftaran.includes(' s/d ')) {
-                          tglBerlaku = formatDateID(activeProgram.periodePendaftaran.split(' s/d ')[0]);
-                          jatuhTempo = formatDateID(activeProgram.periodePendaftaran.split(' s/d ')[1]);
-                        }
+
                         
                         return (
                       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm xl:sticky xl:top-6 flex flex-col">
@@ -2567,12 +2590,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                             <div className="text-sm font-bold text-gray-800">{activeProgram.sumberDana || '-'}</div>
                           </div>
                           <div>
-                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Tanggal Berlaku</div>
-                            <div className="text-sm font-bold text-gray-800">{tglBerlaku}</div>
-                          </div>
-                          <div>
-                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Jatuh Tempo</div>
-                            <div className="text-sm font-bold text-[#e11d48]">{jatuhTempo}</div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Periode</div>
+                            <div className="text-sm font-bold text-gray-800">{activeProgram.subtitle || '2025/2026'}</div>
                           </div>
                           <div>
                             <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Kuota Tersedia</div>
@@ -3692,24 +3711,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Periode Berlaku</label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="date"
-                        value={newProgramForm.tanggalMulaiDaftar}
-                        onChange={(e) => { setIsProgramFormDirty(true); setNewProgramForm({ ...newProgramForm, tanggalMulaiDaftar: e.target.value }) }}
-                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all"
-                      />
-                      <span className="text-gray-400 text-sm font-bold">-</span>
-                      <input
-                        type="date"
-                        value={newProgramForm.tanggalSelesaiDaftar}
-                        onChange={(e) => { setIsProgramFormDirty(true); setNewProgramForm({ ...newProgramForm, tanggalSelesaiDaftar: e.target.value }) }}
-                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all"
-                      />
-                    </div>
-                  </div>
+
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Status Program</label>
                     <div className="relative">
@@ -4108,24 +4110,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Periode Berlaku <span className="text-red-500">*</span></label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="date"
-                        value={beasiswaForm.tanggalMulai}
-                        onChange={(e) => { setIsBeasiswaFormDirty(true); setBeasiswaForm({ ...beasiswaForm, tanggalMulai: e.target.value }) }}
-                        className="flex-1 min-w-0 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/20 bg-white text-gray-700 transition-all"
-                      />
-                      <span className="text-gray-400 text-sm font-bold">-</span>
-                      <input
-                        type="date"
-                        value={beasiswaForm.tanggalSelesai}
-                        onChange={(e) => { setIsBeasiswaFormDirty(true); setBeasiswaForm({ ...beasiswaForm, tanggalSelesai: e.target.value }) }}
-                        className="flex-1 min-w-0 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/20 bg-white text-gray-700 transition-all"
-                      />
-                    </div>
-                  </div>
+
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Tahun Ajaran <span className="text-red-500">*</span></label>
                     <div className="relative group">
