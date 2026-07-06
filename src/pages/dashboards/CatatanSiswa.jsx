@@ -1,33 +1,78 @@
-﻿import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import ReactDOM from "react-dom";
 
 const CatatanSiswa = ({ user }) => {
-  const [selectedClass, setSelectedClass] = useState("VII IPA 1");
+  const [selectedClass, setSelectedClass] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStudentId, setSelectedStudentId] = useState("2023001");
+  const [selectedStudentId, setSelectedStudentId] = useState("");
   const [notification, setNotification] = useState(null);
 
-  // Mock student records
-  const [studentsData, setStudentsData] = useState({
-    "VII IPA 1": [
-      { id: "2023001", name: "Andi Pratama", gender: "Laki-laki", note: "Aktif dan rajin. Kemampuan aljabar meningkat pesat.", lastUpdated: "15 Nov 2023", avatarBg: "bg-blue-500" },
-      { id: "2023002", name: "Dewi Sartika", gender: "Perempuan", note: "Nilai tertinggi di kelas. Sangat direkomendasikan mengikuti olimpiade.", lastUpdated: "12 Nov 2023", avatarBg: "bg-slate-700" },
-      { id: "2023003", name: "Ricky Firmansyah", gender: "Laki-laki", note: "Perlu bimbingan tambahan. Kesulitan pada materi limit.", lastUpdated: "10 Nov 2023", avatarBg: "bg-amber-600" },
-      { id: "2023004", name: "Nurul Hidayah", gender: "Perempuan", note: "", lastUpdated: null, avatarBg: "bg-red-500" },
-      { id: "2023005", name: "Fajar Setiawan", gender: "Laki-laki", note: "Konsisten mengerjakan tugas.", lastUpdated: "08 Nov 2023", avatarBg: "bg-purple-600" },
-      { id: "2023006", name: "Ayu Lestari", gender: "Perempuan", note: "Juara 2 olimpiade kota. Sangat berbakat.", lastUpdated: "05 Nov 2023", avatarBg: "bg-pink-500" },
-    ],
-    "VII IPA 2": [
-      { id: "2023007", name: "Bagus Cahyo", gender: "Laki-laki", note: "Paham materi matriks dengan baik.", lastUpdated: "18 Nov 2023", avatarBg: "bg-blue-500" },
-      { id: "2023008", name: "Citra Lestari", gender: "Perempuan", note: "", lastUpdated: null, avatarBg: "bg-pink-500" },
-      { id: "2023009", name: "Dimas Anggara", gender: "Laki-laki", note: "Perlu remedial materi trigonometri.", lastUpdated: "14 Nov 2023", avatarBg: "bg-amber-600" },
-    ]
-  });
+  const [classes, setClasses] = useState([]);
+  const [studentsData, setStudentsData] = useState({});
+  const [loading, setLoading] = useState(true);
 
-  const classes = Object.keys(studentsData);
+  // Fetch classes and students from backend
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const { default: api } = await import('../../api/axios');
+        const [kelasRes, siswaRes] = await Promise.all([
+          api.get('/kelas'),
+          api.get('/siswa')
+        ]);
+        
+        const dbClasses = kelasRes.data?.data || [];
+        const dbSiswa = siswaRes.data?.data || [];
+
+        const classNames = dbClasses.map(c => c.nama_kelas);
+        setClasses(classNames);
+        if (classNames.length > 0) {
+          setSelectedClass(classNames[0]);
+        }
+
+        const groupedData = {};
+        classNames.forEach(cName => {
+          groupedData[cName] = [];
+        });
+
+        dbSiswa.forEach(siswa => {
+          const cls = dbClasses.find(c => c.id === siswa.kelas_id);
+          const className = cls ? cls.nama_kelas : "Tanpa Kelas";
+          
+          if (!groupedData[className]) {
+            groupedData[className] = [];
+          }
+
+          groupedData[className].push({
+            id: siswa.id, // UUID
+            nis: siswa.nis || "-",
+            name: siswa.nama_lengkap,
+            gender: siswa.jenis_kelamin === "Laki-laki" ? "Laki-laki" : "Perempuan",
+            note: "",
+            lastUpdated: null,
+            avatarBg: "bg-blue-500",
+          });
+        });
+
+        setStudentsData(groupedData);
+        
+        // Select first student of first class
+        if (classNames.length > 0 && groupedData[classNames[0]]?.length > 0) {
+          setSelectedStudentId(groupedData[classNames[0]][0].id);
+        }
+
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
   const currentClassStudents = studentsData[selectedClass] || [];
 
-  // Filter students in list
   const filteredStudents = useMemo(() => {
     let list = currentClassStudents;
     if (searchQuery.trim()) {
@@ -40,21 +85,17 @@ const CatatanSiswa = ({ user }) => {
     return list;
   }, [currentClassStudents, searchQuery]);
 
-  // Selected student object
   const selectedStudent = useMemo(() => {
-    // Search first in current class
     let found = currentClassStudents.find((s) => s.id === selectedStudentId);
     if (!found) {
-      // Fallback search in all classes
       for (const cls of classes) {
-        found = studentsData[cls].find((s) => s.id === selectedStudentId);
+        found = (studentsData[cls] || []).find((s) => s.id === selectedStudentId);
         if (found) break;
       }
     }
     return found || currentClassStudents[0];
-  }, [studentsData, selectedClass, selectedStudentId, currentClassStudents]);
+  }, [studentsData, selectedClass, selectedStudentId, currentClassStudents, classes]);
 
-  // Total students with notes
   const totalWithNotes = useMemo(() => {
     let count = 0;
     Object.values(studentsData).forEach((list) => {
@@ -65,14 +106,12 @@ const CatatanSiswa = ({ user }) => {
     return count;
   }, [studentsData]);
 
-  // Handle textarea change
   const handleNoteChange = (e) => {
     const newVal = e.target.value;
     setStudentsData((prev) => {
-      // Find class of selected student
       let foundClass = selectedClass;
       for (const cls of classes) {
-        if (prev[cls].some((s) => s.id === selectedStudent.id)) {
+        if ((prev[cls] || []).some((s) => s.id === selectedStudent.id)) {
           foundClass = cls;
           break;
         }
@@ -89,9 +128,7 @@ const CatatanSiswa = ({ user }) => {
     });
   };
 
-  // Handle Save
   const handleSave = () => {
-    // Update lastUpdated date to today
     const todayStr = new Date().toLocaleDateString("id-ID", {
       day: "2-digit",
       month: "short",
@@ -101,7 +138,7 @@ const CatatanSiswa = ({ user }) => {
     setStudentsData((prev) => {
       let foundClass = selectedClass;
       for (const cls of classes) {
-        if (prev[cls].some((s) => s.id === selectedStudent.id)) {
+        if ((prev[cls] || []).some((s) => s.id === selectedStudent.id)) {
           foundClass = cls;
           break;
         }
@@ -117,13 +154,16 @@ const CatatanSiswa = ({ user }) => {
       return { ...prev, [foundClass]: updatedList };
     });
 
-    setNotification(`Catatan untuk ${selectedStudent.name} berhasil disimpan!`);
+    setNotification(`Catatan untuk ${selectedStudent.name} berhasil disimpan! (Simulasi)`);
     setTimeout(() => setNotification(null), 4000);
   };
 
+  if (loading) {
+    return <div className="p-8">Memuat data dari database...</div>;
+  }
+
   return (
     <div className="p-6 md:p-8 space-y-6 animate-fadeIn bg-[#F8FAFC] min-h-screen relative">
-      {/* Toast Notification — portal */}
       {notification && ReactDOM.createPortal(
         <div style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 9999 }} className="flex items-center gap-3 bg-slate-900 text-white px-5 py-4 rounded-2xl shadow-xl animate-slideIn">
           <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white">
@@ -136,13 +176,12 @@ const CatatanSiswa = ({ user }) => {
         document.body
       )}
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex flex-col gap-1">
           <div className="flex items-center text-xs font-semibold text-gray-400 gap-1.5">
             <span>Catatan Siswa</span>
             <span>•</span>
-            <span>Semester Ganjil 2023/2024 • SMPN 1 Contoh</span>
+            <span>Semester Ganjil 2023/2024 • Data bersumber dari Database</span>
           </div>
           <h1 className="text-[26px] font-black text-[#1e293b] tracking-tight">Catatan Siswa</h1>
           <p className="text-xs text-gray-400 font-semibold mt-0.5">
@@ -155,13 +194,9 @@ const CatatanSiswa = ({ user }) => {
         </div>
       </div>
 
-      {/* Main Layout Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Side: Students List */}
         <div className="lg:col-span-4 bg-white rounded-3xl border border-gray-100 shadow-sm p-5 space-y-4 flex flex-col h-[650px]">
-          {/* Filters */}
           <div className="space-y-3 flex-shrink-0">
-            {/* Search Input */}
             <div className="relative">
               <input
                 type="text"
@@ -178,24 +213,26 @@ const CatatanSiswa = ({ user }) => {
               </div>
             </div>
 
-            {/* Dropdown Select Class */}
             <div className="relative">
               <select
                 value={selectedClass}
                 onChange={(e) => {
                   setSelectedClass(e.target.value);
                   setSearchQuery("");
-                  // Select first student of the new class
                   const firstS = studentsData[e.target.value]?.[0];
                   if (firstS) setSelectedStudentId(firstS.id);
                 }}
                 className="w-full bg-white border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 appearance-none shadow-sm transition-all"
               >
-                {classes.map((cls) => (
-                  <option key={cls} value={cls}>
-                    Kelas {cls}
-                  </option>
-                ))}
+                {classes.length > 0 ? (
+                  classes.map((cls) => (
+                    <option key={cls} value={cls}>
+                      Kelas {cls}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">Tidak ada kelas</option>
+                )}
               </select>
               <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -205,7 +242,6 @@ const CatatanSiswa = ({ user }) => {
             </div>
           </div>
 
-          {/* Student items list */}
           <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-hide">
             {filteredStudents.length > 0 ? (
               filteredStudents.map((student) => {
@@ -267,11 +303,9 @@ const CatatanSiswa = ({ user }) => {
           </div>
         </div>
 
-        {/* Right Side: Detail Panel / Textarea form */}
         <div className="lg:col-span-8 bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col h-[650px]">
           {selectedStudent ? (
             <>
-              {/* Header Panel */}
               <div className="bg-[#1A3D63] p-6 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 flex-shrink-0">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white font-black text-lg border border-white/10">
@@ -280,7 +314,7 @@ const CatatanSiswa = ({ user }) => {
                   <div>
                     <h3 className="text-base font-black tracking-tight leading-tight">{selectedStudent.name}</h3>
                     <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] text-blue-200 font-bold">
-                      <span>{selectedStudent.id}</span>
+                      <span>{selectedStudent.nis}</span>
                       <span>•</span>
                       <span>{selectedClass}</span>
                       <span>•</span>
@@ -296,13 +330,11 @@ const CatatanSiswa = ({ user }) => {
                 )}
               </div>
 
-              {/* Body Panel */}
               <div className="p-6 flex-1 flex flex-col space-y-4 min-h-0">
                 <label className="text-xs font-black text-gray-400 uppercase tracking-wider flex-shrink-0">
                   Catatan untuk {selectedStudent.name}
                 </label>
 
-                {/* Textarea container */}
                 <div className="relative flex-1 flex flex-col border border-gray-200 rounded-3xl overflow-hidden focus-within:ring-2 focus-within:ring-blue-100 focus-within:border-blue-500 transition-all bg-slate-50/10">
                   <textarea
                     value={selectedStudent.note}
@@ -311,7 +343,6 @@ const CatatanSiswa = ({ user }) => {
                     className="w-full flex-1 p-6 text-sm font-semibold text-gray-700 bg-transparent focus:outline-none resize-none"
                   />
 
-                  {/* Placeholder list helper when empty */}
                   {!selectedStudent.note && (
                     <div className="absolute inset-0 p-6 pointer-events-none text-xs text-gray-400 font-semibold mt-10">
                       <p className="font-bold text-gray-500 mb-2">Contoh:</p>
@@ -326,7 +357,6 @@ const CatatanSiswa = ({ user }) => {
                 </div>
               </div>
 
-              {/* Footer Panel */}
               <div className="p-6 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 flex-shrink-0 bg-slate-50/35">
                 <div className="flex items-center gap-1.5 text-xs font-extrabold text-emerald-600">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
@@ -360,6 +390,3 @@ const CatatanSiswa = ({ user }) => {
 };
 
 export default CatatanSiswa;
-
-
-

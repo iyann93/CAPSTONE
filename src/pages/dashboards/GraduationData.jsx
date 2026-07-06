@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import GraduationDataDetail from "./GraduationDataDetail";
-
 
 const StatusBadge = ({ s }) => {
   if (s==="Selesai") return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-50 text-green-600 border border-green-100"><svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>Selesai</span>;
@@ -10,74 +9,93 @@ const StatusBadge = ({ s }) => {
 
 const GraduationData = () => {
   const [classes, setClasses] = useState([]);
-  
-  React.useEffect(() => {
-    const fetchState = async () => {
-      try {
-        const { default: api } = await import('../../api/axios');
-        const kelasRes = await api.get('/kelas');
-        const dbClasses = kelasRes.data?.data || [];
-        
-        let savedProgress = [];
-        try {
-          const stateRes = await api.get('/system/frontend-state');
-          savedProgress = stateRes.data?.data?.graduation_classes || [];
-        } catch(e) {}
-        
-        const ixClasses = dbClasses.filter(c => c.nama_kelas?.toUpperCase().includes("IX"));
-        
-        const mappedClasses = ixClasses.map((c, index) => {
-          const progress = savedProgress.find(p => p.kode === c.id) || {};
-          
-          return {
-            no: index + 1,
-            kelas: c.nama_kelas,
-            kode: c.id,
-            wali: c.wali_kelas || "Belum ditentukan",
-            total: c.kapasitas || 0,
-            lulus: progress.lulus || 0,
-            tidakLulus: progress.tidakLulus || 0,
-            pending: progress.pending !== undefined ? progress.pending : (c.kapasitas || 0),
-            pct: progress.pct || 0,
-            tgl: progress.tgl || "—",
-            status: progress.status || "Belum Diproses"
-          };
-        });
-        
-        setClasses(mappedClasses);
-        localStorage.setItem("graduation_classes", JSON.stringify(mappedClasses));
-      } catch (err) {
-        console.error(err);
-        const saved = localStorage.getItem("graduation_classes");
-        if (saved) setClasses(JSON.parse(saved));
-      }
-    };
-    fetchState();
-  }, []);
   const [view, setView] = useState("list");
   const [selectedClass, setSelectedClass] = useState(null);
   const [showCriteria, setShowCriteria] = useState(false);
   const [showPengumuman, setShowPengumuman] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const { default: api } = await import('../../api/axios');
+      
+      const [kelasRes, siswaRes, lulusRes] = await Promise.all([
+        api.get('/kelas'),
+        api.get('/siswa'),
+        api.get('/kelulusan')
+      ]);
+
+      const dbClasses = kelasRes.data?.data || [];
+      const allSiswa = siswaRes.data?.data || [];
+      const allLulus = lulusRes.data?.data || [];
+
+      // Filter hanya kelas IX dan bersihkan nama kelas dari IPA/IPS
+      const ixClasses = dbClasses
+        .filter(c => c.nama_kelas?.toUpperCase().includes("IX"))
+        .map(c => {
+          let kName = c.nama_kelas.toUpperCase();
+          if (kName.includes('IX')) kName = 'IX';
+          return { ...c, displayName: kName };
+        });
+      
+      const mappedClasses = ixClasses.map((c, index) => {
+        const classSiswa = allSiswa.filter(s => s.kelas_id === c.id);
+        const total = classSiswa.length;
+        
+        let lulus = 0;
+        let tidakLulus = 0;
+        let pending = total;
+
+        classSiswa.forEach(s => {
+          const lData = allLulus.find(l => l.siswa_id === s.id);
+          if (lData) {
+            if (lData.status === "Lulus") {
+              lulus++;
+              pending--;
+            } else if (lData.status === "Tidak Lulus") {
+              tidakLulus++;
+              pending--;
+            }
+          }
+        });
+
+        const pct = total > 0 ? Math.round((lulus / total) * 100) : 0;
+        let status = "Belum Diproses";
+        if (pending === 0 && total > 0) status = "Selesai";
+        else if (pending < total && total > 0) status = "Dalam Proses";
+
+        return {
+          no: index + 1,
+          kelas: c.displayName,
+          kode: c.id,
+          wali: c.wali_kelas || "Belum ditentukan",
+          total: total,
+          lulus: lulus,
+          tidakLulus: tidakLulus,
+          pending: pending,
+          pct: pct,
+          tgl: "3 Mei 2024",
+          status: status
+        };
+      });
+      
+      setClasses(mappedClasses);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [view]);
 
   const handleSaveGraduation = async (classKode, updatedStats) => {
-    const updated = classes.map(c =>
-      c.kode === classKode
-        ? { ...c, lulus: updatedStats.lulus, tidakLulus: updatedStats.tidakLulus, pending: updatedStats.pending, pct: updatedStats.pct, status: updatedStats.status }
-        : c
-    );
-    setClasses(updated);
-    localStorage.setItem("graduation_classes", JSON.stringify(updated));
+    // Dipanggil dari GraduationDataDetail jika ingin mengupdate state lokal sebelum fetch
+    // Tapi karena view pindah ke "list", useEffect fetchData akan terpanggil lagi
     setView("list");
-    
-    try {
-      const { default: api } = await import('../../api/axios');
-      const stateRes = await api.get('/system/frontend-state');
-      const currentState = stateRes.data?.data || {};
-      await api.put('/system/frontend-state', {
-        ...currentState,
-        graduation_classes: updated
-      });
-    } catch (e) {}
   };
 
   const totalSiswa = classes.reduce((a,c)=>a+c.total,0);
@@ -87,16 +105,12 @@ const GraduationData = () => {
   const selesai = classes.filter(c=>c.status==="Selesai").length;
   const pctLulus = totalSiswa > 0 ? Math.round((totalLulus/totalSiswa)*100*10)/10 : 0;
 
-  const filtered = classes;
-
   if (view==="detail") return <GraduationDataDetail cls={selectedClass} setView={setView} onSave={handleSaveGraduation} />;
 
   return (
     <div className="p-6 md:p-8 animate-fadeIn bg-[#F4F6FA] min-h-full space-y-5">
-      {/* Breadcrumb */}
       <div className="text-[13px] text-gray-400">Dashboard &gt; <span className="text-gray-500">Kelola Akademik</span> &gt; <span className="text-[#2A4365] font-semibold">Data Kelulusan</span></div>
 
-      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
           <h1 className="text-[26px] font-bold text-[#1e293b]">Data Kelulusan</h1>
@@ -118,7 +132,6 @@ const GraduationData = () => {
         </div>
       </div>
 
-      {/* Banner */}
       <div className="bg-gradient-to-r from-[#2A4365] to-[#3B82F6] rounded-2xl p-5 text-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -139,7 +152,6 @@ const GraduationData = () => {
         </div>
       </div>
 
-      {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
         {[
           { label: "Total Siswa IX", val: totalSiswa, sub: "Semua kelas IX" },
@@ -157,20 +169,17 @@ const GraduationData = () => {
         ))}
       </div>
 
-      {/* Progress */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
         <div className="flex items-center justify-between mb-3">
           <p className="text-[14px] font-bold text-gray-700">Progress Proses Kelulusan</p>
-          <span className="text-[14px] font-bold text-blue-600">{Math.round((selesai/classes.length)*100)}% ({selesai}/{classes.length} kelas)</span>
+          <span className="text-[14px] font-bold text-blue-600">{classes.length > 0 ? Math.round((selesai/classes.length)*100) : 0}% ({selesai}/{classes.length} kelas)</span>
         </div>
         <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full" style={{width:`${(selesai/classes.length)*100}%`}} />
+          <div className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full" style={{width:`${classes.length > 0 ? (selesai/classes.length)*100 : 0}%`}} />
         </div>
       </div>
 
-      {/* Table Card */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="border-b border-gray-100">
@@ -179,14 +188,17 @@ const GraduationData = () => {
               ))}</tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filtered.map((row,i)=>(
+              {loading ? (
+                <tr><td colSpan="11" className="text-center py-10">Memuat data...</td></tr>
+              ) : classes.length === 0 ? (
+                <tr><td colSpan="11" className="text-center py-10">Tidak ada kelas IX</td></tr>
+              ) : classes.map((row,i)=>(
                 <tr key={i} className="hover:bg-gray-50/50">
                   <td className="px-4 py-4 text-[13px] text-gray-400">{row.no}</td>
                   <td className="px-4 py-4">
                     <p className="text-[13px] font-bold text-gray-800">{row.kelas}</p>
                     <p className="text-[11px] text-gray-400">{row.kode}</p>
                   </td>
-
                   <td className="px-4 py-4 text-[13px] text-gray-600 max-w-[140px] truncate">{row.wali}</td>
                   <td className="px-4 py-4 text-[13px] font-semibold text-gray-700">{row.total}</td>
                   <td className="px-4 py-4 text-[13px] font-bold text-green-600">{row.lulus}</td>
@@ -221,7 +233,7 @@ const GraduationData = () => {
           </table>
         </div>
         <div className="px-5 py-3.5 border-t border-gray-100 flex items-center justify-between">
-          <p className="text-[13px] text-gray-400">Menampilkan 1–{filtered.length} dari {filtered.length} kelas</p>
+          <p className="text-[13px] text-gray-400">Menampilkan 1–{classes.length} dari {classes.length} kelas</p>
           <div className="flex items-center gap-1.5">
             <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg></button>
             <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#2A4365] text-white text-[13px] font-bold">1</button>
@@ -230,11 +242,9 @@ const GraduationData = () => {
         </div>
       </div>
 
-      {/* Modal Kriteria Kelulusan */}
       {showCriteria && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fadeIn">
           <div className="bg-white rounded-[24px] w-full max-w-[420px] p-8 shadow-2xl scale-in">
-            {/* Header */}
             <div className="flex items-center gap-4 mb-6">
               <div className="w-[52px] h-[52px] rounded-[18px] bg-[#F5F3FF] flex items-center justify-center text-[#8B5CF6] flex-shrink-0">
                 <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M22 10L12 5 2 10l10 5 10-5z"/><path strokeLinecap="round" strokeLinejoin="round" d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
@@ -245,7 +255,6 @@ const GraduationData = () => {
               </div>
             </div>
 
-            {/* Criteria list */}
             <div className="space-y-3.5 mb-6">
               <div className="flex items-center justify-between px-4 py-3 border border-gray-100 rounded-2xl">
                 <div className="flex items-center gap-3">
@@ -277,7 +286,6 @@ const GraduationData = () => {
               </div>
             </div>
 
-            {/* Warning Box */}
             <div className="p-4 bg-[#FFFBEB] border border-[#FDE68A] rounded-[20px] flex gap-3 items-start mb-8">
               <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#D97706" strokeWidth="2" className="flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
               <p className="text-[13px] text-[#B45309] leading-relaxed">
@@ -285,7 +293,6 @@ const GraduationData = () => {
               </p>
             </div>
 
-            {/* Buttons */}
             <div className="flex gap-4">
               <button onClick={() => setShowCriteria(false)} className="flex-1 py-3.5 bg-white border border-gray-200 rounded-[16px] text-gray-600 font-bold hover:bg-gray-50 transition-colors">
                 Tutup
@@ -298,11 +305,9 @@ const GraduationData = () => {
         </div>
       )}
 
-      {/* Modal Pengumuman Kelulusan */}
       {showPengumuman && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fadeIn">
           <div className="bg-white rounded-[24px] w-full max-w-[420px] p-8 shadow-2xl scale-in">
-            {/* Header */}
             <div className="flex items-center gap-4 mb-6">
               <div className="w-[52px] h-[52px] rounded-[18px] bg-[#F5F3FF] flex items-center justify-center text-[#8B5CF6] flex-shrink-0">
                 <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
@@ -313,7 +318,6 @@ const GraduationData = () => {
               </div>
             </div>
 
-            {/* Form Fields */}
             <div className="space-y-4 mb-6">
               <div>
                 <label className="block text-[13.5px] font-bold text-[#475569] mb-2">Tanggal Pengumuman</label>
@@ -335,7 +339,6 @@ const GraduationData = () => {
               </div>
             </div>
 
-            {/* Info Box */}
             <div className="p-4 bg-[#FAF5FF] border border-[#E9D5FF] rounded-[20px] flex gap-3 items-start mb-8">
               <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#A855F7" strokeWidth="2" className="flex-shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
               <p className="text-[13px] text-[#9333EA] leading-relaxed">
@@ -343,7 +346,6 @@ const GraduationData = () => {
               </p>
             </div>
 
-            {/* Buttons */}
             <div className="flex gap-4">
               <button onClick={() => setShowPengumuman(false)} className="flex-1 py-3.5 bg-white border border-gray-200 rounded-[16px] text-gray-600 font-bold hover:bg-gray-50 transition-colors">
                 Batal
@@ -361,5 +363,3 @@ const GraduationData = () => {
 };
 
 export default GraduationData;
-
-

@@ -1,102 +1,148 @@
-﻿import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import ReactDOM from "react-dom";
 
-const studentMetadata = {
-  "2023001": { grade: 87, note: "Aktif dan rajin. Kemampuan aljabar meningkat pesat." },
-  "2023002": { grade: 94, note: "Nilai tertinggi di kelas. Sangat direkomendasikan mengikuti olimpiade." },
-  "2023003": { grade: 72, note: "Perlu bimbingan tambahan. Kesulitan pada materi limit." },
-  "2023004": { grade: 85, note: "" },
-  "2023005": { grade: 79, note: "Konsisten mengerjakan tugas." },
-  "2023006": { grade: 91, note: "Juara 2 olimpiade kota. Sangat berbakat." },
-  "2023007": { grade: 82, note: "Paham materi matriks dengan baik." },
-  "2023008": { grade: 78, note: "" },
-  "2023009": { grade: 65, note: "Perlu remedial materi trigonometri." },
-};
-
 const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
-  const [selectedClass, setSelectedClass] = useState("VII IPA 1");
+  const [selectedClass, setSelectedClass] = useState("");
   const [activeTab, setActiveTab] = useState("Semua");
   const [searchQuery, setSearchQuery] = useState("");
   const [notification, setNotification] = useState(null);
+  
+  const [classes, setClasses] = useState([]);
+  const [derivedStudentsData, setDerivedStudentsData] = useState({});
+  const [dbSessionCounts, setDbSessionCounts] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [debugInfo, setDebugInfo] = useState({ absensi: 0, nilai: 0 });
 
-  // Derive cumulative student data from saved sessions
-  const derivedStudentsData = useMemo(() => {
-    const classMap = {};
+  // Fetch classes and students from backend
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const { default: api } = await import('../../api/axios');
+        const [kelasRes, siswaRes] = await Promise.all([
+          api.get('/kelas'),
+          api.get('/siswa')
+        ]);
+        
+        const dbClasses = kelasRes.data?.data || [];
+        const dbSiswa = siswaRes.data?.data || [];
 
-    // Standard lists of students for fallback if no session exists yet for a class
-    const fallbackStudents = {
-      "VII IPA 1": [
-        { id: "2023001", name: "Andi Pratama", gender: "L", avatarBg: "bg-blue-500" },
-        { id: "2023002", name: "Dewi Sartika", gender: "P", avatarBg: "bg-slate-700" },
-        { id: "2023003", name: "Ricky Firmansyah", gender: "L", avatarBg: "bg-amber-600" },
-        { id: "2023004", name: "Nurul Hidayah", gender: "P", avatarBg: "bg-red-500" },
-        { id: "2023005", name: "Fajar Setiawan", gender: "L", avatarBg: "bg-purple-600" },
-        { id: "2023006", name: "Ayu Lestari", gender: "P", avatarBg: "bg-pink-500" },
-      ],
-      "VII IPA 2": [
-        { id: "2023007", name: "Bagus Cahyo", gender: "L", avatarBg: "bg-blue-500" },
-        { id: "2023008", name: "Citra Lestari", gender: "P", avatarBg: "bg-pink-500" },
-        { id: "2023009", name: "Dimas Anggara", gender: "L", avatarBg: "bg-amber-600" },
-      ]
-    };
+        // Parse classes
+        const classNames = dbClasses.map(c => c.nama_kelas);
+        setClasses(classNames);
+        if (classNames.length > 0) {
+          setSelectedClass(classNames[0]);
+        }
 
-    // Initialize all classes from fallback configuration
-    Object.keys(fallbackStudents).forEach((cls) => {
-      classMap[cls] = {};
-      fallbackStudents[cls].forEach((student) => {
-        const meta = studentMetadata[student.id] || { grade: "-", note: "" };
-        classMap[cls][student.id] = {
-          id: student.id,
-          name: student.name,
-          gender: student.gender,
-          avatarBg: student.avatarBg,
-          hadir: 0,
-          izin: 0,
-          sakit: 0,
-          grade: meta.grade,
-          note: meta.note
-        };
-      });
-    });
+        const classMap = {};
+        classNames.forEach(cName => {
+          classMap[cName] = {};
+        });
 
-    // Populate data with saved sessions
-    attendanceSessions.forEach((session) => {
-      const cls = session.attendanceClass;
-      if (!classMap[cls]) classMap[cls] = {};
+        // Initialize students from DB
+        dbSiswa.forEach(siswa => {
+          const cls = dbClasses.find(c => c.id === siswa.kelas_id);
+          const className = cls ? cls.nama_kelas : "Tanpa Kelas";
+          
+          if (!classMap[className]) {
+            classMap[className] = {};
+          }
 
-      session.students.forEach((student) => {
-        if (!classMap[cls][student.id]) {
-          const meta = studentMetadata[student.id] || { grade: "-", note: "" };
-          classMap[cls][student.id] = {
-            id: student.id,
-            name: student.name,
-            gender: student.gender === "Laki-laki" ? "L" : student.gender === "Perempuan" ? "P" : student.gender,
-            avatarBg: student.avatarBg || "bg-gray-400",
+          classMap[className][siswa.id] = {
+            id: siswa.id, // UUID
+            nis: siswa.nis || "-",
+            name: siswa.nama_lengkap,
+            gender: siswa.jenis_kelamin === "Laki-laki" ? "L" : "P",
+            avatarBg: "bg-blue-500",
             hadir: 0,
             izin: 0,
             sakit: 0,
-            grade: meta.grade,
-            note: meta.note
+            harian: "-",
+            uts: "-",
+            uas: "-"
           };
-        }
-        const rec = classMap[cls][student.id];
-        if (student.status === "Hadir") rec.hadir++;
-        else if (student.status === "Izin") rec.izin++;
-        else if (student.status === "Sakit") rec.sakit++;
-      });
-    });
+        });
 
-    const result = {};
-    Object.keys(classMap).forEach((cls) => {
-      result[cls] = Object.values(classMap[cls]);
-    });
-    return result;
-  }, [attendanceSessions]);
+        // Fetch ALL absensi & nilai records from database with timestamp to bypass browser cache
+        const t = Date.now();
+        const [absensiRes, nilaiRes] = await Promise.all([
+          api.get(`/absensi?limit=2000&_t=${t}`),
+          api.get(`/nilai?limit=2000&_t=${t}`)
+        ]);
+        
+        const dbAbsensi = absensiRes.data?.data || [];
+        const dbNilai = nilaiRes.data?.data || [];
+        
+        // Save raw counts for debugging
+        setDebugInfo({ absensi: dbAbsensi.length, nilai: dbNilai.length });
 
-  const classes = Object.keys(derivedStudentsData);
+        const sessionCountsMap = {};
+
+        dbAbsensi.forEach(record => {
+          let foundStudent = null;
+          let classNameForStudent = "Tanpa Kelas";
+          
+          for (const [cName, students] of Object.entries(classMap)) {
+            if (students[record.siswa_id]) {
+              foundStudent = students[record.siswa_id];
+              classNameForStudent = cName;
+              break;
+            }
+          }
+          
+          if (foundStudent) {
+            if (!sessionCountsMap[classNameForStudent]) {
+              sessionCountsMap[classNameForStudent] = new Set();
+            }
+            if (record.tanggal) {
+              sessionCountsMap[classNameForStudent].add(record.tanggal);
+            }
+            
+            if (record.status === "Hadir") foundStudent.hadir++;
+            else if (record.status === "Izin") foundStudent.izin++;
+            else if (record.status === "Sakit") foundStudent.sakit++;
+          }
+        });
+
+        const finalSessionCounts = {};
+        Object.keys(sessionCountsMap).forEach(cls => {
+          finalSessionCounts[cls] = sessionCountsMap[cls].size;
+        });
+        setDbSessionCounts(finalSessionCounts);
+
+        // Calculate average harian, uts, uas per student
+        Object.values(classMap).forEach(clsStudents => {
+          Object.values(clsStudents).forEach(stu => {
+            const studentGrades = dbNilai.filter(n => n.siswa_id === stu.id);
+            if (studentGrades.length > 0) {
+              const sumHarian = studentGrades.reduce((sum, n) => sum + parseFloat(n.nilai_harian || 0), 0);
+              const sumUts = studentGrades.reduce((sum, n) => sum + parseFloat(n.nilai_uts || 0), 0);
+              const sumUas = studentGrades.reduce((sum, n) => sum + parseFloat(n.nilai_uas || 0), 0);
+              
+              stu.harian = parseFloat((sumHarian / studentGrades.length).toFixed(1));
+              stu.uts = parseFloat((sumUts / studentGrades.length).toFixed(1));
+              stu.uas = parseFloat((sumUas / studentGrades.length).toFixed(1));
+            }
+          });
+        });
+
+        const result = {};
+        Object.keys(classMap).forEach((cls) => {
+          result[cls] = Object.values(classMap[cls]);
+        });
+        
+        setDerivedStudentsData(result);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [selectedClass]); // Trigger reload if selected class changes or explicitly requested
+
   const currentStudents = derivedStudentsData[selectedClass] || [];
 
-  // Summary Metrics
   const metrics = useMemo(() => {
     const total = currentStudents.length;
     let totalHadir = 0;
@@ -109,23 +155,19 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
       totalHadir += student.hadir;
       totalIzin += student.izin;
       totalSakit += student.sakit;
-      if (typeof student.grade === "number") {
-        totalGrades += student.grade;
+      if (typeof student.harian === "number") {
+        totalGrades += (student.harian + student.uts + student.uas) / 3;
         validGradesCount++;
       }
     });
 
-    // Count how many sessions for this class
-    const sessionCount = attendanceSessions.filter(
-      (s) => s.attendanceClass === selectedClass
-    ).length;
+    const sessionCount = dbSessionCounts[selectedClass] || 0;
 
     const averageGrade = validGradesCount > 0 ? (totalGrades / validGradesCount).toFixed(1) : "0.0";
 
     return { total, totalHadir, totalIzin, totalSakit, sessionCount, averageGrade };
-  }, [currentStudents, attendanceSessions, selectedClass]);
+  }, [currentStudents, dbSessionCounts, selectedClass]);
 
-  // Tab Filtering & Search
   const filteredStudents = useMemo(() => {
     let result = currentStudents;
 
@@ -133,8 +175,6 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
       result = result.filter((s) => s.izin === 0 && s.sakit === 0 && s.hadir > 0);
     } else if (activeTab === "Ada Izin/Sakit") {
       result = result.filter((s) => s.izin > 0 || s.sakit > 0);
-    } else if (activeTab === "Punya Catatan") {
-      result = result.filter((s) => s.note && s.note.trim() !== "");
     }
 
     if (searchQuery.trim()) {
@@ -148,20 +188,19 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
     return result;
   }, [currentStudents, activeTab, searchQuery]);
 
-  const countWithNotes = useMemo(
-    () => currentStudents.filter((s) => s.note && s.note.trim() !== "").length,
-    [currentStudents]
-  );
+
 
   const handleExport = () => {
     setNotification("Berhasil mengekspor rekap absensi ke format Excel!");
     setTimeout(() => setNotification(null), 4000);
   };
 
-  // ─── MAIN RENDER ─────────────────────────────────────────────────────────
+  if (loading) {
+    return <div className="p-8">Memuat data dari database...</div>;
+  }
+
   return (
     <div className="p-6 md:p-8 space-y-6 animate-fadeIn bg-[#F8FAFC] min-h-screen relative">
-      {/* Toast Notification — portal */}
       {notification && ReactDOM.createPortal(
         <div style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 9999 }} className="flex items-center gap-3 bg-slate-900 text-white px-5 py-4 rounded-2xl shadow-xl animate-slideIn">
           <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white">
@@ -174,13 +213,15 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
         document.body
       )}
 
-      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex flex-col gap-1">
           <div className="flex items-center text-xs font-semibold text-gray-400 gap-1.5">
             <span>Rekap Absensi Siswa</span>
             <span>•</span>
-            <span>Semester Ganjil 2023/2024 • SMPN 1 Contoh</span>
+            <span>Semester Ganjil 2023/2024 • Data bersumber dari Database</span>
+          </div>
+          <div className="mt-2 text-[10px] font-mono bg-blue-50 text-blue-700 px-3 py-1 rounded-md border border-blue-200 inline-block w-fit">
+            Debug: {debugInfo.absensi} absensi, {debugInfo.nilai} nilai.
           </div>
           <h1 className="text-[26px] font-black text-[#1e293b] tracking-tight">Rekap Absensi Siswa</h1>
           <p className="text-xs text-gray-400 font-semibold mt-0.5">
@@ -201,7 +242,6 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
         </button>
       </div>
 
-      {/* Pilih Kelas */}
       <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-3">
         <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider block">Pilih Kelas</span>
         <div className="relative w-full sm:w-[240px]">
@@ -214,11 +254,15 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
             }}
             className="w-full bg-white border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 appearance-none shadow-sm transition-all"
           >
-            {classes.map((cls) => (
-              <option key={cls} value={cls}>
-                Kelas {cls}
-              </option>
-            ))}
+            {classes.length > 0 ? (
+              classes.map((cls) => (
+                <option key={cls} value={cls}>
+                  Kelas {cls}
+                </option>
+              ))
+            ) : (
+              <option value="">Tidak ada kelas</option>
+            )}
           </select>
           <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -231,7 +275,6 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
         </p>
       </div>
 
-      {/* Metrics Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {[
           {
@@ -306,9 +349,7 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
         ))}
       </div>
 
-      {/* Main Table */}
       <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-6">
-        {/* Tabs + Search */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div className="flex flex-wrap gap-1.5">
             {["Semua", "Hadir Penuh", "Ada Izin/Sakit"].map((tab) => (
@@ -324,25 +365,6 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
                 {tab}
               </button>
             ))}
-            <button
-              onClick={() => setActiveTab("Punya Catatan")}
-              className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
-                activeTab === "Punya Catatan"
-                  ? "bg-[#1A3D63] text-white shadow-md"
-                  : "text-gray-500 bg-white hover:bg-slate-50 border border-gray-100"
-              }`}
-            >
-              Punya Catatan
-              <span
-                className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[9px] font-black ${
-                  activeTab === "Punya Catatan"
-                    ? "bg-white/20 text-white"
-                    : "bg-emerald-50 text-emerald-600"
-                }`}
-              >
-                {countWithNotes}
-              </span>
-            </button>
           </div>
 
           <div className="relative w-full sm:w-[280px]">
@@ -362,7 +384,6 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
           </div>
         </div>
 
-        {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[900px]">
             <thead>
@@ -374,8 +395,9 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
                 <th className="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center w-[90px]">Izin</th>
                 <th className="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center w-[90px]">Sakit</th>
                 <th className="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-[160px]">% Hadir</th>
-                <th className="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center w-[130px]">Nilai Rata-rata</th>
-                <th className="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Catatan Guru</th>
+                <th className="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center w-[100px]">Harian</th>
+                <th className="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center w-[100px]">UTS</th>
+                <th className="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center w-[100px]">UAS</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -387,7 +409,7 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
                   return (
                     <tr key={student.id} className="hover:bg-slate-50/20 transition-colors">
                       <td className="py-5 px-4 text-xs font-bold text-gray-400">{idx + 1}</td>
-                      <td className="py-5 px-4 text-xs font-bold text-gray-500">{student.id}</td>
+                      <td className="py-5 px-4 text-xs font-bold text-gray-500">{student.nis}</td>
                       <td className="py-5 px-4">
                         <div className="flex items-center gap-3.5">
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-extrabold text-sm shadow-sm ${student.avatarBg}`}>
@@ -422,17 +444,9 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
                           )}
                         </div>
                       </td>
-                      <td className="py-5 px-4 text-center text-sm font-extrabold text-gray-800">{student.grade}</td>
-                      <td className="py-5 px-4">
-                        {student.note ? (
-                          <div className="flex items-start gap-2 max-w-[280px]">
-                            <span className="text-[12px] mt-0.5">💬</span>
-                            <p className="text-xs font-medium text-gray-700 line-clamp-2">{student.note}</p>
-                          </div>
-                        ) : (
-                          <span className="text-xs font-semibold text-gray-300">Belum ada catatan</span>
-                        )}
-                      </td>
+                      <td className="py-5 px-4 text-center text-sm font-extrabold text-gray-800">{student.harian}</td>
+                      <td className="py-5 px-4 text-center text-sm font-extrabold text-gray-800">{student.uts}</td>
+                      <td className="py-5 px-4 text-center text-sm font-extrabold text-gray-800">{student.uas}</td>
                     </tr>
                   );
                 })
@@ -447,7 +461,6 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
           </table>
         </div>
 
-        {/* Footer */}
         <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-2">
           <span className="text-xs text-gray-400 font-semibold">
             {filteredStudents.length} siswa ditampilkan
@@ -462,6 +475,3 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
 };
 
 export default RekapAbsensiSiswa;
-
-
-

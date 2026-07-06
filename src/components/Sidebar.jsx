@@ -233,7 +233,17 @@ const menuSections = [
       { label: "Rekap Absensi Siswa", icon: <BarChartIcon /> },
       { label: "Catatan Siswa", icon: <ChatIcon /> }
     ],
-    roles: ["Guru", "Guru Mapel", "Wali Kelas"]
+    roles: ["Guru", "Wali Kelas"]
+  },
+  {
+    section: "AKADEMIK",
+    items: [
+      { label: "Jadwal Mengajar", icon: <CalendarIcon /> },
+      { label: "Input Nilai", icon: <BookIcon /> },
+      { label: "Absensi Siswa", icon: <UsersIcon /> },
+      { label: "Rekap Absensi Siswa", icon: <BarChartIcon /> }
+    ],
+    roles: ["Guru Mapel"]
   },
   {
     section: "PRIBADI",

@@ -44,8 +44,8 @@ const NilaiController = {
         error.errors = errors.array();
         return next(error);
       }
-      // req.user.id diambil dari token user login (guru)
-      const data = await NilaiService.create(req.body, req.user.id);
+      // req.user.userId diambil dari token user login (guru)
+      const data = await NilaiService.create(req.body, req.user.userId);
       return response.success(res, 201, 'Nilai berhasil disimpan', data);
     } catch (err) { next(err); }
   },

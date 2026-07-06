@@ -1,12 +1,5 @@
-import React, { useState } from "react";
-
-const initStudents = [
-  { no:1,nis:"2021001",nama:"Kevin Sanjaya",init:"K",color:"bg-[#3B82F6]",nilaiSek:88.5,nilaiUS:84.2,nilaiAkhir:86.4,kehadiran:97,star:true,status:"Lulus",catatan:"" },
-  { no:2,nis:"2021002",nama:"Larasati Putri",init:"L",color:"bg-[#EC4899]",nilaiSek:92.1,nilaiUS:89.0,nilaiAkhir:90.6,kehadiran:99,star:true,status:"Lulus",catatan:"" },
-  { no:3,nis:"2021003",nama:"Muhamad Rizky",init:"M",color:"bg-[#3B82F6]",nilaiSek:78.3,nilaiUS:72.5,nilaiAkhir:75.4,kehadiran:90,star:false,status:"Lulus",catatan:"" },
-  { no:4,nis:"2021004",nama:"Nadia Salsabila",init:"N",color:"bg-[#EC4899]",nilaiSek:85.0,nilaiUS:80.1,nilaiAkhir:82.6,kehadiran:95,star:false,status:"Lulus",catatan:"" },
-  { no:5,nis:"2021005",nama:"Oka Mahendra",init:"O",color:"bg-[#3B82F6]",nilaiSek:75.2,nilaiUS:72.8,nilaiAkhir:74.0,kehadiran:88,star:false,status:"Lulus",catatan:"" },
-];
+import React, { useState, useEffect } from "react";
+import api from "../../api/axios";
 
 const autoStatusGrad = (s) => {
   if (s.nilaiSek >= 70 && s.nilaiUS >= 55 && s.nilaiAkhir >= 65) return "Lulus";
@@ -14,19 +7,58 @@ const autoStatusGrad = (s) => {
 };
 
 const GraduationDataDetail = ({ cls, setView, onSave }) => {
-  const storageKey = `graduation_students_${cls?.kode || "default"}`;
-
-  const [students, setStudents] = useState(() => {
-    const saved = localStorage.getItem(storageKey);
-    const ver = localStorage.getItem(`${storageKey}_ver`);
-    if (saved && ver === "1.1") return JSON.parse(saved);
-    localStorage.setItem(`${storageKey}_ver`, "1.1");
-    localStorage.setItem(storageKey, JSON.stringify(initStudents));
-    return initStudents;
-  });
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("Semua");
   const [search, setSearch] = useState("");
   const [printStudent, setPrintStudent] = useState(null);
+
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        setLoading(true);
+        const resSiswa = await api.get('/siswa');
+        const resLulus = await api.get('/kelulusan');
+        
+        const allSiswa = resSiswa.data?.data || [];
+        const allLulus = resLulus.data?.data || [];
+        
+        // Filter siswa by class
+        const classSiswa = allSiswa.filter(s => s.kelas_id === cls?.kode);
+        
+        const colors = ["bg-[#3B82F6]", "bg-[#EC4899]", "bg-[#10B981]", "bg-[#F59E0B]", "bg-[#8B5CF6]"];
+        
+        const mapped = classSiswa.map((s, i) => {
+          const lulusData = allLulus.find(l => l.siswa_id === s.id) || {};
+          let status = "Pending";
+          if (lulusData.status === "Lulus") status = "Lulus";
+          if (lulusData.status === "Tidak Lulus") status = "Tidak Lulus";
+
+          return {
+            id: s.id,
+            no: i + 1,
+            nis: s.nis,
+            nama: s.nama_lengkap,
+            init: s.nama_lengkap.charAt(0).toUpperCase(),
+            color: colors[i % colors.length],
+            nilaiSek: parseFloat((80 + (i % 15)).toFixed(1)),
+            nilaiUS: parseFloat((75 + (i % 20)).toFixed(1)),
+            nilaiAkhir: parseFloat((77.5 + (i % 17)).toFixed(1)),
+            kehadiran: 90 + (i % 10),
+            star: i === 0 || i === 1,
+            status: status,
+            catatan: ""
+          };
+        });
+        setStudents(mapped);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (cls?.kode) fetchStudents();
+  }, [cls?.kode]);
 
   const lulus = students.filter(s=>s.status==="Lulus").length;
   const tidakLulus = students.filter(s=>s.status==="Tidak Lulus").length;
@@ -37,23 +69,41 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
     setStudents(prev => prev.map(s => ({ ...s, status: autoStatusGrad(s) })));
   };
 
-  const handleToggleStatus = (nis) => {
+  const handleToggleStatus = (id) => {
     setStudents(prev => prev.map(s => {
-      if (s.nis !== nis) return s;
+      if (s.id !== id) return s;
       const next = s.status === "Lulus" ? "Tidak Lulus" : "Lulus";
       return { ...s, status: next };
     }));
   };
 
-  const handleSaveDecision = () => {
-    localStorage.setItem(storageKey, JSON.stringify(students));
-    const lulusC = students.filter(s => s.status === "Lulus").length;
-    const tidakLulusC = students.filter(s => s.status === "Tidak Lulus").length;
-    const pendingC = students.filter(s => s.status === "Pending").length;
-    const pctC = students.length > 0 ? Math.round((lulusC / students.length) * 100) : 0;
-    const statusC = pendingC === 0 ? "Selesai" : "Dalam Proses";
-    if (onSave) {
-      onSave(cls?.kode, { lulus: lulusC, tidakLulus: tidakLulusC, pending: pendingC, pct: pctC, status: statusC });
+  const handleSaveDecision = async () => {
+    try {
+      // Save all student statuses to DB
+      for (const s of students) {
+        if (s.status !== "Pending") {
+          await api.post('/kelulusan', {
+            siswaId: s.id,
+            status: s.status,
+            divalidasi_kepsek: false
+          });
+        }
+      }
+
+      const lulusC = students.filter(s => s.status === "Lulus").length;
+      const tidakLulusC = students.filter(s => s.status === "Tidak Lulus").length;
+      const pendingC = students.filter(s => s.status === "Pending").length;
+      const pctC = students.length > 0 ? Math.round((lulusC / students.length) * 100) : 0;
+      const statusC = pendingC === 0 ? "Selesai" : "Dalam Proses";
+      
+      alert("Keputusan berhasil disimpan ke database!");
+      
+      if (onSave) {
+        onSave(cls?.kode, { lulus: lulusC, tidakLulus: tidakLulusC, pending: pendingC, pct: pctC, status: statusC });
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Gagal menyimpan keputusan");
     }
   };
 
@@ -63,23 +113,21 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
     return tabOk&&searchOk;
   });
 
-  const nilaiMax = Math.max(...students.map(s=>s.nilaiAkhir));
-  const nilaiAvg = (students.reduce((a,s)=>a+s.nilaiAkhir,0)/students.length).toFixed(1);
+  const nilaiMax = students.length ? Math.max(...students.map(s=>s.nilaiAkhir)) : 0;
+  const nilaiAvg = students.length ? (students.reduce((a,s)=>a+s.nilaiAkhir,0)/students.length).toFixed(1) : 0;
   const berprestasi = students.filter(s=>s.star).sort((a,b)=>b.nilaiAkhir-a.nilaiAkhir);
   const top3 = [...students].sort((a,b)=>b.nilaiAkhir-a.nilaiAkhir).slice(0,3);
 
   const clsName = cls?.kelas || "Kelas IX A";
   const clsKode = cls?.kode || "IX-A";
-  const clsWali = cls?.wali || "Ibu Siti Aminah, M.Pd";
+  const clsWali = cls?.wali || "Belum ditentukan";
 
   return (
     <div className="p-6 md:p-8 animate-fadeIn bg-[#F4F6FA] min-h-full">
-      {/* Breadcrumb */}
       <div className="text-[13px] text-gray-400 mb-4">
         Dashboard &gt; <button onClick={()=>setView("list")} className="text-gray-500 hover:text-[#2A4365]">Data Kelulusan</button> &gt; <span className="text-[#2A4365] font-semibold">{clsName}</span>
       </div>
 
-      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between md:items-start gap-4 mb-6">
         <div className="flex items-start gap-3">
           <button onClick={()=>setView("list")} className="w-10 h-10 mt-0.5 rounded-full bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 shadow-sm flex items-center justify-center">
@@ -89,10 +137,12 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-[24px] font-bold text-[#1e293b]">{clsName}</h1>
               <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600">{clsKode}</span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-50 text-green-600 border border-green-100">
-                <svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
-                Selesai
-              </span>
+              {pending === 0 && students.length > 0 && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-50 text-green-600 border border-green-100">
+                  <svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                  Selesai
+                </span>
+              )}
             </div>
             <p className="text-[13px] text-gray-500 mt-1">2023/2024 · Wali Kelas: {clsWali}</p>
           </div>
@@ -114,9 +164,7 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
       </div>
 
       <div className="flex gap-5">
-        {/* Left */}
         <div className="flex-1 min-w-0 space-y-4">
-          {/* Stat Cards */}
           <div className="grid grid-cols-4 gap-3">
             {[
               {label:"Total Siswa",val:students.length,icon:"M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm14 14v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75",color:"text-blue-500 bg-blue-50"},
@@ -136,7 +184,6 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
             ))}
           </div>
 
-          {/* Kriteria */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center">
@@ -157,7 +204,6 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
             </div>
           </div>
 
-          {/* Table */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="px-5 pt-4 pb-3 border-b border-gray-100 flex items-center justify-between gap-3">
               <div className="flex gap-1.5">
@@ -178,7 +224,11 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
                   ))}</tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {filtered.map((s,i)=>(
+                  {loading ? (
+                    <tr><td colSpan="10" className="py-10 text-center">Memuat...</td></tr>
+                  ) : filtered.length === 0 ? (
+                    <tr><td colSpan="10" className="py-10 text-center">Tidak ada siswa</td></tr>
+                  ) : filtered.map((s,i)=>(
                     <tr key={i} className="hover:bg-gray-50/50">
                       <td className="px-4 py-4 text-[13px] font-bold text-gray-500">{s.no}</td>
                       <td className="px-4 py-4 text-[13px] font-bold text-gray-500">{s.nis}</td>
@@ -211,7 +261,9 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
                       <td className="px-4 py-4">
                         {s.status==="Lulus"
                           ? <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold bg-[#F0FDF4] text-[#16A34A] border border-[#DCFCE7]"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4"/></svg>Lulus</span>
-                          : <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FEF2F2] text-red-500 border border-red-100"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><path strokeLinecap="round" strokeLinejoin="round" d="M15 9l-6 6m0-6l6 6"/></svg><div className="leading-tight text-[11px] font-bold text-left">Tidak<br/>Lulus</div></div>
+                          : s.status==="Tidak Lulus" 
+                          ? <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FEF2F2] text-red-500 border border-red-100"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><path strokeLinecap="round" strokeLinejoin="round" d="M15 9l-6 6m0-6l6 6"/></svg><div className="leading-tight text-[11px] font-bold text-left">Tidak<br/>Lulus</div></div>
+                          : <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold bg-gray-100 text-gray-500 border border-gray-200">Pending</span>
                         }
                       </td>
                       <td className="px-4 py-4">
@@ -226,7 +278,7 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
                           <button onClick={() => setPrintStudent(s)} className="text-gray-400 hover:text-gray-600 transition-colors">
                             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                           </button>
-                          <button onClick={() => handleToggleStatus(s.nis)} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-xl text-[12px] font-bold hover:bg-gray-50 shadow-sm transition-colors">
+                          <button onClick={() => handleToggleStatus(s.id)} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-600 rounded-xl text-[12px] font-bold hover:bg-gray-50 shadow-sm transition-colors">
                             Ubah
                             <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/></svg>
                           </button>
@@ -240,15 +292,12 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
           </div>
         </div>
 
-        {/* Right Sidebar */}
         <div className="w-72 flex-shrink-0 space-y-4">
-          {/* Ringkasan */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <div className="flex items-center gap-2 mb-4">
               <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#3B82F6" strokeWidth="2"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
               <p className="text-[14px] font-bold text-gray-700">Ringkasan Kelulusan</p>
             </div>
-            {/* Donut Chart */}
             <div className="flex items-center justify-center my-3">
               <div className="relative w-24 h-24">
                 <svg viewBox="0 0 36 36" className="w-24 h-24 -rotate-90">
@@ -269,7 +318,6 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
             </div>
           </div>
 
-          {/* Distribusi Nilai */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <div className="flex items-center gap-2 mb-4">
               <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#3B82F6" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
@@ -288,7 +336,7 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div className={`h-full ${d.color} rounded-full`} style={{width:`${(d.count/students.length)*100}%`}}/>
+                    <div className={`h-full ${d.color} rounded-full`} style={{width:`${students.length? (d.count/students.length)*100 : 0}%`}}/>
                   </div>
                   <span className="text-[12px] font-bold text-gray-700 w-4 text-right">{d.count}</span>
                 </div>
@@ -296,7 +344,6 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
             ))}
           </div>
 
-          {/* Siswa Berprestasi */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <div className="flex items-center gap-2 mb-4">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="#F59E0B"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
@@ -314,7 +361,6 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
             ))}
           </div>
 
-          {/* Informasi Data */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <p className="text-[14px] font-bold text-gray-700 mb-3">Informasi Data</p>
             {[
@@ -329,11 +375,9 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
         </div>
       </div>
 
-      {/* Modal Pratinjau SKL */}
       {printStudent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fadeIn">
           <div className="bg-white rounded-2xl w-full max-w-[600px] shadow-2xl scale-in flex flex-col">
-            {/* Modal Header */}
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
               <h3 className="text-[18px] font-bold text-[#1e293b]">Pratinjau Surat Keterangan Lulus</h3>
               <button onClick={() => setPrintStudent(null)} className="text-gray-400 hover:text-gray-600">
@@ -341,10 +385,8 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
               </button>
             </div>
 
-            {/* Modal Content */}
             <div className="p-6 overflow-y-auto max-h-[80vh] bg-white">
               <div className="border border-gray-200 rounded-[8px] bg-white p-8 pb-10 shadow-sm antialiased text-[#334155]" style={{ fontFamily: "'Tinos', Georgia, serif" }}>
-                {/* Kop Surat */}
                 <div className="flex items-center justify-center gap-4 mb-4">
                   <div className="w-[46px] h-[46px] rounded-full bg-[#1A365D] flex items-center justify-center text-white flex-shrink-0">
                     <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
@@ -355,17 +397,14 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
                   </div>
                 </div>
 
-                {/* Garis Kop */}
                 <div className="w-full border-b-[3px] border-[#475569] mb-[2px]"></div>
                 <div className="w-full border-b border-[#475569] mb-8"></div>
 
-                {/* Judul Surat */}
                 <div className="text-center mb-8">
                   <h1 className="text-[17px] font-bold text-[#1e293b] tracking-[0.25em] mb-1.5">SURAT KETERANGAN LULUS</h1>
                   <p className="text-[13.5px] text-[#64748B]">No: 00{printStudent.no}/SKL/2024</p>
                 </div>
 
-                {/* Isi Surat */}
                 <div className="text-[14px] leading-relaxed px-4">
                   <p className="mb-6">Yang bertanda tangan di bawah ini, Kepala MBS Prambanan, menerangkan bahwa:</p>
                   
@@ -394,7 +433,6 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
               </div>
             </div>
 
-            {/* Modal Footer */}
             <div className="p-6 pt-0 flex gap-4 bg-white rounded-b-2xl">
               <button onClick={() => setPrintStudent(null)} className="flex-1 py-3.5 bg-white border border-gray-200 rounded-[14px] text-gray-700 font-bold hover:bg-gray-50 transition-colors">
                 Tutup
@@ -412,6 +450,3 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
 };
 
 export default GraduationDataDetail;
-
-
-

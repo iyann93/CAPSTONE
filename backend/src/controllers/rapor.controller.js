@@ -30,7 +30,7 @@ const RaporController = {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) return next(Object.assign(new Error('Validation failed'), { type: 'validation', errors: errors.array() }));
-      const data = await RaporService.generate(req.body, req.user.id);
+      const data = await RaporService.generate(req.body, req.user.userId);
       return response.success(res, 201, 'Proses generate rapor berhasil dijalankan', data);
     } catch (err) { next(err); }
   },
@@ -39,7 +39,7 @@ const RaporController = {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) return next(Object.assign(new Error('Validation failed'), { type: 'validation', errors: errors.array() }));
-      const data = await RaporService.publish(req.body, req.user.id);
+      const data = await RaporService.publish(req.body, req.user.userId);
       return response.success(res, 200, 'Rapor berhasil di-publish', data);
     } catch (err) { next(err); }
   }

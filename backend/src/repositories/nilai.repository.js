@@ -3,31 +3,31 @@
 const { query } = require('../config/db');
 const { whereBuilder, buildOrderBy } = require('../utils/queryBuilder');
 
-const SORT_MAP = { created_at: 'n.created_at', siswa: 's.nama', nilai_akhir: 'n.nilai_akhir' };
+const SORT_MAP = { created_at: 'n.created_at', siswa: 's.nama_lengkap', nilai_akhir: 'n.nilai_akhir' };
 
 const NilaiRepository = {
   findAll: async ({ limit, offset, search, sort, siswaId, mapelId, semesterId, guruId }) => {
     const wb = whereBuilder();
-    wb.addLike(search, ['s.nama', 's.nis', 'm.nama_mapel']);
+    wb.addLike(search, ['s.nama_lengkap', 's.nis', 'm.nama']);
     wb.addExact(siswaId, 'n.siswa_id');
     wb.addExact(mapelId, 'n.mata_pelajaran_id');
     wb.addExact(semesterId, 'n.semester_id');
     wb.addExact(guruId, 'n.guru_id');
     
     const { where, values, nextIdx } = wb.build();
-    const orderBy = buildOrderBy(sort, SORT_MAP, 's.nama ASC, n.created_at DESC');
+    const orderBy = buildOrderBy(sort, SORT_MAP, 's.nama_lengkap ASC, n.created_at DESC');
 
     const sql = `
       SELECT n.id, n.siswa_id, n.mata_pelajaran_id, n.semester_id, n.guru_id,
              n.nilai_harian, n.nilai_uts, n.nilai_uas, n.nilai_akhir,
              n.bobot_harian, n.bobot_uts, n.bobot_uas, n.catatan, n.created_at,
-             s.nama AS siswa_nama, s.nis,
-             m.nama_mapel,
+             s.nama_lengkap AS siswa_nama, s.nis,
+             m.nama AS nama_mapel,
              sm.nama AS semester_nama,
-             g.nama AS guru_nama
+             g.nama_lengkap AS guru_nama
       FROM academic.nilai n
       LEFT JOIN academic.siswa s ON n.siswa_id = s.id
-      LEFT JOIN academic.mapel m ON n.mata_pelajaran_id = m.id
+      LEFT JOIN academic.mata_pelajaran m ON n.mata_pelajaran_id = m.id
       LEFT JOIN academic.semester sm ON n.semester_id = sm.id
       LEFT JOIN academic.guru g ON n.guru_id = g.id
       ${where}
@@ -38,7 +38,7 @@ const NilaiRepository = {
     const countSql = `
       SELECT COUNT(*) FROM academic.nilai n
       LEFT JOIN academic.siswa s ON n.siswa_id = s.id
-      LEFT JOIN academic.mapel m ON n.mata_pelajaran_id = m.id
+      LEFT JOIN academic.mata_pelajaran m ON n.mata_pelajaran_id = m.id
       ${where}
     `;
     
@@ -51,10 +51,10 @@ const NilaiRepository = {
 
   findById: async (id) => {
     const sql = `
-      SELECT n.*, s.nama AS siswa_nama, s.nis, m.nama_mapel, sm.nama AS semester_nama, g.nama AS guru_nama
+      SELECT n.*, s.nama_lengkap AS siswa_nama, s.nis, m.nama AS nama_mapel, sm.nama AS semester_nama, g.nama_lengkap AS guru_nama
       FROM academic.nilai n
       LEFT JOIN academic.siswa s ON n.siswa_id = s.id
-      LEFT JOIN academic.mapel m ON n.mata_pelajaran_id = m.id
+      LEFT JOIN academic.mata_pelajaran m ON n.mata_pelajaran_id = m.id
       LEFT JOIN academic.semester sm ON n.semester_id = sm.id
       LEFT JOIN academic.guru g ON n.guru_id = g.id
       WHERE n.id = $1
@@ -71,14 +71,14 @@ const NilaiRepository = {
       values.push(mapelId);
     }
     const sql = `
-      SELECT n.id, n.siswa_id, s.nama AS siswa_nama, s.nis,
-             n.mata_pelajaran_id, m.nama_mapel,
+      SELECT n.id, n.siswa_id, s.nama_lengkap AS siswa_nama, s.nis,
+             n.mata_pelajaran_id, m.nama AS nama_mapel,
              n.nilai_harian, n.nilai_uts, n.nilai_uas, n.nilai_akhir, n.catatan
       FROM academic.nilai n
       INNER JOIN academic.siswa s ON n.siswa_id = s.id
-      INNER JOIN academic.mapel m ON n.mata_pelajaran_id = m.id
+      INNER JOIN academic.mata_pelajaran m ON n.mata_pelajaran_id = m.id
       WHERE s.kelas_id = $1 AND n.semester_id = $2 ${mapelFilter}
-      ORDER BY s.nama ASC, m.nama_mapel ASC
+      ORDER BY s.nama_lengkap ASC
     `;
     const result = await query(sql, values);
     return result.rows;
@@ -91,14 +91,22 @@ const NilaiRepository = {
       
       const { siswaId, mataPelajaranId, semesterId, guruId, nilaiHarian, nilaiUts, nilaiUas, catatan } = data;
       
+      // Resolve guruId (which is user_id from shared.users) to academic.guru.id
+      const guruRes = await client.query('SELECT id FROM academic.guru WHERE user_id = $1 OR id = $1', [guruId]);
+      let actualGuruId = guruId;
+      if (guruRes.rows.length > 0) {
+        actualGuruId = guruRes.rows[0].id;
+      }
+      
       // Ambil bobot nilai dari master data bobot_nilai
       const bobotRes = await client.query('SELECT bobot_harian, bobot_uts, bobot_uas FROM academic.bobot_nilai WHERE mata_pelajaran_id = $1', [mataPelajaranId]);
       
-      if (bobotRes.rows.length === 0) {
-        throw new Error('Bobot nilai untuk mata pelajaran ini belum diatur di database.');
+      let bobot_harian = 30, bobot_uts = 30, bobot_uas = 40;
+      if (bobotRes.rows.length > 0) {
+        bobot_harian = bobotRes.rows[0].bobot_harian;
+        bobot_uts = bobotRes.rows[0].bobot_uts;
+        bobot_uas = bobotRes.rows[0].bobot_uas;
       }
-      
-      const { bobot_harian, bobot_uts, bobot_uas } = bobotRes.rows[0];
       
       // Hitung Nilai Akhir
       const nilaiAkhir = (
@@ -111,15 +119,15 @@ const NilaiRepository = {
         INSERT INTO academic.nilai (
           siswa_id, mata_pelajaran_id, semester_id, guru_id,
           nilai_harian, nilai_uts, nilai_uas, catatan,
-          bobot_harian, bobot_uts, bobot_uas, nilai_akhir, created_at
+          bobot_harian, bobot_uts, bobot_uas, created_at
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
         RETURNING *
       `;
       const result = await client.query(sql, [
-        siswaId, mataPelajaranId, semesterId, guruId,
+        siswaId, mataPelajaranId, semesterId, actualGuruId,
         nilaiHarian, nilaiUts, nilaiUas, catatan,
-        bobot_harian, bobot_uts, bobot_uas, nilaiAkhir
+        bobot_harian, bobot_uts, bobot_uas
       ]);
 
       await client.query('COMMIT');
@@ -147,9 +155,12 @@ const NilaiRepository = {
 
       // Fetch bobot
       const bobotRes = await client.query('SELECT bobot_harian, bobot_uts, bobot_uas FROM academic.bobot_nilai WHERE mata_pelajaran_id = $1', [mataPelajaranId]);
-      if (bobotRes.rows.length === 0) throw new Error('Bobot nilai untuk mata pelajaran ini belum diatur.');
-      
-      const { bobot_harian, bobot_uts, bobot_uas } = bobotRes.rows[0];
+      let bobot_harian = 30, bobot_uts = 30, bobot_uas = 40;
+      if (bobotRes.rows.length > 0) {
+        bobot_harian = bobotRes.rows[0].bobot_harian;
+        bobot_uts = bobotRes.rows[0].bobot_uts;
+        bobot_uas = bobotRes.rows[0].bobot_uas;
+      }
       
       const nilaiAkhir = (
         (nilaiHarian * bobot_harian / 100) +
@@ -165,13 +176,12 @@ const NilaiRepository = {
             catatan = COALESCE($4, catatan),
             bobot_harian = $5,
             bobot_uts = $6,
-            bobot_uas = $7,
-            nilai_akhir = $8
-        WHERE id = $9 RETURNING *
+            bobot_uas = $7
+        WHERE id = $8 RETURNING *
       `;
       const result = await client.query(sql, [
         nilaiHarian, nilaiUts, nilaiUas, catatan,
-        bobot_harian, bobot_uts, bobot_uas, nilaiAkhir, id
+        bobot_harian, bobot_uts, bobot_uas, id
       ]);
 
       await client.query('COMMIT');
