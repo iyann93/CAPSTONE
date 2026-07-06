@@ -39,6 +39,7 @@ import {
   deleteDanaBeasiswa,
   getOperasional,
 } from "../../api/finance";
+import { getGlobalFinanceSummary } from "../../utils/financeHelpers";
 import { getSiswa } from "../../api/academic";
 import { getAllSlips } from "../../api/payroll";
 import Profile from "../Profile";
@@ -229,6 +230,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
   const [sppPayments, setSppPayments] = useState([]);
   const [paidSlips, setPaidSlips] = useState([]);
+  const [globalFinance, setGlobalFinance] = useState({ totalPemasukan: 0, totalPengeluaran: 0 });
   
   // Laporan States
   const [laporanType, setLaporanType] = useState("Laporan Pembayaran SPP (Pemasukan)");
@@ -636,6 +638,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
     loadPaidSlips();
     loadDanaBeasiswa();
     loadOperasional();
+    
+    getGlobalFinanceSummary().then(setGlobalFinance).catch(console.error);
   }, [loadKomponenSpp, loadKomponenGaji, loadTagihan, loadBeasiswa, loadSiswa, loadPembayaran, loadPaidSlips, loadDanaBeasiswa, loadOperasional]);
 
   // Handlers
@@ -1154,7 +1158,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
             });
           }
         });
-        return <PengeluaranOperasionalTab triggerToast={triggerToast} danaBeasiswaList={danaBeasiswaList} beasiswaList={penyaluranListForTab} />;
+        return <PengeluaranOperasionalTab triggerToast={triggerToast} danaBeasiswaList={danaBeasiswaList} beasiswaList={penyaluranListForTab} sppPayments={sppPayments} />;
       case "My Profile":
         return <Profile user={user} />;
       case "Template Gaji Jabatan":
@@ -1240,9 +1244,12 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
           }
         });
         const totalPenyaluranBeasiswa = penyaluranBeasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
-        const totalPengeluaranTahunan = currentPengeluaranData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0) + totalPenyaluranBeasiswa;
+        const totalPenggajianTahunan = paidSlips.reduce((acc, curr) => acc + (Number(curr.gaji_bersih) || 0), 0);
+        const totalPengeluaranTahunan = globalFinance.totalPengeluaran;
+        
         const totalBeasiswa = danaBeasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
-        const totalPemasukanTahunan = currentPemasukanData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0) + totalBeasiswa;
+        const totalSppTahunan = sppPayments.reduce((acc, curr) => acc + (Number(String(curr.amount).replace(/[^0-9]/g, '')) || 0), 0);
+        const totalPemasukanTahunan = globalFinance.totalPemasukan;
 
         return (
           <div className="flex flex-col gap-6 animate-fadeIn font-sans">

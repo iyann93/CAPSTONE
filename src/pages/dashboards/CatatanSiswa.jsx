@@ -179,8 +179,8 @@ const CatatanSiswa = ({ user }) => {
       return newData;
     });
 
-    // Tampilkan success di panel
-    setSaveSuccess(true);
+    setNotification(`Catatan untuk ${selectedStudent.name} berhasil disimpan! (Simulasi)`);
+    setTimeout(() => setNotification(null), 4000);
   };
 
   if (loading) {
@@ -189,6 +189,17 @@ const CatatanSiswa = ({ user }) => {
 
   return (
     <div className="p-6 md:p-8 space-y-6 animate-fadeIn bg-[#F8FAFC] min-h-screen relative">
+      {notification && ReactDOM.createPortal(
+        <div style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 9999 }} className="flex items-center gap-3 bg-slate-900 text-white px-5 py-4 rounded-2xl shadow-xl animate-slideIn">
+          <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <span className="text-xs font-black tracking-tight">{notification}</span>
+        </div>,
+        document.body
+      )}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex flex-col gap-1">
           <div className="flex items-center text-xs font-semibold text-gray-400 gap-1.5">
@@ -232,10 +243,8 @@ const CatatanSiswa = ({ user }) => {
                 onChange={(e) => {
                   setSelectedClass(e.target.value);
                   setSearchQuery("");
-                  setSaveSuccess(false);
                   const firstS = studentsData[e.target.value]?.[0];
                   if (firstS) setSelectedStudentId(firstS.id);
-                  else setSelectedStudentId(null);
                 }}
                 className="w-full bg-white border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 appearance-none shadow-sm transition-all"
               >
@@ -266,16 +275,16 @@ const CatatanSiswa = ({ user }) => {
                 return (
                   <button
                     key={student.id}
-                    onClick={() => { setSelectedStudentId(student.id); setSaveSuccess(false); }}
+                    onClick={() => setSelectedStudentId(student.id)}
                     className={`w-full text-left p-4 rounded-2xl transition-all flex items-center gap-3.5 border ${
-                      isSelected && !saveSuccess
+                      isSelected
                         ? "bg-[#1A3D63] text-white border-transparent shadow-lg shadow-[#1A3D63]/10"
                         : "bg-white hover:bg-slate-50 border-gray-100 text-gray-800"
                     }`}
                   >
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center font-extrabold text-sm shadow-sm flex-shrink-0 ${
-                        isSelected && !saveSuccess ? "bg-white/20 text-white" : `${student.avatarBg} text-white`
+                        isSelected ? "bg-white/20 text-white" : `${student.avatarBg} text-white`
                       }`}
                     >
                       {student.name[0]}
@@ -319,26 +328,7 @@ const CatatanSiswa = ({ user }) => {
         </div>
 
         <div className="lg:col-span-8 bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col h-[650px]">
-          {saveSuccess && selectedStudent ? (
-             <div className="flex-1 flex flex-col items-center justify-center text-center p-8 bg-green-50/30">
-                <div className="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-6 animate-slideUp">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                </div>
-                <h3 className="text-[24px] font-black text-gray-800 mb-2 animate-slideUp" style={{animationDelay: '100ms'}}>Tersimpan!</h3>
-                <p className="text-[14px] font-medium text-gray-500 mb-8 max-w-sm animate-slideUp" style={{animationDelay: '150ms'}}>
-                  Catatan untuk <strong className="text-gray-700">{selectedStudent.name}</strong> berhasil disimpan dan akan dilampirkan pada rapornya.
-                </p>
-                <button 
-                  onClick={() => setSaveSuccess(false)}
-                  className="px-6 py-3 bg-white border border-gray-200 text-gray-700 font-bold text-sm rounded-xl hover:bg-gray-50 transition-colors animate-slideUp shadow-sm"
-                  style={{animationDelay: '200ms'}}
-                >
-                  Edit Kembali
-                </button>
-             </div>
-          ) : selectedStudent ? (
+          {selectedStudent ? (
             <>
               <div className="bg-[#1A3D63] p-6 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 flex-shrink-0">
                 <div className="flex items-center gap-4">
