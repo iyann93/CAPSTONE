@@ -61,17 +61,20 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
           if (lulusData.status === "Tidak Lulus") status = "Tidak Lulus";
 
           const studentGrades = dbNilai.filter(n => n.siswa_id === s.id);
-          let totalAkhir = 0, totalUas = 0;
+          let totalHarian = 0, totalUts = 0, totalUas = 0, totalAkhir = 0;
           
           studentGrades.forEach(n => {
-            totalAkhir += (Number(n.nilai_akhir) || 0);
+            totalHarian += (Number(n.nilai_harian) || 0);
+            totalUts += (Number(n.nilai_uts) || 0);
             totalUas += (Number(n.nilai_uas) || 0);
+            totalAkhir += (Number(n.nilai_akhir) || 0);
           });
           
           const mapelCount = studentGrades.length || 1; 
-          const nilaiSek = studentGrades.length ? Number((totalAkhir / mapelCount).toFixed(1)) : 0;
-          const nilaiUS = studentGrades.length ? Number((totalUas / mapelCount).toFixed(1)) : 0;
-          const nilaiAkhir = Number(((nilaiSek * 0.6) + (nilaiUS * 0.4)).toFixed(1));
+          const avgHarian = studentGrades.length ? Number((totalHarian / mapelCount).toFixed(1)) : 0;
+          const avgUts = studentGrades.length ? Number((totalUts / mapelCount).toFixed(1)) : 0;
+          const avgUas = studentGrades.length ? Number((totalUas / mapelCount).toFixed(1)) : 0;
+          const avgAkhir = studentGrades.length ? Number((totalAkhir / mapelCount).toFixed(1)) : 0;
 
           const studentAbsensi = dbAbsensi.find(a => a.siswa_id === s.id);
           let kehadiranPct = 0;
@@ -91,9 +94,10 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
             nama: s.nama_lengkap,
             init: (s.nama_lengkap || "S").charAt(0).toUpperCase(),
             color: colors[i % colors.length],
-            nilaiSek: nilaiSek,
-            nilaiUS: nilaiUS,
-            nilaiAkhir: nilaiAkhir,
+            nilaiHarian: avgHarian,
+            nilaiUts: avgUts,
+            nilaiUas: avgUas,
+            nilaiAkhir: avgAkhir,
             kehadiran: kehadiranPct,
             star: i === 0 || i === 1,
             status: status,
@@ -243,8 +247,8 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
             </div>
             <div className="grid grid-cols-2 gap-x-8 gap-y-3">
               {[
-                ["Nilai Sekolah (Rapor)","≥ 70"],["Nilai Ujian Sekolah","≥ 55"],
-                ["Nilai Akhir","≥ 65"],["Maks. Mapel Tidak Lulus","0 mapel"],
+                ["Nilai Harian","≥ 70"],["Nilai UAS","≥ 70"],
+                ["Nilai Akhir","≥ 70"],["Maks. Mapel Tidak Lulus","0 mapel"],
               ].map(([k,v],i)=>(
                 <div key={i} className="flex items-center justify-between">
                   <span className="text-[13px] text-gray-500">{k}</span>
@@ -269,7 +273,7 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="border-b border-gray-100">
-                  <tr>{["NO","NIS","NAMA SISWA","NILAI SEKOLAH","NILAI US","NILAI AKHIR","KEHADIRAN","STATUS","NO. SERTIFIKAT","AKSI"].map(h=>(
+                  <tr>{["NO","NIS","NAMA SISWA","NILAI HARIAN","NILAI UTS","NILAI UAS","NILAI AKHIR","KEHADIRAN","STATUS","NO. SERTIFIKAT","AKSI"].map(h=>(
                     <th key={h} className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
                   ))}</tr>
                 </thead>
@@ -295,18 +299,21 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
                         </div>
                       </td>
                       <td className="px-4 py-4">
-                        <div className={`flex items-center gap-1 text-[14px] font-bold ${s.nilaiSek >= 70 ? 'text-[#16A34A]' : 'text-red-500'}`}>
-                          {s.nilaiSek}
-                          {s.nilaiSek < 70 && <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>}
+                        <div className={`flex items-center gap-1 text-[14px] font-bold ${s.nilaiHarian >= 70 ? 'text-gray-700' : 'text-red-500'}`}>
+                          {s.nilaiHarian}
                         </div>
                       </td>
                       <td className="px-4 py-4">
-                        <div className={`flex items-center gap-1 text-[14px] font-bold ${s.nilaiUS >= 55 ? 'text-[#16A34A]' : 'text-red-500'}`}>
-                          {s.nilaiUS}
-                          {s.nilaiUS < 55 && <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>}
+                        <div className={`flex items-center gap-1 text-[14px] font-bold ${s.nilaiUts >= 70 ? 'text-gray-700' : 'text-red-500'}`}>
+                          {s.nilaiUts}
                         </div>
                       </td>
-                      <td className={`px-4 py-4 text-[14px] font-bold ${s.nilaiAkhir >= 65 ? 'text-[#3B82F6]' : 'text-red-500'}`}>{s.nilaiAkhir}</td>
+                      <td className="px-4 py-4">
+                        <div className={`flex items-center gap-1 text-[14px] font-bold ${s.nilaiUas >= 70 ? 'text-gray-700' : 'text-red-500'}`}>
+                          {s.nilaiUas}
+                        </div>
+                      </td>
+                      <td className={`px-4 py-4 text-[14px] font-bold ${s.nilaiAkhir >= 70 ? 'text-[#3B82F6]' : 'text-red-500'}`}>{s.nilaiAkhir}</td>
                       <td className="px-4 py-4 text-[13px] font-medium text-gray-500">{s.kehadiran}%</td>
                       <td className="px-4 py-4">
                         {s.status==="Lulus"
