@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react';
 const BarChartIcon = () => <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
   <path d="M18 20V10M12 20V4M6 20v-6" />
 </svg>;
@@ -263,24 +264,36 @@ const menuSections = [
 ];
 const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) => {
   const filteredSections = menuSections.filter((section) => section.roles.includes(role));
+
+  useEffect(() => {
+    if (!collapsed && window.innerWidth < 1024) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [collapsed]);
+
   return <>
     {
       /* Overlay mobile */
     }
     {!collapsed && <div
-      className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden transition-opacity"
+      className="fixed top-0 right-0 bottom-0 left-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden transition-opacity"
       onClick={onClose}
     />}
 
     <aside className={`
-        fixed lg:sticky top-0 left-0 z-40 h-screen 
+        fixed lg:sticky top-0 left-0 z-50 h-screen 
         bg-[#F9FAFB] border-r border-gray-100
         transition-all duration-300 ease-in-out
         flex flex-col overflow-hidden
         ${collapsed ? "-translate-x-full w-[280px] lg:w-20 lg:translate-x-0" : "translate-x-0 w-[280px]"}
       `}>
       {/* Menu Section */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden py-6 space-y-6 scrollbar-hide">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden py-6 space-y-6 scrollbar-hide overscroll-contain">
         {filteredSections.map((section, idx) => (
           <div key={idx} className="px-3">
             {!collapsed && (

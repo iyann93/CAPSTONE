@@ -2,6 +2,7 @@
 
 const FinanceService = require('../services/finance.service');
 const DanaBeasiswaRepository = require('../repositories/dana_beasiswa.repository');
+const OperasionalRepository = require('../repositories/operasional.repository');
 const response = require('../utils/response');
 const { validationResult } = require('express-validator');
 
@@ -178,6 +179,38 @@ const FinanceController = {
         return next(err);
       }
       return response.success(res, 200, 'Dana beasiswa berhasil dihapus', deleted);
+    } catch (err) { next(err); }
+  },
+
+  // ─── OPERASIONAL TRANSACTIONS ───────────────────────────────────────────────
+  getAllOperasional: async (req, res, next) => {
+    try {
+      const data = await OperasionalRepository.findAll();
+      return response.success(res, 200, 'Data operasional berhasil diambil', data);
+    } catch (err) { next(err); }
+  },
+
+  createOperasional: async (req, res, next) => {
+    try {
+      const { tipe, tanggal, nama, kategori, nominal, sumber_dana, keterangan, bukti } = req.body;
+      if (!tipe || !tanggal || !nama || !kategori || !nominal) {
+        return response.error(res, 400, 'Tipe, tanggal, nama, kategori, dan nominal wajib diisi');
+      }
+      const data = await OperasionalRepository.create({
+        tipe, tanggal, nama, kategori, nominal, sumber_dana, keterangan, bukti
+      });
+      return response.success(res, 201, 'Data operasional berhasil ditambahkan', data);
+    } catch (err) { next(err); }
+  },
+
+  deleteMultipleOperasional: async (req, res, next) => {
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return response.error(res, 400, 'Harap kirimkan array IDs yang ingin dihapus');
+      }
+      const deletedRows = await OperasionalRepository.deleteMultiple(ids);
+      return response.success(res, 200, `Berhasil menghapus ${deletedRows.length} data operasional`, deletedRows);
     } catch (err) { next(err); }
   }
 };

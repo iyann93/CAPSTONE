@@ -35,6 +35,12 @@ const CatatanSiswa = ({ user }) => {
           groupedData[cName] = [];
         });
 
+        let localSaved = null;
+        try {
+          const savedStr = localStorage.getItem("wali_kelas_students");
+          if (savedStr) localSaved = JSON.parse(savedStr);
+        } catch(e) {}
+
         dbSiswa.forEach(siswa => {
           const cls = dbClasses.find(c => c.id === siswa.kelas_id);
           const className = cls ? cls.nama_kelas : "Tanpa Kelas";
@@ -43,13 +49,23 @@ const CatatanSiswa = ({ user }) => {
             groupedData[className] = [];
           }
 
+          let existingNote = "";
+          let existingDate = null;
+          if (localSaved && localSaved[className]) {
+            const foundLocal = localSaved[className].find(s => s.id === siswa.id || s.nis === siswa.nis);
+            if (foundLocal) {
+              existingNote = foundLocal.note || "";
+              existingDate = foundLocal.lastUpdated || null;
+            }
+          }
+
           groupedData[className].push({
             id: siswa.id, // UUID
             nis: siswa.nis || "-",
             name: siswa.nama_lengkap,
             gender: siswa.jenis_kelamin === "Laki-laki" ? "Laki-laki" : "Perempuan",
-            note: "",
-            lastUpdated: null,
+            note: existingNote,
+            lastUpdated: existingDate,
             avatarBg: "bg-blue-500",
           });
         });
@@ -155,7 +171,12 @@ const CatatanSiswa = ({ user }) => {
         return s;
       });
 
-      return { ...prev, [foundClass]: updatedList };
+      const newData = { ...prev, [foundClass]: updatedList };
+      
+      // Save to localStorage immediately
+      localStorage.setItem("wali_kelas_students", JSON.stringify(newData));
+      
+      return newData;
     });
 
     setNotification(`Catatan untuk ${selectedStudent.name} berhasil disimpan! (Simulasi)`);

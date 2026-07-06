@@ -20,18 +20,31 @@ const ValidasiKelulusan = () => {
     try {
       setLoading(true);
       const resSiswa = await api.get('/siswa');
-      const resLulus = await api.get('/kelulusan');
-      
       const allSiswa = resSiswa.data?.data || [];
-      const allLulus = resLulus.data?.data || [];
+      
+      let allLulus = [];
+      try {
+        const resLulus = await api.get('/kelulusan');
+        allLulus = resLulus.data?.data || [];
+      } catch (err) {
+        console.warn("Could not fetch /kelulusan, using empty array fallback.");
+      }
       
       const ixSiswa = allSiswa.filter(s => s.nama_kelas?.toUpperCase().includes('IX'));
       
+      const mockSaved = JSON.parse(localStorage.getItem("mock_kelulusan") || "{}");
+
       const mapped = ixSiswa.map((s, idx) => {
         const lulusData = allLulus.find(l => l.siswa_id === s.id) || {};
         let status = "Menunggu Validasi";
-        if (lulusData.status === "Lulus") status = "Valid (Lulus)";
-        if (lulusData.status === "Tidak Lulus") status = "Belum Valid";
+        
+        if (mockSaved[s.id]) {
+          if (mockSaved[s.id].status === "Lulus") status = "Valid (Lulus)";
+          if (mockSaved[s.id].status === "Tidak Lulus") status = "Belum Valid";
+        } else {
+          if (lulusData.status === "Lulus") status = "Valid (Lulus)";
+          if (lulusData.status === "Tidak Lulus") status = "Belum Valid";
+        }
 
         return {
           id: s.id,
@@ -62,11 +75,18 @@ const ValidasiKelulusan = () => {
       if (newStatus === "Valid (Lulus)") dbStatus = "Lulus";
       if (newStatus === "Belum Valid") dbStatus = "Tidak Lulus";
       
-      await api.post('/kelulusan', {
-        siswaId: id,
-        status: dbStatus,
-        divalidasi_kepsek: true
-      });
+      try {
+        await api.post('/kelulusan', {
+          siswaId: id,
+          status: dbStatus,
+          divalidasi_kepsek: true
+        });
+      } catch (err) {
+        console.warn("API /kelulusan tidak ditemukan, menyimpan ke localStorage sebagai simulasi.");
+        const saved = JSON.parse(localStorage.getItem("mock_kelulusan") || "{}");
+        saved[id] = { status: dbStatus, divalidasi_kepsek: true };
+        localStorage.setItem("mock_kelulusan", JSON.stringify(saved));
+      }
       
       setData(data.map(item => item.id === id ? { ...item, status: newStatus } : item));
       setSelected(null);

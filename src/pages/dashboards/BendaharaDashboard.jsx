@@ -37,6 +37,7 @@ import {
   getDanaBeasiswa,
   createDanaBeasiswa,
   deleteDanaBeasiswa,
+  getOperasional,
 } from "../../api/finance";
 import { getSiswa } from "../../api/academic";
 import { getAllSlips } from "../../api/payroll";
@@ -46,7 +47,7 @@ import OverridePegawaiTab from "../../components/payroll/OverridePegawaiTab";
 import GenerateSlipTab from "../../components/payroll/GenerateSlipTab";
 import RiwayatSlipTab from "../../components/payroll/RiwayatSlipTab";
 import GuruRiwayatTerimaGaji from "../../components/payroll/GuruRiwayatTerimaGaji";
-import PengeluaranOperasionalTab, { initialPengeluaranData, initialPemasukanData } from "../../components/finance/PengeluaranOperasionalTab";
+import PengeluaranOperasionalTab from "../../components/finance/PengeluaranOperasionalTab";
 
 // Icons Components
 const IconReceipt = () => (
@@ -316,9 +317,10 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
   const [showBeasiswaCancelConfirm, setShowBeasiswaCancelConfirm] = useState(false);
   const [isSavingBeasiswa, setIsSavingBeasiswa] = useState(false);
 
-  // Dana Beasiswa States
   const [isSavingDana, setIsSavingDana] = useState(false);
   const [danaBeasiswaList, setDanaBeasiswaList] = useState([]);
+  const [currentPemasukanData, setCurrentPemasukanData] = useState([]);
+  const [currentPengeluaranData, setCurrentPengeluaranData] = useState([]);
   const [showAddDanaModal, setShowAddDanaModal] = useState(false);
   const [showKelolaDanaModal, setShowKelolaDanaModal] = useState(false);
   const [newDanaForm, setNewDanaForm] = useState({
@@ -348,7 +350,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
   // Transaction Modal States
   const [showTransactionModal, setShowTransactionModal] = useState(false);
-  const [transactionFile, setTransactionFile] = useState(null);
   const [transactionTab, setTransactionTab] = useState("Pemasukan");
   const [transactionCategory, setTransactionCategory] = useState("SPP"); // SPP for Pemasukan, Gaji/Operasional for Pengeluaran
 
@@ -440,6 +441,18 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       setDanaBeasiswaList(Array.isArray(data) ? data : []);
     } catch (e) {
       console.error("loadDanaBeasiswa:", e);
+    }
+  }, []);
+
+  const loadOperasional = useCallback(async () => {
+    try {
+      const data = await getOperasional();
+      if (Array.isArray(data)) {
+        setCurrentPemasukanData(data.filter(d => d.tipe === 'pemasukan'));
+        setCurrentPengeluaranData(data.filter(d => d.tipe === 'pengeluaran'));
+      }
+    } catch (e) {
+      console.error("loadOperasional:", e);
     }
   }, []);
 
@@ -622,7 +635,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
     loadPembayaran();
     loadPaidSlips();
     loadDanaBeasiswa();
-  }, [loadKomponenSpp, loadKomponenGaji, loadTagihan, loadBeasiswa, loadSiswa, loadPembayaran, loadPaidSlips, loadDanaBeasiswa]);
+    loadOperasional();
+  }, [loadKomponenSpp, loadKomponenGaji, loadTagihan, loadBeasiswa, loadSiswa, loadPembayaran, loadPaidSlips, loadDanaBeasiswa, loadOperasional]);
 
   // Handlers
   const handleDownloadLaporan = async () => {
@@ -642,7 +656,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
     } else if (laporanType.includes("Penggajian")) {
       hasData = paidSlips.length > 0;
     } else if (laporanType.includes("Operasional")) {
-      hasData = initialPengeluaranData.length > 0;
+      hasData = false; // TODO: Fetch operasional data for reports if needed
     }
 
     if (!hasData) {
@@ -1226,9 +1240,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
           }
         });
         const totalPenyaluranBeasiswa = penyaluranBeasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
-        const totalPengeluaranTahunan = initialPengeluaranData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0) + totalPenyaluranBeasiswa;
+        const totalPengeluaranTahunan = currentPengeluaranData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0) + totalPenyaluranBeasiswa;
         const totalBeasiswa = danaBeasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
-        const totalPemasukanTahunan = initialPemasukanData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0) + totalBeasiswa;
+        const totalPemasukanTahunan = currentPemasukanData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0) + totalBeasiswa;
 
         return (
           <div className="flex flex-col gap-6 animate-fadeIn font-sans">
@@ -2561,7 +2575,12 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                           }).format(dateObj);
                         };
                         
-
+                        let tglBerlaku = "-";
+                        let jatuhTempo = "-";
+                        if (activeProgram.periodePendaftaran && activeProgram.periodePendaftaran !== "-" && activeProgram.periodePendaftaran.includes(' s/d ')) {
+                          tglBerlaku = formatDateID(activeProgram.periodePendaftaran.split(' s/d ')[0]);
+                          jatuhTempo = formatDateID(activeProgram.periodePendaftaran.split(' s/d ')[1]);
+                        }
                         
                         return (
                       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm xl:sticky xl:top-6 flex flex-col">
@@ -2591,8 +2610,12 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                             <div className="text-sm font-bold text-gray-800">{activeProgram.sumberDana || '-'}</div>
                           </div>
                           <div>
-                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Periode</div>
-                            <div className="text-sm font-bold text-gray-800">{activeProgram.subtitle || '2025/2026'}</div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Tanggal Berlaku</div>
+                            <div className="text-sm font-bold text-gray-800">{tglBerlaku}</div>
+                          </div>
+                          <div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Jatuh Tempo</div>
+                            <div className="text-sm font-bold text-[#e11d48]">{jatuhTempo}</div>
                           </div>
                           <div>
                             <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Kuota Tersedia</div>
@@ -3315,7 +3338,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowBillingModal(false)}
           />
           {/* Content */}
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full relative z-10 shadow-2xl animate-scaleUp border border-gray-100 font-sans">
@@ -3380,7 +3404,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       {showGenerateMonthModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowGenerateMonthModal(false)}
           />
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-[480px] w-full relative z-10 shadow-2xl animate-scaleUp font-sans">
             <div className="mb-6">
@@ -3506,7 +3531,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       {showCancelMonthModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowCancelMonthModal(false)}
           />
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-[480px] w-full relative z-10 shadow-2xl animate-scaleUp font-sans border-t-4 border-red-500">
             <div className="mb-6">
@@ -3598,7 +3624,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
       {showAddProgramModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-6 md:p-10">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCancelProgram} />
           <div className="bg-white rounded-[24px] p-5 sm:p-6 max-w-2xl w-full relative z-10 shadow-2xl animate-scaleUp font-sans border border-gray-100 flex flex-col max-h-[calc(100vh-100px)] overflow-hidden">
             <div className="flex justify-between items-center mb-4 shrink-0">
               <h2 className="text-lg font-bold text-gray-800">{editingProgramTitle ? "Edit Program Beasiswa" : "Tambah Program Baru"}</h2>
@@ -3709,7 +3735,24 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Periode Berlaku</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="date"
+                        value={newProgramForm.tanggalMulaiDaftar}
+                        onChange={(e) => { setIsProgramFormDirty(true); setNewProgramForm({ ...newProgramForm, tanggalMulaiDaftar: e.target.value }) }}
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all"
+                      />
+                      <span className="text-gray-400 text-sm font-bold">-</span>
+                      <input
+                        type="date"
+                        value={newProgramForm.tanggalSelesaiDaftar}
+                        onChange={(e) => { setIsProgramFormDirty(true); setNewProgramForm({ ...newProgramForm, tanggalSelesaiDaftar: e.target.value }) }}
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all"
+                      />
+                    </div>
+                  </div>
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Status Program</label>
                     <div className="relative">
@@ -3768,7 +3811,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       
       {showDeleteProgramConfirmModal && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDeleteProgramConfirmModal(false)} />
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full relative z-10 shadow-xl animate-scaleUp">
             <div className="w-12 h-12 rounded-full bg-red-100 text-red-500 flex items-center justify-center mb-4">
               <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
@@ -3784,7 +3827,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       )}
 {showProgramCancelConfirm && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowProgramCancelConfirm(false)} />
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full relative z-10 shadow-xl animate-scaleUp">
             <h3 className="text-lg font-bold text-gray-800 mb-2">Batalkan Perubahan?</h3>
             <p className="text-sm text-gray-600 mb-6">Data yang sudah Anda isi belum disimpan dan akan hilang. Apakah Anda yakin ingin membatalkan?</p>
@@ -3798,7 +3841,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
       {showKelolaDanaModal && (
         <div className="fixed inset-0 z-[998] flex items-center justify-center p-4 md:p-6 lg:p-10">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowKelolaDanaModal(false)} />
           <div className="bg-white rounded-[24px] p-0 w-full max-w-4xl relative z-10 shadow-2xl animate-scaleUp font-sans border border-gray-100 flex flex-col overflow-hidden max-h-[90vh]">
             <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100 shrink-0 bg-white">
               <div>
@@ -3869,7 +3912,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
       {showAddDanaModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-6 md:p-10">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCancelDana} />
           <div className="bg-white rounded-[24px] p-5 sm:p-6 max-w-lg w-full relative z-10 shadow-2xl animate-scaleUp font-sans border border-gray-100 flex flex-col">
             <div className="flex justify-between items-center mb-6 shrink-0">
               <h2 className="text-lg font-bold text-gray-800">Tambah Dana Masuk</h2>
@@ -3965,7 +4008,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       {/* Modal Tambah Penerima */}
       {showAddPenerimaModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" ></div>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCancelBeasiswa}></div>
           <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl relative animate-scaleIn z-10">
             {/* Modal Header */}
             <div className="flex justify-between items-center p-6 border-b border-gray-100">
@@ -4108,7 +4151,24 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                     </div>
                   </div>
 
-
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Periode Berlaku <span className="text-red-500">*</span></label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="date"
+                        value={beasiswaForm.tanggalMulai}
+                        onChange={(e) => { setIsBeasiswaFormDirty(true); setBeasiswaForm({ ...beasiswaForm, tanggalMulai: e.target.value }) }}
+                        className="flex-1 min-w-0 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/20 bg-white text-gray-700 transition-all"
+                      />
+                      <span className="text-gray-400 text-sm font-bold">-</span>
+                      <input
+                        type="date"
+                        value={beasiswaForm.tanggalSelesai}
+                        onChange={(e) => { setIsBeasiswaFormDirty(true); setBeasiswaForm({ ...beasiswaForm, tanggalSelesai: e.target.value }) }}
+                        className="flex-1 min-w-0 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/20 bg-white text-gray-700 transition-all"
+                      />
+                    </div>
+                  </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Tahun Ajaran <span className="text-red-500">*</span></label>
                     <div className="relative group">
@@ -4170,7 +4230,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       {/* Modal Cancel Konfirmasi Penerima */}
       {showBeasiswaCancelConfirm && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" ></div>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowBeasiswaCancelConfirm(false)}></div>
           <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl relative animate-scaleIn z-10 p-6 text-center">
             <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
@@ -4188,7 +4248,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       {/* Modal Hapus Beasiswa */}
       {showDeleteBeasiswaModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" ></div>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDeleteBeasiswaModal(false)}></div>
           <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl relative animate-scaleIn z-10 overflow-hidden">
             <div className="p-6 pb-0 flex flex-col items-center text-center">
               <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
@@ -4221,7 +4281,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       {showTransactionModal && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowTransactionModal(false)}
           />
           <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl relative animate-scaleIn z-10 flex flex-col font-sans">
             {/* Header */}
@@ -4231,7 +4292,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                 <p className="text-[13px] text-gray-400 mt-1">Tambah catatan pengeluaran atau pemasukan</p>
               </div>
               <button
-                onClick={() => { setShowTransactionModal(false); setTransactionFile(null); }}
+                onClick={() => setShowTransactionModal(false)}
                 className="text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer p-1 transition-colors rounded-full hover:bg-gray-50"
               >
                 <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -4332,72 +4393,13 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all"
                   />
                 </div>
-
-                {/* Bukti Pembayaran */}
-                <div>
-                  <label className="block text-[11px] font-bold text-gray-500 mb-1.5">Bukti Pembayaran (Max 2MB, JPG/PNG/PDF)</label>
-                  {!transactionFile ? (
-                    <input
-                      type="file"
-                      accept=".jpg,.jpeg,.png,.pdf"
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (!file) {
-                          setTransactionFile(null);
-                          return;
-                        }
-
-                        // Validate file type
-                        const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-                        if (!allowedTypes.includes(file.type)) {
-                          triggerToast("Format file tidak didukung! Harap upload file JPG, PNG, atau PDF.", "error");
-                          e.target.value = ''; // Reset
-                          setTransactionFile(null);
-                          return;
-                        }
-
-                        // Validate file size (2 MB = 2 * 1024 * 1024 bytes)
-                        if (file.size > 2 * 1024 * 1024) {
-                          triggerToast("Ukuran file terlalu besar! Maksimal 2 MB.", "error");
-                          e.target.value = ''; // Reset
-                          setTransactionFile(null);
-                          return;
-                        }
-
-                        setTransactionFile(file);
-                        triggerToast("File berhasil diunggah dan memenuhi syarat!");
-                      }}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-2 text-[13px] text-gray-800 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[11px] file:font-bold file:bg-[#1A3D63]/10 file:text-[#1A3D63] hover:file:bg-[#1A3D63]/20"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 p-3 rounded-xl">
-                      <div className="flex items-center gap-3 overflow-hidden">
-                        <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center shrink-0">
-                          <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-bold text-emerald-800 truncate">{transactionFile.name}</p>
-                          <p className="text-[11px] text-emerald-600 font-medium">{(transactionFile.size / 1024 / 1024).toFixed(2)} MB</p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setTransactionFile(null)}
-                        className="text-emerald-600 hover:text-emerald-800 bg-transparent border-none cursor-pointer p-2 rounded-full hover:bg-emerald-100/50 transition-colors shrink-0"
-                        title="Hapus File"
-                      >
-                        <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                      </button>
-                    </div>
-                  )}
-                </div>
               </div>
             </div>
 
             {/* Footer */}
             <div className="p-6 border-t border-gray-50 flex gap-3">
               <button
-                onClick={() => { setShowTransactionModal(false); setTransactionFile(null); }}
+                onClick={() => setShowTransactionModal(false)}
                 className="flex-1 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 py-3.5 rounded-xl text-[13px] font-bold cursor-pointer transition-colors"
               >
                 Batal
@@ -4405,7 +4407,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
               <button
                 onClick={() => {
                   setShowTransactionModal(false);
-                  setTransactionFile(null);
                   triggerToast("Catatan transaksi berhasil disimpan!");
                 }}
                 className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-400 py-3.5 rounded-xl text-[13px] font-bold cursor-pointer border-none flex items-center justify-center gap-2 transition-colors"
@@ -4420,7 +4421,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       {/* Delete Komponen Gaji Confirmation Modal */}
       {showDeleteKomponenModal && selectedKomponen && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDeleteKomponenModal(false)} />
           <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl relative z-10 font-sans">
             <div className="p-6 pb-4 border-b border-gray-100 flex justify-between items-center">
               <div>
@@ -4477,7 +4478,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       {/* Detail Gaji Modal */}
       {showDetailGajiModal && selectedDetailGaji && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDetailGajiModal(false)} />
           <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl relative z-10 font-sans overflow-hidden">
             {/* Header */}
             <div className="bg-[#1A3D63] p-6 pb-5 flex justify-between items-start text-white">
@@ -4726,7 +4727,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
       {showDanaCancelConfirm && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDanaCancelConfirm(false)} />
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full relative z-10 shadow-xl animate-scaleUp">
             <h3 className="text-lg font-bold text-gray-800 mb-2">Batalkan Perubahan?</h3>
             <p className="text-sm text-gray-600 mb-6">Data dana yang sudah Anda isi belum disimpan dan akan hilang. Apakah Anda yakin ingin membatalkan?</p>
@@ -4891,7 +4892,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                 <tr><td colSpan="4" className="py-4 text-center text-gray-500">Tidak ada data penggajian.</td></tr>
               ))}
               
-              {laporanType.includes("Operasional") && (initialPengeluaranData.length > 0 ? initialPengeluaranData.map((o, i) => (
+              {laporanType.includes("Operasional") && ([].length > 0 ? [].map((o, i) => (
                 <tr key={i} className="border-b border-gray-300">
                   <td className="py-2 px-3">{i + 1}</td>
                   <td className="py-2 px-3">{o.tanggal}</td>

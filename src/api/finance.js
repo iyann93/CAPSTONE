@@ -134,3 +134,14 @@ export const createDanaBeasiswa = (payload) =>
 
 export const deleteDanaBeasiswa = (id) =>
   api.delete(`/finance/dana-beasiswa/${id}`).then((r) => r.data.data);
+
+// ── OPERASIONAL TRANSACTIONS ───────────────────────────────────────────────
+
+export const getOperasional = () =>
+  api.get('/finance/operasional').then((r) => r.data.data);
+
+export const createOperasional = (payload) =>
+  api.post('/finance/operasional', payload).then((r) => r.data.data);
+
+export const deleteMultipleOperasional = (ids) =>
+  api.delete('/finance/operasional', { data: { ids } }).then((r) => r.data.data);

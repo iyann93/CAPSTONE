@@ -33,4 +33,9 @@ router.get('/dana-beasiswa',        verifyToken, FinanceController.getAllDanaBea
 router.post('/dana-beasiswa',       verifyToken, FinanceController.createDanaBeasiswa);
 router.delete('/dana-beasiswa/:id', verifyToken, FinanceController.deleteDanaBeasiswa);
 
+// ==== OPERASIONAL TRANSACTIONS ====
+router.get('/operasional',          verifyToken, FinanceController.getAllOperasional);
+router.post('/operasional',         verifyToken, FinanceController.createOperasional);
+router.delete('/operasional',       verifyToken, FinanceController.deleteMultipleOperasional);
+
 module.exports = router;
