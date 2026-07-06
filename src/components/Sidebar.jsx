@@ -217,13 +217,7 @@ const menuSections = [
     roles: ["Wakil Kepala"]
   },
 
-  {
-    section: "KEUANGAN KELAS",
-    items: [
-      { label: "Monitoring SPP Siswa", icon: <ReceiptIcon /> }
-    ],
-    roles: ["Wali Kelas"]
-  },
+
   {
     section: "AKADEMIK",
     items: [
@@ -232,14 +226,6 @@ const menuSections = [
       { label: "Absensi Siswa", icon: <UsersIcon /> },
       { label: "Rekap Absensi Siswa", icon: <BarChartIcon /> },
       { label: "Catatan Siswa", icon: <ChatIcon /> }
-    ],
-    roles: ["Guru", "Guru Mapel", "Wali Kelas"]
-  },
-  {
-    section: "PRIBADI",
-    items: [
-      { label: "Slip Gaji", icon: <FileChartIcon /> },
-      { label: "Riwayat Terima Gaji", icon: <CalendarIcon /> }
     ],
     roles: ["Guru", "Guru Mapel", "Wali Kelas"]
   },
