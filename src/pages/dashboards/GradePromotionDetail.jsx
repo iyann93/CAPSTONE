@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 
 const initStudentsProcess = [
   { no:1,nis:"2023100",nama:"Siswa Kelas VII 1",init:"S",color:"bg-blue-500",nilai:76,kehadiran:94,mapel:2 },
@@ -41,20 +41,53 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
       const key = `grade_promotion_students_${classData?.kode || "default"}`;
       try {
         const { default: api } = await import('../../api/axios');
-        const res = await api.get('/system/frontend-state');
-        if (res.data?.data?.[key]) {
-          setStudents(res.data.data[key]);
-          localStorage.setItem(key, JSON.stringify(res.data.data[key]));
-        } else {
-          const saved = localStorage.getItem(key);
-          if (saved) setStudents(JSON.parse(saved));
+        
+        // Ambil data siswa asli dari database
+        const siswaRes = await api.get('/siswa');
+        const dbSiswa = siswaRes.data?.data || [];
+        
+        // Filter siswa berdasarkan kelas yang dipilih
+        const classStudents = dbSiswa.filter(s => s.kelas_id === classData?.kode);
+        
+        const colors = ["bg-blue-500", "bg-green-500", "bg-purple-500", "bg-orange-500", "bg-pink-500", "bg-teal-500", "bg-red-500", "bg-indigo-500"];
+        
+        const mappedStudents = classStudents.map((s, i) => ({
+          no: i + 1,
+          nis: s.nis || "-",
+          nama: s.nama_lengkap,
+          init: (s.nama_lengkap || "S").charAt(0).toUpperCase(),
+          color: colors[i % colors.length],
+          // Simulasi nilai & kehadiran sementara sampai API nilai jadi
+          nilai: Math.floor(Math.random() * (95 - 65 + 1) + 65),
+          kehadiran: Math.floor(Math.random() * (100 - 75 + 1) + 75),
+          mapel: Math.floor(Math.random() * 4),
+          status: "Belum Ditentukan"
+        }));
+
+        // Gabungkan dengan state yang sudah disimpan sebelumnya (jika ada)
+        let finalStudents = mappedStudents;
+        try {
+          const res = await api.get('/system/frontend-state');
+          if (res.data?.data?.[key]) {
+            const savedState = res.data.data[key];
+            finalStudents = mappedStudents.map(ms => {
+              const saved = savedState.find(ss => ss.nis === ms.nis);
+              if (saved) return { ...ms, status: saved.status };
+              return ms;
+            });
+          }
+        } catch(e) {}
+
+        if (finalStudents.length > 0) {
+          setStudents(finalStudents);
         }
       } catch (err) {
-        const saved = localStorage.getItem(key);
-        if (saved) setStudents(JSON.parse(saved));
+        console.error("Gagal memuat data siswa asli:", err);
       }
     };
-    fetchState();
+    if (classData?.kode) {
+      fetchState();
+    }
   }, [classData?.kode]);
 
   const [activeTab, setActiveTab] = useState("Semua");
