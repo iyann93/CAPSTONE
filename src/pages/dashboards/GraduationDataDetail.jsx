@@ -12,6 +12,7 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
   const [tab, setTab] = useState("Semua");
   const [search, setSearch] = useState("");
   const [printStudent, setPrintStudent] = useState(null);
+  const [tahunAjaranId, setTahunAjaranId] = useState('00000001-0000-0000-0000-000000000001');
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -22,7 +23,10 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
           const semRes = await api.get('/semester');
           const semesters = semRes.data?.data || [];
           const activeSem = semesters.find(s => s.is_aktif) || semesters[0];
-          if (activeSem) semId = activeSem.id;
+          if (activeSem) {
+            semId = activeSem.id;
+            setTahunAjaranId(activeSem.tahun_ajaran_id);
+          }
         } catch(e) {}
 
         let allSiswa = [];
@@ -139,7 +143,8 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
           await api.post('/kelulusan', {
             siswaId: s.id,
             status: s.status,
-            divalidasi_kepsek: false
+            divalidasi_kepsek: false,
+            tahun_ajaran_id: tahunAjaranId
           });
         }
       }
