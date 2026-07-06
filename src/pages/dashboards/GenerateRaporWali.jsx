@@ -1,9 +1,22 @@
 import React, { useState } from "react";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const GenerateRaporWali = ({ user }) => {
   const [studentsData, setStudentsData] = useState(() => {
     const saved = localStorage.getItem("wali_kelas_students");
-    if (saved) return JSON.parse(saved);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      for (const key in parsed) {
+        parsed[key] = parsed[key].map((s, idx) => ({
+          ...s,
+          hadir: s.hadir !== undefined ? s.hadir : (85 + (idx % 15)),
+          mapel: s.mapel !== undefined ? s.mapel : 12,
+          statusRapor: s.statusRapor || "Belum Terbit"
+        }));
+      }
+      return parsed;
+    }
     return {
       "VII A": [
         { id: "2023001", name: "Andi Pratama", gender: "Laki-laki", note: "Aktif dan rajin. Kemampuan aljabar meningkat pesat.", lastUpdated: "15 Nov 2023", avatarBg: "bg-blue-500", statusRapor: "Belum Terbit", hadir: 90, mapel: 12 },
@@ -14,10 +27,15 @@ const GenerateRaporWali = ({ user }) => {
     };
   });
 
-  const students = studentsData["VII A"];
+  const classList = Object.keys(studentsData);
+  const [selectedClass, setSelectedClass] = useState(classList[0] || "VII A");
+  
+  const activeClass = studentsData[selectedClass] ? selectedClass : (classList[0] || "VII A");
+  const students = studentsData[activeClass] || [];
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [activeDetailModal, setActiveDetailModal] = useState(null); // 'mapel' | 'absensi' | null
 
   // Dummy detail data
@@ -59,7 +77,7 @@ const GenerateRaporWali = ({ user }) => {
     setPublishing(true);
     setTimeout(() => {
       const updatedList = students.map(s => s.id === selectedStudent.id ? { ...s, statusRapor: "Terbit" } : s);
-      const newData = { ...studentsData, "VII A": updatedList };
+      const newData = { ...studentsData, [activeClass]: updatedList };
       setStudentsData(newData);
       localStorage.setItem("wali_kelas_students", JSON.stringify(newData));
       
@@ -68,6 +86,100 @@ const GenerateRaporWali = ({ user }) => {
       setSelectedStudent(null);
       alert("Rapor berhasil diterbitkan dan siap diakses oleh orang tua!");
     }, 1500);
+  };
+
+  const handleDownloadPDF = () => {
+    setDownloading(true);
+    try {
+        const doc = new jsPDF();
+        
+        // Header
+        doc.setFont("times", "bold");
+        doc.setFontSize(14);
+        doc.text("LAPORAN HASIL BELAJAR", 105, 20, { align: "center" });
+        doc.setFontSize(10);
+        doc.text("Semester Ganjil Tahun Ajaran 2024/2025", 105, 26, { align: "center" });
+        
+        doc.setLineWidth(0.5);
+        doc.line(14, 30, 196, 30);
+        
+        // Student Info
+        doc.setFont("times", "normal");
+        doc.text(`Nama Siswa    : ${selectedStudent.name}`, 14, 40);
+        doc.text(`NISN / NIS    : ${selectedStudent.nisn || '-'} / ${selectedStudent.nis || '-'}`, 14, 46);
+        
+        doc.text(`Kelas         : ${activeClass}`, 140, 40);
+        doc.text(`Fase          : D (SMP)`, 140, 46);
+        
+        // A. Sikap
+        doc.setFont("times", "bold");
+        doc.text("A. Sikap", 14, 60);
+        doc.setFont("times", "normal");
+        const sikapText = `Deskripsi: ${selectedStudent.name} menunjukkan sikap spiritual dan sosial yang ${selectedStudent.hadir >= 90 ? 'sangat baik' : 'baik'} dalam mengikuti pembelajaran, menjunjung tinggi nilai gotong royong, dan berinteraksi secara sopan di lingkungan sekolah.`;
+        const splitSikap = doc.splitTextToSize(sikapText, 182);
+        doc.text(splitSikap, 14, 66);
+        
+        // B. Pengetahuan & Keterampilan
+        doc.setFont("times", "bold");
+        doc.text("B. Pengetahuan & Keterampilan", 14, 85);
+        
+        const tableBody = mockDetailMapel.map((m, i) => [
+            i + 1, m.mapel, m.nilai, m.predikat
+        ]);
+        
+        autoTable(doc, {
+            startY: 90,
+            head: [['No', 'Mata Pelajaran', 'Nilai', 'Predikat']],
+            body: tableBody,
+            theme: 'grid',
+            headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center' },
+            columnStyles: {
+                0: { halign: 'center', cellWidth: 15 },
+                2: { halign: 'center', cellWidth: 30 },
+                3: { halign: 'center', cellWidth: 30 },
+            },
+            styles: { font: 'times', fontSize: 10, textColor: [0, 0, 0], lineColor: [0, 0, 0] }
+        });
+        
+        const finalY = doc.lastAutoTable.finalY || 150;
+        
+        // C. Ketidakhadiran
+        doc.setFont("times", "bold");
+        doc.text("C. Ketidakhadiran", 14, finalY + 15);
+        
+        autoTable(doc, {
+            startY: finalY + 20,
+            body: [
+                ['Sakit', `${mockDetailAbsensi.sakit} hari`],
+                ['Izin', `${mockDetailAbsensi.izin} hari`],
+                ['Tanpa Keterangan', `${mockDetailAbsensi.alpa} hari`]
+            ],
+            theme: 'grid',
+            columnStyles: {
+                0: { cellWidth: 60, fontStyle: 'bold', fillColor: [248, 248, 248] },
+                1: { cellWidth: 40, halign: 'center' }
+            },
+            styles: { font: 'times', fontSize: 10, textColor: [0, 0, 0], lineColor: [0, 0, 0] },
+            margin: { left: 14 }
+        });
+        
+        // D. Catatan Wali Kelas
+        doc.setFont("times", "bold");
+        doc.text("D. Catatan Wali Kelas", 120, finalY + 15);
+        
+        doc.setFont("times", "italic");
+        doc.rect(120, finalY + 18, 76, 25);
+        const splitCatatan = doc.splitTextToSize(`"${selectedStudent.note}"`, 72);
+        doc.text(splitCatatan, 122, finalY + 24);
+        
+        // Save
+        doc.save(`rapor_ganjil_2024_${selectedStudent.id}.pdf`);
+    } catch (err) {
+        console.error(err);
+        alert("Gagal membuat PDF: " + err.message);
+    } finally {
+        setDownloading(false);
+    }
   };
 
   return (
@@ -210,8 +322,21 @@ const GenerateRaporWali = ({ user }) => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Side: Student List */}
         <div className="lg:col-span-5 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col h-[600px]">
-          <div className="p-5 border-b border-gray-100">
-            <h2 className="text-[16px] font-bold text-gray-800">Daftar Siswa Kelas VII A</h2>
+          <div className="p-4 border-b border-gray-100 flex items-center justify-between gap-3 bg-gray-50/50 rounded-t-2xl">
+            <h2 className="text-[15px] font-bold text-gray-800">Daftar Siswa</h2>
+            <select
+              value={activeClass}
+              onChange={(e) => {
+                setSelectedClass(e.target.value);
+                setSelectedStudent(null);
+                setShowPreview(false);
+              }}
+              className="bg-white border border-gray-200 text-gray-700 text-[13px] font-bold rounded-lg focus:ring-[#1A3D63] focus:border-[#1A3D63] block p-2 outline-none cursor-pointer"
+            >
+              {classList.map(cls => (
+                <option key={cls} value={cls}>{cls}</option>
+              ))}
+            </select>
           </div>
           <div className="overflow-y-auto flex-1 p-3 space-y-2">
             {students.map(s => (
@@ -226,7 +351,7 @@ const GenerateRaporWali = ({ user }) => {
                   </div>
                   <div>
                     <h3 className={`text-[13px] font-bold ${selectedStudent?.id === s.id ? 'text-white' : 'text-gray-800'}`}>{s.name}</h3>
-                    <p className={`text-[11px] ${selectedStudent?.id === s.id ? 'text-blue-200' : 'text-gray-400'}`}>NIS: {s.id}</p>
+                    <p className={`text-[11px] ${selectedStudent?.id === s.id ? 'text-blue-200' : 'text-gray-400'}`}>NIS: {s.nis || "-"}</p>
                   </div>
                 </div>
                 <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold ${s.statusRapor === "Terbit" ? (selectedStudent?.id === s.id ? 'bg-green-500 text-white' : 'bg-green-50 text-green-600') : (selectedStudent?.id === s.id ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-500')}`}>
@@ -306,14 +431,82 @@ const GenerateRaporWali = ({ user }) => {
                 )}
 
                 {showPreview && (
-                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 text-center animate-fadeIn">
-                     <div className="w-16 h-16 bg-[#1A3D63] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
-                      <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                  <div id="rapor-preview-container" className="bg-white border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-sm p-8 text-left animate-fadeIn font-serif text-sm relative mt-4 mx-2">
+                    <div className="absolute top-6 right-6 border-2 border-red-500 text-red-500 font-bold px-3 py-1 transform rotate-12 opacity-30 text-[12px] tracking-widest uppercase">
+                      Preview Draft
                     </div>
-                    <h3 className="text-[16px] font-bold text-gray-800">Preview Dokumen Rapor</h3>
-                    <p className="text-[13px] text-gray-500 mt-1">Rapor Semester Ganjil 2023/2024 - {selectedStudent.name}</p>
-                    <div className="mt-4 inline-block px-4 py-2 bg-white border border-gray-200 rounded-lg text-[12px] font-semibold text-gray-600">
-                      📄 rapor_ganjil_2324_{selectedStudent.id}.pdf
+                    <div className="text-center mb-6 border-b-2 border-gray-800 pb-4">
+                      <h3 className="text-[18px] font-bold text-gray-900 uppercase tracking-widest">Laporan Hasil Belajar</h3>
+                      <p className="text-gray-600 mt-1">Semester Ganjil Tahun Ajaran 2024/2025</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 mb-6 text-gray-800 text-[12px]">
+                      <div>
+                        <table className="w-full">
+                          <tbody>
+                            <tr><td className="w-24 pb-1">Nama Siswa</td><td className="w-4 pb-1">:</td><td className="font-bold pb-1 uppercase">{selectedStudent.name}</td></tr>
+                            <tr><td className="pb-1">NISN / NIS</td><td className="pb-1">:</td><td className="pb-1">{selectedStudent.nisn || "-"} / {selectedStudent.nis || "-"}</td></tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <table className="w-full">
+                          <tbody>
+                            <tr><td className="w-24 pb-1">Kelas</td><td className="w-4 pb-1">:</td><td className="pb-1">{activeClass}</td></tr>
+                            <tr><td className="pb-1">Fase</td><td className="pb-1">:</td><td className="pb-1">D (SMP)</td></tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <div className="mb-5">
+                      <h4 className="font-bold text-gray-800 border-b border-gray-400 pb-1 mb-2">A. Sikap</h4>
+                      <div className="p-2 text-[12px] leading-relaxed text-gray-700 bg-gray-50 border border-gray-100">
+                         <strong>Deskripsi:</strong> {selectedStudent.name} menunjukkan sikap spiritual dan sosial yang {selectedStudent.hadir >= 90 ? 'sangat baik' : 'baik'} dalam mengikuti pembelajaran, menjunjung tinggi nilai gotong royong, dan berinteraksi secara sopan di lingkungan sekolah.
+                      </div>
+                    </div>
+
+                    <div className="mb-5">
+                      <h4 className="font-bold text-gray-800 border-b border-gray-400 pb-1 mb-2">B. Pengetahuan & Keterampilan</h4>
+                      <table className="w-full border-collapse border border-gray-300 text-[12px]">
+                        <thead>
+                          <tr className="bg-gray-100">
+                            <th className="border border-gray-300 py-1.5 px-2 text-center w-10">No</th>
+                            <th className="border border-gray-300 py-1.5 px-2 text-left">Mata Pelajaran</th>
+                            <th className="border border-gray-300 py-1.5 px-2 text-center w-16">Nilai</th>
+                            <th className="border border-gray-300 py-1.5 px-2 text-center w-24">Predikat</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {mockDetailMapel.map((m, i) => (
+                            <tr key={i} className="hover:bg-gray-50">
+                              <td className="border border-gray-300 py-1.5 px-2 text-center text-gray-500">{i+1}</td>
+                              <td className="border border-gray-300 py-1.5 px-2 font-medium">{m.mapel}</td>
+                              <td className="border border-gray-300 py-1.5 px-2 text-center font-bold">{m.nilai}</td>
+                              <td className="border border-gray-300 py-1.5 px-2 text-center">{m.predikat}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="font-bold text-gray-800 border-b border-gray-400 pb-1 mb-2">C. Ketidakhadiran</h4>
+                        <table className="w-full border-collapse border border-gray-300 text-[12px]">
+                          <tbody>
+                            <tr><td className="border border-gray-300 py-1.5 px-3 w-32 bg-gray-50">Sakit</td><td className="border border-gray-300 py-1.5 px-2 text-center">{mockDetailAbsensi.sakit} hari</td></tr>
+                            <tr><td className="border border-gray-300 py-1.5 px-3 bg-gray-50">Izin</td><td className="border border-gray-300 py-1.5 px-2 text-center">{mockDetailAbsensi.izin} hari</td></tr>
+                            <tr><td className="border border-gray-300 py-1.5 px-3 bg-gray-50">Tanpa Keterangan</td><td className="border border-gray-300 py-1.5 px-2 text-center">{mockDetailAbsensi.alpa} hari</td></tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-gray-800 border-b border-gray-400 pb-1 mb-2">D. Catatan Wali Kelas</h4>
+                        <div className="border border-gray-300 bg-gray-50 p-3 text-[12px] min-h-[90px] italic leading-relaxed text-gray-700">
+                          "{selectedStudent.note}"
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -345,6 +538,23 @@ const GenerateRaporWali = ({ user }) => {
                         ) : "Simpan & Terbitkan"}
                       </button>
                     )}
+                    <button 
+                      onClick={handleDownloadPDF} 
+                      disabled={downloading}
+                      className="px-6 py-2.5 bg-[#1A3D63] hover:bg-[#15304f] text-white rounded-xl text-[13px] font-bold transition-all shadow-sm flex items-center gap-2"
+                    >
+                      {downloading ? (
+                        <>
+                           <svg className="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+                           Menyiapkan PDF...
+                        </>
+                      ) : (
+                        <>
+                          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                          Download PDF
+                        </>
+                      )}
+                    </button>
                   </>
                 )}
               </div>
