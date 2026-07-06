@@ -17,11 +17,17 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
     const fetchStudents = async () => {
       try {
         setLoading(true);
-        const resSiswa = await api.get('/siswa?kelas_id=' + cls?.kode + '&limit=1000');
-        const resLulus = await api.get('/kelulusan?limit=10000');
-        
-        const allSiswa = resSiswa.data?.data || [];
-        const allLulus = resLulus.data?.data || [];
+        let allSiswa = [];
+        try {
+          const res = await api.get('/siswa?kelas_id=' + cls?.kode + '&limit=1000');
+          allSiswa = res.data?.data || [];
+        } catch(e) { console.error("Siswa err", e); }
+
+        let allLulus = [];
+        try {
+          const res = await api.get('/kelulusan?limit=10000');
+          allLulus = res.data?.data || [];
+        } catch(e) { console.error("Kelulusan err", e); }
         
         // Filter siswa by class
         const classSiswa = allSiswa.filter(s => s.kelas_id === cls?.kode);

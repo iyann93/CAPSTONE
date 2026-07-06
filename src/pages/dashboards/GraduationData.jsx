@@ -20,15 +20,23 @@ const GraduationData = () => {
       setLoading(true);
       const { default: api } = await import('../../api/axios');
       
-      const [kelasRes, siswaRes, lulusRes] = await Promise.all([
-        api.get('/kelas?limit=1000'),
-        api.get('/siswa?limit=10000'),
-        api.get('/kelulusan?limit=10000')
-      ]);
+      let dbClasses = [];
+      try {
+        const res = await api.get('/kelas?limit=1000');
+        dbClasses = res.data?.data || [];
+      } catch(e) { console.error("Kelas err", e); }
 
-      const dbClasses = kelasRes.data?.data || [];
-      const allSiswa = siswaRes.data?.data || [];
-      const allLulus = lulusRes.data?.data || [];
+      let allSiswa = [];
+      try {
+        const res = await api.get('/siswa?limit=10000');
+        allSiswa = res.data?.data || [];
+      } catch(e) { console.error("Siswa err", e); }
+
+      let allLulus = [];
+      try {
+        const res = await api.get('/kelulusan?limit=10000');
+        allLulus = res.data?.data || [];
+      } catch(e) { console.error("Kelulusan err", e); }
 
       // Filter hanya kelas IX dan bersihkan nama kelas dari IPA/IPS
       const ixClasses = dbClasses

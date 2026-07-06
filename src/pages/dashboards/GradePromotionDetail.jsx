@@ -47,15 +47,23 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
         const activeSem = semesters.find(s => s.is_aktif) || semesters[0];
         const semId = activeSem ? activeSem.id : '00000002-0000-0000-0000-000000000001';
 
-        const [siswaRes, nilaiRes, absensiRes] = await Promise.all([
-          api.get('/siswa?kelas_id=' + classData.kode + '&limit=1000'),
-          api.get('/nilai/kelas/' + classData.kode + '?semester_id=' + semId),
-          api.get('/absensi/rekap/semester?kelas_id=' + classData.kode + '&semester_id=' + semId)
-        ]);
-        
-        const dbSiswa = siswaRes.data?.data || [];
-        const dbNilai = nilaiRes.data?.data || [];
-        const dbAbsensi = absensiRes.data?.data || [];
+        let dbSiswa = [];
+        try {
+          const res = await api.get('/siswa?kelas_id=' + classData.kode + '&limit=1000');
+          dbSiswa = res.data?.data || [];
+        } catch(e) { console.error("Siswa err", e); }
+
+        let dbNilai = [];
+        try {
+          const res = await api.get('/nilai/kelas/' + classData.kode + '?semester_id=' + semId);
+          dbNilai = res.data?.data || [];
+        } catch(e) { console.error("Nilai err", e); }
+
+        let dbAbsensi = [];
+        try {
+          const res = await api.get('/absensi/rekap/semester?kelas_id=' + classData.kode + '&semester_id=' + semId);
+          dbAbsensi = res.data?.data || [];
+        } catch(e) { console.error("Absensi err", e); }
         
         // Filter siswa berdasarkan kelas yang dipilih
         const classStudents = dbSiswa.filter(s => s.kelas_id === classData?.kode);
