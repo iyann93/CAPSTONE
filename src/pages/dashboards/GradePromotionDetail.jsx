@@ -1,30 +1,6 @@
 import React, { useState } from "react";
 
-const initStudentsProcess = [
-  { no:1,nis:"2023100",nama:"Siswa Kelas VII 1",init:"S",color:"bg-blue-500",nilai:76,kehadiran:94,mapel:2 },
-  { no:2,nis:"2023101",nama:"Siswa Kelas VII 2",init:"S",color:"bg-green-500",nilai:84,kehadiran:89,mapel:0 },
-  { no:3,nis:"2023102",nama:"Siswa Kelas VII 3",init:"S",color:"bg-purple-500",nilai:74,kehadiran:91,mapel:2 },
-  { no:4,nis:"2023103",nama:"Siswa Kelas VII 4",init:"S",color:"bg-orange-500",nilai:78,kehadiran:97,mapel:2 },
-  { no:5,nis:"2023104",nama:"Siswa Kelas VII 5",init:"S",color:"bg-pink-500",nilai:79,kehadiran:97,mapel:3 },
-  { no:6,nis:"2023105",nama:"Siswa Kelas VII 6",init:"S",color:"bg-teal-500",nilai:74,kehadiran:94,mapel:2 },
-  { no:7,nis:"2023106",nama:"Siswa Kelas VII 7",init:"S",color:"bg-red-500",nilai:83,kehadiran:78,mapel:2 },
-  { no:8,nis:"2023107",nama:"Siswa Kelas VII 8",init:"S",color:"bg-indigo-500",nilai:73,kehadiran:85,mapel:1 },
-  { no:9,nis:"2023108",nama:"Siswa Kelas VII 9",init:"S",color:"bg-yellow-500",nilai:79,kehadiran:87,mapel:3 },
-  { no:10,nis:"2023109",nama:"Siswa Kelas VII 10",init:"S",color:"bg-cyan-500",nilai:69,kehadiran:86,mapel:3 },
-];
-
-const initStudentsSelesai = [
-  { no:1,nis:"2023001",nama:"Andi Pratama",init:"A",color:"bg-green-500",nilai:87.5,kehadiran:95,mapel:0,status:"Naik Kelas" },
-  { no:2,nis:"2023002",nama:"Dewi Sartika",init:"D",color:"bg-orange-500",nilai:91.2,kehadiran:98,mapel:0,status:"Naik Kelas" },
-  { no:3,nis:"2023003",nama:"Ricky Firmansyah",init:"R",color:"bg-blue-500",nilai:78.3,kehadiran:88,mapel:0,status:"Naik Kelas" },
-  { no:4,nis:"2023004",nama:"Nurul Hidayah",init:"N",color:"bg-teal-500",nilai:85.6,kehadiran:92,mapel:0,status:"Naik Kelas" },
-  { no:5,nis:"2023005",nama:"Fajar Setiawan",init:"F",color:"bg-yellow-500",nilai:62.4,kehadiran:74,mapel:3,status:"Tidak Naik" },
-  { no:6,nis:"2023006",nama:"Rina Marlina",init:"R",color:"bg-red-400",nilai:89.4,kehadiran:94,mapel:0,status:"Naik Kelas" },
-  { no:7,nis:"2023007",nama:"Bagas Prasetyo",init:"B",color:"bg-purple-500",nilai:68.1,kehadiran:77,mapel:2,status:"Tidak Naik" },
-  { no:8,nis:"2023008",nama:"Ayu Lestari",init:"A",color:"bg-pink-500",nilai:93.7,kehadiran:99,mapel:0,status:"Naik Kelas" },
-  { no:9,nis:"2023009",nama:"Dimas Kurniawan",init:"D",color:"bg-blue-600",nilai:82.0,kehadiran:90,mapel:0,status:"Naik Kelas" },
-  { no:10,nis:"2023010",nama:"Siti Rahma",init:"S",color:"bg-green-600",nilai:88.3,kehadiran:93,mapel:0,status:"Naik Kelas" },
-];
+// Constants for initial dummy data have been removed.
 
 function autoStatus(s) {
   if (s.nilaiAkhir >= 70 && s.kehadiran >= 80 && s.mapel <= 2) return "Naik Kelas";
@@ -34,7 +10,7 @@ function autoStatus(s) {
 const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) => {
   const isSelesai = mode === "selesai" || classData?.status === "Selesai";
   
-  const [students, setStudents] = useState(isSelesai ? initStudentsSelesai : initStudentsProcess.map(s => ({ ...s, status: "Belum Ditentukan" })));
+  const [students, setStudents] = useState([]);
   
   React.useEffect(() => {
     const fetchState = async () => {
@@ -42,10 +18,15 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
       try {
         const { default: api } = await import('../../api/axios');
         
-        const semRes = await api.get('/semester');
-        const semesters = semRes.data?.data || [];
-        const activeSem = semesters.find(s => s.is_aktif) || semesters[0];
-        const semId = activeSem ? activeSem.id : '00000002-0000-0000-0000-000000000001';
+        let semId = '00000002-0000-0000-0000-000000000001'; // Default fallback
+        try {
+          const semRes = await api.get('/semester');
+          const semesters = semRes.data?.data || [];
+          const activeSem = semesters.find(s => s.is_aktif) || semesters[0];
+          if (activeSem) semId = activeSem.id;
+        } catch (e) {
+          console.error("Gagal mengambil data semester:", e);
+        }
 
         let dbSiswa = [];
         try {
@@ -339,7 +320,13 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
                   ))}</tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {filtered.map((s,i)=>(
+                  {filtered.length === 0 ? (
+                    <tr>
+                      <td colSpan="10" className="py-16 text-center text-gray-400 text-[14px]">
+                        Tidak ada data siswa ditemukan atau sedang memuat...
+                      </td>
+                    </tr>
+                  ) : filtered.map((s,i)=>(
                     <tr key={i} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-4 py-3.5 text-[13px] text-gray-400">{s.no}</td>
                       <td className="px-4 py-3.5 text-[13px] text-gray-500">{s.nis}</td>
