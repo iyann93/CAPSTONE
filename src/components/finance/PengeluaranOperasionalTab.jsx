@@ -47,13 +47,14 @@ const IconUpload = () => (
 
 // No mock data needed
 
-const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasiswaList = [] }) => {
+const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasiswaList = [], sppPayments = [] }) => {
   const [activeTab, setActiveTab] = useState("pemasukan"); // 'pemasukan' atau 'pengeluaran'
   const [selectedYear, setSelectedYear] = useState("2025/2026");
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("Semua Kategori");
   const [showAddModal, setShowAddModal] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [fileUploadError, setFileUploadError] = useState("");
 
   // Form State
   const [formData, setFormData] = useState({
@@ -151,6 +152,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
     setShowAddModal(false);
     setFormData({ tanggal: "", kategori: "", nama: "", nominal: "", sumberDana: "", keterangan: "" });
     setUploadedFiles([]);
+    setFileUploadError("");
     setIsDirty(false);
   };
 
@@ -159,7 +161,12 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
       triggerToast ? triggerToast("Mohon isi semua kolom yang wajib (*)", "error") : alert("Mohon isi semua kolom yang wajib (*)");
       return;
     }
-    
+    // Require at least one uploaded proof file
+    if (uploadedFiles.length === 0) {
+      setFileUploadError("Harap unggah bukti pembayaran sebelum menyimpan!");
+      return;
+    }
+
     setIsSaving(true);
     try {
       const payload = {
@@ -179,6 +186,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
       setShowAddModal(false);
       setFormData({ tanggal: "", kategori: "", nama: "", nominal: "", sumberDana: "", keterangan: "" });
       setUploadedFiles([]);
+      setFileUploadError("");
       setIsDirty(false);
       const msg = activeTab === "pemasukan" ? "Data pemasukan berhasil disimpan!" : "Data pengeluaran berhasil disimpan!";
       triggerToast ? triggerToast(msg, "success") : alert(msg);
@@ -198,8 +206,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
     if (!dateStr) return false;
     const now = new Date();
     const currentMonthNum = now.getMonth();
-    // Mengikuti tahun dari selectedYear (misal 2025 dari 2025/2026) sesuai request
-    const currentYearNum = parseInt(selectedYear.split('/')[0]) || now.getFullYear();
+    const currentYearNum = now.getFullYear();
 
     const d = new Date(dateStr);
     if (!isNaN(d.getTime())) {
@@ -215,20 +222,70 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
     return false;
   };
 
+  const totalBulanIniSpp = sppPayments.filter(item => isCurrentMonthAndYear(item.tanggal_bayar || item.updatedAt || item.createdAt))
+    .reduce((acc, curr) => acc + (Number(String(curr.amount).replace(/[^0-9]/g, '')) || 0), 0);
+  const totalSppTahunan = sppPayments.reduce((acc, curr) => acc + (Number(String(curr.amount).replace(/[^0-9]/g, '')) || 0), 0);
+
   const totalBulanIni = currentData
     .filter(item => isCurrentMonthAndYear(item.tanggal))
     .reduce((acc, curr) => acc + Number(curr.nominal), 0) + 
     currentBeasiswa.filter(item => isCurrentMonthAndYear(item.tanggal || item.tanggal_mulai))
-    .reduce((acc, curr) => acc + Number(curr.nominal), 0);
+    .reduce((acc, curr) => acc + Number(curr.nominal), 0) +
+    (activeTab === "pemasukan" ? totalBulanIniSpp : 0);
     
-  const totalTahunAjaran = currentData.reduce((acc, curr) => acc + Number(curr.nominal), 0) + currentBeasiswa.reduce((acc, curr) => acc + Number(curr.nominal), 0);
+  const totalKeseluruhan = currentData.reduce((acc, curr) => acc + Number(curr.nominal), 0) + currentBeasiswa.reduce((acc, curr) => acc + Number(curr.nominal), 0) + (activeTab === "pemasukan" ? totalSppTahunan : 0);
+  const totalOperasionalSaja = currentData.reduce((acc, curr) => acc + Number(curr.nominal), 0);
+
+  const card1Title = activeTab === "pemasukan" ? "Pemasukan Bulan Ini" : "Total Pengeluaran Tahunan";
+  const card1Value = activeTab === "pemasukan" ? totalBulanIni : totalKeseluruhan;
+
+  const card2Title = activeTab === "pemasukan" ? "Total Pemasukan Tahunan" : "Total Operasional Tahunan";
+  const card2Value = activeTab === "pemasukan" ? totalKeseluruhan : totalOperasionalSaja;
   const jumlahKategori = new Set(currentData.map(item => item.kategori)).size;
 
-  const filteredData = currentData.filter(item => {
-    const matchesSearch = item.nama.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = categoryFilter === "Semua Kategori" || item.kategori === categoryFilter;
-    return matchesSearch && matchesCategory;
-  }).sort((a, b) => b.id - a.id);
+  // Aggregate SPP payments by month into summary rows
+  const sppByMonth = {};
+  sppPayments.forEach(p => {
+    const dateStr = p.tanggal_bayar || p.updatedAt || p.createdAt || '';
+    const d = dateStr ? new Date(dateStr) : null;
+    const monthKey = d && !isNaN(d)
+      ? `${monthNames[d.getMonth()]} ${d.getFullYear()}`
+      : (p.period || 'Lainnya');
+    const nom = Number(String(p.amount || '0').replace(/[^0-9]/g, ''));
+    if (!sppByMonth[monthKey]) {
+      sppByMonth[monthKey] = { total: 0, count: 0, tanggal: dateStr };
+    }
+    sppByMonth[monthKey].total += nom;
+    sppByMonth[monthKey].count += 1;
+  });
+
+  const sppRows = Object.entries(sppByMonth).map(([monthKey, val]) => ({
+    id: `spp-${monthKey}`,
+    _type: 'spp',
+    tanggal: val.tanggal,
+    nama: `Total Pemasukan SPP - ${monthKey}`,
+    kategori: 'SPP',
+    nominal: val.total,
+    keterangan: `${val.count} siswa lunas`,
+    sumberDana: 'SPP Siswa',
+  }));
+
+  const filteredData = [
+    ...currentData.filter(item => {
+      const matchesSearch = item.nama.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = categoryFilter === "Semua Kategori" || item.kategori === categoryFilter;
+      return matchesSearch && matchesCategory;
+    }),
+    ...(activeTab === "pemasukan" ? sppRows.filter(item => {
+      const matchesSearch = item.nama.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = categoryFilter === "Semua Kategori" || item.kategori === categoryFilter;
+      return matchesSearch && matchesCategory;
+    }) : [])
+  ].sort((a, b) => {
+    const dateA = new Date(a.tanggal || 0).getTime();
+    const dateB = new Date(b.tanggal || 0).getTime();
+    return dateB - dateA;
+  });
 
   return (
     <div className="flex flex-col gap-6 animate-fadeIn font-sans">
@@ -282,16 +339,16 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
         {/* Card 1 */}
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
-            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">{activeTab === "pemasukan" ? "Pemasukan Bulan Ini" : "Operasional Bulan Ini"}</div>
-            <div className="text-3xl font-black text-white">Rp {totalBulanIni.toLocaleString('id-ID')}</div>
+            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">{card1Title}</div>
+            <div className="text-3xl font-black text-white">Rp {card1Value.toLocaleString('id-ID')}</div>
           </div>
         </div>
 
         {/* Card 2 */}
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
-            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">{activeTab === "pemasukan" ? "Total Pemasukan Tahunan" : "Total Operasional Tahunan"}</div>
-            <div className="text-3xl font-black text-white">Rp {totalTahunAjaran.toLocaleString('id-ID')}</div>
+            <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">{card2Title}</div>
+            <div className="text-3xl font-black text-white">Rp {card2Value.toLocaleString('id-ID')}</div>
           </div>
         </div>
       </div>
@@ -347,6 +404,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
                     <option value="Dana BOS">Dana BOS</option>
                     <option value="Donasi">Donasi</option>
                     <option value="Hibah/Bantuan">Hibah/Bantuan</option>
+                    <option value="SPP">SPP</option>
                     <option value="Lainnya">Lainnya</option>
                   </>
                 ) : (
@@ -401,18 +459,26 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
                 filteredData.map((row, idx) => (
                   <tr key={row.id} className="hover:bg-gray-50/80 transition-colors">
                     <td className="py-4 px-4 text-center">
-                      <input 
-                        type="checkbox" 
-                        checked={selectedItems.includes(row.id)}
-                        onChange={() => handleSelectItem(row.id)}
-                        className="w-4 h-4 text-[#1A3D63] rounded border-gray-300 focus:ring-[#1A3D63] cursor-pointer"
-                      />
+                      {row._type === 'spp' ? (
+                        <span className="text-gray-300 text-xs">—</span>
+                      ) : (
+                        <input 
+                          type="checkbox" 
+                          checked={selectedItems.includes(row.id)}
+                          onChange={() => handleSelectItem(row.id)}
+                          className="w-4 h-4 text-[#1A3D63] rounded border-gray-300 focus:ring-[#1A3D63] cursor-pointer"
+                        />
+                      )}
                     </td>
                     <td className="py-4 px-4 text-center text-gray-500 font-bold">{idx + 1}.</td>
                     <td className="py-4 px-4 font-medium text-gray-600">{formatTanggal(row.tanggal)}</td>
                     <td className="py-4 px-4 font-bold text-gray-800">{row.nama}</td>
                     <td className="py-4 px-4">
-                      <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg font-semibold text-[10px]">{row.kategori}</span>
+                      {row._type === 'spp' ? (
+                        <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg font-semibold text-[10px]">SPP</span>
+                      ) : (
+                        <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg font-semibold text-[10px]">{row.kategori}</span>
+                      )}
                     </td>
                     <td className="py-4 px-4 font-bold text-emerald-600">Rp {Number(row.nominal || 0).toLocaleString('id-ID')}</td>
                     <td className="py-4 px-4 text-center">
@@ -699,7 +765,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1.5">Upload Bukti Pembayaran</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Upload Bukti Pembayaran <span className="text-red-500">*</span></label>
                 <label className="border-2 border-dashed border-gray-200 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-all text-center">
                   <div className="text-gray-400 mb-2">
                     <IconUpload />
@@ -715,62 +781,68 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
                       const files = Array.from(e.target.files);
                       if (files.length === 0) return;
 
-                      let hasInvalid = false;
-                      const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-                      const validFiles = [];
+                        setFileUploadError("");
+                        let hasInvalid = false;
+                        const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+                        const validFiles = [];
 
-                      for (const file of files) {
-                        if (!allowedTypes.includes(file.type)) {
-                          triggerToast ? triggerToast(`Format file tidak didukung! Harap upload file JPG, PNG, atau PDF.`, "error") : alert(`Format ${file.name} tidak didukung!`);
-                          hasInvalid = true;
-                          continue;
+                        for (const file of files) {
+                          if (!allowedTypes.includes(file.type)) {
+                            const message = `Format file tidak didukung! Harap upload file JPG, PNG, atau PDF.`;
+                            setFileUploadError(message);
+                            hasInvalid = true;
+                            continue;
+                          }
+                          if (file.size > 2 * 1024 * 1024) {
+                            const message = `Ukuran file terlalu besar! Maksimal 2 MB.`;
+                            setFileUploadError(message);
+                            hasInvalid = true;
+                            continue;
+                          }
+                          validFiles.push(file);
                         }
-                        if (file.size > 2 * 1024 * 1024) {
-                          triggerToast ? triggerToast(`Ukuran file terlalu besar! Maksimal 2 MB.`, "error") : alert(`Ukuran ${file.name} terlalu besar!`);
-                          hasInvalid = true;
-                          continue;
-                        }
-                        validFiles.push(file);
-                      }
 
-                      if (validFiles.length > 0) {
-                        setUploadedFiles(prev => [...prev, ...validFiles]);
-                        if (!hasInvalid) {
-                          triggerToast ? triggerToast("File berhasil diunggah dan memenuhi syarat!") : alert("File berhasil ditambahkan.");
+                        if (validFiles.length > 0) {
+                          setUploadedFiles(prev => [...prev, ...validFiles]);
+                          if (!hasInvalid) {
+                            // clear any previous upload error; keep toast for success optional
+                            setFileUploadError("");
+                          }
                         }
-                      }
-                      e.target.value = ''; // Reset input to allow selecting the same file again if removed
-                    }}
-                  />
-                </label>
-
-                {uploadedFiles.length > 0 && (
-                  <div className="mt-3 space-y-2">
-                    {uploadedFiles.map((f, idx) => (
-                      <div key={idx} className="flex items-center justify-between bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl">
-                        <div className="flex items-center gap-3 overflow-hidden">
-                          <div className="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center shrink-0">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+                        e.target.value = ''; // Reset input to allow selecting the same file again if removed
+                      }}
+                    />
+                  </label>
+                  {fileUploadError && (
+                    <p className="mt-2 text-[11px] text-red-600 font-medium">{fileUploadError}</p>
+                  )}
+                  {uploadedFiles.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      {uploadedFiles.map((file, idx) => (
+                        <div key={idx} className="flex items-center justify-between bg-emerald-50 border border-emerald-200 p-3 rounded-xl">
+                          <div className="flex items-center gap-3 overflow-hidden">
+                            <div className="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center shrink-0">
+                              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                              </svg>
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold text-emerald-800 truncate">{file.name}</p>
+                              <p className="text-[11px] text-emerald-600 font-medium">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                            </div>
                           </div>
-                          <div className="min-w-0">
-                            <p className="text-xs font-bold text-emerald-800 truncate">{f.name}</p>
-                            <p className="text-[10px] text-emerald-600 font-medium">{(f.size / 1024 / 1024).toFixed(2)} MB</p>
-                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setUploadedFiles(prev => prev.filter((_, i) => i !== idx))}
+                            className="text-emerald-600 hover:text-emerald-800 bg-transparent border-none cursor-pointer p-1.5 rounded-lg hover:bg-emerald-100/50 transition-colors shrink-0"
+                            title="Hapus File"
+                          >
+                            <IconX />
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => setUploadedFiles(prev => prev.filter((_, i) => i !== idx))}
-                          className="text-emerald-600 hover:text-emerald-800 bg-transparent border-none cursor-pointer p-1.5 rounded-lg hover:bg-emerald-100/50 transition-colors shrink-0"
-                          title="Hapus File"
-                        >
-                          <IconX />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
               </div>
 
               <div>

@@ -7,7 +7,7 @@ async function test() {
     const siswa = await db.query('SELECT * FROM academic.siswa LIMIT 1');
     const mapel = await db.query('SELECT * FROM academic.mata_pelajaran LIMIT 1');
     const semester = await db.query('SELECT * FROM academic.semester LIMIT 1');
-    
+
     // Get actual user UUID from academic.guru
     const guru = await db.query('SELECT user_id FROM academic.guru LIMIT 1');
 

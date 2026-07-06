@@ -39,6 +39,7 @@ import {
   deleteDanaBeasiswa,
   getOperasional,
 } from "../../api/finance";
+import { getGlobalFinanceSummary } from "../../utils/financeHelpers";
 import { getSiswa } from "../../api/academic";
 import { getAllSlips } from "../../api/payroll";
 import Profile from "../Profile";
@@ -229,6 +230,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
   const [sppPayments, setSppPayments] = useState([]);
   const [paidSlips, setPaidSlips] = useState([]);
+  const [globalFinance, setGlobalFinance] = useState({ totalPemasukan: 0, totalPengeluaran: 0 });
   
   // Laporan States
   const [laporanType, setLaporanType] = useState("Laporan Pembayaran SPP (Pemasukan)");
@@ -636,6 +638,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
     loadPaidSlips();
     loadDanaBeasiswa();
     loadOperasional();
+    
+    getGlobalFinanceSummary().then(setGlobalFinance).catch(console.error);
   }, [loadKomponenSpp, loadKomponenGaji, loadTagihan, loadBeasiswa, loadSiswa, loadPembayaran, loadPaidSlips, loadDanaBeasiswa, loadOperasional]);
 
   // Handlers
@@ -1154,7 +1158,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
             });
           }
         });
-        return <PengeluaranOperasionalTab triggerToast={triggerToast} danaBeasiswaList={danaBeasiswaList} beasiswaList={penyaluranListForTab} />;
+        return <PengeluaranOperasionalTab triggerToast={triggerToast} danaBeasiswaList={danaBeasiswaList} beasiswaList={penyaluranListForTab} sppPayments={sppPayments} />;
       case "My Profile":
         return <Profile user={user} />;
       case "Template Gaji Jabatan":
@@ -1240,9 +1244,12 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
           }
         });
         const totalPenyaluranBeasiswa = penyaluranBeasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
-        const totalPengeluaranTahunan = currentPengeluaranData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0) + totalPenyaluranBeasiswa;
+        const totalPenggajianTahunan = paidSlips.reduce((acc, curr) => acc + (Number(curr.gaji_bersih) || 0), 0);
+        const totalPengeluaranTahunan = globalFinance.totalPengeluaran;
+        
         const totalBeasiswa = danaBeasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
-        const totalPemasukanTahunan = currentPemasukanData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0) + totalBeasiswa;
+        const totalSppTahunan = sppPayments.reduce((acc, curr) => acc + (Number(String(curr.amount).replace(/[^0-9]/g, '')) || 0), 0);
+        const totalPemasukanTahunan = globalFinance.totalPemasukan;
 
         return (
           <div className="flex flex-col gap-6 animate-fadeIn font-sans">
@@ -2261,100 +2268,112 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
             </div>
 
             <div className={`grid grid-cols-1 ${classGroups.length > 1 ? 'xl:grid-cols-3' : ''} gap-6`}>
-              {classGroups.map(group => {
-                const groupPrefix = group.replace("Kelas ", "");
-                const groupData = filteredRiwayat.filter(r => r.kelas.split(' ')[0] === groupPrefix);
+              {classGroups.length === 0 ? (
+                <div className="col-span-1 xl:col-span-3 bg-white rounded-2xl border border-dashed border-gray-200 p-10 flex flex-col items-center justify-center text-center shadow-sm">
+                  <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 border border-gray-100">
+                    <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-gray-400">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-[15px] font-bold text-gray-800 mb-1">Belum ada riwayat pembayaran</h3>
+                  <p className="text-xs text-gray-500 max-w-sm">Data transaksi pembayaran SPP siswa akan muncul di sini secara otomatis setelah dilakukan konfirmasi atau pembayaran oleh siswa.</p>
+                </div>
+              ) : (
+                classGroups.map(group => {
+                  const groupPrefix = group.replace("Kelas ", "");
+                  const groupData = filteredRiwayat.filter(r => r.kelas.split(' ')[0] === groupPrefix);
 
-                return (
-                  <div key={group} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col">
-                    <h3 className="text-sm font-bold text-[#1A3D63] mb-4 pb-3 border-b border-gray-100 flex items-center justify-between">
-                      {group}
-                      <span className="bg-[#EBF3FA] text-[#1A3D63] px-2.5 py-0.5 rounded-md text-[10px] font-bold">{groupData.length} Siswa</span>
-                    </h3>
-                    
-                    <div className="flex flex-col gap-4">
-                      {groupData.length > 0 ? groupData.map((item, idx) => {
-                        const isExpanded = expandedRiwayatId === item.id;
-                        return (
-                        <React.Fragment key={item.id}>
-                          <div className={`flex flex-col gap-3 transition-all ${isExpanded ? 'bg-gray-50/50 p-3.5 rounded-xl border border-gray-200' : ''}`}>
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <div className="w-6 h-6 rounded-full bg-[#EBF3FA] flex items-center justify-center text-[10px] font-bold text-[#1A3D63] flex-shrink-0 shadow-sm">
-                                  {idx + 1}
-                                </div>
-                                <div>
-                                  <div className="text-[13px] font-bold text-gray-800">{item.name}</div>
-                                  <div className="text-[10px] font-semibold text-gray-400 mt-0.5">{item.kelas}</div>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => setExpandedRiwayatId(isExpanded ? null : item.id)}
-                                  className={`bg-white hover:bg-gray-50 border ${isExpanded ? 'border-[#EF4444] text-[#EF4444] hover:bg-red-50' : 'border-gray-200 text-[#1A3D63]'} px-2.5 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition-all shadow-sm active:scale-95`}
-                                >
-                                  {isExpanded ? 'Tutup' : 'Detail'}
-                                </button>
-                              </div>
-                            </div>
-
-                            {/* Expanded Detail Section */}
-                            {isExpanded && (
-                              <div className="mt-2 pt-3 border-t border-gray-200 animate-fadeIn space-y-3">
-                                {/* Student & Payment Info */}
-                                <div className="grid grid-cols-2 gap-3 text-xs">
-                                  <div>
-                                    <div className="text-gray-400 font-semibold mb-1">NIS</div>
-                                    <div className="font-bold text-gray-800">{item.nis}</div>
+                  return (
+                    <div key={group} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col">
+                      <h3 className="text-sm font-bold text-[#1A3D63] mb-4 pb-3 border-b border-gray-100 flex items-center justify-between">
+                        {group}
+                        <span className="bg-[#EBF3FA] text-[#1A3D63] px-2.5 py-0.5 rounded-md text-[10px] font-bold">{groupData.length} Siswa</span>
+                      </h3>
+                      
+                      <div className="flex flex-col gap-4">
+                        {groupData.length > 0 ? groupData.map((item, idx) => {
+                          const isExpanded = expandedRiwayatId === item.id;
+                          return (
+                          <React.Fragment key={item.id}>
+                            <div className={`flex flex-col gap-3 transition-all ${isExpanded ? 'bg-gray-50/50 p-3.5 rounded-xl border border-gray-200' : ''}`}>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-6 h-6 rounded-full bg-[#EBF3FA] flex items-center justify-center text-[10px] font-bold text-[#1A3D63] flex-shrink-0 shadow-sm">
+                                    {idx + 1}
                                   </div>
                                   <div>
-                                    <div className="text-gray-400 font-semibold mb-1">Status</div>
-                                    <div className="flex items-center gap-1">
-                                      <span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
-                                      <span className="font-bold text-green-600">{item.status}</span>
+                                    <div className="text-[13px] font-bold text-gray-800">{item.name}</div>
+                                    <div className="text-[10px] font-semibold text-gray-400 mt-0.5">{item.kelas}</div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => setExpandedRiwayatId(isExpanded ? null : item.id)}
+                                    className={`bg-white hover:bg-gray-50 border ${isExpanded ? 'border-[#EF4444] text-[#EF4444] hover:bg-red-50' : 'border-gray-200 text-[#1A3D63]'} px-2.5 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition-all shadow-sm active:scale-95`}
+                                  >
+                                    {isExpanded ? 'Tutup' : 'Detail'}
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Expanded Detail Section */}
+                              {isExpanded && (
+                                <div className="mt-2 pt-3 border-t border-gray-200 animate-fadeIn space-y-3">
+                                  {/* Student & Payment Info */}
+                                  <div className="grid grid-cols-2 gap-3 text-xs">
+                                    <div>
+                                      <div className="text-gray-400 font-semibold mb-1">NIS</div>
+                                      <div className="font-bold text-gray-800">{item.nis}</div>
+                                    </div>
+                                    <div>
+                                      <div className="text-gray-400 font-semibold mb-1">Status</div>
+                                      <div className="flex items-center gap-1">
+                                        <span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
+                                        <span className="font-bold text-green-600">{item.status}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Payment Details */}
+                                  <div className="border-t border-gray-100 pt-3 grid grid-cols-2 gap-3 text-xs">
+                                    <div>
+                                      <div className="text-gray-400 font-semibold mb-1">Bulan Tagihan</div>
+                                      <div className="font-bold text-gray-800">{item.month} 2026</div>
+                                    </div>
+                                    <div>
+                                      <div className="text-gray-400 font-semibold mb-1">Total Bayar</div>
+                                      <div className="font-bold text-[#1A3D63]">{item.amount}</div>
+                                    </div>
+                                    <div className="col-span-2">
+                                      <div className="text-gray-400 font-semibold mb-1">Metode</div>
+                                      <div className="font-bold text-gray-800">{item.method}</div>
+                                    </div>
+                                  </div>
+
+                                  {/* Timestamp */}
+                                  <div className="border-t border-gray-100 pt-3">
+                                    <div className="flex items-start gap-2">
+                                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-gray-400 mt-0.5 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                                      <span className="text-xs text-gray-600">{item.dateTime}</span>
                                     </div>
                                   </div>
                                 </div>
+                              )}
+                            </div>
 
-                                {/* Payment Details */}
-                                <div className="border-t border-gray-100 pt-3 grid grid-cols-2 gap-3 text-xs">
-                                  <div>
-                                    <div className="text-gray-400 font-semibold mb-1">Bulan Tagihan</div>
-                                    <div className="font-bold text-gray-800">{item.month} 2026</div>
-                                  </div>
-                                  <div>
-                                    <div className="text-gray-400 font-semibold mb-1">Total Bayar</div>
-                                    <div className="font-bold text-[#1A3D63]">{item.amount}</div>
-                                  </div>
-                                  <div className="col-span-2">
-                                    <div className="text-gray-400 font-semibold mb-1">Metode</div>
-                                    <div className="font-bold text-gray-800">{item.method}</div>
-                                  </div>
-                                </div>
-
-                                {/* Timestamp */}
-                                <div className="border-t border-gray-100 pt-3">
-                                  <div className="flex items-start gap-2">
-                                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-gray-400 mt-0.5 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-                                    <span className="text-xs text-gray-600">{item.dateTime}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
+                              {/* Separator Line */}
+                              {idx < groupData.length - 1 && !isExpanded && <div className="w-full h-px bg-gray-50"></div>}
+                          </React.Fragment>
+                        )}) : (
+                          <div className="text-center py-6 text-gray-400 text-[11px] font-medium border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                            Tidak ada data di {group}.
                           </div>
-
-                            {/* Separator Line */}
-                            {idx < groupData.length - 1 && !isExpanded && <div className="w-full h-px bg-gray-50"></div>}
-                        </React.Fragment>
-                      )}) : (
-                        <div className="text-center py-6 text-gray-400 text-[11px] font-medium border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
-                          Tidak ada data di {group}.
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
         );
