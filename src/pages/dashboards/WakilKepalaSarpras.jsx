@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { initialPengeluaranData, initialPemasukanData } from "../../components/finance/PengeluaranOperasionalTab";
+import React, { useState, useEffect } from "react";
+import { getOperasional } from "../../api/finance";
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import { jsPDF } from "jspdf";
 import * as htmlToImage from "html-to-image";
@@ -46,9 +46,27 @@ const WakilKepalaSarpras = () => {
   const [showLaporanModal, setShowLaporanModal] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   
+  const [pengeluaranData, setPengeluaranData] = useState([]);
+  const [pemasukanData, setPemasukanData] = useState([]);
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getOperasional();
+        if (Array.isArray(data)) {
+          setPengeluaranData(data.filter(d => d.tipe === 'pengeluaran'));
+          setPemasukanData(data.filter(d => d.tipe === 'pemasukan'));
+        }
+      } catch (err) {
+        console.error("Gagal memuat data operasional:", err);
+      }
+    };
+    fetchData();
+  }, []);
+  
   const formatTanggal = (tgl) => {
     if (!tgl) return "-";
-    return tgl; // since initialPengeluaranData already has formatted dates like '10 Juni 2025'
+    return tgl; // since pengeluaranData already has formatted dates like '10 Juni 2025'
   };
 
   const handleCetakLaporan = async () => {
@@ -101,8 +119,8 @@ const WakilKepalaSarpras = () => {
   };
 
   // Data Anggaran dari Total Pemasukan Bendahara
-  const TOTAL_ANGGARAN = initialPemasukanData.reduce((acc, curr) => acc + curr.nominal, 0);
-  const REALISASI = initialPengeluaranData.reduce((acc, curr) => acc + curr.nominal, 0);
+  const TOTAL_ANGGARAN = pemasukanData.filter(d => d.kategori === 'Dana BOS').reduce((acc, curr) => acc + curr.nominal, 0);
+  const REALISASI = pengeluaranData.reduce((acc, curr) => acc + curr.nominal, 0);
   const SISA_ANGGARAN = TOTAL_ANGGARAN - REALISASI;
   
   const chartData = [
@@ -164,7 +182,7 @@ const WakilKepalaSarpras = () => {
             <div className="bg-white rounded-[16px] p-6 shadow-sm border border-gray-50 border-l-4 border-l-red-500">
               <h3 className="text-[12px] font-bold text-gray-400 uppercase tracking-wider mb-2">Realisasi Penggunaan</h3>
               <p className="text-[32px] font-black text-[#1F3A5F] tracking-tight">{formatRupiah(REALISASI)}</p>
-              <p className="text-[12px] text-gray-500 mt-1">{((REALISASI / TOTAL_ANGGARAN) * 100).toFixed(1)}% dari anggaran</p>
+              <p className="text-[12px] text-gray-500 mt-1">{TOTAL_ANGGARAN > 0 ? ((REALISASI / TOTAL_ANGGARAN) * 100).toFixed(1) : 0}% dari anggaran</p>
             </div>
             <div className="bg-white rounded-[16px] p-6 shadow-sm border border-gray-50 border-l-4 border-l-[#F59E0B]">
               <h3 className="text-[12px] font-bold text-gray-400 uppercase tracking-wider mb-2">Sisa Anggaran</h3>
@@ -197,7 +215,7 @@ const WakilKepalaSarpras = () => {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-2xl font-black text-[#1F3A5F]">{((REALISASI / TOTAL_ANGGARAN) * 100).toFixed(0)}%</span>
+                  <span className="text-2xl font-black text-[#1F3A5F]">{TOTAL_ANGGARAN > 0 ? ((REALISASI / TOTAL_ANGGARAN) * 100).toFixed(0) : 0}%</span>
                   <span className="text-[10px] font-bold text-gray-400">Terpakai</span>
                 </div>
               </div>
@@ -258,7 +276,7 @@ const WakilKepalaSarpras = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {initialPengeluaranData.map((tx) => (
+                {pengeluaranData.map((tx) => (
                   <tr key={tx.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4 text-[13px] text-gray-500 whitespace-nowrap">{tx.tanggal}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -278,7 +296,7 @@ const WakilKepalaSarpras = () => {
                     </td>
                   </tr>
                 ))}
-                {initialPengeluaranData.length === 0 && (
+                {pengeluaranData.length === 0 && (
                   <tr><td colSpan="5" className="py-8 text-center text-gray-500">Belum ada pengeluaran terbaru.</td></tr>
                 )}
               </tbody>
@@ -543,7 +561,7 @@ const WakilKepalaSarpras = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {initialPengeluaranData.map((item, index) => (
+                    {pengeluaranData.map((item, index) => (
                       <tr key={index}>
                         <td className="border border-gray-800 p-3 text-xs text-center">{index + 1}</td>
                         <td className="border border-gray-800 p-3 text-xs">{item.tanggal}</td>
@@ -552,7 +570,7 @@ const WakilKepalaSarpras = () => {
                         <td className="border border-gray-800 p-3 text-xs text-right">{formatRupiah(item.nominal)}</td>
                       </tr>
                     ))}
-                    {initialPengeluaranData.length === 0 && (
+                    {pengeluaranData.length === 0 && (
                       <tr>
                         <td colSpan="5" className="border border-gray-800 p-4 text-center text-sm">Tidak ada transaksi.</td>
                       </tr>
@@ -640,7 +658,7 @@ const WakilKepalaSarpras = () => {
               </tr>
             </thead>
             <tbody>
-              {initialPengeluaranData.map((item, index) => (
+              {pengeluaranData.map((item, index) => (
                 <tr key={index}>
                   <td className="border border-gray-800 p-3 text-xs text-center">{index + 1}</td>
                   <td className="border border-gray-800 p-3 text-xs">{item.tanggal}</td>
@@ -649,7 +667,7 @@ const WakilKepalaSarpras = () => {
                   <td className="border border-gray-800 p-3 text-xs text-right">{formatRupiah(item.nominal)}</td>
                 </tr>
               ))}
-              {initialPengeluaranData.length === 0 && (
+              {pengeluaranData.length === 0 && (
                 <tr>
                   <td colSpan="5" className="border border-gray-800 p-4 text-center text-sm">Tidak ada transaksi.</td>
                 </tr>

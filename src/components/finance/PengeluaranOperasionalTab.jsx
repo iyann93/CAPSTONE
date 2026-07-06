@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getOperasional, createOperasional, deleteMultipleOperasional } from '../../api/finance';
 
 // Icons
 const IconChevronDown = () => (
@@ -44,25 +45,7 @@ const IconUpload = () => (
   </svg>
 );
 
-// Mock Data Defaults
-const defaultPemasukanData = [
-  { id: 1, tanggal: "10 Juni 2026", nama: "Pencairan Dana BOS Tahap 2", kategori: "Dana BOS", nominal: 15000000, sumberDana: "Pemerintah Pusat", keterangan: "Dana BOS Reguler tahap 2", bukti: ["bukti_bos.jpg"] },
-  { id: 2, tanggal: "15 Juni 2026", nama: "Sumbangan Alumni", kategori: "Donasi", nominal: 5000000, sumberDana: "Donatur", keterangan: "Sumbangan untuk pembangunan masjid", bukti: ["bukti_transfer_donasi.pdf"] }
-];
-
-const defaultPengeluaranData = [
-  { id: 1, tanggal: "24 Juni 2026", nama: "Pembayaran Listrik PLN", kategori: "Listrik", nominal: 1800000, sumberDana: "Dana BOS", keterangan: "Pembayaran listrik bulan berjalan.", bukti: ["struk_listrik_juni.jpg", "struk_listrik_tambahan.jpg"] },
-  { id: 2, tanggal: "25 Juni 2026", nama: "Pembelian ATK", kategori: "ATK", nominal: 650000, sumberDana: "Dana Donatur", keterangan: "Kertas HVS, tinta printer.", bukti: ["nota_atk.pdf"] },
-  { id: 3, tanggal: "26 Juni 2026", nama: "Langganan Internet", kategori: "Internet", nominal: 850000, sumberDana: "Dana BOS", keterangan: "Indihome 100Mbps.", bukti: ["bukti_transfer_indihome.png"] }
-];
-
-export const initialPemasukanData = JSON.parse(localStorage.getItem('mockPemasukanData')) || defaultPemasukanData;
-export const initialPengeluaranData = JSON.parse(localStorage.getItem('mockPengeluaranData')) || defaultPengeluaranData;
-
-export const initialBeasiswaDanaData = [
-  { id: 1, tanggal: "05 Juni 2026", nama: "Penerimaan Dana Beasiswa Yayasan", kategori: "Beasiswa", nominal: 10000000, sumberDana: "Yayasan", keterangan: "Dana kelola beasiswa bulan Juni" },
-  { id: 2, tanggal: "12 Juni 2026", nama: "Penerimaan Dana CSR Bank Jatim", kategori: "Beasiswa", nominal: 5000000, sumberDana: "Bank Jatim", keterangan: "Program Beasiswa Berprestasi" }
-];
+// No mock data needed
 
 const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasiswaList = [] }) => {
   const [activeTab, setActiveTab] = useState("pemasukan"); // 'pemasukan' atau 'pengeluaran'
@@ -87,8 +70,28 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
   const [isSaving, setIsSaving] = useState(false);
   
   // Local Data State
-  const [localPemasukanData, setLocalPemasukanData] = useState(initialPemasukanData);
-  const [localPengeluaranData, setLocalPengeluaranData] = useState(initialPengeluaranData);
+  const [localPemasukanData, setLocalPemasukanData] = useState([]);
+  const [localPengeluaranData, setLocalPengeluaranData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const loadOperasionalData = async () => {
+    setIsLoading(true);
+    try {
+      const data = await getOperasional();
+      if (Array.isArray(data)) {
+        setLocalPemasukanData(data.filter(d => d.tipe === 'pemasukan'));
+        setLocalPengeluaranData(data.filter(d => d.tipe === 'pengeluaran'));
+      }
+    } catch (err) {
+      console.error("Gagal memuat data operasional:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadOperasionalData();
+  }, []);
   // Table Selection & Modals State
   const [selectedItems, setSelectedItems] = useState([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -119,10 +122,16 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
     }
   };
 
-  const handleDelete = () => {
-    triggerToast ? triggerToast(`${selectedItems.length} data berhasil dihapus!`, "success") : alert(`${selectedItems.length} data berhasil dihapus!`);
-    setShowDeleteConfirm(false);
-    setSelectedItems([]);
+  const handleDelete = async () => {
+    try {
+      await deleteMultipleOperasional(selectedItems);
+      triggerToast ? triggerToast(`${selectedItems.length} data berhasil dihapus!`, "success") : alert(`${selectedItems.length} data berhasil dihapus!`);
+      setShowDeleteConfirm(false);
+      setSelectedItems([]);
+      loadOperasionalData();
+    } catch (err) {
+      triggerToast ? triggerToast("Gagal menghapus data", "error") : alert("Gagal menghapus data");
+    }
   };
 
   const handleInputChange = (field, value) => {
@@ -147,7 +156,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
     setIsDirty(false);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.tanggal || !formData.kategori || !formData.nama || !formData.nominal || !formData.sumberDana) {
       triggerToast ? triggerToast("Mohon isi semua kolom yang wajib (*)", "error") : alert("Mohon isi semua kolom yang wajib (*)");
       return;
@@ -159,29 +168,20 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
     }
 
     setIsSaving(true);
-    // Simulasi API call
-    setTimeout(() => {
-      const newItem = {
-        id: Date.now(),
-        tanggal: formatTanggal(formData.tanggal),
+    try {
+      const payload = {
+        tipe: activeTab,
+        tanggal: formData.tanggal,
         nama: formData.nama,
         kategori: formData.kategori,
         nominal: Number(String(formData.nominal).replace(/[^0-9]/g, '')),
-        sumberDana: formData.sumberDana,
+        sumber_dana: formData.sumberDana,
         keterangan: formData.keterangan,
-        bukti: uploadedFiles.map(f => f.name)
+        bukti: []
       };
 
-      if (activeTab === "pemasukan") {
-        initialPemasukanData.unshift(newItem);
-        setLocalPemasukanData([...initialPemasukanData]);
-        localStorage.setItem('mockPemasukanData', JSON.stringify(initialPemasukanData));
-      } else {
-        initialPengeluaranData.unshift(newItem);
-        setLocalPengeluaranData([...initialPengeluaranData]);
-        localStorage.setItem('mockPengeluaranData', JSON.stringify(initialPengeluaranData));
-      }
-
+      await createOperasional(payload);
+      
       setIsSaving(false);
       setShowAddModal(false);
       setFormData({ tanggal: "", kategori: "", nama: "", nominal: "", sumberDana: "", keterangan: "" });
@@ -190,7 +190,11 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
       setIsDirty(false);
       const msg = activeTab === "pemasukan" ? "Data pemasukan berhasil disimpan!" : "Data pengeluaran berhasil disimpan!";
       triggerToast ? triggerToast(msg, "success") : alert(msg);
-    }, 800);
+      loadOperasionalData();
+    } catch (err) {
+      setIsSaving(false);
+      triggerToast ? triggerToast("Gagal menyimpan data", "error") : alert("Gagal menyimpan data");
+    }
   };
 
   const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
@@ -198,15 +202,34 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
   const currentData = activeTab === "pengeluaran" ? localPengeluaranData : localPemasukanData;
   const currentBeasiswa = activeTab === "pengeluaran" ? beasiswaList : danaBeasiswaList;
   
-  const totalBulanIni = currentData
-    .filter(item => item.tanggal.includes(currentMonth))
-    .reduce((acc, curr) => acc + curr.nominal, 0) + 
-    currentBeasiswa.filter(item => {
-      const t = item.tanggal || item.tanggal_mulai;
-      return t && (t.includes(currentMonth) || String(t).includes(String(new Date().getMonth() + 1).padStart(2, '0')));
-    }).reduce((acc, curr) => acc + Number(curr.nominal), 0);
+  const isCurrentMonthAndYear = (dateStr) => {
+    if (!dateStr) return false;
+    const now = new Date();
+    const currentMonthNum = now.getMonth();
+    // Mengikuti tahun dari selectedYear (misal 2025 dari 2025/2026) sesuai request
+    const currentYearNum = parseInt(selectedYear.split('/')[0]) || now.getFullYear();
+
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      return d.getMonth() === currentMonthNum && d.getFullYear() === currentYearNum;
+    }
     
-  const totalTahunAjaran = currentData.reduce((acc, curr) => acc + curr.nominal, 0) + currentBeasiswa.reduce((acc, curr) => acc + Number(curr.nominal), 0);
+    // Fallback if format is "10 Juni 2025"
+    const parts = dateStr.split(' ');
+    if (parts.length === 3) {
+      const m = monthNames.indexOf(parts[1]);
+      if (m === currentMonthNum && parseInt(parts[2]) === currentYearNum) return true;
+    }
+    return false;
+  };
+
+  const totalBulanIni = currentData
+    .filter(item => isCurrentMonthAndYear(item.tanggal))
+    .reduce((acc, curr) => acc + Number(curr.nominal), 0) + 
+    currentBeasiswa.filter(item => isCurrentMonthAndYear(item.tanggal || item.tanggal_mulai))
+    .reduce((acc, curr) => acc + Number(curr.nominal), 0);
+    
+  const totalTahunAjaran = currentData.reduce((acc, curr) => acc + Number(curr.nominal), 0) + currentBeasiswa.reduce((acc, curr) => acc + Number(curr.nominal), 0);
   const jumlahKategori = new Set(currentData.map(item => item.kategori)).size;
 
   const filteredData = currentData.filter(item => {
@@ -399,7 +422,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
                     <td className="py-4 px-4">
                       <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg font-semibold text-[10px]">{row.kategori}</span>
                     </td>
-                    <td className="py-4 px-4 font-bold text-emerald-600">Rp {row.nominal.toLocaleString('id-ID')}</td>
+                    <td className="py-4 px-4 font-bold text-emerald-600">Rp {Number(row.nominal || 0).toLocaleString('id-ID')}</td>
                     <td className="py-4 px-4 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button
@@ -876,7 +899,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
                 </div>
                 <div className="text-right">
                   <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Sumber Dana</div>
-                  <div className="text-sm font-semibold text-gray-700">{selectedDetailItem.sumberDana || "-"}</div>
+                  <div className="text-sm font-semibold text-gray-700">{selectedDetailItem.sumber_dana || selectedDetailItem.sumberDana || "-"}</div>
                 </div>
               </div>
 
