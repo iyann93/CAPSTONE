@@ -56,6 +56,13 @@ const GradePromotion = () => {
         const kelasRes = await api.get('/kelas');
         const dbClasses = kelasRes.data?.data || [];
 
+        // Fetch siswa to get real counts
+        let dbSiswa = [];
+        try {
+          const siswaRes = await api.get('/siswa');
+          dbSiswa = siswaRes.data?.data || [];
+        } catch(e) { console.error("Gagal memuat data siswa", e); }
+
         // Fetch frontend state
         let savedProgress = [];
         try {
@@ -70,17 +77,20 @@ const GradePromotion = () => {
           const tingkat = isVII ? "Kelas VII" : isVIII ? "Kelas VIII" : "Kelas IX";
           
           const progress = savedProgress.find(p => p.kode === c.id) || {};
+          const classStudents = dbSiswa.filter(s => s.kelas_id === c.id);
+          const totalSiswa = classStudents.length;
           
           return {
             no: index + 1,
             kelas: c.nama_kelas,
             kode: c.id,
+            kode_kelas: c.kode_kelas || c.nama_kelas,
             tingkat: tingkat,
-            wali: c.wali_kelas || "Belum ditentukan",
-            total: c.kapasitas || 0,
+            wali: c.wali_kelas_nama || "Belum ditentukan",
+            total: totalSiswa,
             naik: progress.naik || 0,
             tidakNaik: progress.tidakNaik || 0,
-            belum: progress.belum !== undefined ? progress.belum : (c.kapasitas || 0),
+            belum: progress.belum !== undefined ? progress.belum : totalSiswa,
             status: progress.status || "Belum Diproses"
           };
         });
@@ -262,7 +272,7 @@ const GradePromotion = () => {
                   <td className="px-5 py-4 text-[13px] text-gray-500">{row.no}</td>
                   <td className="px-5 py-4">
                     <p className="text-[13px] font-semibold text-gray-800">{row.kelas}</p>
-                    <p className="text-[11px] text-gray-400">{row.kode}</p>
+                    <p className="text-[11px] text-gray-400">{row.kode_kelas}</p>
                   </td>
                   <td className="px-5 py-4">
                     <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600">{row.tingkat}</span>
