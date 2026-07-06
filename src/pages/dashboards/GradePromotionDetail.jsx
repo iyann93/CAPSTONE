@@ -42,10 +42,15 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
       try {
         const { default: api } = await import('../../api/axios');
         
+        const semRes = await api.get('/semester');
+        const semesters = semRes.data?.data || [];
+        const activeSem = semesters.find(s => s.is_aktif) || semesters[0];
+        const semId = activeSem ? activeSem.id : '00000002-0000-0000-0000-000000000001';
+
         const [siswaRes, nilaiRes, absensiRes] = await Promise.all([
           api.get('/siswa'),
-          api.get('/nilai/kelas/' + classData.kode + '?semester_id=1'),
-          api.get('/absensi/rekap/semester?kelas_id=' + classData.kode + '&semester_id=1')
+          api.get('/nilai/kelas/' + classData.kode + '?semester_id=' + semId),
+          api.get('/absensi/rekap/semester?kelas_id=' + classData.kode + '&semester_id=' + semId)
         ]);
         
         const dbSiswa = siswaRes.data?.data || [];
@@ -121,9 +126,7 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
           }
         } catch(e) {}
 
-        if (finalStudents.length > 0) {
-          setStudents(finalStudents);
-        }
+        setStudents(finalStudents);
       } catch (err) {
         console.error("Gagal memuat data siswa asli:", err);
       }
