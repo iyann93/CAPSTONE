@@ -2792,7 +2792,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                                       <td className="py-4 px-5 text-gray-400 font-semibold text-xs">{idx + 1}</td>
                                       <td className="py-4 px-5 font-bold text-gray-800">{row.siswa_nama}</td>
                                       <td className="py-4 px-4 text-center text-gray-500 font-medium">{row.nis || '-'}</td>
-                                      <td className="py-4 px-4 text-center text-gray-500 font-medium">VII A</td>
+                                      <td className="py-4 px-4 text-center text-gray-500 font-medium">{row.nama_kelas || '-'}</td>
                                       <td className="py-4 px-5 text-gray-700 font-medium truncate max-w-[140px]">{row.nama_beasiswa}</td>
                                       <td className="py-4 px-5">
                                         <span className="text-[#137333] bg-[#E6F4EA] px-2.5 py-1 rounded-md text-[10px] font-bold">
@@ -3205,13 +3205,20 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
       case "Data Rekening":
         const dataRekening = [
-          { name: "Andi Susanto, S.Pd", role: "Guru Matematika", bank: "BCA", account: "8821-4567-9901" },
-          { name: "Maya Putri, M.Pd", role: "Guru Bahasa Indo", bank: "BCA", account: "8821-1234-5678" },
-          { name: "Hendro Wibowo", role: "Staff TU", bank: "BCA", account: "8821-9876-1234" },
-          { name: "Lina Sari, S.Kom", role: "Guru TIK", bank: "BCA", account: "8821-3456-7890" },
-          { name: "Dr. Hendra Wijaya", role: "Kepala Sekolah", bank: "BCA", account: "8821-5555-1234" },
-          { name: "Doni Prasetya", role: "Guru Olahraga", bank: "BCA", account: "8821-0991-5562" },
-          { name: "Astuti, S.Si", role: "Guru Kimia", bank: "BCA", account: "8821-9012-3456" }
+          { name: "Dra. Sri Wahyuni", role: "Guru Mapel", bank: "BCA", account: "8821-4567-9901" },
+          { name: "Ani Wulandari, S.Pd", role: "Wali Kelas", bank: "BCA", account: "8821-1234-5678" },
+          { name: "Drs. Hendra, M.Pd", role: "Guru Mapel", bank: "BCA", account: "8821-5555-1234" },
+          { name: "Ibu Rani Kusuma, S.Pd", role: "Guru Mapel", bank: "BCA", account: "8821-9876-1234" },
+          { name: "Ibu Sari Dewi, S.Pd", role: "Guru Mapel", bank: "BCA", account: "8821-3456-7890" },
+          { name: "Bpk. Ahmad Fauzi, M.Pd", role: "Guru Mapel", bank: "BCA", account: "8821-0991-5562" },
+          { name: "Ibu Dewi Anggraini, S.Pd", role: "Guru Mapel", bank: "BCA", account: "8821-9012-3456" },
+          { name: "Bpk. James Hutapea, S.Pd", role: "Guru Mapel", bank: "BCA", account: "8821-1122-3344" },
+          { name: "Ibu Nurdiana, S.Pd", role: "Guru Mapel", bank: "BCA", account: "8821-2233-4455" },
+          { name: "Ibu Ani Sulistyo, S.Sn", role: "Guru Mapel", bank: "BCA", account: "8821-3344-5566" },
+          { name: "Bpk. Rizal Maulana, S.Pd", role: "Guru Mapel", bank: "BCA", account: "8821-4455-6677" },
+          { name: "Dr. Hendra Wijaya", role: "Kepala Sekolah", bank: "BCA", account: "8821-5566-7788" },
+          { name: "Siti Aminah, S.E.", role: "Bendahara", bank: "BCA", account: "8821-6677-8899" },
+          { name: "Hendro Wibowo", role: "Staff TU", bank: "BCA", account: "8821-7788-9900" }
         ];
 
         return (
