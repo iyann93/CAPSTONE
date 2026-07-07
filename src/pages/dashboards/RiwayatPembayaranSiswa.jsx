@@ -26,6 +26,7 @@ const RiwayatPembayaranSiswa = ({ user, onNavigate }) => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("Semua");
   const [detail, setDetail] = useState(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
 
   const studentData = {
     nama: user?.anak?.nama || "Siswa",
@@ -60,7 +61,7 @@ const RiwayatPembayaranSiswa = ({ user, onNavigate }) => {
             status: mapStatus(t.status),
             tglBayar: t.status === 'lunas' && t.updated_at ? new Date(t.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : null,
             denda: 0,
-            bukti: t.bukti_url
+            bukti: t.bukti_pembayaran_url
           };
         });
         setTagihan(mapped);
@@ -182,8 +183,11 @@ const RiwayatPembayaranSiswa = ({ user, onNavigate }) => {
               {detail.bukti && (
                 <div className="pt-3 pb-2">
                   <p className="text-[13px] text-gray-500 mb-2 font-bold">Bukti Pembayaran</p>
-                  <div className="border border-gray-100 rounded-xl overflow-hidden shadow-sm">
-                    <img src={detail.bukti} alt="Bukti Pembayaran" className="w-full h-auto object-cover max-h-52" />
+                  <div className="border border-gray-100 rounded-xl overflow-hidden shadow-sm relative group cursor-pointer" onClick={() => setShowPreviewModal(true)}>
+                    <img src={detail.bukti} alt="Bukti Pembayaran" className="w-full h-auto object-cover max-h-40" />
+                    <div className="absolute inset-0 bg-black/30 hidden group-hover:flex items-center justify-center transition-all">
+                      <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" /></svg>
+                    </div>
                   </div>
                 </div>
               )}
@@ -205,6 +209,25 @@ const RiwayatPembayaranSiswa = ({ user, onNavigate }) => {
                   Bayar Sekarang
                 </button>
               )}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Full Image Preview Modal */}
+      {showPreviewModal && detail?.bukti && ReactDOM.createPortal(
+        <div style={{ position: "fixed", inset: 0, zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowPreviewModal(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden max-w-3xl w-full flex flex-col max-h-[90vh] animate-scaleUp">
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-white">
+              <h3 className="font-bold text-gray-800 text-[15px]">Pratinjau Bukti Pembayaran</h3>
+              <button onClick={() => setShowPreviewModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-500 transition-colors flex-shrink-0">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto bg-gray-50 flex items-center justify-center p-4">
+              <img src={detail.bukti} alt="Bukti Pembayaran Full" className="max-w-full max-h-full object-contain rounded-lg shadow-sm" />
             </div>
           </div>
         </div>,

@@ -90,7 +90,7 @@ const SppRepository = {
   tolakBukti: async (id) => {
     const sql = `
       UPDATE finance.tagihan_spp 
-      SET status = 'belum_bayar', 
+      SET status = 'ditolak', 
           bukti_pembayaran_url = NULL, 
           tanggal_upload_bukti = NULL,
           updated_at = NOW()

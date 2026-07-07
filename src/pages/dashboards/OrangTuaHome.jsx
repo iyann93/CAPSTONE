@@ -3,7 +3,6 @@ import api from "../../api/axios";
 import { getTagihan } from "../../api/finance";
 
 const mockNotifications = [
-  { id: 1, type: "tagihan", title: "Tagihan SPP Bulan Juli", desc: "Jatuh tempo: 10 Juli 2024 · Rp 500.000", time: "2 jam lalu", read: false },
   { id: 2, type: "nilai", title: "Rapor Semester Genap Tersedia", desc: "Rapor semester genap 2023/2024 sudah bisa diunduh", time: "1 hari lalu", read: false },
   { id: 3, type: "pengumuman", title: "Pengumuman Libur Akhir Tahun", desc: "Sekolah libur tanggal 20-31 Desember 2024", time: "3 hari lalu", read: true },
 ];
@@ -18,24 +17,32 @@ const OrangTuaHome = ({ user, onNavigate }) => {
   const [showAllNotif, setShowAllNotif] = useState(false);
   console.log("OrangTuaHome user prop:", user);
 
-  const studentData = {
-    nama: user?.anak?.nama || "Siswa",
-    kelas: user?.anak?.kelas || "-",
-    nisn: user?.anak?.nisn || "-",
-    tahunAjaran: "2025/2026",
-    wali: user?.anak?.wali ? user.anak.wali : "Dewi Rahayu, S.Pd",
-    avatar: user?.anak?.nama ? user.anak.nama.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() : "SW",
-  };
-
   const [akademikStats, setAkademikStats] = useState({
     rataRata: "-",
     rankKelas: "-",
     kehadiran: "-",
     semester: "Ganjil 2025/2026",
     totalSiswaKelas: "-",
+    nis: "-",
+    nisn: "-",
+    nama: "-",
+    kelas: "-",
+    wali: "-",
   });
 
+  const studentData = {
+    nama: akademikStats.nama !== "-" ? akademikStats.nama : (user?.anak?.nama || "Siswa"),
+    kelas: akademikStats.kelas !== "-" ? akademikStats.kelas : (user?.anak?.kelas || "-"),
+    nisn: akademikStats.nisn !== "-" ? akademikStats.nisn : (user?.anak?.nisn || "-"),
+    nis: akademikStats.nis !== "-" ? akademikStats.nis : (user?.anak?.nis || "-"),
+    tahunAjaran: "2025/2026",
+    semester: akademikStats.semester,
+    wali: akademikStats.wali !== "-" ? akademikStats.wali : (user?.anak?.wali || "Dewi Rahayu, S.Pd"),
+    avatar: (akademikStats.nama !== "-" ? akademikStats.nama : (user?.anak?.nama || "SW")).split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase(),
+  };
+
   const [tagihanTerdekat, setTagihanTerdekat] = useState(null);
+  const [notifications, setNotifications] = useState(mockNotifications);
 
   useEffect(() => {
     const fetchStudentStats = async () => {
@@ -78,6 +85,11 @@ const OrangTuaHome = ({ user, onNavigate }) => {
             kehadiran: currentStudent.kehadiran,
             semester: "Ganjil 2025/2026",
             totalSiswaKelas: classmates.length > 0 ? classmates.length : "-",
+            nis: currentStudent.nis || "-",
+            nisn: currentStudent.nisn || "-",
+            nama: currentStudent.nama_lengkap || "-",
+            kelas: currentStudent.nama_kelas || currentStudent.kelas || "-",
+            wali: currentStudent.wali_nama || currentStudent.wali_kelas || "Dewi Rahayu, S.Pd",
           });
         }
       } catch (err) {
@@ -102,12 +114,29 @@ const OrangTuaHome = ({ user, onNavigate }) => {
            (anakNisn && t.nisn === anakNisn)
         );
 
-        const aktif = myTagihans.filter(t => t.status === "belum_bayar" || t.status === "menunggu_konfirmasi");
+        const aktif = myTagihans.filter(t => t.status === "belum_bayar" || t.status === "menunggu_konfirmasi" || t.status === "ditolak");
         if (aktif.length > 0) {
           aktif.sort((a, b) => new Date(a.jatuh_tempo || 0) - new Date(b.jatuh_tempo || 0));
           setTagihanTerdekat(aktif[0]);
         } else {
           setTagihanTerdekat(null);
+        }
+
+        // Add notification for rejected bills
+        const ditolak = myTagihans.filter(t => t.status === "ditolak");
+        if (ditolak.length > 0) {
+          const getBulanNamaLocal = (b) => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][b-1];
+          const rejectNotifs = ditolak.map((t, index) => ({
+            id: `reject-${t.id || index}`,
+            type: "tagihan",
+            title: "Bukti Pembayaran SPP Ditolak",
+            desc: `Bukti pembayaran untuk SPP bulan ${getBulanNamaLocal(t.bulan)} ${t.tahun} telah ditolak oleh bendahara. Silakan unggah ulang bukti yang benar.`,
+            time: "Baru saja",
+            read: false
+          }));
+          setNotifications([...rejectNotifs, ...mockNotifications]);
+        } else {
+          setNotifications(mockNotifications);
         }
       } catch (err) {
         console.error("Gagal memuat tagihan terdekat:", err);
@@ -123,7 +152,7 @@ const OrangTuaHome = ({ user, onNavigate }) => {
   const fmt = (n) => "Rp " + Number(n).toLocaleString("id-ID");
   const getBulanNama = (b) => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][b-1];
 
-  const unreadCount = mockNotifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   const getNominalTagihan = (t) => {
     if(!t) return 0;
@@ -175,14 +204,14 @@ const OrangTuaHome = ({ user, onNavigate }) => {
               <h2 className="text-[20px] font-bold">{studentData.nama}</h2>
               <div className="flex items-center gap-3 mt-1">
                 <span className="px-2.5 py-0.5 rounded-full bg-white/20 text-[12px] font-semibold">{studentData.kelas}</span>
-                <span className="text-blue-200 text-[12px]">NISN: {studentData.nisn}</span>
+                <span className="text-blue-200 text-[12px]">NIS: {studentData.nis}</span>
               </div>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-right">
             <div>
-              <p className="text-blue-200 text-[11px]">Tahun Ajaran</p>
-              <p className="text-[14px] font-bold">{studentData.tahunAjaran}</p>
+              <p className="text-blue-200 text-[11px]">Semester</p>
+              <p className="text-[14px] font-bold">{studentData.semester}</p>
             </div>
             <div>
               <p className="text-blue-200 text-[11px]">Wali Kelas</p>
@@ -257,7 +286,7 @@ const OrangTuaHome = ({ user, onNavigate }) => {
             </button>
           </div>
           <div className="divide-y divide-gray-50">
-            {(showAllNotif ? mockNotifications : mockNotifications.slice(0, 2)).map((notif) => (
+            {(showAllNotif ? notifications : notifications.slice(0, 2)).map((notif) => (
               <div key={notif.id} className={`px-5 py-4 flex items-start gap-3 ${!notif.read ? "bg-blue-50/40" : ""}`}>
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                   notif.type === "tagihan" ? "bg-amber-100" : notif.type === "nilai" ? "bg-green-100" : "bg-blue-100"
