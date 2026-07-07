@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 const SettingsIcon = () => <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
   <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
   <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
@@ -35,22 +35,22 @@ const SystemSettings = () => {
     {
       /* ── Page Header ── */
     }
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center text-primary-600 shadow-sm">
-          <SettingsIcon />
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between w-full">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center text-primary-600 shadow-sm flex-shrink-0">
+            <SettingsIcon />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Pengaturan Sistem</h1>
+            <p className="text-sm text-gray-500">Konfigurasi profil sekolah, akademik, keamanan, dan database</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800 tracking-tight">Pengaturan Sistem</h1>
-          <p className="text-sm text-gray-500">Konfigurasi profil sekolah, akademik, keamanan, dan database</p>
-        </div>
-      </div>
-      <div className="flex gap-3">
-        <div className="bg-green-50 text-green-600 border border-green-100 px-4 py-2 rounded-xl flex items-center gap-2 text-xs font-bold">
+      <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto mt-4 md:mt-0">
+        <div className="bg-green-50 text-green-600 border border-green-100 px-4 py-2 rounded-xl flex items-center justify-center gap-2 text-xs font-bold w-full sm:w-auto">
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
           Sistem Aktif
         </div>
-        <button className="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-100 px-6 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-2">
+        <button className="justify-center w-full sm:w-auto bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-100 px-6 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-2">
           <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M23 4v6h-6" /><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" /></svg>
           Reset Default
         </button>
@@ -75,7 +75,7 @@ const SystemSettings = () => {
     {
       /* ── Tabs Row ── */
     }
-    <div className="flex bg-white p-1.5 rounded-2xl border border-gray-100 shadow-sm w-fit">
+    <div className="flex flex-nowrap overflow-x-auto hide-scrollbar bg-white p-1.5 rounded-2xl border border-gray-100 shadow-sm w-full md:w-max whitespace-nowrap">
       {[
         { name: "Profil Sekolah", icon: "Profil" },
         { name: "Akademik", icon: "Akademik" },
@@ -85,7 +85,7 @@ const SystemSettings = () => {
       ].map((tab) => <button
         key={tab.name}
         onClick={() => setActiveTab(tab.name)}
-        className={`flex items-center gap-2.5 px-6 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === tab.name ? "bg-primary-500 text-white shadow-lg shadow-primary-900/20" : "text-gray-500 hover:bg-gray-50"}`}
+        className={`flex whitespace-nowrap items-center gap-2.5 px-6 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === tab.name ? "bg-primary-500 text-white shadow-lg shadow-primary-900/20" : "text-gray-500 hover:bg-gray-50"}`}
       >
         <TabIcon type={tab.icon} />
         {tab.name}
@@ -97,52 +97,120 @@ const SystemSettings = () => {
     }
     <div className="bg-white rounded-[32px] shadow-sm border border-gray-100 overflow-hidden">
       <div className="p-10 space-y-12">
-        {
-          /* Section 1: Identitas Sekolah */
-        }
-        <section className="space-y-8">
-          <div className="flex items-center gap-3 text-gray-800 border-b border-gray-50 pb-4">
-            <div className="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center text-primary-600">
-              <TabIcon type="Profil" />
-            </div>
-            <h3 className="text-lg font-bold">Identitas Sekolah</h3>
-          </div>
-          <div className="space-y-2">
-            {renderInputRow("NAMA SEKOLAH", "SMP Negeri 1 Contoh")}
-            {renderInputRow("NPSN", "20234567")}
-            {renderInputRow("NSS", "301010101001")}
-            {renderInputRow("ALAMAT", "Jl. Pendidikan No. 1, Kota Contoh")}
-            {renderInputRow("KODE POS", "12345")}
-            {renderInputRow("NO. TELEPON", "(021) 555-1234")}
-            {renderInputRow("WEBSITE", "https://mbsprambanan.sch.id")}
-          </div>
-        </section>
+        {activeTab === "Profil Sekolah" && (
+          <>
+            <section className="space-y-8 animate-fadeIn">
+              <div className="flex items-center gap-3 text-gray-800 border-b border-gray-50 pb-4">
+                <div className="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center text-primary-600">
+                  <TabIcon type="Profil" />
+                </div>
+                <h3 className="text-lg font-bold">Identitas Sekolah</h3>
+              </div>
+              <div className="space-y-2">
+                {renderInputRow("NAMA SEKOLAH", "SMP Negeri 1 Contoh")}
+                {renderInputRow("NPSN", "20234567")}
+                {renderInputRow("NSS", "301010101001")}
+                {renderInputRow("ALAMAT", "Jl. Pendidikan No. 1, Kota Contoh")}
+                {renderInputRow("KODE POS", "12345")}
+                {renderInputRow("NO. TELEPON", "(021) 555-1234")}
+                {renderInputRow("WEBSITE", "https://mbsprambanan.sch.id")}
+              </div>
+            </section>
+            <section className="space-y-8 animate-fadeIn">
+              <div className="flex items-center gap-3 text-gray-800 border-b border-gray-50 pb-4">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                  <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
+                </div>
+                <h3 className="text-lg font-bold">Kepala Sekolah & Kontak</h3>
+              </div>
+              <div className="space-y-2">
+                {renderInputRow("KEPALA SEKOLAH", "Dr. H. Bambang Sutrisno")}
+                {renderInputRow("EMAIL RESMI", "info@mbsprambanan.sch.id")}
+                {renderInputRow("EMAIL NOTIF.", "notif@mbsprambanan.sch.id")}
+                {renderInputRow("AKREDITASI", "A (Unggul)")}
+              </div>
+            </section>
+          </>
+        )}
 
-        {
-          /* Section 2: Kepala Sekolah & Kontak */
-        }
-        <section className="space-y-8">
-          <div className="flex items-center gap-3 text-gray-800 border-b border-gray-50 pb-4">
-            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
-              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
+        {activeTab === "Akademik" && (
+          <section className="space-y-8 animate-fadeIn">
+            <div className="flex items-center gap-3 text-gray-800 border-b border-gray-50 pb-4">
+              <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+                <TabIcon type="Akademik" />
+              </div>
+              <h3 className="text-lg font-bold">Pengaturan Akademik Dasar</h3>
             </div>
-            <h3 className="text-lg font-bold">Kepala Sekolah & Kontak</h3>
-          </div>
-          <div className="space-y-2">
-            {renderInputRow("KEPALA SEKOLAH", "Dr. H. Bambang Sutrisno")}
-            {renderInputRow("EMAIL RESMI", "info@mbsprambanan.sch.id")}
-            {renderInputRow("EMAIL NOTIF.", "notif@mbsprambanan.sch.id")}
-            {renderInputRow("AKREDITASI", "A (Unggul)")}
-          </div>
-        </section>
+            <div className="space-y-2">
+              {renderInputRow("TAHUN AJARAN AKTIF", "2024/2025 - Ganjil")}
+              {renderInputRow("KURIKULUM", "Kurikulum Merdeka")}
+              {renderInputRow("STANDAR KELULUSAN (KKM)", "75")}
+              {renderInputRow("JAM MASUK SEKOLAH", "07:00 WIB")}
+            </div>
+          </section>
+        )}
+
+        {activeTab === "Notifikasi" && (
+          <section className="space-y-8 animate-fadeIn">
+            <div className="flex items-center gap-3 text-gray-800 border-b border-gray-50 pb-4">
+              <div className="w-8 h-8 rounded-lg bg-orange-50 flex items-center justify-center text-orange-600">
+                <TabIcon type="Notifikasi" />
+              </div>
+              <h3 className="text-lg font-bold">Konfigurasi Email & Notifikasi</h3>
+            </div>
+            <div className="space-y-2">
+              {renderInputRow("SMTP SERVER", "smtp.mbsprambanan.sch.id")}
+              {renderInputRow("SMTP PORT", "587")}
+              {renderInputRow("SENDER EMAIL", "no-reply@mbsprambanan.sch.id")}
+              {renderInputRow("API KEY WHATSAPP GATEWAY", "************************")}
+            </div>
+          </section>
+        )}
+
+        {activeTab === "Keamanan" && (
+          <section className="space-y-8 animate-fadeIn">
+            <div className="flex items-center gap-3 text-gray-800 border-b border-gray-50 pb-4">
+              <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center text-red-600">
+                <TabIcon type="Keamanan" />
+              </div>
+              <h3 className="text-lg font-bold">Kebijakan Keamanan</h3>
+            </div>
+            <div className="space-y-2">
+              {renderInputRow("PANJANG MINIMAL PASSWORD", "8 Karakter")}
+              {renderInputRow("MAX LOGIN FAILED ATTEMPTS", "5 Kali (Auto Lock)")}
+              {renderInputRow("SESSION TIMEOUT", "120 Menit")}
+              {renderInputRow("IP WHITELIST (ADMIN)", "192.168.1.*, 10.0.0.1")}
+            </div>
+          </section>
+        )}
+
+        {activeTab === "Database & Log" && (
+          <section className="space-y-8 animate-fadeIn">
+            <div className="flex items-center gap-3 text-gray-800 border-b border-gray-50 pb-4">
+              <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+                <TabIcon type="Database" />
+              </div>
+              <h3 className="text-lg font-bold">Database Konfigurasi</h3>
+            </div>
+            <div className="space-y-2">
+              {renderInputRow("AUTO BACKUP SCHEDULE", "Setiap Hari, Pukul 02:00 WIB")}
+              {renderInputRow("BACKUP RETENTION", "30 Hari")}
+              {renderInputRow("LOG RETENTION", "90 Hari")}
+              {renderInputRow("DATABASE HOST", "localhost (Read Only)")}
+            </div>
+          </section>
+        )}
       </div>
 
       {
         /* Card Footer */
       }
-      <div className="px-10 py-6 bg-gray-50/50 border-t border-gray-100 flex justify-end">
-        <button className="bg-primary-500 hover:bg-primary-600 text-white px-8 py-3 rounded-xl font-bold text-sm shadow-lg shadow-primary-900/20 transition-all active:scale-95 flex items-center gap-2">
-          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg>
+      <div className="px-6 md:px-10 py-6 bg-gray-50/50 border-t border-gray-100 flex flex-col sm:flex-row justify-end items-center sticky bottom-0 z-10 w-full rounded-b-[32px]">
+        <button 
+          onClick={() => alert("Perubahan konfigurasi sistem berhasil disimpan!")}
+          className="w-full sm:w-auto justify-center bg-primary-500 hover:bg-primary-600 text-white px-8 py-3.5 rounded-xl font-bold text-sm shadow-lg shadow-primary-900/20 transition-all active:scale-95 flex items-center gap-2"
+        >
+          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg>
           Simpan Perubahan
         </button>
       </div>

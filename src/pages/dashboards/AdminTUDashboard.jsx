@@ -15,8 +15,11 @@ import api from "../../api/axios";
 import GuruRiwayatTerimaGaji from "../../components/payroll/GuruRiwayatTerimaGaji";
 import PengumumanSekolah from "./PengumumanSekolah";
 import RaporSiswa from "./RaporSiswa";
+import StudentDetail from "./StudentDetail";
 
 const AdminTUDashboard = ({ user, activeMenu, onViewChange }) => {
+  const [viewMode, setViewMode] = useState("dashboard");
+  const [selectedStudent, setSelectedStudent] = useState(null);
   const [recentStudents, setRecentStudents] = useState([]);
   const [totalSiswa, setTotalSiswa] = useState(0);
   const [absensiPct, setAbsensiPct] = useState(null);
@@ -79,13 +82,23 @@ const AdminTUDashboard = ({ user, activeMenu, onViewChange }) => {
             if (displayKelas === "XII") displayKelas = "IX";
 
             return {
+              id: s.id,
               name: s.nama_lengkap,
               class: displayKelas,
+              kelas: displayKelas,
               nis: s.nis,
+              nisn: s.nisn || (s.nis + "000"),
               status: s.status || "Aktif",
               avatarBg: colors[idx % colors.length],
+              avatarColor: ["#3B82F6","#10B981","#F59E0B","#EF4444","#8B5CF6"][idx % 5],
               initial: initial,
-              avatarImg: ""
+              initials: initial,
+              avatarImg: "",
+              gender: s.jenis_kelamin,
+              email: `${s.nis}@student.mbsprambanan.sch.id`,
+              tingkat: displayKelas.includes("VII") ? "Kelas VII" : displayKelas.includes("VIII") ? "Kelas VIII" : "Kelas IX",
+              nilaiRataRata: 80 + (idx % 15),
+              kehadiran: 90 + (idx % 10)
             };
           });
           setRecentStudents(fetched);
@@ -150,6 +163,10 @@ const AdminTUDashboard = ({ user, activeMenu, onViewChange }) => {
 
   if (activeMenu !== "Dashboard") {
     return <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
+  }
+
+  if (viewMode === "detail" && selectedStudent) {
+    return <StudentDetail student={selectedStudent} onBack={() => setViewMode("dashboard")} onEdit={() => { onViewChange && onViewChange("Data Siswa"); setViewMode("dashboard"); }} />;
   }
 
   return (
@@ -325,7 +342,7 @@ const AdminTUDashboard = ({ user, activeMenu, onViewChange }) => {
                       )}
                     </td>
                     <td className="px-5 py-4">
-                      <button onClick={() => onViewChange && onViewChange("Data Siswa")} className="text-[13px] font-bold text-gray-700 hover:text-[#1A3D63]">Detail</button>
+                      <button onClick={() => { setSelectedStudent(row); setViewMode("detail"); }} className="text-[13px] font-bold text-gray-700 hover:text-[#1A3D63]">Detail</button>
                     </td>
                   </tr>
                 )) : (

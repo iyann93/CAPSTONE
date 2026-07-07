@@ -93,16 +93,16 @@ const SystemRepository = {
     return res.rows;
   },
 
-  createUserWithRole: async ({ nama, email, passwordHash, roleId }) => {
+  createUserWithRole: async ({ nama, email, passwordHash, roleId, isActive = true }) => {
     const client = await getClient();
     try {
       await client.query('BEGIN');
       const insertUser = `
         INSERT INTO shared.users (nama, email, password_hash, is_active, created_at)
-        VALUES ($1, $2, $3, true, NOW())
+        VALUES ($1, $2, $3, $4, NOW())
         RETURNING id
       `;
-      const resUser = await client.query(insertUser, [nama, email, passwordHash]);
+      const resUser = await client.query(insertUser, [nama, email, passwordHash, isActive]);
       const newUserId = resUser.rows[0].id;
 
       if (roleId) {
