@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import ReactDOM from "react-dom";
 
 const CatatanSiswa = ({ user }) => {
   const [selectedClass, setSelectedClass] = useState("");
@@ -9,6 +10,7 @@ const CatatanSiswa = ({ user }) => {
   const [classes, setClasses] = useState([]);
   const [studentsData, setStudentsData] = useState({});
   const [loading, setLoading] = useState(true);
+  const [notification, setNotification] = useState(null);
 
   // Fetch classes and students from backend
   useEffect(() => {
