@@ -118,38 +118,34 @@ export const getGlobalFinanceSummary = async () => {
       });
     }
 
-    // 4. Gaji Pegawai (Pengeluaran)
-    if (Array.isArray(slipsData.data || slipsData)) {
-      const data = slipsData.data || slipsData;
-      data.forEach(item => {
-        if (['Sudah Ditransfer', 'Disetujui', 'Approved'].includes(item.status)) {
-          const nom = Number(item.gaji_bersih) || 0;
-          outTotal += nom;
-          if (isCurrentMonthAndYear(item.tanggal_dibuat || item.createdAt)) {
-            outMonth += nom;
-          }
-        }
-      });
-    }
+    // 4. (Removed Gaji Pegawai to align with Pengeluaran Menu)
 
     // 5. Penyaluran Beasiswa (Pengeluaran)
-    if (Array.isArray(beasiswaData.data || beasiswaData)) {
-      const data = beasiswaData.data || beasiswaData;
-      data.forEach(p => {
-        if (p.status === 'Aktif') {
-          const amountStr = String(p.amount || "0").replace(/[^0-9]/g, '');
-          const amountNum = parseInt(amountStr, 10) || 0;
-          
-          (p.penerima || []).forEach(r => {
-            const nom = r.nominal ? Number(r.nominal) : amountNum;
-            outTotal += nom;
-            if (isCurrentMonthAndYear(r.tanggal_diberikan || p.updatedAt || p.createdAt)) {
-              outMonth += nom;
-            }
-          });
-        }
-      });
+    let beasiswaDataList = Array.isArray(beasiswaData?.data || beasiswaData) ? (beasiswaData.data || beasiswaData) : [];
+    if (beasiswaDataList.length === 0) {
+      try {
+        const raw = localStorage.getItem('capstone_program_beasiswa');
+        if (raw) beasiswaDataList = JSON.parse(raw);
+      } catch (e) {}
     }
+    
+    beasiswaDataList.forEach(p => {
+      if (p.status === 'Aktif') {
+        const amountStr = String(p.amount || "0").replace(/[^0-9]/g, '');
+        const amountNum = parseInt(amountStr, 10) || 0;
+        
+        const activePenerima = (p.penerima || []).filter(r => !r.status || String(r.status).toLowerCase() === 'aktif');
+        const disalurkan = activePenerima.reduce((s, r) => {
+          const rNominal = r.nominal ? Number(r.nominal) : amountNum;
+          return s + (rNominal || 0);
+        }, 0);
+        
+        outTotal += disalurkan;
+        if (isCurrentMonthAndYear(p.tanggalPenyaluran || p.updatedAt || p.createdAt || (p.penerima && p.penerima[0]?.tanggal_mulai))) {
+          outMonth += disalurkan;
+        }
+      }
+    });
   } catch (err) {
     console.error("Error aggregating global finance data:", err);
   }

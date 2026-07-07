@@ -111,8 +111,12 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
   
   const [programList, setProgramList] = useState([]);
   const [danaBeasiswaList, setDanaBeasiswaList] = useState([]);
+  const [currentPengeluaranData, setCurrentPengeluaranData] = useState([]);
+  const [currentPemasukanData, setCurrentPemasukanData] = useState([]);
   const [globalFinance, setGlobalFinance] = useState({ totalPemasukan: 0, totalPengeluaran: 0 });
   const [selectedDetailItem, setSelectedDetailItem] = useState(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [selectedPreviewFile, setSelectedPreviewFile] = useState(null);
 
   const formatRupiah = (value) => {
     return new Intl.NumberFormat("id-ID", {
@@ -147,6 +151,16 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
       }
 
       try {
+        const operasional = await getOperasional();
+        if (Array.isArray(operasional)) {
+          setCurrentPengeluaranData(operasional.filter(d => d.tipe === 'pengeluaran'));
+          setCurrentPemasukanData(operasional.filter(d => d.tipe === 'pemasukan'));
+        }
+      } catch (e) {
+        console.error("Error loading getOperasional in WakilKepalaHome:", e);
+      }
+
+      try {
         const globalSummary = await getGlobalFinanceSummary();
         setGlobalFinance(globalSummary);
       } catch (e) {
@@ -156,8 +170,20 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
     loadData();
   }, []);
 
-  const totalPengeluaranTahunan = globalFinance.totalPengeluaran;
-  const totalPemasukanTahunan = globalFinance.totalPemasukan;
+  // Pemasukan difilter khusus yang tipe pemasukan dari form Operasional (biasanya untuk Dana BOS)
+  const totalPemasukanTahunan = currentPemasukanData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+  const totalPengeluaranTahunan = currentPengeluaranData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+
+  const formatDateIndo = (dateStr) => {
+    if (!dateStr) return "-";
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    return `${day} ${month} ${year}`;
+  };
 
   // Load jadwal from localStorage or use initial
   const storedJadwal = localStorage.getItem("wakil_jadwal");
@@ -265,7 +291,7 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
                 <button onClick={() => onNavigate("Kelola Kurikulum")} className="text-[12px] font-bold text-[#1F3A5F] hover:underline bg-transparent border-none cursor-pointer">Kelola →</button>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-left">
+                <table className="w-full text-left min-w-[500px]">
                   <thead className="border-b border-gray-50">
                     <tr>
                       {["MATA PELAJARAN", "KELAS", "TINGKAT", "STATUS"].map(h => (
@@ -324,14 +350,14 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {[
             {
-              title: "Total Pemasukan Tahunan",
+              title: "Total Pemasukan Dana BOS",
               value: formatRupiah(totalPemasukanTahunan),
-              subText: `Akumulasi Tahun Ajaran ${tahunAjaran}`
+              subText: `Akumulasi Tahun Ajaran 2025/2026`
             },
             {
-              title: "Total Pengeluaran Tahunan",
+              title: "Total Operasional Tahunan",
               value: formatRupiah(totalPengeluaranTahunan),
-              subText: `Akumulasi Tahun Ajaran ${tahunAjaran}`
+              subText: `Akumulasi Tahun Ajaran 2025/2026`
             }
           ].map((card, i) => (
             <div key={i} className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
@@ -351,14 +377,17 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
               <div className="px-6 py-5 border-b border-gray-50 flex items-center justify-between">
                 <h2 className="text-[16px] font-bold text-[#1F3A5F]">Pengeluaran Terbaru</h2>
                 <button 
-                  onClick={() => onNavigate && onNavigate("Riwayat Pengeluaran")}
+                  onClick={() => {
+                    localStorage.setItem('wakil_sarpras_tab', 'pengeluaran');
+                    if (onNavigate) onNavigate("Sarana & Prasarana");
+                  }}
                   className="text-[12px] font-bold text-[#1F3A5F] hover:underline cursor-pointer bg-transparent border-none"
                 >
-                  Lihat Semua →
+                  Lihat Riwayat Pengeluaran →
                 </button>
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full text-left border-collapse min-w-[700px]">
                   <thead>
                     <tr className="bg-gray-50/50">
                       <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Tanggal</th>
@@ -371,7 +400,7 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
                   <tbody className="divide-y divide-gray-50">
                     {currentPengeluaranData.slice(0, 5).map((tx) => (
                       <tr key={tx.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-6 py-4 text-[13px] text-gray-500 whitespace-nowrap">{tx.tanggal}</td>
+                        <td className="px-6 py-4 text-[13px] text-gray-500 whitespace-nowrap">{(tx.tanggal.includes('T') || tx.tanggal.includes('-')) ? formatDateIndo(tx.tanggal) : tx.tanggal}</td>
                         <td className="px-6 py-4 text-[13px] font-bold text-gray-800 whitespace-nowrap">{tx.nama}</td>
                         <td className="px-6 py-4 text-[13px] text-gray-500 whitespace-nowrap">
                           <span className="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg font-medium text-[11px]">
@@ -448,6 +477,42 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
                   <div className="text-[13px] text-gray-600 bg-gray-50 p-3 rounded-xl border border-gray-100">{selectedDetailItem.keterangan}</div>
                 </div>
               )}
+
+              {selectedDetailItem.kategori !== 'Beasiswa' && (
+                <div className="pt-4 border-t border-gray-100">
+                  <div className="text-[10px] font-bold text-gray-400 uppercase mb-2">Bukti Transaksi</div>
+                  {selectedDetailItem.bukti && selectedDetailItem.bukti.length > 0 ? (
+                    <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
+                      {selectedDetailItem.bukti.map((file, idx) => (
+                        <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                          <div 
+                            className="w-10 h-10 rounded-lg bg-white text-blue-600 flex items-center justify-center shrink-0 overflow-hidden cursor-pointer border border-gray-200 hover:opacity-80 transition-opacity shadow-sm"
+                            onClick={() => {
+                              setSelectedPreviewFile(file);
+                              setShowPreviewModal(true);
+                            }}
+                            title="Klik untuk melihat pratinjau penuh"
+                          >
+                            {file.match(/\.(jpg|jpeg|png|gif)$/i) || file.startsWith('data:image') ? (
+                              <img src={file} alt="Thumbnail" className="w-full h-full object-cover" />
+                            ) : (
+                              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                              </svg>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs font-bold text-gray-800 truncate">{file.startsWith('data:') ? 'Bukti Transaksi' : file}</div>
+                            <div className="text-[10px] text-gray-500">Klik ikon gambar untuk melihat lampiran</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-gray-500 italic">Tidak ada bukti transaksi yang dilampirkan.</div>
+                  )}
+                </div>
+              )}
             </div>
             
             <div className="p-4 border-t border-gray-100 bg-gray-50/50 flex justify-end">
@@ -457,6 +522,58 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
               >
                 Tutup
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Preview Bukti Pembayaran */}
+      {showPreviewModal && selectedPreviewFile && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-bold text-gray-800 truncate max-w-[200px] sm:max-w-[300px]">
+                    {typeof selectedPreviewFile === 'string' 
+                      ? (selectedPreviewFile.startsWith('data:') ? 'Bukti Transaksi' : selectedPreviewFile) 
+                      : selectedPreviewFile?.name}
+                  </h3>
+                  <p className="text-[10px] text-gray-500">Pratinjau Dokumen</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => {
+                  setShowPreviewModal(false);
+                  setSelectedPreviewFile(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 bg-white hover:bg-gray-100 p-2 rounded-xl transition-colors border border-gray-200 cursor-pointer shrink-0"
+              >
+                <IconX />
+              </button>
+            </div>
+            
+            <div className="bg-gray-100 p-4 sm:p-8 flex flex-col items-center justify-center min-h-[300px]">
+              {selectedPreviewFile && typeof selectedPreviewFile !== 'string' && selectedPreviewFile.type?.includes('image') ? (
+                <img src={selectedPreviewFile.preview || URL.createObjectURL(selectedPreviewFile)} alt="Preview Bukti" className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-sm" />
+              ) : selectedPreviewFile && typeof selectedPreviewFile === 'string' && (selectedPreviewFile.match(/\.(jpg|jpeg|png|gif)$/i) || selectedPreviewFile.startsWith('data:image')) ? (
+                <img src={selectedPreviewFile} alt="Preview Bukti" className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-sm" />
+              ) : (
+                <>
+                  <div className="w-24 h-24 mb-4 text-gray-300">
+                    <svg fill="none" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                    </svg>
+                  </div>
+                  <p className="text-sm font-bold text-gray-400 text-center max-w-[80%] break-words">Menampilkan Pratinjau: {typeof selectedPreviewFile === 'string' ? selectedPreviewFile : selectedPreviewFile?.name}</p>
+                  <p className="text-xs text-gray-400 mt-2 text-center">Pratinjau khusus untuk file gambar (JPG/PNG). Dokumen PDF akan dapat dilihat saat diunduh.</p>
+                </>
+              )}
             </div>
           </div>
         </div>

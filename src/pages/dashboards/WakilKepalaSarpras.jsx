@@ -25,6 +25,11 @@ const DownloadIcon = () => (
     <line x1="12" y1="15" x2="12" y2="3" />
   </svg>
 );
+const IconX = () => (
+  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+  </svg>
+);
 
 const formatRupiah = (value) => {
   return new Intl.NumberFormat("id-ID", {
@@ -36,7 +41,14 @@ const formatRupiah = (value) => {
 };
 
 const WakilKepalaSarpras = () => {
-  const [activeTab, setActiveTab] = useState("anggaran");
+  const [activeTab, setActiveTab] = useState(() => {
+    const savedTab = localStorage.getItem('wakil_sarpras_tab');
+    if (savedTab) {
+      localStorage.removeItem('wakil_sarpras_tab');
+      return savedTab;
+    }
+    return "anggaran";
+  });
   const [selectedDetailItem, setSelectedDetailItem] = useState(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [selectedPreviewFile, setSelectedPreviewFile] = useState(null);
@@ -64,9 +76,15 @@ const WakilKepalaSarpras = () => {
     fetchData();
   }, []);
   
-  const formatTanggal = (tgl) => {
-    if (!tgl) return "-";
-    return tgl; // since pengeluaranData already has formatted dates like '10 Juni 2025'
+  const formatTanggal = (dateStr) => {
+    if (!dateStr) return "-";
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    return `${day} ${month} ${year}`;
   };
 
   const handleCetakLaporan = async () => {
@@ -278,7 +296,7 @@ const WakilKepalaSarpras = () => {
               <tbody className="divide-y divide-gray-50">
                 {pengeluaranData.map((tx) => (
                   <tr key={tx.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4 text-[13px] text-gray-500 whitespace-nowrap">{tx.tanggal}</td>
+                    <td className="px-6 py-4 text-[13px] text-gray-500 whitespace-nowrap">{(tx.tanggal.includes('T') || tx.tanggal.includes('-')) ? formatTanggal(tx.tanggal) : tx.tanggal}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <p className="text-[13px] font-bold text-gray-800">{tx.nama}</p>
                       <p className="text-[11px] text-gray-400 mt-0.5">{tx.keterangan || "Tidak ada rincian"}</p>
@@ -348,7 +366,7 @@ const WakilKepalaSarpras = () => {
       {/* Modal Detail Pengeluaran */}
       {selectedDetailItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col animate-slideUp">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col animate-slideUp">
             <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50">
               <div>
                 <h2 className="text-lg font-bold text-gray-800">Detail Pengeluaran</h2>
@@ -364,11 +382,11 @@ const WakilKepalaSarpras = () => {
               </button>
             </div>
             
-            <div className="p-5 space-y-4">
+            <div className="p-5 space-y-4 overflow-y-auto">
               <div className="flex justify-between items-start pb-4 border-b border-gray-100">
                 <div>
                   <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Tanggal</div>
-                  <div className="text-sm font-semibold text-gray-800">{selectedDetailItem.tanggal}</div>
+                  <div className="text-sm font-semibold text-gray-800">{(selectedDetailItem.tanggal.includes('T') || selectedDetailItem.tanggal.includes('-')) ? formatTanggal(selectedDetailItem.tanggal) : selectedDetailItem.tanggal}</div>
                 </div>
                 <div className="text-right">
                   <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Kategori</div>
@@ -393,34 +411,36 @@ const WakilKepalaSarpras = () => {
               </div>
 
               <div>
-                <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Bukti Pembayaran</div>
+                <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Bukti Transaksi</div>
                 {selectedDetailItem.bukti && selectedDetailItem.bukti.length > 0 ? (
                   <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
                     {selectedDetailItem.bukti.map((file, idx) => (
                       <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                        <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                          </svg>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-xs font-bold text-gray-800 truncate">{file}</div>
-                          <div className="text-[10px] text-gray-500">Klik untuk melihat lampiran</div>
-                        </div>
-                        <button 
+                        <div 
+                          className="w-10 h-10 rounded-lg bg-white text-blue-600 flex items-center justify-center shrink-0 overflow-hidden cursor-pointer border border-gray-200 hover:opacity-80 transition-opacity shadow-sm"
                           onClick={() => {
                             setSelectedPreviewFile(file);
                             setShowPreviewModal(true);
                           }}
-                          className="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 text-[10px] font-bold rounded-lg hover:bg-gray-50 cursor-pointer shrink-0"
+                          title="Klik untuk melihat pratinjau penuh"
                         >
-                          Lihat
-                        </button>
+                          {file.match(/\.(jpg|jpeg|png|gif)$/i) || file.startsWith('data:image') ? (
+                            <img src={file} alt="Thumbnail" className="w-full h-full object-cover" />
+                          ) : (
+                            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                            </svg>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-bold text-gray-800 truncate">{file.startsWith('data:') ? 'Bukti Transaksi' : file}</div>
+                          <div className="text-[10px] text-gray-500">Klik ikon gambar untuk melihat lampiran</div>
+                        </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-xs text-gray-500 italic">Tidak ada bukti pembayaran yang dilampirkan.</div>
+                  <div className="text-xs text-gray-500 italic">Tidak ada bukti transaksi yang dilampirkan.</div>
                 )}
               </div>
 
@@ -444,45 +464,53 @@ const WakilKepalaSarpras = () => {
         </div>
       )}
 
-      {/* Modal Preview Lampiran */}
-      {showPreviewModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col animate-slideUp">
-            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+      {/* Modal Preview Bukti Transaksi */}
+      {showPreviewModal && selectedPreviewFile && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
                   <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
                   </svg>
                 </div>
-                <div>
-                  <h3 className="text-sm font-bold text-gray-800">Pratinjau Dokumen</h3>
-                  <p className="text-[11px] text-gray-500 truncate max-w-[200px]">{selectedPreviewFile}</p>
+                <div className="min-w-0">
+                  <h3 className="text-sm font-bold text-gray-800 truncate max-w-[200px] sm:max-w-[300px]">
+                    {typeof selectedPreviewFile === 'string' 
+                      ? (selectedPreviewFile.startsWith('data:') ? 'Bukti Transaksi' : selectedPreviewFile) 
+                      : selectedPreviewFile?.name}
+                  </h3>
+                  <p className="text-[10px] text-gray-500">Pratinjau Dokumen</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={() => setShowPreviewModal(false)}
-                  className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-200 bg-gray-100 rounded-full transition-colors cursor-pointer border-none"
-                >
-                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
+              <button 
+                onClick={() => {
+                  setShowPreviewModal(false);
+                  setSelectedPreviewFile(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 bg-white hover:bg-gray-100 p-2 rounded-xl transition-colors border border-gray-200 cursor-pointer shrink-0"
+              >
+                <IconX />
+              </button>
             </div>
             
-            <div className="p-6 bg-gray-100/50 flex justify-center items-center min-h-[300px] relative">
-              <div className="absolute inset-0 pattern-dots text-gray-300 opacity-30"></div>
-              <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm flex flex-col items-center justify-center w-3/4 aspect-[4/3] relative z-10">
-                <div className="w-24 h-24 mb-4 text-gray-300">
-                  <svg fill="none" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                  </svg>
-                </div>
-                <p className="text-sm font-bold text-gray-400 text-center max-w-[80%] break-words">Menampilkan Pratinjau: {selectedPreviewFile}</p>
-                <p className="text-xs text-gray-400 mt-2 text-center">Mode Mockup: Gambar/dokumen sebenarnya akan tampil di sini saat terhubung API.</p>
-              </div>
+            <div className="bg-gray-100 p-4 sm:p-8 flex flex-col items-center justify-center min-h-[300px]">
+              {selectedPreviewFile && typeof selectedPreviewFile !== 'string' && selectedPreviewFile.type?.includes('image') ? (
+                <img src={selectedPreviewFile.preview || URL.createObjectURL(selectedPreviewFile)} alt="Preview Bukti" className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-sm" />
+              ) : selectedPreviewFile && typeof selectedPreviewFile === 'string' && (selectedPreviewFile.match(/\.(jpg|jpeg|png|gif)$/i) || selectedPreviewFile.startsWith('data:image')) ? (
+                <img src={selectedPreviewFile} alt="Preview Bukti" className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-sm" />
+              ) : (
+                <>
+                  <div className="w-24 h-24 mb-4 text-gray-300">
+                    <svg fill="none" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                    </svg>
+                  </div>
+                  <p className="text-sm font-bold text-gray-400 text-center max-w-[80%] break-words">Menampilkan Pratinjau: {typeof selectedPreviewFile === 'string' ? selectedPreviewFile : selectedPreviewFile?.name}</p>
+                  <p className="text-xs text-gray-400 mt-2 text-center">Pratinjau khusus untuk file gambar (JPG/PNG). Dokumen PDF akan dapat dilihat saat diunduh.</p>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -512,8 +540,8 @@ const WakilKepalaSarpras = () => {
             </div>
             
             <div className="p-6 overflow-y-auto bg-gray-100/50 flex justify-center">
-              {/* This is a visual clone of the PDF template for preview */}
-              <div className="bg-white p-12 text-gray-800 w-[794px] min-h-[1123px] font-sans shadow-sm border border-gray-200">
+              {/* Scrollable preview — scales to fit screen */}
+              <div className="bg-white p-8 sm:p-12 text-gray-800 w-full max-w-[794px] font-sans shadow-sm border border-gray-200">
                 {/* Header MBS */}
                 <div className="flex items-center justify-between border-b-4 border-gray-800 pb-4 mb-8">
                   <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
@@ -564,7 +592,7 @@ const WakilKepalaSarpras = () => {
                     {pengeluaranData.map((item, index) => (
                       <tr key={index}>
                         <td className="border border-gray-800 p-3 text-xs text-center">{index + 1}</td>
-                        <td className="border border-gray-800 p-3 text-xs">{item.tanggal}</td>
+                        <td className="border border-gray-800 p-3 text-xs">{(item.tanggal.includes('T') || item.tanggal.includes('-')) ? formatTanggal(item.tanggal) : item.tanggal}</td>
                         <td className="border border-gray-800 p-3 text-xs">{item.nama}</td>
                         <td className="border border-gray-800 p-3 text-xs">{item.kategori}</td>
                         <td className="border border-gray-800 p-3 text-xs text-right">{formatRupiah(item.nominal)}</td>
@@ -661,7 +689,7 @@ const WakilKepalaSarpras = () => {
               {pengeluaranData.map((item, index) => (
                 <tr key={index}>
                   <td className="border border-gray-800 p-3 text-xs text-center">{index + 1}</td>
-                  <td className="border border-gray-800 p-3 text-xs">{item.tanggal}</td>
+                  <td className="border border-gray-800 p-3 text-xs">{(item.tanggal.includes('T') || item.tanggal.includes('-')) ? formatTanggal(item.tanggal) : item.tanggal}</td>
                   <td className="border border-gray-800 p-3 text-xs">{item.nama}</td>
                   <td className="border border-gray-800 p-3 text-xs">{item.kategori}</td>
                   <td className="border border-gray-800 p-3 text-xs text-right">{formatRupiah(item.nominal)}</td>
