@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import SPPDonutChart from "../../components/SPPDonutChart";
-import { getGlobalFinanceSummary, getSppYearlySummary } from "../../utils/financeHelpers";
+import { getBeasiswaSummary, getGlobalFinanceSummary, getSppYearlySummary } from "../../utils/financeHelpers";
+import { getAllSlips, getEmployees } from "../../api/payroll";
 import {
   PieChart,
   Pie,
@@ -9,10 +10,47 @@ import {
 } from "recharts";
 
 
-const BEASISWA_PIE_DATA = [
-  { name: "Terealisasi", value: 84, color: "#1e3a8a" },
-  { name: "Sisa", value: 16, color: "#e5e7eb" }
-];
+const getPayrollSummary = async () => {
+  try {
+    const [slipsRes, employees] = await Promise.all([
+      getAllSlips({ limit: 1000 }).catch(() => ({ data: [] })),
+      getEmployees().catch(() => [])
+    ]);
+    const slips = Array.isArray(slipsRes?.data) ? slipsRes.data : [];
+    const employeeList = Array.isArray(employees) ? employees : [];
+    const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
+
+    const currentMonthSlips = slips.filter((slip) => {
+      const bulan = Number(slip?.bulan || slip?.periode_bulan || 0);
+      const tahun = Number(slip?.tahun || slip?.periode_tahun || 0);
+      return bulan === currentMonth && tahun === currentYear;
+    });
+
+    const realizedSlips = currentMonthSlips.filter((slip) => {
+      const status = String(slip?.status || "").trim().toLowerCase();
+      return ["dibayar", "disetujui", "approved", "transferred", "sudah ditransfer", "sudah transfer"].includes(status);
+    });
+
+    const realisasi = realizedSlips.reduce((sum, slip) => sum + (Number(slip?.gaji_bersih) || 0), 0);
+    const persentase = currentMonthSlips.length > 0 ? Math.round((realizedSlips.length / currentMonthSlips.length) * 100) : 0;
+
+    return {
+      persentase,
+      realisasi,
+      jumlahPegawai: realizedSlips.length,
+      totalPegawai: employeeList.length
+    };
+  } catch (err) {
+    console.error("Gagal load realisasi gaji:", err);
+    return {
+      persentase: 0,
+      realisasi: 0,
+      jumlahPegawai: 0,
+      totalPegawai: 0
+    };
+  }
+};
 
 const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
   const [selectedYear, setSelectedYear] = useState("2025/2026");
@@ -27,12 +65,28 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
     tunggakanPerKelas: []
   });
 
+  const [beasiswaSummary, setBeasiswaSummary] = useState({
+    penerimaAktif: 0,
+    totalDanaMasuk: 0,
+    tersalurkan: 0,
+    persentase: 0
+  });
+
+  const [gajiSummary, setGajiSummary] = useState({
+    persentase: 0,
+    realisasi: 0,
+    jumlahPegawai: 0,
+    totalPegawai: 0
+  });
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [summary, sppSummary] = await Promise.all([
+        const [summary, sppSummary, beasiswaSummaryData, payrollSummaryData] = await Promise.all([
           getGlobalFinanceSummary(),
-          getSppYearlySummary(selectedYear)
+          getSppYearlySummary(selectedYear),
+          getBeasiswaSummary(),
+          getPayrollSummary()
         ]);
         setData(prev => ({
           ...prev,
@@ -41,6 +95,8 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
           saldo: summary.saldoKeuangan
         }));
         setSppData(sppSummary);
+        setBeasiswaSummary(beasiswaSummaryData);
+        setGajiSummary(payrollSummaryData);
       } catch (err) {
         console.error("Gagal load operasional:", err);
       }
@@ -51,6 +107,11 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
   const formatCurrency = (amount) => {
     return "Rp " + (Number(amount) || 0).toLocaleString("id-ID");
   };
+
+  const beasiswaPieData = [
+    { name: "Terealisasi", value: beasiswaSummary.persentase, color: "#1e3a8a" },
+    { name: "Sisa", value: Math.max(0, 100 - beasiswaSummary.persentase), color: "#e5e7eb" }
+  ];
 
   return (
     <div className="flex flex-col gap-6 animate-fadeIn font-sans p-4 md:p-8 min-h-full">
@@ -134,69 +195,68 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Penyaluran Beasiswa */}
         <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col">
-          <h3 className="text-[16px] font-bold text-gray-800">Pemberian Beasiswa</h3>
-          <p className="text-[12px] text-gray-500 mt-1 mb-6">Program bantuan bagi santri berprestasi & yatim</p>
-          <div className="flex items-center justify-between mt-auto">
-            <div className="flex-1 space-y-4 pr-4">
-              <div className="flex justify-between items-center border-b border-gray-50 pb-2">
-                <span className="text-[12px] text-gray-500">Penerima Aktif</span>
-                <span className="text-[13px] font-black text-gray-800">142 Siswa</span>
-              </div>
-              <div className="flex justify-between items-center border-b border-gray-50 pb-2">
-                <span className="text-[12px] text-gray-500">Alokasi Dana Masuk</span>
-                <span className="text-[13px] font-black text-gray-800">Rp 450 Jt</span>
-              </div>
-              <div className="flex justify-between items-center pb-2">
-                <span className="text-[12px] text-gray-500">Tersalurkan</span>
-                <span className="text-[13px] font-black text-gray-800">Rp 360 Jt</span>
-              </div>
+          <div className="flex items-start justify-between gap-4 mb-5">
+            <div>
+              <h3 className="text-[16px] font-bold text-gray-800">Pemberian Beasiswa</h3>
+              <p className="text-[12px] text-gray-500 mt-1">Ringkasan realisasi program beasiswa</p>
             </div>
-            <div className="w-[100px] h-[100px] relative flex flex-col items-center justify-center">
+            <div className="w-[88px] h-[88px] relative flex items-center justify-center shrink-0">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={BEASISWA_PIE_DATA} cx="50%" cy="50%" innerRadius={35} outerRadius={45} stroke="none" dataKey="value">
-                    {BEASISWA_PIE_DATA.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+                  <Pie data={beasiswaPieData} cx="50%" cy="50%" innerRadius={30} outerRadius={42} stroke="none" dataKey="value">
+                    {beasiswaPieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
                   </Pie>
                 </PieChart>
               </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-[14px] font-black text-gray-800">84%</span>
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <span className="text-[14px] font-black text-gray-800">{beasiswaSummary.persentase}%</span>
                 <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Terealisasi</span>
               </div>
+            </div>
+          </div>
+
+          <div className="flex-1 flex flex-col justify-center gap-3 mt-1">
+            <div className="flex items-center justify-between py-2 border-b border-gray-100">
+              <span className="text-[12px] font-medium text-gray-500">Penerima Aktif</span>
+              <span className="text-[13px] font-black text-gray-800">{beasiswaSummary.penerimaAktif} Siswa</span>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-gray-100">
+              <span className="text-[12px] font-medium text-gray-500">Alokasi Dana Masuk</span>
+              <span className="text-[13px] font-black text-gray-800">{formatCurrency(beasiswaSummary.totalDanaMasuk)}</span>
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-[12px] font-medium text-gray-600">Tersalurkan</span>
+              <span className="text-[13px] font-black text-[#1e3a8a]">{formatCurrency(beasiswaSummary.tersalurkan)}</span>
             </div>
           </div>
         </div>
 
         {/* Status Penggajian */}
         <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col">
-          <h3 className="text-[16px] font-bold text-gray-800">Status Realisasi Anggaran Gaji</h3>
-          <p className="text-[12px] text-gray-500 mt-1 mb-8">Monitoring realisasi pembayaran gaji guru dan tenaga kependidikan.</p>
+          <h3 className="text-[16px] font-bold text-gray-800">Status Realisasi Gaji</h3>
+          <p className="text-[12px] text-gray-500 mt-1 mb-8">Data mengikuti slip gaji yang sudah diproses di dashboard bendahara.</p>
           
           <div className="mt-auto space-y-6">
             <div>
               <div className="flex justify-between items-center mb-3">
                 <span className="text-[12px] font-medium text-gray-500">Persentase Realisasi</span>
                 <span className="px-2.5 py-1 bg-green-50 text-green-600 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-green-100">
-                  95,6% Terealisasi
+                  {gajiSummary.persentase}% Terealisasi
                 </span>
               </div>
               <div className="w-full bg-gray-50 rounded-full h-3 overflow-hidden border border-gray-100">
-                <div className="bg-[#1A3D63] h-full rounded-full" style={{ width: '95.6%' }}></div>
+                <div className="bg-[#1A3D63] h-full rounded-full" style={{ width: `${gajiSummary.persentase}%` }}></div>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Anggaran Gaji</div>
-                <div className="text-[16px] font-black text-gray-800">Rp 640 Jt</div>
-              </div>
+            <div className="grid grid-cols-1 gap-4">
               <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-50">
                 <div className="text-[10px] font-bold text-[#1A3D63] uppercase tracking-wider mb-1">Realisasi Gaji</div>
-                <div className="text-[16px] font-black text-[#1A3D63]">Rp 612 Jt</div>
+                <div className="text-[16px] font-black text-[#1A3D63]">{formatCurrency(gajiSummary.realisasi)}</div>
               </div>
-              <div className="col-span-2 flex justify-between items-center pt-2 border-t border-gray-50">
-                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Sisa Anggaran</span>
-                <span className="text-[15px] font-black text-amber-500">Rp 28 Jt</span>
+              <div className="flex justify-between items-center pt-2 border-t border-gray-50">
+                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Pegawai Yang Diterima</span>
+                <span className="text-[15px] font-black text-gray-800">{gajiSummary.jumlahPegawai} dari {gajiSummary.totalPegawai || 0} Orang</span>
               </div>
             </div>
           </div>

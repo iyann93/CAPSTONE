@@ -21,6 +21,47 @@ const isCurrentMonthAndYear = (dateStr) => {
   return false;
 };
 
+export const getBeasiswaSummary = async () => {
+  try {
+    const [beasiswaResponse, danaBeasiswaResponse] = await Promise.all([
+      getBeasiswa().catch(() => []),
+      getDanaBeasiswa().catch(() => [])
+    ]);
+
+    const beasiswaList = Array.isArray(beasiswaResponse?.data || beasiswaResponse)
+      ? (beasiswaResponse.data || beasiswaResponse)
+      : [];
+
+    const danaBeasiswaList = Array.isArray(danaBeasiswaResponse?.data || danaBeasiswaResponse)
+      ? (danaBeasiswaResponse.data || danaBeasiswaResponse)
+      : [];
+
+    const activeRecipients = beasiswaList.filter((item) => {
+      const status = String(item?.status || "").trim().toLowerCase();
+      return status === "aktif" || status === "active" || status === "";
+    });
+
+    const totalDanaMasuk = danaBeasiswaList.reduce((sum, item) => sum + (Number(item?.nominal) || 0), 0);
+    const tersalurkan = activeRecipients.reduce((sum, item) => sum + (Number(item?.nominal) || 0), 0);
+    const persentase = totalDanaMasuk > 0 ? Math.round((tersalurkan / totalDanaMasuk) * 100) : 0;
+
+    return {
+      penerimaAktif: activeRecipients.length,
+      totalDanaMasuk,
+      tersalurkan,
+      persentase: Math.max(0, Math.min(100, persentase))
+    };
+  } catch (err) {
+    console.error("Error aggregating beasiswa summary:", err);
+    return {
+      penerimaAktif: 0,
+      totalDanaMasuk: 0,
+      tersalurkan: 0,
+      persentase: 0
+    };
+  }
+};
+
 export const getGlobalFinanceSummary = async () => {
   let inTotal = 0;
   let inMonth = 0;
