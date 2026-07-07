@@ -169,9 +169,7 @@ const PengumumanSekolah = ({ user, onNavigate }) => {
                     }`}>
                       {ann.importance}
                     </span>
-                    <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold ${
-                      ann.isTagihan ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'
-                    }`}>
+                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-gray-100 text-gray-500">
                       {ann.category}
                     </span>
                   </div>
@@ -181,18 +179,12 @@ const PengumumanSekolah = ({ user, onNavigate }) => {
                 <p className="text-[13px] text-gray-500 line-clamp-2 mt-2 leading-relaxed">{ann.desc}</p>
                 <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-50">
                   <span className="text-[11.5px] text-gray-400">Oleh: {ann.author}</span>
-                  <span 
-                    onClick={(e) => {
-                      if (ann.isTagihan && onNavigate) {
-                        e.stopPropagation();
-                        onNavigate("Tagihan SPP");
-                      }
-                    }}
-                    className="text-[12px] font-bold text-[#1A3D63] hover:underline flex items-center gap-1 cursor-pointer"
-                  >
-                    {ann.isTagihan ? 'Lihat Detail Tagihan' : 'Baca Selengkapnya'}
-                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-                  </span>
+                  {!ann.isTagihan && (
+                    <span className="text-[12px] font-bold text-[#1A3D63] hover:underline flex items-center gap-1 cursor-pointer">
+                      Baca Selengkapnya
+                      <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+                    </span>
+                  )}
                 </div>
               </div>
             ))}

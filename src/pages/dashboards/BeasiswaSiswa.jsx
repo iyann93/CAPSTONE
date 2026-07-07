@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { getBeasiswa } from "../../api/finance";
 
 const BeasiswaSiswa = ({ user }) => {
@@ -26,6 +26,18 @@ const BeasiswaSiswa = ({ user }) => {
 
   const formatCurrency = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
 
+  const getPeriodeBerlaku = (program) => {
+    if (!program) return "-";
+    try {
+      const storedPrograms = JSON.parse(localStorage.getItem('capstone_program_beasiswa')) || [];
+      const originalProgram = storedPrograms.find(p => p.title.toLowerCase() === program.nama_beasiswa.toLowerCase());
+      if (originalProgram && originalProgram.periodePendaftaran) {
+        return originalProgram.periodePendaftaran.replace(/\s+\d{4}\/\d{4}$/, "");
+      }
+    } catch (e) {}
+    return program.periode ? program.periode.replace(/\s+\d{4}\/\d{4}$/, "") : "-";
+  };
+
   return (
     <div className="p-6 md:p-8 space-y-6 animate-fadeIn bg-[#F4F6FA] min-h-full">
       {/* Breadcrumb */}
@@ -36,7 +48,7 @@ const BeasiswaSiswa = ({ user }) => {
       {/* Header */}
       <div>
         <h1 className="text-[26px] font-bold text-[#1e293b]">Program Beasiswa</h1>
-        <p className="text-[14px] text-gray-500 mt-1">{studentName} · Kelas {studentClass} · Rincian program beasiswa yang sedang berjalan</p>
+        <p className="text-[14px] text-gray-500 mt-1">{studentName} · {studentClass.toLowerCase().includes('kelas') ? studentClass : `Kelas ${studentClass}`} · Rincian program beasiswa yang sedang berjalan</p>
       </div>
 
       {loading ? (
@@ -92,7 +104,9 @@ const BeasiswaSiswa = ({ user }) => {
                     {selectedProgram.status ? selectedProgram.status.charAt(0).toUpperCase() + selectedProgram.status.slice(1) : "-"}
                   </span>
                 </div>
-                <p className="text-[14px] text-gray-500 mb-8">Periode {selectedProgram.periode}</p>
+                <p className="text-[14px] text-gray-500 mb-8">
+                  Tahun Ajaran {selectedProgram.periode ? (selectedProgram.periode.match(/\d{4}\/\d{4}$/) || ["2025/2026"])[0] : "2025/2026"}
+                </p>
 
                 {/* Grid Info */}
                 <div className="grid grid-cols-2 gap-y-8 gap-x-4 mb-8">
@@ -100,15 +114,11 @@ const BeasiswaSiswa = ({ user }) => {
                     <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Nominal Bantuan</p>
                     <p className="text-[16px] font-bold text-gray-800">{formatCurrency(selectedProgram.nominal)}</p>
                   </div>
-                  <div className="flex flex-col gap-y-8">
-                    <div>
-                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tanggal Mulai</p>
-                      <p className="text-[14px] font-bold text-gray-800">{new Date(selectedProgram.tanggal_mulai).toLocaleDateString('id-ID')}</p>
-                    </div>
-                    <div>
-                      <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tanggal Selesai</p>
-                      <p className="text-[14px] font-bold text-gray-800">{selectedProgram.tanggal_selesai ? new Date(selectedProgram.tanggal_selesai).toLocaleDateString('id-ID') : "-"}</p>
-                    </div>
+                  <div>
+                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Periode Berlaku</p>
+                    <p className="text-[14px] font-bold text-gray-800">
+                      {getPeriodeBerlaku(selectedProgram)}
+                    </p>
                   </div>
                 </div>
               </div>

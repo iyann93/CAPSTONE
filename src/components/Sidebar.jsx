@@ -204,8 +204,7 @@ const menuSections = [
   {
     section: "INFORMASI",
     items: [
-      { label: "Pengumuman Sekolah", icon: <ChatIcon /> },
-      { label: "Data Orang Tua", icon: <UsersIcon /> }
+      { label: "Pengumuman Sekolah", icon: <ChatIcon /> }
     ],
     roles: ["Orang Tua"]
   },
