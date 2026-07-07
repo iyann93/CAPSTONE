@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import ReactDOM from "react-dom";
 import { getOperasional } from "../../api/finance";
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import { jsPDF } from "jspdf";
@@ -100,13 +101,6 @@ const WakilKepalaSarpras = () => {
       const element = document.getElementById("pdf-report-sarpras-template");
       if (!element) throw new Error("Template laporan tidak ditemukan.");
       
-      // Temporarily render it off-screen to capture
-      const originalDisplay = element.style.display;
-      element.style.display = 'block';
-      element.style.position = 'absolute';
-      element.style.top = '-9999px';
-      element.style.left = '-9999px';
-      
       const imgData = await htmlToImage.toPng(element, { quality: 1, backgroundColor: "#ffffff", pixelRatio: 2 });
       
       const pdf = new jsPDF("p", "mm", "a4");
@@ -119,12 +113,6 @@ const WakilKepalaSarpras = () => {
       
       toast.style.backgroundColor = '#10B981';
       toast.textContent = 'Laporan PDF berhasil diunduh!';
-      
-      // Restore
-      element.style.display = originalDisplay;
-      element.style.position = '';
-      element.style.top = '';
-      element.style.left = '';
       
     } catch (e) {
       console.error(e);
@@ -364,8 +352,8 @@ const WakilKepalaSarpras = () => {
       )}
 
       {/* Modal Detail Pengeluaran */}
-      {selectedDetailItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fadeIn">
+      {selectedDetailItem && ReactDOM.createPortal(
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fadeIn">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col animate-slideUp">
             <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50">
               <div>
@@ -462,11 +450,11 @@ const WakilKepalaSarpras = () => {
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Modal Preview Bukti Transaksi */}
-      {showPreviewModal && selectedPreviewFile && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      {showPreviewModal && selectedPreviewFile && ReactDOM.createPortal(
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
               <div className="flex items-center gap-3">
@@ -514,34 +502,95 @@ const WakilKepalaSarpras = () => {
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
 
-      {/* Modal Preview Laporan */}
-      {showLaporanModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col animate-slideUp">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-[#F9FAFB]">
-              <h3 className="text-sm font-bold text-[#1F3A5F]">Pratinjau Laporan Penggunaan Anggaran</h3>
-              <div className="flex gap-2">
-                <button 
+      {/* Modal Preview Laporan — dirender via Portal ke document.body */}
+      {showLaporanModal && ReactDOM.createPortal(
+        <div
+          style={{
+            position: 'fixed',
+            top: 0, left: 0, right: 0, bottom: 0,
+            zIndex: 99999,
+            display: 'flex',
+            background: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(4px)',
+          }}
+        >
+          <div
+            style={{
+              background: '#fff',
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            }}
+          >
+            {/* Sticky Header — tidak terpotong */}
+            <div
+              style={{
+                flexShrink: 0,
+                borderBottom: '1px solid #F3F4F6',
+                background: '#F9FAFB',
+                padding: '12px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px',
+                flexWrap: 'wrap'
+              }}
+            >
+              <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#1F3A5F', margin: 0 }}>Pratinjau Laporan Penggunaan Anggaran</h3>
+              <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                <button
                   onClick={handleCetakLaporan}
                   disabled={isGeneratingPdf}
-                  className={`flex items-center gap-2 px-4 py-2 bg-[#F59E0B] text-white rounded-xl text-xs font-bold hover:bg-[#d97706] transition-colors border-none cursor-pointer ${isGeneratingPdf ? "opacity-50" : ""}`}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                    padding: '8px 16px', backgroundColor: isGeneratingPdf ? '#d97706' : '#F59E0B',
+                    color: '#fff', borderRadius: '10px', fontSize: '12px', fontWeight: 700,
+                    border: 'none', cursor: isGeneratingPdf ? 'not-allowed' : 'pointer',
+                    opacity: isGeneratingPdf ? 0.6 : 1, whiteSpace: 'nowrap'
+                  }}
                 >
-                  <DownloadIcon /> {isGeneratingPdf ? "Memproses..." : "Unduh PDF"}
+                  <DownloadIcon /> {isGeneratingPdf ? 'Memproses...' : 'Unduh PDF'}
                 </button>
-                <button 
+                <button
                   onClick={() => setShowLaporanModal(false)}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl text-xs font-bold hover:bg-gray-300 transition-colors cursor-pointer border-none"
+                  style={{
+                    padding: '8px 16px', backgroundColor: '#E5E7EB',
+                    color: '#374151', borderRadius: '10px', fontSize: '12px', fontWeight: 700,
+                    border: 'none', cursor: 'pointer', whiteSpace: 'nowrap'
+                  }}
                 >
                   Tutup
                 </button>
               </div>
             </div>
-            
-            <div className="p-6 overflow-y-auto bg-gray-100/50 flex justify-center">
-              {/* Scrollable preview — scales to fit screen */}
-              <div className="bg-white p-8 sm:p-12 text-gray-800 w-full max-w-[794px] font-sans shadow-sm border border-gray-200">
+
+            {/* Scrollable Preview Area */}
+            <div
+              style={{
+                flex: 1,
+                minHeight: 0,
+                overflow: 'auto',
+                background: '#F3F4F6',
+                padding: '24px 16px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'flex-start'
+              }}
+            >
+              <div
+                className="bg-white font-sans"
+                style={{
+                  width: '794px',
+                  minWidth: '794px',
+                  padding: '48px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                  border: '1px solid #E5E7EB'
+                }}
+              >
                 {/* Header MBS */}
                 <div className="flex items-center justify-between border-b-4 border-gray-800 pb-4 mb-8">
                   <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
@@ -554,13 +603,13 @@ const WakilKepalaSarpras = () => {
                   </div>
                   <div className="w-24 h-24 invisible"></div>
                 </div>
-                
+
                 {/* Title */}
                 <div className="text-center mb-8">
                   <h2 className="text-xl font-bold uppercase underline">LAPORAN PENGGUNAAN ANGGARAN SARANA & PRASARANA</h2>
                   <p className="text-sm mt-1">Tahun Ajaran: {laporanPeriode}</p>
                 </div>
-                
+
                 {/* Ringkasan */}
                 <div className="mb-6 grid grid-cols-3 gap-4">
                   <div className="p-3 border border-gray-800 rounded">
@@ -611,7 +660,7 @@ const WakilKepalaSarpras = () => {
                     </tr>
                   </tfoot>
                 </table>
-                
+
                 {/* Signatures */}
                 <div className="flex justify-between mt-12 pt-8">
                   <div className="text-center w-48">
@@ -634,10 +683,10 @@ const WakilKepalaSarpras = () => {
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Template PDF Tersembunyi (Digunakan oleh html-to-image) */}
-      <div className="hidden">
+      <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
         <div id="pdf-report-sarpras-template" className="bg-white p-12 text-gray-800 w-[794px] min-h-[1123px] font-sans">
           {/* Header MBS */}
           <div className="flex items-center justify-between border-b-4 border-gray-800 pb-4 mb-8">
