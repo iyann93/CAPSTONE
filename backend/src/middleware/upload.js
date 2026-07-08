@@ -20,13 +20,13 @@ const storage = multer.diskStorage({
   }
 });
 
-// Filter khusus gambar
+// Filter khusus gambar dan dokumen PDF
 const fileFilter = (req, file, cb) => {
-  const allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+  const allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'application/pdf'];
   if (allowedMimes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Format file tidak didukung. Harap upload gambar (JPG, PNG, WEBP)'), false);
+    cb(new Error('Format file tidak didukung. Harap upload gambar atau dokumen PDF (JPG, PNG, PDF)'), false);
   }
 };
 

@@ -329,10 +329,11 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
       : (p.period || 'Lainnya');
     const nom = Number(String(p.amount || '0').replace(/[^0-9]/g, ''));
     if (!sppByMonth[monthKey]) {
-      sppByMonth[monthKey] = { total: 0, count: 0, tanggal: dateStr };
+      sppByMonth[monthKey] = { total: 0, count: 0, tanggal: dateStr, list: [] };
     }
     sppByMonth[monthKey].total += nom;
     sppByMonth[monthKey].count += 1;
+    sppByMonth[monthKey].list.push(`${p.name} (${p.kelas}) - ${p.amount}`);
   });
 
   const sppRows = Object.entries(sppByMonth).map(([monthKey, val]) => ({
@@ -342,7 +343,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
     nama: `Total Pemasukan SPP - ${monthKey}`,
     kategori: 'SPP',
     nominal: val.total,
-    keterangan: `${val.count} siswa lunas`,
+    keterangan: `${val.count} tagihan lunas:\n${val.list.map((item, i) => `${i + 1}. ${item}`).join('\n')}`,
     sumberDana: 'SPP Siswa',
   }));
 
@@ -1202,7 +1203,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
 
               <div>
                 <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Keterangan</div>
-                <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded-xl border border-gray-100 min-h-[60px]">
+                <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded-xl border border-gray-100 min-h-[60px] whitespace-pre-wrap">
                   {selectedDetailItem.keterangan || "Tidak ada keterangan."}
                 </div>
               </div>
@@ -1289,6 +1290,20 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
                 <img src={selectedPreviewFile.preview || URL.createObjectURL(selectedPreviewFile)} alt="Preview Bukti" className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-sm" />
               ) : selectedPreviewFile && typeof selectedPreviewFile === 'string' && (selectedPreviewFile.match(/\.(jpg|jpeg|png|gif)$/i) || selectedPreviewFile.startsWith('data:image')) ? (
                 <img src={selectedPreviewFile} alt="Preview Bukti" className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-sm" />
+              ) : selectedPreviewFile && typeof selectedPreviewFile !== 'string' && selectedPreviewFile.type?.includes('pdf') ? (
+                <object data={selectedPreviewFile.preview || URL.createObjectURL(selectedPreviewFile)} type="application/pdf" className="w-full h-[70vh] rounded-lg shadow-sm">
+                  <div className="flex flex-col items-center justify-center h-full text-center p-4">
+                    <p className="text-gray-500 text-sm font-medium">Browser Anda mungkin tidak mendukung pratinjau langsung PDF.</p>
+                    <a href={selectedPreviewFile.preview || URL.createObjectURL(selectedPreviewFile)} target="_blank" rel="noreferrer" className="mt-4 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-bold text-sm hover:bg-blue-100 transition-colors">Unduh / Buka PDF di Tab Baru</a>
+                  </div>
+                </object>
+              ) : selectedPreviewFile && typeof selectedPreviewFile === 'string' && (selectedPreviewFile.toLowerCase().includes('.pdf') || selectedPreviewFile.startsWith('data:application/pdf')) ? (
+                <object data={selectedPreviewFile} type="application/pdf" className="w-full h-[70vh] rounded-lg shadow-sm">
+                  <div className="flex flex-col items-center justify-center h-full text-center p-4">
+                    <p className="text-gray-500 text-sm font-medium">Browser Anda mungkin tidak mendukung pratinjau langsung PDF.</p>
+                    <a href={selectedPreviewFile} target="_blank" rel="noreferrer" className="mt-4 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-bold text-sm hover:bg-blue-100 transition-colors">Unduh / Buka PDF di Tab Baru</a>
+                  </div>
+                </object>
               ) : (
                 <>
                   <div className="w-24 h-24 mb-4 text-gray-300">

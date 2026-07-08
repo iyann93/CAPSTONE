@@ -232,6 +232,32 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
   const [paidSlips, setPaidSlips] = useState([]);
   const [globalFinance, setGlobalFinance] = useState({ totalPemasukan: 0, totalPengeluaran: 0 });
   const [totalEmployees, setTotalEmployees] = useState(0);
+
+  // Role Permissions
+  const [rolePermissions, setRolePermissions] = useState(null);
+  useEffect(() => {
+    const fetchPerms = () => {
+      import('../../api/system').then(({ getRolePermissions }) => {
+        getRolePermissions().then(data => {
+          if (data && Object.keys(data).length > 0) {
+            setRolePermissions(data);
+            localStorage.setItem('rolePermissions', JSON.stringify(data));
+          } else {
+            const saved = localStorage.getItem('rolePermissions');
+            if (saved) setRolePermissions(JSON.parse(saved));
+          }
+        }).catch(() => {
+          setTimeout(fetchPerms, 2000);
+        });
+      });
+    };
+    fetchPerms();
+  }, []);
+
+  const bendaharaPerms = rolePermissions?.["bendahara"] || {};
+  const canViewTagihan = bendaharaPerms["Tagihan SPP"]?.lihat !== false;
+  const canViewPengaturan = bendaharaPerms["Pengaturan SPP"]?.lihat !== false;
+  const canViewGaji = bendaharaPerms["Riwayat Terima Gaji"]?.lihat !== false;
   
   // Laporan States
   const [laporanType, setLaporanType] = useState("Laporan Pembayaran SPP (Pemasukan)");
@@ -1391,7 +1417,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
             </div>
 
             {/* Stat Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5 mb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-5">
               {[
                 {
                   title: "Total SPP Terkumpul",
@@ -1878,10 +1904,19 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                       <p className="text-[12px] text-gray-600 mt-0.5">Bulan {formatBulan(verifyData.bulan, verifyData.tahun)} - Rp {Number(verifyData.nominal).toLocaleString('id-ID')}</p>
                     </div>
                     {verifyData.bukti_pembayaran_url ? (
-                      <div>
-                        <p className="text-[12px] font-bold text-gray-700 mb-2">Gambar Bukti:</p>
+                      <div className="flex-1 overflow-y-auto">
+                        <p className="text-[12px] font-bold text-gray-700 mb-2">Bukti Pembayaran:</p>
                         <div className="border border-gray-200 rounded-xl overflow-hidden bg-gray-50 flex justify-center p-2">
-                          <img src={verifyData.bukti_pembayaran_url} alt="Bukti Transfer" className="max-w-full h-auto max-h-[300px] object-contain rounded-lg" />
+                          {verifyData.bukti_pembayaran_url.toLowerCase().includes('.pdf') ? (
+                            <object data={verifyData.bukti_pembayaran_url} type="application/pdf" className="w-full min-h-[400px] rounded-lg shadow-sm">
+                              <div className="flex flex-col items-center justify-center h-full text-center p-4">
+                                <p className="text-gray-500 text-sm font-medium">Browser Anda mungkin tidak mendukung pratinjau langsung PDF.</p>
+                                <a href={verifyData.bukti_pembayaran_url} target="_blank" rel="noreferrer" className="mt-4 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-bold text-sm hover:bg-blue-100 transition-colors">Unduh / Buka PDF di Tab Baru</a>
+                              </div>
+                            </object>
+                          ) : (
+                            <img src={verifyData.bukti_pembayaran_url} alt="Bukti Transfer" className="max-w-full h-auto max-h-[400px] object-contain rounded-lg" />
+                          )}
                         </div>
                       </div>
                     ) : (
@@ -3470,7 +3505,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
             <form onSubmit={handleGenerateBilling} className="space-y-4">
               <div>
-                <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase">Sasaran Kelas</label>
+                <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase uppercase tracking-wide">Sasaran Kelas</label>
                 <select
                   value={billClass}
                   onChange={(e) => setBillClass(e.target.value)}

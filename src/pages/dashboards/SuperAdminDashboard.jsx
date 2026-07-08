@@ -447,8 +447,8 @@ const ActivationModule = () => {
 
   const [searchQuery, setSearchQuery] = useState("");
 
-  const pendingUsers = allUsers.filter(u => !u.is_active && !u.roles); // Fake pending logic: no roles assigned yet
-  const nonaktifUsers = allUsers.filter(u => !u.is_active && u.roles); // Fake nonaktif logic: has roles but deactivated
+  const pendingUsers = allUsers.filter(u => !u.is_active && !u.roles); // Pending = belum ada role
+  const nonaktifUsers = allUsers.filter(u => !u.is_active && u.roles); // Nonaktif = sudah punya role
   
   const currentTabUsers = activeTab === "Pending" ? pendingUsers : nonaktifUsers;
 
@@ -603,8 +603,10 @@ const ActivationModule = () => {
                     <td className="px-4 py-4 text-sm text-gray-500">{formatDate(u.created_at)}</td>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-1.5 text-red-600">
-                        <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                        <span className="text-sm font-semibold">Nonaktif</span>
+                        <span className={`w-1.5 h-1.5 rounded-full ${activeTab === "Pending" ? "bg-amber-500" : "bg-red-500"}`}></span>
+                        <span className={`text-sm font-semibold ${activeTab === "Pending" ? "text-amber-500" : "text-red-600"}`}>
+                          {activeTab === "Pending" ? "Pending" : "Nonaktif"}
+                        </span>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -774,25 +776,40 @@ const GlobalResetModal = ({ onClose }) => {
 };
 
 const RolePermissionModule = () => {
-  const [selectedRoleId, setSelectedRoleId] = useState("admintu");
+  const [selectedRoleId, setSelectedRoleId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [newRoleName, setNewRoleName] = useState("");
   const [newRoleDesc, setNewRoleDesc] = useState("");
   const [newRolePerms, setNewRolePerms] = useState({});
 
-  const initialRoles = [
-    { id: "superadmin", name: "Super Admin", usersCount: 2, isSystem: true, locked: true, description: "Hak akses penuh untuk mengelola seluruh aspek sistem, konfigurasi, backup, restore, dan database." },
-    { id: "kepsek", name: "Kepala Sekolah", usersCount: 1, isSystem: true, locked: true, description: "Memantau laporan akademik, keuangan, guru, staf, siswa, serta menyetujui kebijakan strategis sekolah." },
-    { id: "wakepsek", name: "Wakil Kepala", usersCount: 3, isSystem: true, locked: true, description: "Mengelola operasional sekolah harian, kurikulum, kesiswaan, humas, dan sarana prasarana." },
-    { id: "admintu", name: "Admin TU", usersCount: 5, isSystem: true, locked: true, description: "Kelola Akademik (mata pelajaran, semester, data kelas, jadwal pelajaran, kenaikan kelas, data kelulusan). Kelola siswa(data siswa, absensi siswa, kartu pelajar)." },
-    { id: "walikelas", name: "Wali Kelas", usersCount: 32, isSystem: true, locked: true, description: "Mengelola absensi kelas, nilai rapor, bimbingan siswa, serta berkomunikasi dengan orang tua siswa kelas tertentu." },
-    { id: "gurumapel", name: "Guru Mapel", usersCount: 80, isSystem: true, locked: true, description: "Mengelola materi pembelajaran, tugas, ujian, dan penilaian siswa untuk mata pelajaran yang diajarkan." },
-    { id: "orangtua", name: "Orang Tua", usersCount: 1240, isSystem: true, locked: true, description: "Memantau perkembangan belajar anak, absensi, jadwal pelajaran, tagihan SPP, dan pengumuman sekolah." },
-    { id: "bendaharaosis", name: "Bendahara OSIS", usersCount: 4, isSystem: false, locked: false, description: "Kelola anggaran kegiatan kesiswaan, iuran OSIS, serta laporan pertanggungjawaban dana kegiatan." }
-  ];
+  const [roleList, setRoleList] = useState([]);
+  const [isLoadingRoles, setIsLoadingRoles] = useState(true);
+  const [allUsers, setAllUsers] = useState([]);
+  const [activeTab, setActiveTab] = useState("pengguna");
 
-  const [roleList, setRoleList] = useState(initialRoles);
+  useEffect(() => {
+    import("../../api/system").then(({ getRoles, getAllSystemUsers }) => {
+      getRoles().then(roles => {
+        // Map backend roles to UI format
+        const formattedRoles = (roles || []).map(r => ({
+          id: r.id,
+          name: r.nama_role,
+          usersCount: parseInt(r.users_count) || 0,
+          isSystem: r.is_system !== false, // Assuming they might be system roles
+          locked: r.is_system !== false,
+          description: r.deskripsi || `Hak akses untuk role ${r.nama_role}`
+        }));
+        setRoleList(formattedRoles);
+        setIsLoadingRoles(false);
+      }).catch(err => {
+        console.error("Gagal mengambil roles:", err);
+        setIsLoadingRoles(false);
+      });
+      
+      getAllSystemUsers().then(users => setAllUsers(users || [])).catch(() => {});
+    });
+  }, []);
 
   const handleDuplicateRole = () => {
     const selectedRole = roleList.find(r => r.id === selectedRoleId);
@@ -805,55 +822,119 @@ const RolePermissionModule = () => {
     setIsCreating(true);
   };
 
-  // Default permissions map
-  const [permissions, setPermissions] = useState({
-    superadmin: {
-      "Akses Data User": { lihat: true, buat: true, ubah: true, hapus: true },
-      "Aktivasi & Nonaktif": { lihat: true, buat: true, ubah: true, hapus: true },
-      "Reset Password": { lihat: true, buat: true, ubah: true, hapus: true },
-      "Mata Pelajaran & Kelas": { lihat: true, buat: true, ubah: true, hapus: true },
-      "Jadwal Pelajaran": { lihat: true, buat: true, ubah: true, hapus: true },
-      "Data Kelulusan": { lihat: true, buat: true, ubah: true, hapus: true },
-      "Tagihan SPP": { lihat: true, buat: true, ubah: true, hapus: true },
-      "Laporan Keuangan": { lihat: true, buat: true, ubah: true, hapus: true }
+  const permissionStructure = [
+    {
+      category: "OVERVIEW & LAPORAN",
+      features: ["Dashboard", "Laporan Akademik", "Monitoring Siswa", "Monitoring Keuangan", "Laporan Integrasi", "Perkembangan Akademik", "Unduh Rapor"]
     },
-    admintu: {
-      "Akses Data User": { lihat: true, buat: true, ubah: true, hapus: false },
-      "Aktivasi & Nonaktif": { lihat: true, buat: true, ubah: true, hapus: false },
-      "Reset Password": { lihat: true, buat: true, ubah: true, hapus: false },
-      "Mata Pelajaran & Kelas": { lihat: true, buat: true, ubah: true, hapus: true },
-      "Jadwal Pelajaran": { lihat: true, buat: true, ubah: true, hapus: true },
-      "Data Kelulusan": { lihat: true, buat: true, ubah: true, hapus: false },
-      "Tagihan SPP": { lihat: true, buat: false, ubah: false, hapus: false },
-      "Laporan Keuangan": { lihat: true, buat: false, ubah: false, hapus: false }
+    {
+      category: "AKADEMIK & KURIKULUM",
+      features: ["Mata Pelajaran", "Semester", "Data Kelas", "Jadwal Pelajaran", "Kelola Kurikulum", "Persetujuan Kurikulum", "Kelas & Penjadwalan", "Kenaikan Kelas", "Data Kelulusan", "Validasi Kelulusan"]
     },
-    kepsek: {
-      "Akses Data User": { lihat: true, buat: false, ubah: false, hapus: false },
-      "Aktivasi & Nonaktif": { lihat: true, buat: false, ubah: false, hapus: false },
-      "Reset Password": { lihat: true, buat: false, ubah: false, hapus: false },
-      "Mata Pelajaran & Kelas": { lihat: true, buat: false, ubah: false, hapus: false },
-      "Jadwal Pelajaran": { lihat: true, buat: false, ubah: false, hapus: false },
-      "Data Kelulusan": { lihat: true, buat: false, ubah: false, hapus: false },
-      "Tagihan SPP": { lihat: true, buat: false, ubah: false, hapus: false },
-      "Laporan Keuangan": { lihat: true, buat: false, ubah: false, hapus: false }
+    {
+      category: "SISWA & MANAJEMEN KELAS",
+      features: ["Data Siswa", "Data Orang Tua", "Data Siswa Kelas", "Absensi Siswa", "Rekap Absensi Siswa", "Catatan Siswa", "E-Rapor & Input Nilai", "Input Nilai", "Rapor Siswa"]
+    },
+    {
+      category: "GURU & SEKOLAH",
+      features: ["Data Guru", "Jadwal Mengajar", "Pengumuman Sekolah", "Sarana & Prasarana"]
+    },
+    {
+      category: "KEUANGAN & SPP",
+      features: ["Tagihan SPP", "Pengaturan SPP", "Riwayat Pembayaran", "Beasiswa", "Pemasukan dan Pengeluaran", "Cetak Laporan Keuangan"]
+    },
+    {
+      category: "PENGGAJIAN & PRIBADI",
+      features: ["Komponen Gaji", "Template Gaji Jabatan", "Pengaturan Gaji Pegawai", "Generate Slip Gaji", "Riwayat Slip Gaji", "Data Rekening", "Riwayat Terima Gaji"]
+    },
+    {
+      category: "MANAJEMEN PENGGUNA & SISTEM",
+      features: ["Mengelola Akun User", "Aktivasi & Nonaktif", "Role & Permission", "Hak Akses Sistem", "Akses Seluruh Data", "Backup & Maintenance", "Pengaturan Sistem"]
     }
-  });
+  ];
 
-  const selectedRole = roleList.find(r => r.id === selectedRoleId) || roleList[0];
+  const getDefaultPerms = (isFullAccess = false) => {
+    const perms = {};
+    permissionStructure.forEach(cat => {
+      cat.features.forEach(feat => {
+        perms[feat] = { lihat: isFullAccess, buat: isFullAccess, ubah: isFullAccess, hapus: isFullAccess };
+      });
+    });
+    return perms;
+  };
+
+  const getRoleBasedPerms = (roleName) => {
+    if (!roleName) return getDefaultPerms(false);
+    const perms = getDefaultPerms(false);
+    const name = roleName.toLowerCase();
+
+    const grant = (features) => {
+      features.forEach(f => {
+        if (perms[f]) perms[f] = { lihat: true, buat: true, ubah: true, hapus: false };
+      });
+    };
+
+    grant(["Dashboard"]);
+
+    if (name.includes("super admin") || name === "superadmin") {
+      Object.keys(perms).forEach(f => {
+        perms[f] = { lihat: true, buat: true, ubah: true, hapus: false };
+      });
+      return perms;
+    } 
+    else if (name.includes("admin tu") || name === "admin") {
+      grant(["Mata Pelajaran", "Semester", "Data Kelas", "Jadwal Pelajaran", "Kenaikan Kelas", "Data Kelulusan", "Data Siswa", "Absensi Siswa", "Data Orang Tua", "Data Guru", "Pengumuman Sekolah", "Riwayat Terima Gaji"]);
+    }
+    else if (name.includes("bendahara")) {
+      grant(["Tagihan SPP", "Pengaturan SPP", "Riwayat Pembayaran", "Beasiswa", "Pemasukan dan Pengeluaran", "Cetak Laporan Keuangan", "Komponen Gaji", "Template Gaji Jabatan", "Pengaturan Gaji Pegawai", "Generate Slip Gaji", "Riwayat Slip Gaji", "Data Rekening", "Riwayat Terima Gaji"]);
+    }
+    else if (name.includes("orang tua") || name.includes("orangtua")) {
+      grant(["Perkembangan Akademik", "Unduh Rapor", "Tagihan SPP", "Riwayat Pembayaran", "Beasiswa", "Pengumuman Sekolah"]);
+    }
+    else if (name.includes("wali kelas") || name.includes("walikelas")) {
+      grant(["Data Siswa Kelas", "Catatan Siswa", "Rapor Siswa", "Riwayat Terima Gaji"]);
+    }
+    else if (name.includes("kepala sekolah") || name.includes("kepsek")) {
+      grant(["Persetujuan Kurikulum", "Validasi Kelulusan", "Riwayat Terima Gaji", "Laporan Akademik", "Monitoring Siswa", "Monitoring Keuangan"]);
+    }
+    else if (name.includes("wakil kepala") || name.includes("wakasek")) {
+      grant(["Sarana & Prasarana", "Kelola Kurikulum", "Jadwal Pelajaran", "Riwayat Terima Gaji"]);
+    }
+    else if (name.includes("guru") || name.includes("guru mapel")) {
+      grant(["Tahun Ajaran & Semester", "Mata Pelajaran", "Kelas & Penjadwalan", "E-Rapor & Input Nilai", "Jadwal Mengajar", "Input Nilai", "Absensi Siswa", "Rekap Absensi Siswa", "Riwayat Terima Gaji"]);
+    }
+
+    return perms;
+  };
+
+  const [permissions, setPermissions] = useState({});
+
+  useEffect(() => {
+    const fetchPerms = () => {
+      import('../../api/system').then(({ getRolePermissions }) => {
+        getRolePermissions().then(data => {
+          if (data && Object.keys(data).length > 0) {
+            setPermissions(data);
+            localStorage.setItem('rolePermissions', JSON.stringify(data));
+          } else {
+            // If empty, load from localStorage fallback
+            const saved = localStorage.getItem('rolePermissions');
+            if (saved) setPermissions(JSON.parse(saved));
+          }
+        }).catch(() => {
+          // Dev server might be restarting due to JSON file change, retry in 2 seconds
+          setTimeout(fetchPerms, 2000);
+        });
+      });
+    };
+    fetchPerms();
+  }, []);
+
+  const selectedRole = roleList.find(r => r.id === selectedRoleId);
 
   const handleToggle = (feature, action) => {
     setPermissions(prev => {
-      const rolePerms = prev[selectedRoleId] || {
-        "Akses Data User": { lihat: false, buat: false, ubah: false, hapus: false },
-        "Aktivasi & Nonaktif": { lihat: false, buat: false, ubah: false, hapus: false },
-        "Reset Password": { lihat: false, buat: false, ubah: false, hapus: false },
-        "Mata Pelajaran & Kelas": { lihat: false, buat: false, ubah: false, hapus: false },
-        "Jadwal Pelajaran": { lihat: false, buat: false, ubah: false, hapus: false },
-        "Data Kelulusan": { lihat: false, buat: false, ubah: false, hapus: false },
-        "Tagihan SPP": { lihat: false, buat: false, ubah: false, hapus: false },
-        "Laporan Keuangan": { lihat: false, font: false, ubah: false, hapus: false }
-      };
-
+      const rolePerms = prev[selectedRoleId] || getRoleBasedPerms(selectedRole?.name);
       return {
         ...prev,
         [selectedRoleId]: {
@@ -868,16 +949,8 @@ const RolePermissionModule = () => {
   };
 
   const getPermission = (feature, action) => {
-    const rolePerms = permissions[selectedRoleId] || {
-      "Akses Data User": { lihat: false, buat: false, ubah: false, hapus: false },
-      "Aktivasi & Nonaktif": { lihat: false, buat: false, ubah: false, hapus: false },
-      "Reset Password": { lihat: false, buat: false, ubah: false, hapus: false },
-      "Mata Pelajaran & Kelas": { lihat: false, buat: false, ubah: false, hapus: false },
-      "Jadwal Pelajaran": { lihat: false, buat: false, ubah: false, hapus: false },
-      "Data Kelulusan": { lihat: false, buat: false, ubah: false, hapus: false },
-      "Tagihan SPP": { lihat: false, buat: false, ubah: false, hapus: false },
-      "Laporan Keuangan": { lihat: false, buat: false, ubah: false, hapus: false }
-    };
+    if (!selectedRole) return false;
+    const rolePerms = permissions[selectedRoleId] || getRoleBasedPerms(selectedRole.name);
     return rolePerms[feature]?.[action] || false;
   };
 
@@ -885,20 +958,21 @@ const RolePermissionModule = () => {
     r.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const permissionStructure = [
-    {
-      category: "MANAJEMEN PENGGUNA",
-      features: ["Akses Data User", "Aktivasi & Nonaktif", "Reset Password"]
-    },
-    {
-      category: "MODUL AKADEMIK",
-      features: ["Mata Pelajaran & Kelas", "Jadwal Pelajaran", "Data Kelulusan"]
-    },
-    {
-      category: "MODUL KEUANGAN",
-      features: ["Tagihan SPP", "Laporan Keuangan"]
-    }
-  ];
+  const getFilteredPermissionStructure = () => {
+    if (isCreating || !selectedRole) return permissionStructure;
+    if (selectedRole.name.toLowerCase().includes("super admin") || selectedRole.name.toLowerCase() === "superadmin") return permissionStructure;
+
+    const basePerms = getRoleBasedPerms(selectedRole.name);
+    const filtered = permissionStructure.map(cat => {
+      const activeFeatures = cat.features.filter(feat => {
+        const perms = basePerms[feat];
+        return perms && (perms.lihat || perms.buat || perms.ubah || perms.hapus);
+      });
+      return { ...cat, features: activeFeatures };
+    }).filter(cat => cat.features.length > 0);
+
+    return filtered.length > 0 ? filtered : permissionStructure;
+  };
 
   return (
     <div className="flex flex-col gap-6 animate-fadeIn">
@@ -975,7 +1049,8 @@ const RolePermissionModule = () => {
                 </div>
               </div>
             )}
-            {filteredRoles.map((r) => {
+            {isLoadingRoles && <div className="p-4 text-center text-sm text-gray-400">Memuat role...</div>}
+            {!isLoadingRoles && filteredRoles.map((r) => {
               const isSelected = !isCreating && r.id === selectedRoleId;
               return (
                 <div
@@ -1009,7 +1084,21 @@ const RolePermissionModule = () => {
 
         {/* Right column: Permissions Table */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col gap-6">
-          {isCreating ? (
+          {!isCreating && !selectedRole ? (
+            <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center opacity-70">
+              <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                  <polyline points="2 17 12 22 22 17" />
+                  <polyline points="2 12 12 17 22 12" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-gray-800 mb-1">Pilih Role</h3>
+              <p className="text-sm text-gray-500 max-w-sm">
+                Silakan pilih salah satu role di daftar sebelah kiri untuk melihat detail dan mengelola hak akses sistem.
+              </p>
+            </div>
+          ) : isCreating ? (
             /* CREATE MODE HEADER */
             <>
               <div className="flex flex-col gap-4">
@@ -1105,7 +1194,29 @@ const RolePermissionModule = () => {
                   </button>
                 )}
                 <button
-                  onClick={() => alert("Perubahan hak akses berhasil disimpan!")}
+                  onClick={async () => {
+                    const currentPerms = permissions[selectedRole.id] || getRoleBasedPerms(selectedRole.name);
+                    const normalizedName = selectedRole.name.toLowerCase().replace(/\s+/g, '');
+                    
+                    const newPermissions = { 
+                      ...permissions, 
+                      [selectedRole.id]: currentPerms,
+                      [normalizedName]: currentPerms 
+                    };
+                    setPermissions(newPermissions);
+                    localStorage.setItem('rolePermissions', JSON.stringify(newPermissions));
+                    
+                    try {
+                      const { updateRolePermissions } = await import('../../api/system');
+                      await updateRolePermissions(newPermissions);
+                      // Dispatch custom event so Sidebar updates immediately if testing in same browser
+                      window.dispatchEvent(new Event('permissionsUpdated'));
+                      alert("Perubahan hak akses berhasil disimpan ke server!");
+                    } catch (e) {
+                      console.error(e);
+                      alert("Tersimpan lokal, tapi gagal menyimpan ke server.");
+                    }
+                  }}
                   className="flex items-center gap-1.5 bg-[#1A3D63] text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow-md shadow-[#1A3D63]/10 hover:bg-[#122a47] transition-all"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1119,8 +1230,22 @@ const RolePermissionModule = () => {
             </div>
           )}
 
-          {/* Table */}
-          <div className="overflow-x-auto border border-gray-100 rounded-xl">
+          {/* Table (Permissions) */}
+          {(isCreating || (selectedRole && activeTab === "hak_akses")) && (
+            <div className="flex flex-col gap-4 animate-fadeIn">
+              {!isCreating && (
+                <button 
+                  onClick={() => setActiveTab("pengguna")}
+                  className="self-start flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-gray-800 transition-colors bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-lg"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                  </svg>
+                  Kembali ke Daftar Pengguna
+                </button>
+              )}
+              <div className="overflow-x-auto border border-gray-100 rounded-xl">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/50 border-b border-gray-100">
@@ -1132,7 +1257,7 @@ const RolePermissionModule = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {permissionStructure.map((cat, ci) => (
+                {getFilteredPermissionStructure().map((cat, ci) => (
                   <React.Fragment key={ci}>
                     {/* Category Divider Row */}
                     <tr className="bg-gray-50/10">
@@ -1183,7 +1308,52 @@ const RolePermissionModule = () => {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
+          )}
+
+          {/* Daftar Pengguna List */}
+          {!isCreating && selectedRole && activeTab === "pengguna" && (
+            <div className="overflow-x-auto border border-gray-100 rounded-xl">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50/50 border-b border-gray-100">
+                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Nama Pengguna</th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Email</th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {allUsers.filter(u => u.role && u.role.toLowerCase().includes(selectedRole.name.toLowerCase())).map((u, i) => (
+                    <tr 
+                      key={i} 
+                      onClick={() => setActiveTab("hak_akses")}
+                      className="hover:bg-blue-50/50 transition-colors cursor-pointer group"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-bold text-gray-800 group-hover:text-[#1A3D63] transition-colors">{u.name || u.user}</div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">{u.email || "-"}</td>
+                      <td className="px-6 py-4 flex items-center justify-between">
+                        <span className={`px-2.5 py-1 rounded-md text-xs font-bold ${u.is_active ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"}`}>
+                          {u.is_active ? "Aktif" : "Nonaktif"}
+                        </span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300 group-hover:text-[#1A3D63] transition-colors opacity-0 group-hover:opacity-100 transform translate-x-VII-2 group-hover:translate-x-0">
+                          <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                      </td>
+
+                    </tr>
+                  ))}
+                  {allUsers.filter(u => u.role && u.role.toLowerCase().includes(selectedRole.name.toLowerCase())).length === 0 && (
+                    <tr>
+                      <td colSpan={3} className="px-6 py-8 text-center text-sm text-gray-400">Tidak ada pengguna yang terdaftar di role ini.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>
