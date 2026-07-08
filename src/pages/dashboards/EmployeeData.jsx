@@ -481,17 +481,8 @@ const EmployeeData = () => {
           </div>
           <div className="lg:col-span-4 space-y-6">
             <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm flex flex-col items-center text-center">
-              <div className="w-28 h-28 rounded-2xl bg-[#E5E7EB] flex items-center justify-center text-[#1A3D63] font-black text-4xl mb-6 shadow-inner">
-                SW
-              </div>
-              <div className="flex items-center gap-2 w-full">
-                <button className="flex-1 flex items-center justify-center bg-[#F3F4F6] hover:bg-gray-200 text-[#1F2937] px-4 py-2.5 rounded-xl text-[13px] font-bold transition-all">
-                  <UploadIcon />
-                  Ganti Foto
-                </button>
-                <button className="px-3.5 py-2.5 bg-blue-50 text-[#4A7FA7] border border-blue-100 rounded-xl hover:bg-blue-100 transition-all">
-                  <TrashIcon />
-                </button>
+              <div className="w-28 h-28 rounded-2xl bg-[#E5E7EB] flex items-center justify-center text-[#1A3D63] font-black text-4xl shadow-inner">
+                {selectedEmployee.name ? selectedEmployee.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() : "U"}
               </div>
             </div>
             <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
@@ -507,7 +498,7 @@ const EmployeeData = () => {
                     @
                   </div>
                   <div>
-                    <h4 className="text-[13px] font-bold text-[#1F2937]">sri.guru@siakad.id</h4>
+                    <h4 className="text-[13px] font-bold text-[#1F2937]">{form.email || "belum_diset@siakad.id"}</h4>
                     <p className="text-[11px] text-gray-500 mt-0.5">Role Utama: Guru</p>
                   </div>
                 </div>
@@ -547,10 +538,6 @@ const EmployeeData = () => {
                     </div>
                   </div>
                 </div>
-                <button className="w-full flex items-center justify-center px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-[13px] font-bold text-[#1F2937] hover:bg-gray-50 transition-all shadow-sm">
-                  <PrintIcon />
-                  Cetak SK
-                </button>
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import ReactDOM from "react-dom";
 
 const mockKurikulum = [
@@ -155,29 +155,6 @@ const PersetujuanKurikulum = () => {
                 <div className="flex-1">
                   <p className="text-[11px] text-gray-400 font-bold uppercase tracking-wider">Deskripsi / Perubahan</p>
                   <p className="text-[14px] text-gray-700 leading-relaxed mt-1 font-medium">{selected.deskripsi}</p>
-                </div>
-              </div>
-
-              <div className="bg-blue-50/50 hover:bg-blue-50 p-4 rounded-xl border border-blue-100 hover:border-blue-200 transition-all flex items-center justify-between cursor-pointer group">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 text-blue-600 rounded-lg group-hover:scale-105 transition-transform shrink-0">
-                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                      <polyline points="14 2 14 8 20 8"/>
-                      <line x1="16" y1="13" x2="8" y2="13"/>
-                      <line x1="16" y1="17" x2="8" y2="17"/>
-                      <polyline points="10 9 9 9 8 9"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-[13px] font-bold text-blue-800">Dokumen Lampiran Kurikulum</p>
-                    <p className="text-[11px] text-blue-500">Klik untuk melihat berkas PDF lengkap</p>
-                  </div>
-                </div>
-                <div className="text-blue-600 group-hover:translate-VII-1 transition-transform">
-                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
                 </div>
               </div>
             </div>

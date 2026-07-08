@@ -74,7 +74,7 @@ const WaliKelasDashboard = ({ user, activeMenu, onViewChange }) => {
       return <InputNilai user={user} />;
       
     case "Absensi Siswa":
-      return <AbsensiSiswa user={user} onSaveAttendance={handleSaveAttendance} />;
+      return <AbsensiSiswa user={user} onSaveAttendance={handleSaveAttendance} attendanceSessions={attendanceSessions} />;
       
     case "Rekap Absensi Siswa":
       return <RekapAbsensiSiswa user={user} attendanceSessions={attendanceSessions} />;

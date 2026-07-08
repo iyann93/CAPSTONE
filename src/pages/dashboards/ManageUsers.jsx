@@ -201,7 +201,11 @@ const ManageUsers = ({ onViewChange }) => {
       password: '', // blank on edit
       roleId: roles.find(r => r.nama_role === user.role)?.id || '',
       siswaId: user.linked_siswa_id || '', // pre-fill dari relasi yang sudah ada
-      isActive: user.is_active
+      isActive: user.is_active,
+      tanggal_lahir: user.tanggal_lahir || '',
+      jenis_kelamin: user.jenis_kelamin || '',
+      telepon: user.telepon || '',
+      alamat: user.alamat || ''
     });
     setShowPassword(false);
     setShowConfirmPassword(false);
@@ -210,7 +214,7 @@ const ManageUsers = ({ onViewChange }) => {
 
   const handleAddClick = () => {
     setSelectedUser(null);
-    setFormData({ nama: '', email: '', password: '', roleId: '', siswaId: '', isActive: true });
+    setFormData({ nama: '', email: '', password: '', roleId: '', siswaId: '', isActive: true, tanggal_lahir: '', jenis_kelamin: '', telepon: '', alamat: '' });
     setShowPassword(false);
     setShowConfirmPassword(false);
     setView("add");
@@ -284,6 +288,51 @@ const ManageUsers = ({ onViewChange }) => {
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
                   className="w-full px-4 py-3 bg-white border border-gray-200 focus:border-[#1A3D63] rounded-xl text-sm font-semibold text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:ring-1 focus:ring-[#1A3D63]"
                 />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Tanggal Lahir</label>
+                  <input
+                    type="date"
+                    value={formData.tanggal_lahir}
+                    onChange={(e) => setFormData({...formData, tanggal_lahir: e.target.value})}
+                    className="w-full px-4 py-3 bg-white border border-gray-200 focus:border-[#1A3D63] rounded-xl text-sm font-semibold text-gray-800 outline-none transition-all focus:ring-1 focus:ring-[#1A3D63]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Jenis Kelamin</label>
+                  <select
+                    value={formData.jenis_kelamin}
+                    onChange={(e) => setFormData({...formData, jenis_kelamin: e.target.value})}
+                    className="w-full appearance-none px-4 py-3 bg-white border border-gray-200 focus:border-[#1A3D63] rounded-xl text-sm font-semibold text-gray-800 outline-none transition-all cursor-pointer focus:ring-1 focus:ring-[#1A3D63]"
+                  >
+                    <option value="" disabled>Pilih jenis kelamin...</option>
+                    <option value="L">Laki-laki</option>
+                    <option value="P">Perempuan</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Nomor Telepon</label>
+                  <input
+                    type="tel"
+                    placeholder="Contoh: 081234567890"
+                    value={formData.telepon}
+                    onChange={(e) => setFormData({...formData, telepon: e.target.value})}
+                    className="w-full px-4 py-3 bg-white border border-gray-200 focus:border-[#1A3D63] rounded-xl text-sm font-semibold text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:ring-1 focus:ring-[#1A3D63]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Alamat Pribadi</label>
+                  <input
+                    type="text"
+                    placeholder="Masukkan alamat lengkap..."
+                    value={formData.alamat}
+                    onChange={(e) => setFormData({...formData, alamat: e.target.value})}
+                    className="w-full px-4 py-3 bg-white border border-gray-200 focus:border-[#1A3D63] rounded-xl text-sm font-semibold text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:ring-1 focus:ring-[#1A3D63]"
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">Pilih Role (Hak Akses)</label>

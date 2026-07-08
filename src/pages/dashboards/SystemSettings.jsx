@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 const SettingsIcon = () => <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
   <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
   <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
@@ -19,18 +19,42 @@ const TabIcon = ({ type }) => {
       return null;
   }
 };
+
 const SystemSettings = () => {
   const [activeTab, setActiveTab] = useState("Profil Sekolah");
-  const renderInputRow = (label, value) => <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center py-2">
-    <label className="md:col-span-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">{label}</label>
-    <div className="md:col-span-9">
-      <input
-        type="text"
-        defaultValue={value}
-        className="w-full bg-white border border-gray-100 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 shadow-sm focus:outline-none focus:border-primary-500/30 transition-all"
-      />
+  
+  const [settings, setSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem("system_settings_data");
+      return saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      return {};
+    }
+  });
+
+  const handleChange = (label, val) => {
+    setSettings(prev => ({ ...prev, [label]: val }));
+  };
+
+  const handleSave = () => {
+    localStorage.setItem("system_settings_data", JSON.stringify(settings));
+    alert("Perubahan konfigurasi sistem berhasil disimpan!");
+  };
+
+  const renderInputRow = (label, defaultValue) => (
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center py-2">
+      <label className="md:col-span-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">{label}</label>
+      <div className="md:col-span-9">
+        <input
+          type="text"
+          value={settings[label] !== undefined ? settings[label] : defaultValue}
+          onChange={(e) => handleChange(label, e.target.value)}
+          className="w-full bg-white border border-gray-100 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 shadow-sm focus:outline-none focus:border-primary-500/30 transition-all"
+        />
+      </div>
     </div>
-  </div>;
+  );
+
   return <div className="animate-fadeIn space-y-6 pb-10">
     {
       /* ── Page Header ── */
@@ -207,7 +231,7 @@ const SystemSettings = () => {
       }
       <div className="px-6 md:px-10 py-6 bg-gray-50/50 border-t border-gray-100 flex flex-col sm:flex-row justify-end items-center sticky bottom-0 z-10 w-full rounded-b-[32px]">
         <button 
-          onClick={() => alert("Perubahan konfigurasi sistem berhasil disimpan!")}
+          onClick={handleSave}
           className="w-full sm:w-auto justify-center bg-primary-500 hover:bg-primary-600 text-white px-8 py-3.5 rounded-xl font-bold text-sm shadow-lg shadow-primary-900/20 transition-all active:scale-95 flex items-center gap-2"
         >
           <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg>

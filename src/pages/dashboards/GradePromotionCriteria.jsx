@@ -1,4 +1,5 @@
 ﻿import React, { useState } from "react";
+import api from '../../api/axios';
 
 const criteriaData = [
   {
@@ -67,7 +68,7 @@ const GradePromotionCriteria = ({ setView }) => {
   React.useEffect(() => {
     const fetchState = async () => {
       try {
-        const { default: api } = await import('../../api/axios');
+        
         const res = await api.get('/system/frontend-state');
         if (res.data?.data?.grade_promotion_criteria) {
           setValues(res.data.data.grade_promotion_criteria);
@@ -93,7 +94,7 @@ const GradePromotionCriteria = ({ setView }) => {
     setEditMode(false);
     
     try {
-      const { default: api } = await import('../../api/axios');
+      
       const res = await api.get('/system/frontend-state');
       const currentState = res.data?.data || {};
       await api.put('/system/frontend-state', {
@@ -242,6 +243,4 @@ const GradePromotionCriteria = ({ setView }) => {
 };
 
 export default GradePromotionCriteria;
-
-
 
