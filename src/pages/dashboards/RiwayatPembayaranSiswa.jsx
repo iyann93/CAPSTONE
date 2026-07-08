@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { getTagihan } from "../../api/finance";
 
@@ -12,11 +12,21 @@ const mapStatus = (status) => {
   return "Belum Lunas";
 };
 
+const getNominalTagihan = (t) => {
+  const baseNominal = Number(t.nominal || 0);
+  const potongan = Number(t.potongan || 0);
+  const nominalAkhir = (t.nominal_akhir !== undefined && t.nominal_akhir !== null) 
+     ? Number(t.nominal_akhir) 
+     : (baseNominal - potongan);
+  return Math.max(0, nominalAkhir);
+};
+
 const RiwayatPembayaranSiswa = ({ user, onNavigate }) => {
   const [tagihan, setTagihan] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("Semua");
   const [detail, setDetail] = useState(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
 
   const studentData = {
     nama: user?.anak?.nama || "Siswa",
@@ -26,18 +36,32 @@ const RiwayatPembayaranSiswa = ({ user, onNavigate }) => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const res = await getTagihan({ limit: 100 });
-        const mapped = res.map(t => {
+        const res = await getTagihan({ limit: 5000 });
+        const arr = Array.isArray(res) ? res : [];
+        
+        const anakId = user?.anak?.id;
+        const anakNis = user?.anak?.nis;
+        const anakNisn = user?.anak?.nisn;
+        const anakNama = user?.anak?.nama;
+
+        const myTagihans = arr.filter(t => 
+           (anakId && t.id_siswa === anakId) ||
+           (anakNis && t.nis === anakNis) ||
+           (anakNama && (t.nama_siswa === anakNama || t.nama === anakNama)) ||
+           (anakNisn && t.nisn === anakNisn)
+        );
+
+        const mapped = myTagihans.map(t => {
           const d = t.created_at ? new Date(t.created_at) : new Date();
           return {
             id: t.id,
             bulan: `${getBulanNama(t.bulan)} ${t.tahun}`,
-            nominal: t.nominal_akhir, // <-- changed from t.nominal to t.nominal_akhir
+            nominal: getNominalTagihan(t),
             jatuhTempo: t.jatuh_tempo ? new Date(t.jatuh_tempo).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : "10 " + getBulanNama(t.bulan).substring(0,3) + " " + t.tahun,
             status: mapStatus(t.status),
             tglBayar: t.status === 'lunas' && t.updated_at ? new Date(t.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : null,
             denda: 0,
-            bukti: t.bukti_url
+            bukti: t.bukti_pembayaran_url
           };
         });
         setTagihan(mapped);
@@ -47,8 +71,10 @@ const RiwayatPembayaranSiswa = ({ user, onNavigate }) => {
         setLoading(false);
       }
     };
-    loadData();
-  }, []);
+    if (user) {
+      loadData();
+    }
+  }, [user]);
 
   const baseTagihan = tagihan.filter(t => t.status !== "Belum Lunas");
   const filtered = filter === "Semua" ? baseTagihan : baseTagihan.filter(t => t.status === filter);
@@ -157,8 +183,11 @@ const RiwayatPembayaranSiswa = ({ user, onNavigate }) => {
               {detail.bukti && (
                 <div className="pt-3 pb-2">
                   <p className="text-[13px] text-gray-500 mb-2 font-bold">Bukti Pembayaran</p>
-                  <div className="border border-gray-100 rounded-xl overflow-hidden shadow-sm">
-                    <img src={detail.bukti} alt="Bukti Pembayaran" className="w-full h-auto object-cover max-h-52" />
+                  <div className="border border-gray-100 rounded-xl overflow-hidden shadow-sm relative group cursor-pointer" onClick={() => setShowPreviewModal(true)}>
+                    <img src={detail.bukti} alt="Bukti Pembayaran" className="w-full h-auto object-cover max-h-40" />
+                    <div className="absolute inset-0 bg-black/30 hidden group-hover:flex items-center justify-center transition-all">
+                      <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" /></svg>
+                    </div>
                   </div>
                 </div>
               )}
@@ -180,6 +209,25 @@ const RiwayatPembayaranSiswa = ({ user, onNavigate }) => {
                   Bayar Sekarang
                 </button>
               )}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Full Image Preview Modal */}
+      {showPreviewModal && detail?.bukti && ReactDOM.createPortal(
+        <div style={{ position: "fixed", inset: 0, zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowPreviewModal(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden max-w-3xl w-full flex flex-col max-h-[90vh] animate-scaleUp">
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-white">
+              <h3 className="font-bold text-gray-800 text-[15px]">Pratinjau Bukti Pembayaran</h3>
+              <button onClick={() => setShowPreviewModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-500 transition-colors flex-shrink-0">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto bg-gray-50 flex items-center justify-center p-4">
+              <img src={detail.bukti} alt="Bukti Pembayaran Full" className="max-w-full max-h-full object-contain rounded-lg shadow-sm" />
             </div>
           </div>
         </div>,

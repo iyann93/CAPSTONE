@@ -204,8 +204,7 @@ const menuSections = [
   {
     section: "INFORMASI",
     items: [
-      { label: "Pengumuman Sekolah", icon: <ChatIcon /> },
-      { label: "Data Orang Tua", icon: <UsersIcon /> }
+      { label: "Pengumuman Sekolah", icon: <ChatIcon /> }
     ],
     roles: ["Orang Tua"]
   },
@@ -259,7 +258,7 @@ const menuSections = [
     items: [
       { label: "Riwayat Terima Gaji", icon: <CalendarIcon /> }
     ],
-    roles: ["Admin TU", "Kepala Sekolah", "Wakil Kepala", "Bendahara", "Guru", "Guru Mapel"]
+    roles: ["Admin TU", "Kepala Sekolah", "Wakil Kepala", "Bendahara", "Guru", "Guru Mapel", "Wali Kelas"]
   }
 ];
 const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) => {

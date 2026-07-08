@@ -9,8 +9,12 @@ const KelulusanRepository = {
   findAll: async ({ limit, offset, search, sort, kelasId, status, tingkat = 'IX' }) => {
     const wb = whereBuilder();
     
-    // Always restrict to graduating grade levels (default to IX)
-    wb.addExact(tingkat, 'k.tingkat');
+    // Fallback to check nama_kelas if tingkat is not reliably set in DB
+    if (tingkat === 'IX') {
+      wb.addRaw("k.nama_kelas ILIKE '%IX%'");
+    } else {
+      wb.addExact(tingkat, 'k.tingkat');
+    }
 
     if (search) {
       wb.addLike(search, ['s.nama_lengkap', 's.nis']);

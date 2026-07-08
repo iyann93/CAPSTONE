@@ -39,8 +39,9 @@ import {
   deleteDanaBeasiswa,
   getOperasional,
 } from "../../api/finance";
+import { getGlobalFinanceSummary } from "../../utils/financeHelpers";
 import { getSiswa } from "../../api/academic";
-import { getAllSlips } from "../../api/payroll";
+import { getAllSlips, getEmployees } from "../../api/payroll";
 import Profile from "../Profile";
 import TemplateGajiTab from "../../components/payroll/TemplateGajiTab";
 import OverridePegawaiTab from "../../components/payroll/OverridePegawaiTab";
@@ -229,6 +230,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
   const [sppPayments, setSppPayments] = useState([]);
   const [paidSlips, setPaidSlips] = useState([]);
+  const [globalFinance, setGlobalFinance] = useState({ totalPemasukan: 0, totalPengeluaran: 0 });
+  const [totalEmployees, setTotalEmployees] = useState(0);
   
   // Laporan States
   const [laporanType, setLaporanType] = useState("Laporan Pembayaran SPP (Pemasukan)");
@@ -292,7 +295,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
     tanggalMulaiDaftar: "",
     tanggalSelesaiDaftar: "",
     deskripsi: "",
-    persyaratan: "",
+    persyaratan: [""],
     status: "Aktif"
   });
   const [isProgramFormDirty, setIsProgramFormDirty] = useState(false);
@@ -488,15 +491,37 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
         // found only in backend (no metadata saved yet)
         const base = prev.length > 0 ? [...prev] : loadProgramsFromStorage().map(p => ({ ...p, penerima: [] }));
 
-        // Merge penerima from backend
-        const merged = base.map(prog => ({
-          ...prog,
-          penerima: grouped[prog.title]?.penerima || prog.penerima || []
-        }));
+        // Deduplicate base programs by title (case-insensitive) to clean up duplicates
+        const uniqueMap = new Map();
+        base.forEach(p => {
+          const key = (p.title || "").trim().toLowerCase();
+          if (!uniqueMap.has(key)) {
+            uniqueMap.set(key, p);
+          } else {
+            const existing = uniqueMap.get(key);
+            // Keep the one with description if there's a conflict
+            if (!existing.description && p.description) {
+              uniqueMap.set(key, { ...existing, description: p.description, requirements: p.requirements });
+            }
+          }
+        });
+        const deduplicatedBase = Array.from(uniqueMap.values());
 
-        // Add programs only known from backend (edge case: someone added via different client)
+        // Merge penerima from backend using case-insensitive match
+        const merged = deduplicatedBase.map(prog => {
+          const key = (prog.title || "").trim().toLowerCase();
+          // Find matching key in grouped
+          const matchedGroupKey = Object.keys(grouped).find(k => k.trim().toLowerCase() === key);
+          return {
+            ...prog,
+            title: matchedGroupKey || prog.title, // sync casing with backend if matched
+            penerima: matchedGroupKey ? grouped[matchedGroupKey].penerima : []
+          };
+        });
+
+        // Add programs only known from backend
         Object.keys(grouped).forEach(namaBeasiswa => {
-          if (!merged.find(p => p.title === namaBeasiswa)) {
+          if (!merged.find(p => (p.title || "").trim().toLowerCase() === namaBeasiswa.trim().toLowerCase())) {
             merged.push({
               title: namaBeasiswa,
               subtitle: "2025/2026",
@@ -513,6 +538,11 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
             });
           }
         });
+
+        // Clean up localStorage if we had duplicates
+        if (deduplicatedBase.length < base.length) {
+          saveProgramsToStorage(merged.map(m => ({ ...m, penerima: [] })));
+        }
 
         return merged;
       });
@@ -572,9 +602,15 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
   const loadPaidSlips = useCallback(async () => {
     try {
-      const res = await getAllSlips({ limit: 1000, status: 'dibayar' });
-      if (res && res.data) {
-        setPaidSlips(res.data);
+      const [slipsRes, empRes] = await Promise.all([
+        getAllSlips({ limit: 1000, status: 'dibayar' }).catch(() => null),
+        getEmployees().catch(() => [])
+      ]);
+      if (slipsRes && slipsRes.data) {
+        setPaidSlips(slipsRes.data);
+      }
+      if (Array.isArray(empRes)) {
+        setTotalEmployees(empRes.length);
       }
     } catch (e) {
       console.error("loadPaidSlips:", e);
@@ -636,7 +672,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
     loadPaidSlips();
     loadDanaBeasiswa();
     loadOperasional();
-  }, [loadKomponenSpp, loadKomponenGaji, loadTagihan, loadBeasiswa, loadSiswa, loadPembayaran, loadPaidSlips, loadDanaBeasiswa, loadOperasional]);
+    getGlobalFinanceSummary().then(setGlobalFinance).catch(console.error);
+  }, [activeMenu, loadKomponenSpp, loadKomponenGaji, loadTagihan, loadBeasiswa, loadSiswa, loadPembayaran, loadPaidSlips, loadDanaBeasiswa, loadOperasional]);
 
   // Handlers
   const handleDownloadLaporan = async () => {
@@ -757,6 +794,10 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
     if (!newProgramForm.nominal) missingFields.push("Nominal Bantuan");
     if (!newProgramForm.tahunAjaran) missingFields.push("Tahun Ajaran");
 
+    if (!newProgramForm.tanggalMulaiDaftar) missingFields.push("Periode Berlaku");
+    if (!newProgramForm.status) missingFields.push("Status Program");
+    if (!newProgramForm.deskripsi) missingFields.push("Deskripsi Program");
+
     if (missingFields.length > 0) {
       triggerToast(`Gagal: Field belum lengkap (${missingFields.join(', ')})`);
       return;
@@ -774,8 +815,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
         typeColor: "blue",
         description: newProgramForm.deskripsi,
         quota: newProgramForm.kuota,
-        requirements: newProgramForm.persyaratan,
-        periodePendaftaran: `${newProgramForm.tanggalMulaiDaftar} s/d ${newProgramForm.tanggalSelesaiDaftar}`
+        requirements: Array.isArray(newProgramForm.persyaratan) ? newProgramForm.persyaratan.filter(r => r.trim() !== "").map((r, i) => `${i + 1}. ${r}`).join('\n') : newProgramForm.persyaratan,
+        periodePendaftaran: newProgramForm.tanggalMulaiDaftar
       };
 
       let updatedList;
@@ -786,7 +827,37 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
         if (selectedProgramForView === editingProgramTitle) {
           setSelectedProgramForView(newProgramData.title);
         }
+
+        // Sync backend recipients to automatically reflect changes in program status and period
+        const updatedProgram = updatedList.find(p => p.title === newProgramData.title);
+        if (updatedProgram && updatedProgram.penerima && updatedProgram.penerima.length > 0) {
+          let tglMulai = new Date().toISOString().split('T')[0];
+          let tglSelesai = "";
+          if (newProgramData.periodePendaftaran && newProgramData.periodePendaftaran !== "-" && newProgramData.periodePendaftaran.includes(' s/d ')) {
+            tglMulai = newProgramData.periodePendaftaran.split(' s/d ')[0];
+            tglSelesai = newProgramData.periodePendaftaran.split(' s/d ')[1];
+          }
+          Promise.all(updatedProgram.penerima.map(r => 
+            updateBeasiswa(r.id, {
+                ...r,
+                siswaId: r.siswa_id,
+                namaBeasiswa: newProgramData.title,
+                periode: newProgramData.subtitle,
+                status: newProgramData.status,
+                tanggalMulai: tglMulai,
+                tanggalSelesai: tglSelesai
+            }).catch(e => console.error("Sync error for recipient", r.id, e))
+          )).then(() => {
+            loadBeasiswa();
+          });
+        }
       } else {
+        const isDuplicate = programList.some(p => (p.title || "").trim().toLowerCase() === (newProgramData.title || "").trim().toLowerCase());
+        if (isDuplicate) {
+          triggerToast("Program dengan nama tersebut sudah ada!", "error");
+          setIsSavingProgram(false);
+          return;
+        }
         updatedList = [{ ...newProgramData, id: Date.now(), penerima: [] }, ...programList];
       }
 
@@ -799,7 +870,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       setIsSavingProgram(false);
       triggerToast(editingProgramTitle ? "Program berhasil diperbarui!" : "Program berhasil ditambahkan!");
       setNewProgramForm({
-        nama: "", kategori: "", sumberDana: "", nominal: "", kuota: "", tahunAjaran: "2025/2026", tanggalMulaiDaftar: "", tanggalSelesaiDaftar: "", deskripsi: "", persyaratan: "", status: "Aktif"
+        nama: "", kategori: "", sumberDana: "", nominal: "", kuota: "", tahunAjaran: "2025/2026", tanggalMulaiDaftar: "", tanggalSelesaiDaftar: "", deskripsi: "", persyaratan: [""], status: "Aktif"
       });
     }, 800);
   };
@@ -810,6 +881,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       const r = String(prog.amount).replace(/[^0-9]/g, '');
       if (r) initialNom = new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0 }).format(r);
     }
+    const initialReqs = prog.requirements ? (typeof prog.requirements === 'string' ? prog.requirements.split('\n').map(r => r.replace(/^\d+[\.\)]\s*/, '').trim()).filter(Boolean) : (Array.isArray(prog.requirements) ? prog.requirements : [""])) : [""];
+    if (initialReqs.length === 0) initialReqs.push("");
+
     setNewProgramForm({
       nama: prog.title || "",
       kategori: prog.type || "",
@@ -817,10 +891,10 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       nominal: initialNom,
       kuota: prog.quota || "",
       tahunAjaran: prog.subtitle || "2025/2026",
-      tanggalMulaiDaftar: (prog.periodePendaftaran && prog.periodePendaftaran !== "-" && prog.periodePendaftaran.includes(' s/d ')) ? prog.periodePendaftaran.split(' s/d ')[0] : "",
+      tanggalMulaiDaftar: prog.periodePendaftaran && prog.periodePendaftaran !== "-" ? (prog.periodePendaftaran.includes(' s/d ') ? prog.periodePendaftaran.split(' s/d ')[0] : prog.periodePendaftaran) : "",
       tanggalSelesaiDaftar: (prog.periodePendaftaran && prog.periodePendaftaran !== "-" && prog.periodePendaftaran.includes(' s/d ')) ? prog.periodePendaftaran.split(' s/d ')[1] : "",
       deskripsi: prog.description || "",
-      persyaratan: prog.requirements || "",
+      persyaratan: initialReqs,
       status: prog.status || "Aktif"
     });
     setEditingProgramTitle(prog.title);
@@ -919,7 +993,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
   };
 
   const handleSaveBeasiswa = async () => {
-    if ((!beasiswaForm.siswaIds || beasiswaForm.siswaIds.length === 0) && !beasiswaForm.siswaId || !beasiswaForm.namaBeasiswa || !beasiswaForm.nominal || !beasiswaForm.periode || !beasiswaForm.tanggalMulai) {
+    if ((!beasiswaForm.siswaIds || beasiswaForm.siswaIds.length === 0) && !beasiswaForm.siswaId || !beasiswaForm.namaBeasiswa || !beasiswaForm.nominal) {
       triggerToast("Mohon isi seluruh field wajib bertanda *", "error");
       return;
     }
@@ -928,15 +1002,23 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
     setTimeout(async () => {
       const nominalClean = Number(String(beasiswaForm.nominal).replace(/[^0-9]/g, ''));
+      
+      const selectedProgram = programList.find(p => p.title === beasiswaForm.namaBeasiswa);
+      let tglMulai = new Date().toISOString().split('T')[0];
+      let tglSelesai = "";
+      if (selectedProgram && selectedProgram.periodePendaftaran && selectedProgram.periodePendaftaran !== "-" && selectedProgram.periodePendaftaran.includes(' s/d ')) {
+        tglMulai = selectedProgram.periodePendaftaran.split(' s/d ')[0];
+        tglSelesai = selectedProgram.periodePendaftaran.split(' s/d ')[1];
+      }
 
       const payload = {
         siswaIds: beasiswaForm.siswaIds || (beasiswaForm.siswaId ? [beasiswaForm.siswaId] : []),
         namaBeasiswa: beasiswaForm.namaBeasiswa,
         nominal: nominalClean,
-        periode: beasiswaForm.periode,
-        status: beasiswaForm.status,
-        tanggalMulai: beasiswaForm.tanggalMulai,
-        tanggalSelesai: beasiswaForm.tanggalSelesai || null,
+        periode: selectedProgram ? selectedProgram.subtitle : "2025/2026",
+        status: selectedProgram ? selectedProgram.status : "Aktif",
+        tanggalMulai: tglMulai,
+        tanggalSelesai: tglSelesai || null,
       };
 
       try {
@@ -960,7 +1042,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
           namaBeasiswa: "",
           nominal: "",
           periode: "2025/2026",
-          status: "Aktif",
+          status: "",
           tanggalMulai: new Date().toISOString().split('T')[0],
           tanggalSelesai: ""
         });
@@ -1084,6 +1166,10 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
     const matchesClass = gradePart === targetGrade;
     
     return matchesSearch && matchesClass && matchesMonth && matchesYear;
+  }).sort((a, b) => {
+    const isAConfirm = (a.status === "menunggu_konfirmasi" || a.status?.toLowerCase() === "menunggu konfirmasi") ? 1 : 0;
+    const isBConfirm = (b.status === "menunggu_konfirmasi" || b.status?.toLowerCase() === "menunggu konfirmasi") ? 1 : 0;
+    return isBConfirm - isAConfirm;
   });
 
   const formatBulan = (bulan, tahun) => {
@@ -1154,7 +1240,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
             });
           }
         });
-        return <PengeluaranOperasionalTab triggerToast={triggerToast} danaBeasiswaList={danaBeasiswaList} beasiswaList={penyaluranListForTab} />;
+        return <PengeluaranOperasionalTab triggerToast={triggerToast} danaBeasiswaList={danaBeasiswaList} beasiswaList={penyaluranListForTab} sppPayments={sppPayments} />;
       case "My Profile":
         return <Profile user={user} />;
       case "Template Gaji Jabatan":
@@ -1192,7 +1278,12 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
         }, 0);
         
         const belumBayarBulanIni = studentsBill.filter(b => (b.bulan === dashboardBulan || b.period?.startsWith(dashboardBulan)) && b.status !== "Lunas" && b.status?.toLowerCase() !== "lunas");
-        const nominalTunggakan = belumBayarBulanIni.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+        const nominalTunggakan = belumBayarBulanIni.reduce((acc, curr) => {
+          const nominalAkhir = curr.nominal_akhir !== undefined && curr.nominal_akhir !== null 
+            ? Number(curr.nominal_akhir) 
+            : Math.max(0, (Number(curr.nominal) || 0) - (Number(curr.potongan) || 0));
+          return acc + nominalAkhir;
+        }, 0);
 
         const dynamicDonutData = totalSiswaBulanIni > 0 ? [
           { name: "Lunas SPP", value: countLunas, fill: "#22c55e" },
@@ -1226,6 +1317,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
           return acc + (Number(curr.gaji_bersih) || 0);
         }, 0);
         const jumlahStaff = currentMonthSlips.length;
+        const totalStaff = totalEmployees > 0 ? totalEmployees : 35; // Fallback to 35 if not loaded
 
         const penyaluranBeasiswaList = [];
         programList.forEach(p => {
@@ -1240,9 +1332,12 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
           }
         });
         const totalPenyaluranBeasiswa = penyaluranBeasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
-        const totalPengeluaranTahunan = currentPengeluaranData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0) + totalPenyaluranBeasiswa;
+        const totalPenggajianTahunan = paidSlips.reduce((acc, curr) => acc + (Number(curr.gaji_bersih) || 0), 0);
+        const totalPengeluaranTahunan = globalFinance.totalPengeluaran;
+        
         const totalBeasiswa = danaBeasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
-        const totalPemasukanTahunan = currentPemasukanData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0) + totalBeasiswa;
+        const totalSppTahunan = sppPayments.reduce((acc, curr) => acc + (Number(String(curr.amount).replace(/[^0-9]/g, '')) || 0), 0);
+        const totalPemasukanTahunan = globalFinance.totalPemasukan;
 
         return (
           <div className="flex flex-col gap-6 animate-fadeIn font-sans">
@@ -1302,14 +1397,14 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                   subText: `dari ${totalSiswaBulanIni} siswa aktif`,
                 },
                 {
-                  title: "Tunggakan SPP",
+                  title: "Total Tagihan SPP",
                   value: formatRupiah(nominalTunggakan),
                   subText: `${countBelum} siswa belum bayar`,
                 },
                 {
-                  title: "Penggajian Bulan Ini",
+                  title: "Total Gaji Dibayarkan",
                   value: formatRupiah(totalPenggajian),
-                  subText: `${jumlahStaff} guru & staf`,
+                  subText: `${jumlahStaff} dari ${totalStaff} guru & staf`,
                 },
                 {
                   title: "Total Pemasukan Tahunan",
@@ -1573,7 +1668,12 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
             {/* Stat Cards Row */}
             {(() => {
               const totalSiswaMenunggak = filteredBills.length;
-              const totalTagihanMenunggak = filteredBills.reduce((acc, b) => acc + Number(b.nominal || 0), 0);
+              const totalTagihanMenunggak = filteredBills.reduce((acc, curr) => {
+                const nominalAkhir = curr.nominal_akhir !== undefined && curr.nominal_akhir !== null 
+                  ? Number(curr.nominal_akhir) 
+                  : Math.max(0, (Number(curr.nominal) || 0) - (Number(curr.potongan) || 0));
+                return acc + nominalAkhir;
+              }, 0);
 
               return (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
@@ -1586,7 +1686,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                   {/* Card 2: Total Tagihan */}
                   <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
                     <div className="text-2xl font-bold text-white">Rp {totalTagihanMenunggak.toLocaleString('id-ID')}</div>
-                    <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Total Nominal Tunggakan</div>
+                    <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Total Tagihan SPP</div>
                   </div>
                 </div>
               );
@@ -1683,7 +1783,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                     }}
                     className="flex items-center justify-center bg-[#1A3D63] hover:bg-blue-900 text-white border-none rounded-xl px-5 py-2 text-xs font-bold cursor-pointer transition-all active:scale-95 shadow-sm"
                   >
-                    Kirim Notifikasi
+                    Kirim Tagihan
                   </button>
 
                 </div>
@@ -1829,7 +1929,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                   <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
                     <div className="p-5 sm:p-6 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0 z-10">
                       <div>
-                        <h2 className="text-lg sm:text-xl font-bold text-gray-800">Kirim Notifikasi Tagihan SPP</h2>
+                        <h2 className="text-lg sm:text-xl font-bold text-gray-800">Kirim Tagihan SPP</h2>
                         <p className="text-xs sm:text-sm text-gray-500 mt-1">Tahun Ajaran: {selectedYear} | Kelas: {billClassFilter}</p>
                       </div>
                       <button onClick={() => { setShowNotificationModal(false); setSelectedNotificationStudents([]); }} className="p-2 hover:bg-gray-100 rounded-full transition-colors border-none bg-transparent cursor-pointer">
@@ -1936,7 +2036,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                     </div>
                     <h3 className="text-xl font-bold text-gray-800 mb-2">Konfirmasi Pengiriman</h3>
                     <p className="text-gray-500 text-sm mb-6">
-                      Apakah Anda yakin ingin mengirim notifikasi tagihan SPP ke <span className="font-bold text-gray-800">{selectedNotificationStudents.length} siswa</span> terpilih? Notifikasi akan dikirimkan ke WhatsApp orang tua/wali siswa.
+                      Apakah Anda yakin ingin mengirim tagihan SPP ke <span className="font-bold text-gray-800">{selectedNotificationStudents.length} siswa</span> terpilih? Tagihan akan dikirimkan ke WhatsApp orang tua/wali siswa.
                     </p>
                     <div className="flex gap-3 w-full">
                       <button 
@@ -1947,7 +2047,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                       </button>
                       <button 
                         onClick={() => {
-                          triggerToast(`Berhasil mengirim notifikasi ke ${selectedNotificationStudents.length} siswa!`);
+                          triggerToast(`Berhasil mengirim tagihan ke ${selectedNotificationStudents.length} siswa!`);
                           setShowNotificationConfirm(false);
                           setShowNotificationModal(false);
                           setSelectedNotificationStudents([]);
@@ -2261,100 +2361,112 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
             </div>
 
             <div className={`grid grid-cols-1 ${classGroups.length > 1 ? 'xl:grid-cols-3' : ''} gap-6`}>
-              {classGroups.map(group => {
-                const groupPrefix = group.replace("Kelas ", "");
-                const groupData = filteredRiwayat.filter(r => r.kelas.split(' ')[0] === groupPrefix);
+              {classGroups.length === 0 ? (
+                <div className="col-span-1 xl:col-span-3 bg-white rounded-2xl border border-dashed border-gray-200 p-10 flex flex-col items-center justify-center text-center shadow-sm">
+                  <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 border border-gray-100">
+                    <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-gray-400">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-[15px] font-bold text-gray-800 mb-1">Belum ada riwayat pembayaran</h3>
+                  <p className="text-xs text-gray-500 max-w-sm">Data transaksi pembayaran SPP siswa akan muncul di sini secara otomatis setelah dilakukan konfirmasi atau pembayaran oleh siswa.</p>
+                </div>
+              ) : (
+                classGroups.map(group => {
+                  const groupPrefix = group.replace("Kelas ", "");
+                  const groupData = filteredRiwayat.filter(r => r.kelas.split(' ')[0] === groupPrefix);
 
-                return (
-                  <div key={group} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col">
-                    <h3 className="text-sm font-bold text-[#1A3D63] mb-4 pb-3 border-b border-gray-100 flex items-center justify-between">
-                      {group}
-                      <span className="bg-[#EBF3FA] text-[#1A3D63] px-2.5 py-0.5 rounded-md text-[10px] font-bold">{groupData.length} Siswa</span>
-                    </h3>
-                    
-                    <div className="flex flex-col gap-4">
-                      {groupData.length > 0 ? groupData.map((item, idx) => {
-                        const isExpanded = expandedRiwayatId === item.id;
-                        return (
-                        <React.Fragment key={item.id}>
-                          <div className={`flex flex-col gap-3 transition-all ${isExpanded ? 'bg-gray-50/50 p-3.5 rounded-xl border border-gray-200' : ''}`}>
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <div className="w-6 h-6 rounded-full bg-[#EBF3FA] flex items-center justify-center text-[10px] font-bold text-[#1A3D63] flex-shrink-0 shadow-sm">
-                                  {idx + 1}
-                                </div>
-                                <div>
-                                  <div className="text-[13px] font-bold text-gray-800">{item.name}</div>
-                                  <div className="text-[10px] font-semibold text-gray-400 mt-0.5">{item.kelas}</div>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => setExpandedRiwayatId(isExpanded ? null : item.id)}
-                                  className={`bg-white hover:bg-gray-50 border ${isExpanded ? 'border-[#EF4444] text-[#EF4444] hover:bg-red-50' : 'border-gray-200 text-[#1A3D63]'} px-2.5 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition-all shadow-sm active:scale-95`}
-                                >
-                                  {isExpanded ? 'Tutup' : 'Detail'}
-                                </button>
-                              </div>
-                            </div>
-
-                            {/* Expanded Detail Section */}
-                            {isExpanded && (
-                              <div className="mt-2 pt-3 border-t border-gray-200 animate-fadeIn space-y-3">
-                                {/* Student & Payment Info */}
-                                <div className="grid grid-cols-2 gap-3 text-xs">
-                                  <div>
-                                    <div className="text-gray-400 font-semibold mb-1">NIS</div>
-                                    <div className="font-bold text-gray-800">{item.nis}</div>
+                  return (
+                    <div key={group} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col">
+                      <h3 className="text-sm font-bold text-[#1A3D63] mb-4 pb-3 border-b border-gray-100 flex items-center justify-between">
+                        {group}
+                        <span className="bg-[#EBF3FA] text-[#1A3D63] px-2.5 py-0.5 rounded-md text-[10px] font-bold">{groupData.length} Siswa</span>
+                      </h3>
+                      
+                      <div className="flex flex-col gap-4">
+                        {groupData.length > 0 ? groupData.map((item, idx) => {
+                          const isExpanded = expandedRiwayatId === item.id;
+                          return (
+                          <React.Fragment key={item.id}>
+                            <div className={`flex flex-col gap-3 transition-all ${isExpanded ? 'bg-gray-50/50 p-3.5 rounded-xl border border-gray-200' : ''}`}>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-6 h-6 rounded-full bg-[#EBF3FA] flex items-center justify-center text-[10px] font-bold text-[#1A3D63] flex-shrink-0 shadow-sm">
+                                    {idx + 1}
                                   </div>
                                   <div>
-                                    <div className="text-gray-400 font-semibold mb-1">Status</div>
-                                    <div className="flex items-center gap-1">
-                                      <span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
-                                      <span className="font-bold text-green-600">{item.status}</span>
+                                    <div className="text-[13px] font-bold text-gray-800">{item.name}</div>
+                                    <div className="text-[10px] font-semibold text-gray-400 mt-0.5">{item.kelas}</div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => setExpandedRiwayatId(isExpanded ? null : item.id)}
+                                    className={`bg-white hover:bg-gray-50 border ${isExpanded ? 'border-[#EF4444] text-[#EF4444] hover:bg-red-50' : 'border-gray-200 text-[#1A3D63]'} px-2.5 py-1.5 rounded-lg text-[10px] font-bold cursor-pointer transition-all shadow-sm active:scale-95`}
+                                  >
+                                    {isExpanded ? 'Tutup' : 'Detail'}
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Expanded Detail Section */}
+                              {isExpanded && (
+                                <div className="mt-2 pt-3 border-t border-gray-200 animate-fadeIn space-y-3">
+                                  {/* Student & Payment Info */}
+                                  <div className="grid grid-cols-2 gap-3 text-xs">
+                                    <div>
+                                      <div className="text-gray-400 font-semibold mb-1">NIS</div>
+                                      <div className="font-bold text-gray-800">{item.nis}</div>
+                                    </div>
+                                    <div>
+                                      <div className="text-gray-400 font-semibold mb-1">Status</div>
+                                      <div className="flex items-center gap-1">
+                                        <span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
+                                        <span className="font-bold text-green-600">{item.status}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Payment Details */}
+                                  <div className="border-t border-gray-100 pt-3 grid grid-cols-2 gap-3 text-xs">
+                                    <div>
+                                      <div className="text-gray-400 font-semibold mb-1">Bulan Tagihan</div>
+                                      <div className="font-bold text-gray-800">{item.month} 2026</div>
+                                    </div>
+                                    <div>
+                                      <div className="text-gray-400 font-semibold mb-1">Total Bayar</div>
+                                      <div className="font-bold text-[#1A3D63]">{item.amount}</div>
+                                    </div>
+                                    <div className="col-span-2">
+                                      <div className="text-gray-400 font-semibold mb-1">Metode</div>
+                                      <div className="font-bold text-gray-800">{item.method}</div>
+                                    </div>
+                                  </div>
+
+                                  {/* Timestamp */}
+                                  <div className="border-t border-gray-100 pt-3">
+                                    <div className="flex items-start gap-2">
+                                      <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-gray-400 mt-0.5 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                                      <span className="text-xs text-gray-600">{item.dateTime}</span>
                                     </div>
                                   </div>
                                 </div>
+                              )}
+                            </div>
 
-                                {/* Payment Details */}
-                                <div className="border-t border-gray-100 pt-3 grid grid-cols-2 gap-3 text-xs">
-                                  <div>
-                                    <div className="text-gray-400 font-semibold mb-1">Bulan Tagihan</div>
-                                    <div className="font-bold text-gray-800">{item.month} 2026</div>
-                                  </div>
-                                  <div>
-                                    <div className="text-gray-400 font-semibold mb-1">Total Bayar</div>
-                                    <div className="font-bold text-[#1A3D63]">{item.amount}</div>
-                                  </div>
-                                  <div className="col-span-2">
-                                    <div className="text-gray-400 font-semibold mb-1">Metode</div>
-                                    <div className="font-bold text-gray-800">{item.method}</div>
-                                  </div>
-                                </div>
-
-                                {/* Timestamp */}
-                                <div className="border-t border-gray-100 pt-3">
-                                  <div className="flex items-start gap-2">
-                                    <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-gray-400 mt-0.5 flex-shrink-0"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-                                    <span className="text-xs text-gray-600">{item.dateTime}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
+                              {/* Separator Line */}
+                              {idx < groupData.length - 1 && !isExpanded && <div className="w-full h-px bg-gray-50"></div>}
+                          </React.Fragment>
+                        )}) : (
+                          <div className="text-center py-6 text-gray-400 text-[11px] font-medium border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                            Tidak ada data di {group}.
                           </div>
-
-                            {/* Separator Line */}
-                            {idx < groupData.length - 1 && !isExpanded && <div className="w-full h-px bg-gray-50"></div>}
-                        </React.Fragment>
-                      )}) : (
-                        <div className="text-center py-6 text-gray-400 text-[11px] font-medium border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
-                          Tidak ada data di {group}.
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
         );
@@ -2592,7 +2704,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                               {activeProgram.status || 'Aktif'}
                             </span>
                           </div>
-                          <p className="text-sm text-gray-500 font-medium">Periode {activeProgram.subtitle}</p>
+                          <p className="text-sm text-gray-500 font-medium">Tahun Ajaran {activeProgram.subtitle}</p>
                         </div>
 
                         {/* Details Grid */}
@@ -2714,7 +2826,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                                     periode: "2025/2026",
                                     tanggalMulai: tglMulai,
                                     tanggalSelesai: tglSelesai,
-                                    status: "Aktif"
+                                    status: ""
                                   });
                                   setShowAddPenerimaModal(true);
                                 }}
@@ -2773,7 +2885,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                                       <td className="py-4 px-5 text-gray-400 font-semibold text-xs">{idx + 1}</td>
                                       <td className="py-4 px-5 font-bold text-gray-800">{row.siswa_nama}</td>
                                       <td className="py-4 px-4 text-center text-gray-500 font-medium">{row.nis || '-'}</td>
-                                      <td className="py-4 px-4 text-center text-gray-500 font-medium">VII A</td>
+                                      <td className="py-4 px-4 text-center text-gray-500 font-medium">{row.nama_kelas || '-'}</td>
                                       <td className="py-4 px-5 text-gray-700 font-medium truncate max-w-[140px]">{row.nama_beasiswa}</td>
                                       <td className="py-4 px-5">
                                         <span className="text-[#137333] bg-[#E6F4EA] px-2.5 py-1 rounded-md text-[10px] font-bold">
@@ -2877,7 +2989,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                   color: "border-l-4 border-l-[#EF4444]"
                 },
                 {
-                  title: "Total Nominal Tunggakan",
+                  title: "Total Tagihan SPP",
                   value: "Rp 2.7 Jt",
                   desc: "Akumulasi",
                   color: "border-l-4 border-l-[#EF4444]"
@@ -2948,7 +3060,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                       <th className="p-4 pl-5">NAMA SISWA</th>
                       <th className="p-4">KELAS</th>
                       <th className="p-4">JML BULAN</th>
-                      <th className="p-4">TOTAL TUNGGAKAN</th>
+                      <th className="p-4">TOTAL TAGIHAN</th>
                       <th className="p-4">STATUS</th>
                       <th className="p-4 pr-5">AKSI</th>
                     </tr>
@@ -3186,13 +3298,20 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
       case "Data Rekening":
         const dataRekening = [
-          { name: "Andi Susanto, S.Pd", role: "Guru Matematika", bank: "BCA", account: "8821-4567-9901" },
-          { name: "Maya Putri, M.Pd", role: "Guru Bahasa Indo", bank: "BCA", account: "8821-1234-5678" },
-          { name: "Hendro Wibowo", role: "Staff TU", bank: "BCA", account: "8821-9876-1234" },
-          { name: "Lina Sari, S.Kom", role: "Guru TIK", bank: "BCA", account: "8821-3456-7890" },
-          { name: "Dr. Hendra Wijaya", role: "Kepala Sekolah", bank: "BCA", account: "8821-5555-1234" },
-          { name: "Doni Prasetya", role: "Guru Olahraga", bank: "BCA", account: "8821-0991-5562" },
-          { name: "Astuti, S.Si", role: "Guru Kimia", bank: "BCA", account: "8821-9012-3456" }
+          { name: "Dra. Sri Wahyuni", role: "Guru Mapel", bank: "BCA", account: "8821-4567-9901" },
+          { name: "Ani Wulandari, S.Pd", role: "Wali Kelas", bank: "BCA", account: "8821-1234-5678" },
+          { name: "Drs. Hendra, M.Pd", role: "Guru Mapel", bank: "BCA", account: "8821-5555-1234" },
+          { name: "Ibu Rani Kusuma, S.Pd", role: "Guru Mapel", bank: "BCA", account: "8821-9876-1234" },
+          { name: "Ibu Sari Dewi, S.Pd", role: "Guru Mapel", bank: "BCA", account: "8821-3456-7890" },
+          { name: "Bpk. Ahmad Fauzi, M.Pd", role: "Guru Mapel", bank: "BCA", account: "8821-0991-5562" },
+          { name: "Ibu Dewi Anggraini, S.Pd", role: "Guru Mapel", bank: "BCA", account: "8821-9012-3456" },
+          { name: "Bpk. James Hutapea, S.Pd", role: "Guru Mapel", bank: "BCA", account: "8821-1122-3344" },
+          { name: "Ibu Nurdiana, S.Pd", role: "Guru Mapel", bank: "BCA", account: "8821-2233-4455" },
+          { name: "Ibu Ani Sulistyo, S.Sn", role: "Guru Mapel", bank: "BCA", account: "8821-3344-5566" },
+          { name: "Bpk. Rizal Maulana, S.Pd", role: "Guru Mapel", bank: "BCA", account: "8821-4455-6677" },
+          { name: "Dr. Hendra Wijaya", role: "Kepala Sekolah", bank: "BCA", account: "8821-5566-7788" },
+          { name: "Siti Aminah, S.E.", role: "Bendahara", bank: "BCA", account: "8821-6677-8899" },
+          { name: "Hendro Wibowo", role: "Staff TU", bank: "BCA", account: "8821-7788-9900" }
         ];
 
         return (
@@ -3642,7 +3761,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                       type="text"
                       value={newProgramForm.nama}
                       onChange={(e) => { setIsProgramFormDirty(true); setNewProgramForm({ ...newProgramForm, nama: e.target.value }) }}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all placeholder-gray-400"
+                      disabled={!!editingProgramTitle}
+                      className={`w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 ${editingProgramTitle ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white text-gray-700'} transition-all placeholder-gray-400`}
                       placeholder="Contoh: Beasiswa Prestasi"
                     />
                   </div>
@@ -3736,25 +3856,22 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Periode Berlaku</label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="date"
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Periode Berlaku <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <select
                         value={newProgramForm.tanggalMulaiDaftar}
                         onChange={(e) => { setIsProgramFormDirty(true); setNewProgramForm({ ...newProgramForm, tanggalMulaiDaftar: e.target.value }) }}
-                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all"
-                      />
-                      <span className="text-gray-400 text-sm font-bold">-</span>
-                      <input
-                        type="date"
-                        value={newProgramForm.tanggalSelesaiDaftar}
-                        onChange={(e) => { setIsProgramFormDirty(true); setNewProgramForm({ ...newProgramForm, tanggalSelesaiDaftar: e.target.value }) }}
-                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all"
-                      />
+                        className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 appearance-none transition-all cursor-pointer"
+                      >
+                        <option value="" disabled>Pilih Semester</option>
+                        <option value="Semester Ganjil">Semester Ganjil</option>
+                        <option value="Semester Genap">Semester Genap</option>
+                      </select>
+                      <span className="absolute right-3 top-2.5 text-gray-400 pointer-events-none"><IconChevronDown /></span>
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Status Program</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Status Program <span className="text-red-500">*</span></label>
                     <div className="relative">
                       <select
                         value={newProgramForm.status}
@@ -3770,23 +3887,61 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Deskripsi Program</label>
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Deskripsi Program <span className="text-red-500">*</span></label>
                   <textarea
                     value={newProgramForm.deskripsi}
                     onChange={(e) => { setIsProgramFormDirty(true); setNewProgramForm({ ...newProgramForm, deskripsi: e.target.value }) }}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all placeholder-gray-400 resize-none min-h-[80px]"
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all placeholder-gray-400 resize-y min-h-[120px]"
                     placeholder="Contoh: Program beasiswa ini ditujukan untuk siswa berprestasi yang berasal dari keluarga kurang mampu guna meringankan biaya pendidikan."
                   ></textarea>
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Persyaratan Khusus</label>
-                  <textarea
-                    value={newProgramForm.persyaratan}
-                    onChange={(e) => { setIsProgramFormDirty(true); setNewProgramForm({ ...newProgramForm, persyaratan: e.target.value }) }}
-                    className="w-full border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all placeholder-gray-400 resize-none min-h-[80px]"
-                    placeholder="Contoh: siswa aktif MBS Prambanan, berasal dari keluarga kurang mampu, melampirkan surat keterangan tidak mampu atau dokumen pendukung, tidak memiliki pelanggaran disiplin berat, dan bersedia mengikuti proses verifikasi sekolah."
-                  ></textarea>
+                  <div className="flex flex-col gap-2">
+                    {Array.isArray(newProgramForm.persyaratan) && newProgramForm.persyaratan.map((req, idx) => (
+                      <div key={idx} className="flex items-start gap-3">
+                        <div className="mt-3 text-sm font-bold text-gray-400 shrink-0 w-5">{idx + 1}.</div>
+                        <div className="relative flex-1">
+                          <textarea
+                            value={req}
+                            onChange={(e) => {
+                              const newReqs = [...newProgramForm.persyaratan];
+                              newReqs[idx] = e.target.value;
+                              setIsProgramFormDirty(true);
+                              setNewProgramForm({ ...newProgramForm, persyaratan: newReqs });
+                            }}
+                            className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/10 bg-white text-gray-700 transition-all placeholder-gray-400 resize-y min-h-[60px]"
+                            placeholder="Contoh: Siswa aktif MBS Prambanan"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newReqs = newProgramForm.persyaratan.filter((_, i) => i !== idx);
+                              if (newReqs.length === 0) newReqs.push("");
+                              setIsProgramFormDirty(true);
+                              setNewProgramForm({ ...newProgramForm, persyaratan: newReqs });
+                            }}
+                            className="absolute right-2 top-2.5 p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                            title="Hapus persyaratan"
+                          >
+                            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsProgramFormDirty(true);
+                      setNewProgramForm({ ...newProgramForm, persyaratan: [...newProgramForm.persyaratan, ""]});
+                    }}
+                    className="mt-3 flex items-center gap-1.5 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors cursor-pointer bg-transparent border-none"
+                  >
+                    <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                    Tambah Persyaratan
+                  </button>
                 </div>
               </div>
             </div>
@@ -4126,6 +4281,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                           let initialNom = "";
                           let tglMulai = new Date().toISOString().split('T')[0];
                           let tglSelesai = "";
+                          let pStatus = "";
                           if (selectedProgram) {
                             if (selectedProgram.amount) {
                               const r = String(selectedProgram.amount).replace(/[^0-9]/g, '');
@@ -4136,7 +4292,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                               tglSelesai = selectedProgram.periodePendaftaran.split(' s/d ')[1];
                             }
                           }
-                          setBeasiswaForm({ ...beasiswaForm, namaBeasiswa: e.target.value, nominal: initialNom, tanggalMulai: tglMulai, tanggalSelesai: tglSelesai }); 
+                          setBeasiswaForm({ ...beasiswaForm, namaBeasiswa: e.target.value, nominal: initialNom, tanggalMulai: tglMulai, tanggalSelesai: tglSelesai, status: pStatus }); 
                         }}
                         className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700 appearance-none pr-10"
                       >
@@ -4152,50 +4308,48 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Periode Berlaku <span className="text-red-500">*</span></label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="date"
-                        value={beasiswaForm.tanggalMulai}
-                        onChange={(e) => { setIsBeasiswaFormDirty(true); setBeasiswaForm({ ...beasiswaForm, tanggalMulai: e.target.value }) }}
-                        className="flex-1 min-w-0 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/20 bg-white text-gray-700 transition-all"
-                      />
-                      <span className="text-gray-400 text-sm font-bold">-</span>
-                      <input
-                        type="date"
-                        value={beasiswaForm.tanggalSelesai}
-                        onChange={(e) => { setIsBeasiswaFormDirty(true); setBeasiswaForm({ ...beasiswaForm, tanggalSelesai: e.target.value }) }}
-                        className="flex-1 min-w-0 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/20 bg-white text-gray-700 transition-all"
-                      />
-                    </div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Periode Berlaku <span className="text-gray-400 font-normal text-xs">(Otomatis)</span></label>
+                    <input
+                      type="text"
+                      disabled
+                      value={(() => {
+                        const p = programList.find(x => x.title === beasiswaForm.namaBeasiswa);
+                        const periodeRaw = p && p.periodePendaftaran && p.periodePendaftaran !== "-" ? p.periodePendaftaran : "-";
+                        return periodeRaw.replace(/\s+\d{4}\/\d{4}$/, "");
+                      })()}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-gray-50 text-gray-500 cursor-not-allowed transition-all"
+                      placeholder="Pilih program terlebih dahulu"
+                    />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Tahun Ajaran <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Tahun Ajaran <span className="text-gray-400 font-normal text-xs">(Otomatis)</span></label>
+                    <input
+                      type="text"
+                      disabled
+                      value={(() => {
+                        const p = programList.find(x => x.title === beasiswaForm.namaBeasiswa);
+                        return p ? p.subtitle : "2025/2026";
+                      })()}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-gray-50 text-gray-500 cursor-not-allowed transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Status <span className="text-red-500">*</span></label>
                     <div className="relative group">
                       <select
-                        value={beasiswaForm.periode}
-                        onChange={(e) => { setIsBeasiswaFormDirty(true); setBeasiswaForm({ ...beasiswaForm, periode: e.target.value }); }}
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/20 bg-white text-gray-700 appearance-none hover:bg-gray-50 hover:border-gray-300 transition-all"
+                        value={beasiswaForm.status}
+                        onChange={(e) => { setIsBeasiswaFormDirty(true); setBeasiswaForm({ ...beasiswaForm, status: e.target.value }); }}
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/20 bg-white text-gray-700 transition-all appearance-none cursor-pointer"
                       >
-                        <option value="2025/2026">2025/2026</option>
+                        <option value="" disabled>-- Pilih Status --</option>
+                        <option value="Aktif">Aktif</option>
+                        <option value="Non-Aktif">Non-Aktif</option>
                       </select>
                       <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
                         <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" /></svg>
                       </span>
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Status <span className="text-red-500">*</span></label>
-                    <select
-                      value={beasiswaForm.status}
-                      onChange={(e) => { setIsBeasiswaFormDirty(true); setBeasiswaForm({ ...beasiswaForm, status: e.target.value }); }}
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#1A3D63] bg-white text-gray-700 h-[46px]"
-                    >
-                      <option value="Aktif">Aktif</option>
-                      <option value="Non-Aktif">Non-Aktif</option>
-                    </select>
-                  </div>
-
                 </div>
               </div>
             </div>

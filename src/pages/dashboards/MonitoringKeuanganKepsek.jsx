@@ -1,250 +1,116 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import SPPDonutChart from "../../components/SPPDonutChart";
+import { getBeasiswaSummary, getGlobalFinanceSummary, getSppYearlySummary } from "../../utils/financeHelpers";
+import { getAllSlips, getEmployees } from "../../api/payroll";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
   PieChart,
   Pie,
-  Cell
+  Cell,
+  ResponsiveContainer
 } from "recharts";
-import { getPembayaran, getDanaBeasiswa, getBeasiswa, getTagihan, getOperasional } from "../../api/finance";
-import { getAllSlips } from "../../api/payroll";
 
-const BEASISWA_PIE_DATA = [
-  { name: "Terealisasi", value: 84, color: "#1e3a8a" },
-  { name: "Sisa", value: 16, color: "#e5e7eb" }
-];
 
-const BULAN_NAMES = [
-  "Januari","Februari","Maret","April","Mei","Juni",
-  "Juli","Agustus","September","Oktober","November","Desember"
-];
+const getPayrollSummary = async () => {
+  try {
+    const [slipsRes, employees] = await Promise.all([
+      getAllSlips({ limit: 1000 }).catch(() => ({ data: [] })),
+      getEmployees().catch(() => [])
+    ]);
+    const slips = Array.isArray(slipsRes?.data) ? slipsRes.data : [];
+    const employeeList = Array.isArray(employees) ? employees : [];
+    const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
+
+    const currentMonthSlips = slips.filter((slip) => {
+      const bulan = Number(slip?.bulan || slip?.periode_bulan || 0);
+      const tahun = Number(slip?.tahun || slip?.periode_tahun || 0);
+      return bulan === currentMonth && tahun === currentYear;
+    });
+
+    const realizedSlips = currentMonthSlips.filter((slip) => {
+      const status = String(slip?.status || "").trim().toLowerCase();
+      return ["dibayar", "disetujui", "approved", "transferred", "sudah ditransfer", "sudah transfer"].includes(status);
+    });
+
+    const realisasi = realizedSlips.reduce((sum, slip) => sum + (Number(slip?.gaji_bersih) || 0), 0);
+    const persentase = currentMonthSlips.length > 0 ? Math.round((realizedSlips.length / currentMonthSlips.length) * 100) : 0;
+
+    return {
+      persentase,
+      realisasi,
+      jumlahPegawai: realizedSlips.length,
+      totalPegawai: employeeList.length
+    };
+  } catch (err) {
+    console.error("Gagal load realisasi gaji:", err);
+    return {
+      persentase: 0,
+      realisasi: 0,
+      jumlahPegawai: 0,
+      totalPegawai: 0
+    };
+  }
+};
 
 const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
-  const [filter, setFilter] = useState({ tahunAjaran: "2025/2026", semester: "Ganjil", bulan: "Semua Bulan" });
-  const [isFiltering, setIsFiltering] = useState(false);
-  const [filterSuccess, setFilterSuccess] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [selectedYear, setSelectedYear] = useState("2025/2026");
 
-  // Raw data from APIs
-  const [pembayaranList, setPembayaranList] = useState([]);
-  const [paidSlips, setPaidSlips] = useState([]);
-  const [danaBeasiswaList, setDanaBeasiswaList] = useState([]);
-  const [beasiswaList, setBeasiswaList] = useState([]);
-  const [tagihanList, setTagihanList] = useState([]);
-
-  // Computed summary
   const [data, setData] = useState({
     pemasukan: 0,
-    pengeluaran: 0,
-    saldo: 0,
-    persentaseSpp: 0,
-    tunggakan: 0
+    saldo: 0
   });
 
-  // Arus kas chart data derived from pembayaran + slips
-  const [arusKasData, setArusKasData] = useState([]);
+  const [sppData, setSppData] = useState({
+    totalTagihan: 0, terbayar: 0, tunggakan: 0, countVerifikasi: 0, persentase: 0, countLunas: 0, countBelum: 0,
+    tunggakanPerKelas: []
+  });
 
-  const [operasionalList, setOperasionalList] = useState([]);
+  const [beasiswaSummary, setBeasiswaSummary] = useState({
+    penerimaAktif: 0,
+    totalDanaMasuk: 0,
+    tersalurkan: 0,
+    persentase: 0
+  });
 
-  const loadData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const [pembayaran, slipsRes, dana, beasiswa, tagihan, operasional] = await Promise.all([
-        getPembayaran().catch(() => []),
-        getAllSlips({ limit: 1000, status: "dibayar" }).catch(() => ({ data: [] })),
-        getDanaBeasiswa().catch(() => []),
-        getBeasiswa().catch(() => []),
-        getTagihan({ limit: 1000 }).catch(() => []),
-        getOperasional().catch(() => [])
-      ]);
-
-      const pembayaranArr = Array.isArray(pembayaran) ? pembayaran : [];
-      const slipsArr = slipsRes?.data || [];
-      const danaArr = Array.isArray(dana) ? dana : [];
-      const beasiswaArr = Array.isArray(beasiswa) ? beasiswa : [];
-      const tagihanArr = Array.isArray(tagihan) ? tagihan : [];
-      const operasionalArr = Array.isArray(operasional) ? operasional : [];
-
-      setPembayaranList(pembayaranArr);
-      setPaidSlips(slipsArr);
-      setDanaBeasiswaList(danaArr);
-      setBeasiswaList(beasiswaArr);
-      setTagihanList(tagihanArr);
-      setOperasionalList(operasionalArr);
-    } catch (e) {
-      console.error("MonitoringKeuanganKepsek loadData:", e);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const [gajiSummary, setGajiSummary] = useState({
+    persentase: 0,
+    realisasi: 0,
+    jumlahPegawai: 0,
+    totalPegawai: 0
+  });
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  // Recompute summary whenever raw data or filter changes
-  useEffect(() => {
-    computeSummary(pembayaranList, paidSlips, danaBeasiswaList, beasiswaList, tagihanList, operasionalList, filter);
-  }, [pembayaranList, paidSlips, danaBeasiswaList, beasiswaList, tagihanList, operasionalList, filter]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const computeSummary = (pembayaran, slips, dana, beasiswa, tagihan, operasional, currentFilter) => {
-    // ── Pemasukan ────────────────────────────────────────────────────────────
-    // 1. SPP payments from DB
-    let sppIncome = pembayaran.reduce((acc, p) => {
-      if (currentFilter.bulan !== "Semua Bulan") {
-        const bulanNum = parseInt(p.bulan);
-        const bulanName = (!isNaN(bulanNum) && bulanNum >= 1 && bulanNum <= 12)
-          ? BULAN_NAMES[bulanNum - 1] : (p.bulan || "");
-        if (bulanName !== currentFilter.bulan) return acc;
+    const fetchData = async () => {
+      try {
+        const [summary, sppSummary, beasiswaSummaryData, payrollSummaryData] = await Promise.all([
+          getGlobalFinanceSummary(),
+          getSppYearlySummary(selectedYear),
+          getBeasiswaSummary(),
+          getPayrollSummary()
+        ]);
+        setData(prev => ({
+          ...prev,
+          pemasukan: summary.totalPemasukan,
+          pengeluaran: summary.totalPengeluaran,
+          saldo: summary.saldoKeuangan
+        }));
+        setSppData(sppSummary);
+        setBeasiswaSummary(beasiswaSummaryData);
+        setGajiSummary(payrollSummaryData);
+      } catch (err) {
+        console.error("Gagal load operasional:", err);
       }
-      return acc + (Number(p.jumlah_bayar) || 0);
-    }, 0);
-
-    // 2. Dana BOS / donasi / etc. from localStorage (PengeluaranOperasionalTab)
-    const otherIncome = operasional.filter(o => o.tipe === 'pemasukan').reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
-
-    // 3. Dana beasiswa masuk (from API)
-    const beasiswaIncome = dana.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
-
-    const totalPemasukan = sppIncome + otherIncome + beasiswaIncome;
-
-    // ── Pengeluaran ──────────────────────────────────────────────────────────
-    // 1. Payroll (gaji yang sudah dibayar)
-    let payrollExpense = slips.reduce((acc, slip) => {
-      if (currentFilter.bulan !== "Semua Bulan") {
-        const bulanNum = parseInt(slip.bulan);
-        const bulanName = (!isNaN(bulanNum) && bulanNum >= 1 && bulanNum <= 12)
-          ? BULAN_NAMES[bulanNum - 1] : (slip.bulan || "");
-        if (bulanName !== currentFilter.bulan) return acc;
-      }
-      return acc + (Number(slip.gaji_bersih) || 0);
-    }, 0);
-
-    // 2. Operational expenses (ATK, listrik, etc.) from localStorage
-    const operationalExpense = operasional.filter(o => o.tipe === 'pengeluaran').reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
-
-    // 3. Beasiswa disbursed (total nominal to recipients)
-    const beasiswaDisbursed = beasiswa.reduce((acc, b) => acc + (Number(b.nominal) || 0), 0);
-
-    const totalPengeluaran = payrollExpense + operationalExpense + beasiswaDisbursed;
-    const totalSaldo = totalPemasukan - totalPengeluaran;
-
-    // ── SPP Stats ─────────────────────────────────────────────────────────────
-    const filteredTagihan = tagihan.filter(t => {
-      if (currentFilter.bulan !== "Semua Bulan") {
-        const bulanNum = parseInt(t.bulan);
-        const bulanName = (!isNaN(bulanNum) && bulanNum >= 1 && bulanNum <= 12)
-          ? BULAN_NAMES[bulanNum - 1] : (t.bulan || "");
-        return bulanName === currentFilter.bulan;
-      }
-      return true;
-    });
-    const totalTagihan = filteredTagihan.length;
-    const lunasTagihan = filteredTagihan.filter(t =>
-      t.status === "lunas" || t.status === "Lunas"
-    ).length;
-    const persentaseSpp = totalTagihan > 0 ? Math.round((lunasTagihan / totalTagihan) * 1000) / 10 : 0;
-    const tunggakan = filteredTagihan
-      .filter(t => t.status !== "lunas" && t.status !== "Lunas")
-      .reduce((acc, t) => acc + (Number(t.nominal_akhir || t.nominal) || 0), 0);
-
-    setData({
-      pemasukan: totalPemasukan,
-      pengeluaran: totalPengeluaran,
-      saldo: totalSaldo,
-      persentaseSpp,
-      tunggakan
-    });
-
-    // ── Arus Kas Chart (last 6 months of the school year) ────────────────────
-    const semesterMonths = currentFilter.semester === "Ganjil"
-      ? [6, 7, 8, 9, 10, 11]   // Jul–Dec (index 6-11) 
-      : [12, 1, 2, 3, 4, 5];   // Jan–Jun (index 0-5)
-
-    const chartData = semesterMonths.map(monthNum => {
-      const monthIdx = monthNum - 1;
-      const monthName = BULAN_NAMES[monthIdx];
-      const shortName = monthName.substring(0, 3);
-
-      const monthIncome = pembayaran
-        .filter(p => {
-          const bNum = parseInt(p.bulan);
-          return bNum === monthNum;
-        })
-        .reduce((acc, p) => acc + (Number(p.jumlah_bayar) || 0), 0);
-
-      const monthExpense = slips
-        .filter(s => parseInt(s.bulan) === monthNum)
-        .reduce((acc, s) => acc + (Number(s.gaji_bersih) || 0), 0);
-
-      return {
-        name: shortName,
-        Pemasukan: Math.round(monthIncome / 1000000), // in millions
-        Pengeluaran: Math.round(monthExpense / 1000000)
-      };
-    });
-
-    setArusKasData(chartData);
-  };
+    };
+    fetchData();
+  }, [selectedYear]);
 
   const formatCurrency = (amount) => {
-    if (amount >= 1000000000) return "Rp " + (amount / 1000000000).toFixed(2) + " M";
-    if (amount >= 1000000) return "Rp " + Math.round(amount / 1000000) + " Jt";
-    return "Rp " + amount.toLocaleString("id-ID");
+    return "Rp " + (Number(amount) || 0).toLocaleString("id-ID");
   };
-
-  const formatCurrencyFull = (amount) => {
-    return "Rp " + amount.toLocaleString("id-ID");
-  };
-
-  const handleApplyFilter = () => {
-    setIsFiltering(true);
-    // Recompute is handled by the useEffect watching filter changes
-    setTimeout(() => {
-      setIsFiltering(false);
-      setFilterSuccess(true);
-      setTimeout(() => setFilterSuccess(false), 2000);
-    }, 400);
-  };
-
-  // Tunggakan by grade
-  const getTunggakanByGrade = (grade) => {
-    return tagihanList
-      .filter(t => {
-        const kelas = (t.nama_kelas || "").toUpperCase();
-        const isGrade = kelas.includes(grade);
-        const isUnpaid = t.status !== "lunas" && t.status !== "Lunas";
-        if (filter.bulan !== "Semua Bulan") {
-          const bulanNum = parseInt(t.bulan);
-          const bulanName = (!isNaN(bulanNum) && bulanNum >= 1 && bulanNum <= 12)
-            ? BULAN_NAMES[bulanNum - 1] : "";
-          return isGrade && isUnpaid && bulanName === filter.bulan;
-        }
-        return isGrade && isUnpaid;
-      });
-  };
-
-  const tunggakanVII = getTunggakanByGrade("VII");
-  const tunggakanVIII = getTunggakanByGrade("VIII");
-  const tunggakanIX = getTunggakanByGrade("IX");
-
-  const sumNominal = (arr) => arr.reduce((acc, t) => acc + (Number(t.nominal_akhir || t.nominal) || 0), 0);
-
-  // Beasiswa summary
-  const totalPenerimaBeasiswa = beasiswaList.filter(b => b.status === "Aktif" || b.status === "aktif").length;
-  const totalDanaMasuk = danaBeasiswaList.reduce((acc, d) => acc + (Number(d.nominal) || 0), 0);
-  const totalTersalurkan = beasiswaList.reduce((acc, b) => acc + (Number(b.nominal) || 0), 0);
-  const beasiswaPersentase = totalDanaMasuk > 0 ? Math.min(100, Math.round((totalTersalurkan / totalDanaMasuk) * 100)) : 0;
 
   const beasiswaPieData = [
-    { name: "Terealisasi", value: beasiswaPersentase || 0, color: "#1e3a8a" },
-    { name: "Sisa", value: Math.max(0, 100 - beasiswaPersentase), color: "#e5e7eb" }
+    { name: "Terealisasi", value: beasiswaSummary.persentase, color: "#1e3a8a" },
+    { name: "Sisa", value: Math.max(0, 100 - beasiswaSummary.persentase), color: "#e5e7eb" }
   ];
 
   return (
@@ -255,76 +121,24 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
           <h1 className="text-xl sm:text-[26px] font-bold text-gray-800 tracking-tight">Monitoring Keuangan</h1>
           <p className="text-sm text-gray-500 mt-2">Pantau arus kas, pembayaran SPP, pemberian beasiswa, dan pembayaran gaji.</p>
         </div>
-        {isLoading && (
-          <div className="flex items-center gap-2 text-[12px] font-bold text-gray-400">
-            <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Memuat data...
+        {/* Year filter — top right */}
+        <div className="relative group w-full sm:w-auto flex-shrink-0">
+          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+            <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" /></svg>
           </div>
-        )}
-      </div>
-
-      {/* Filter Section */}
-      <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col md:flex-row items-end gap-4">
-        <div className="flex-1 w-full">
-          <label className="block text-[12px] font-bold text-gray-500 mb-2 uppercase tracking-wider">Tahun Ajaran</label>
-          <select 
-            value={filter.tahunAjaran} 
-            onChange={(e) => setFilter({...filter, tahunAjaran: e.target.value})}
-            className="w-full bg-gray-50 border border-gray-200 text-gray-700 text-[13px] font-semibold rounded-xl focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] block p-3 transition-all outline-none"
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="w-full bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 appearance-none focus:outline-none shadow-sm hover:border-blue-400 hover:ring-1 hover:ring-blue-100 cursor-pointer transition-all"
           >
-            <option>2023/2024</option>
-            <option>2024/2025</option>
-            <option>2025/2026</option>
+            <option value="2023/2024">Tahun Ajaran: 2023/2024</option>
+            <option value="2024/2025">Tahun Ajaran: 2024/2025</option>
+            <option value="2025/2026">Tahun Ajaran: 2025/2026</option>
           </select>
+          <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+            <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+          </div>
         </div>
-        <div className="flex-1 w-full">
-          <label className="block text-[12px] font-bold text-gray-500 mb-2 uppercase tracking-wider">Semester</label>
-          <select 
-            value={filter.semester} 
-            onChange={(e) => setFilter({...filter, semester: e.target.value})}
-            className="w-full bg-gray-50 border border-gray-200 text-gray-700 text-[13px] font-semibold rounded-xl focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] block p-3 transition-all outline-none"
-          >
-            <option>Ganjil</option>
-            <option>Genap</option>
-          </select>
-        </div>
-        <div className="flex-1 w-full">
-          <label className="block text-[12px] font-bold text-gray-500 mb-2 uppercase tracking-wider">Bulan</label>
-          <select 
-            value={filter.bulan} 
-            onChange={(e) => setFilter({...filter, bulan: e.target.value})}
-            className="w-full bg-gray-50 border border-gray-200 text-gray-700 text-[13px] font-semibold rounded-xl focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] block p-3 transition-all outline-none"
-          >
-            <option>Semua Bulan</option>
-            {BULAN_NAMES.map(b => <option key={b}>{b}</option>)}
-          </select>
-        </div>
-        <button 
-          onClick={handleApplyFilter}
-          disabled={isFiltering}
-          className={`px-6 py-3 rounded-xl font-bold shadow-sm transition-colors w-full md:w-auto h-[46px] flex items-center justify-center cursor-pointer border-none text-[13px] ${
-            filterSuccess 
-              ? "bg-green-500 hover:bg-green-600 text-white" 
-              : "bg-[#1A3D63] text-white hover:bg-[#122c4a]"
-          }`}
-        >
-          {isFiltering ? (
-            <span className="flex items-center gap-2">
-              <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-              MEMPROSES...
-            </span>
-          ) : filterSuccess ? (
-             <span className="flex items-center gap-2">
-              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
-              BERHASIL
-            </span>
-          ) : (
-            "TERAPKAN FILTER"
-          )}
-        </button>
       </div>
 
       {/* Ringkasan Keuangan Cards */}
@@ -332,90 +146,46 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
         <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col justify-center">
           <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Total Pemasukan</div>
           <div className="text-[24px] font-black text-gray-800">{formatCurrency(data.pemasukan)}</div>
-          <div className="text-[11px] text-gray-400 mt-1">SPP + Dana BOS + Beasiswa</div>
         </div>
         <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col justify-center">
           <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Total Pengeluaran</div>
           <div className="text-[24px] font-black text-gray-800">{formatCurrency(data.pengeluaran)}</div>
-          <div className="text-[11px] text-gray-400 mt-1">Gaji + Operasional + Beasiswa</div>
         </div>
         <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col justify-center">
           <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Saldo Keuangan</div>
-          <div className={`text-[24px] font-black ${data.saldo >= 0 ? "text-gray-800" : "text-red-600"}`}>
-            {formatCurrency(Math.abs(data.saldo))}{data.saldo < 0 ? " (Defisit)" : ""}
-          </div>
-          <div className="text-[11px] text-gray-400 mt-1">Pemasukan − Pengeluaran</div>
+          <div className="text-[24px] font-black text-gray-800">{formatCurrency(data.saldo)}</div>
         </div>
       </div>
 
-      {/* Bar Chart & Penagihan SPP */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Bar Chart */}
-        <div className="lg:col-span-2 bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm">
-          <div className="flex flex-col sm:flex-row justify-between items-start mb-6">
-            <div>
-              <h3 className="text-[16px] font-bold text-gray-800">Analisis Arus Kas Bulanan</h3>
-              <p className="text-[12px] text-gray-500 mt-1">Perbandingan akumulasi pemasukan dan biaya pengeluaran (dalam jutaan)</p>
-            </div>
-            <div className="flex items-center gap-4 mt-3 sm:mt-0">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-[#1e3a8a]"></div>
-                <span className="text-[11px] font-bold text-gray-600">Pemasukan</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-[#dc2626]"></div>
-                <span className="text-[11px] font-bold text-gray-600">Pengeluaran</span>
-              </div>
-            </div>
-          </div>
-          <div className="h-[250px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={arusKasData.length > 0 ? arusKasData : [{ name: "-", Pemasukan: 0, Pengeluaran: 0 }]} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#9ca3af", fontWeight: "bold" }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={false} />
-                <Tooltip cursor={{ fill: "#f9fafb" }} contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }} formatter={(value) => [`Rp ${value} Jt`, undefined]} />
-                <Bar dataKey="Pemasukan" fill="#1e3a8a" radius={[4, 4, 0, 0]} barSize={30} />
-                <Bar dataKey="Pengeluaran" fill="#dc2626" radius={[4, 4, 0, 0]} barSize={30} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Penagihan SPP */}
-        <div className="lg:col-span-1 bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col">
+      {/* Penagihan SPP */}
+      <div className="grid grid-cols-1 gap-6">
+        <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col">
           <h3 className="text-[16px] font-bold text-gray-800 mb-6">Penagihan SPP</h3>
           <div className="mb-6">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-[12px] font-medium text-gray-500">Realisasi {filter.bulan === "Semua Bulan" ? "Keseluruhan" : filter.bulan}</span>
-              <span className="text-[12px] font-black text-gray-800">{data.persentaseSpp}%</span>
+              <span className="text-[12px] font-medium text-gray-500">Realisasi {selectedYear}</span>
+              <span className="text-[12px] font-black text-gray-800">{sppData.persentase}%</span>
             </div>
             <div className="w-full bg-blue-50 rounded-full h-3">
-              <div className="bg-[#1e3a8a] h-3 rounded-full" style={{ width: `${data.persentaseSpp}%`, transition: 'width 0.5s ease-out' }}></div>
+              <div className="bg-[#1e3a8a] h-3 rounded-full" style={{ width: `${sppData.persentase}%`, transition: 'width 0.5s ease-out' }}></div>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-y-6 gap-x-4 mt-auto">
             <div>
               <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total Tagihan</div>
-              <div className="text-[14px] font-black text-gray-800">
-                {formatCurrency(tagihanList.reduce((acc, t) => acc + (Number(t.nominal_akhir || t.nominal) || 0), 0))}
-              </div>
+              <div className="text-[14px] font-black text-gray-800">{formatCurrency(sppData.totalTagihan)}</div>
             </div>
             <div>
               <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Terbayar</div>
-              <div className="text-[14px] font-black text-[#1e3a8a]">
-                {formatCurrency(pembayaranList.reduce((acc, p) => acc + (Number(p.jumlah_bayar) || 0), 0))}
-              </div>
+              <div className="text-[14px] font-black text-[#1e3a8a]">{formatCurrency(sppData.terbayar)}</div>
             </div>
             <div>
               <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Sisa Tunggakan</div>
-              <div className="text-[14px] font-black text-red-600">{formatCurrency(data.tunggakan)}</div>
+              <div className="text-[14px] font-black text-red-600">{formatCurrency(sppData.tunggakan)}</div>
             </div>
             <div>
               <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Status Verifikasi</div>
-              <div className="text-[14px] font-black text-gray-800">
-                {tagihanList.filter(t => t.status === "menunggu_konfirmasi").length} Siswa
-              </div>
+              <div className="text-[14px] font-black text-gray-800">{sppData.countVerifikasi} Siswa</div>
             </div>
           </div>
         </div>
@@ -425,82 +195,70 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Penyaluran Beasiswa */}
         <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col">
-          <h3 className="text-[16px] font-bold text-gray-800">Pemberian Beasiswa</h3>
-          <p className="text-[12px] text-gray-500 mt-1 mb-6">Program bantuan bagi santri berprestasi & yatim</p>
-          <div className="flex items-center justify-between mt-auto">
-            <div className="flex-1 space-y-4 pr-4">
-              <div className="flex justify-between items-center border-b border-gray-50 pb-2">
-                <span className="text-[12px] text-gray-500">Penerima Aktif</span>
-                <span className="text-[13px] font-black text-gray-800">{totalPenerimaBeasiswa} Siswa</span>
-              </div>
-              <div className="flex justify-between items-center border-b border-gray-50 pb-2">
-                <span className="text-[12px] text-gray-500">Alokasi Dana Masuk</span>
-                <span className="text-[13px] font-black text-gray-800">{formatCurrency(totalDanaMasuk)}</span>
-              </div>
-              <div className="flex justify-between items-center pb-2">
-                <span className="text-[12px] text-gray-500">Tersalurkan</span>
-                <span className="text-[13px] font-black text-gray-800">{formatCurrency(totalTersalurkan)}</span>
-              </div>
+          <div className="flex items-start justify-between gap-4 mb-5">
+            <div>
+              <h3 className="text-[16px] font-bold text-gray-800">Pemberian Beasiswa</h3>
+              <p className="text-[12px] text-gray-500 mt-1">Ringkasan realisasi program beasiswa</p>
             </div>
-            <div className="w-[100px] h-[100px] relative flex flex-col items-center justify-center">
+            <div className="w-[88px] h-[88px] relative flex items-center justify-center shrink-0">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
-                  <Pie data={beasiswaPieData} cx="50%" cy="50%" innerRadius={35} outerRadius={45} stroke="none" dataKey="value">
+                  <Pie data={beasiswaPieData} cx="50%" cy="50%" innerRadius={30} outerRadius={42} stroke="none" dataKey="value">
                     {beasiswaPieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
                   </Pie>
                 </PieChart>
               </ResponsiveContainer>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-[14px] font-black text-gray-800">{beasiswaPersentase}%</span>
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <span className="text-[14px] font-black text-gray-800">{beasiswaSummary.persentase}%</span>
                 <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Terealisasi</span>
               </div>
+            </div>
+          </div>
+
+          <div className="flex-1 flex flex-col justify-center gap-3 mt-1">
+            <div className="flex items-center justify-between py-2 border-b border-gray-100">
+              <span className="text-[12px] font-medium text-gray-500">Penerima Aktif</span>
+              <span className="text-[13px] font-black text-gray-800">{beasiswaSummary.penerimaAktif} Siswa</span>
+            </div>
+            <div className="flex items-center justify-between py-2 border-b border-gray-100">
+              <span className="text-[12px] font-medium text-gray-500">Alokasi Dana Masuk</span>
+              <span className="text-[13px] font-black text-gray-800">{formatCurrency(beasiswaSummary.totalDanaMasuk)}</span>
+            </div>
+            <div className="flex items-center justify-between py-2">
+              <span className="text-[12px] font-medium text-gray-600">Tersalurkan</span>
+              <span className="text-[13px] font-black text-[#1e3a8a]">{formatCurrency(beasiswaSummary.tersalurkan)}</span>
             </div>
           </div>
         </div>
 
         {/* Status Penggajian */}
         <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col">
-          <h3 className="text-[16px] font-bold text-gray-800">Status Realisasi Anggaran Gaji</h3>
-          <p className="text-[12px] text-gray-500 mt-1 mb-8">Monitoring realisasi pembayaran gaji guru dan tenaga kependidikan.</p>
+          <h3 className="text-[16px] font-bold text-gray-800">Status Realisasi Gaji</h3>
+          <p className="text-[12px] text-gray-500 mt-1 mb-8">Data mengikuti slip gaji yang sudah diproses di dashboard bendahara.</p>
           
           <div className="mt-auto space-y-6">
-            {(() => {
-              const currentMonthNum = new Date().getMonth() + 1;
-              const currentMonthSlips = paidSlips.filter(s => parseInt(s.bulan) === currentMonthNum);
-              const realisasiGaji = currentMonthSlips.reduce((acc, s) => acc + (Number(s.gaji_bersih) || 0), 0);
-              const allCurrentSlips = paidSlips.filter(s => parseInt(s.bulan) === currentMonthNum || true); // all time
-              const anggaranGaji = paidSlips.reduce((acc, s) => acc + (Number(s.gaji_bersih) || 0), 0);
-              const persen = anggaranGaji > 0 ? Math.min(100, Math.round((realisasiGaji / anggaranGaji) * 1000) / 10) : 0;
-              return (
-                <>
-                  <div>
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="text-[12px] font-medium text-gray-500">Persentase Realisasi Bulan Ini</span>
-                      <span className="px-2.5 py-1 bg-green-50 text-green-600 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-green-100">
-                        {persen.toFixed(1)}% Terealisasi
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-50 rounded-full h-3 overflow-hidden border border-gray-100">
-                      <div className="bg-[#1A3D63] h-full rounded-full" style={{ width: `${persen}%`, transition: 'width 0.5s ease-out' }}></div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                      <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total Gaji Dibayar</div>
-                      <div className="text-[16px] font-black text-gray-800">{formatCurrency(anggaranGaji)}</div>
-                    </div>
-                    <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-50">
-                      <div className="text-[10px] font-bold text-[#1A3D63] uppercase tracking-wider mb-1">Bulan Ini</div>
-                      <div className="text-[16px] font-black text-[#1A3D63]">{formatCurrency(realisasiGaji)}</div>
-                    </div>
-                    <div className="col-span-2 flex justify-between items-center pt-2 border-t border-gray-50">
-                      <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Jumlah Staff Dibayar</span>
-                      <span className="text-[15px] font-black text-[#1A3D63]">{currentMonthSlips.length} Orang</span>
-                    </div>
-                  </div>
-                </>
-              );
-            })()}
+            <div>
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-[12px] font-medium text-gray-500">Persentase Realisasi</span>
+                <span className="px-2.5 py-1 bg-green-50 text-green-600 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-green-100">
+                  {gajiSummary.persentase}% Terealisasi
+                </span>
+              </div>
+              <div className="w-full bg-gray-50 rounded-full h-3 overflow-hidden border border-gray-100">
+                <div className="bg-[#1A3D63] h-full rounded-full" style={{ width: `${gajiSummary.persentase}%` }}></div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              <div className="bg-blue-50/50 rounded-xl p-4 border border-blue-50">
+                <div className="text-[10px] font-bold text-[#1A3D63] uppercase tracking-wider mb-1">Realisasi Gaji</div>
+                <div className="text-[16px] font-black text-[#1A3D63]">{formatCurrency(gajiSummary.realisasi)}</div>
+              </div>
+              <div className="flex justify-between items-center pt-2 border-t border-gray-50">
+                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Pegawai Yang Diterima</span>
+                <span className="text-[15px] font-black text-gray-800">{gajiSummary.jumlahPegawai} dari {gajiSummary.totalPegawai || 0} Orang</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -510,10 +268,10 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
         <div className="w-full lg:w-1/3 flex flex-col items-center">
           <div className="w-full text-center mb-2">
             <h3 className="text-[16px] font-bold text-gray-800">Distribusi Status SPP</h3>
-            <p className="text-[12px] text-gray-500 mt-1">Realisasi {filter.bulan === "Semua Bulan" ? filter.tahunAjaran : `Bulan ${filter.bulan}`}</p>
+            <p className="text-[12px] text-gray-500 mt-1">Realisasi {selectedYear}</p>
           </div>
           <div className="w-full max-w-[200px] mt-2">
-            <SPPDonutChart />
+            <SPPDonutChart lunas={sppData.countLunas} belumLunas={sppData.countBelum} />
           </div>
         </div>
         
@@ -521,30 +279,24 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
           <div className="flex justify-between items-center mb-6">
             <div>
               <h3 className="text-[16px] font-bold text-gray-800">Akumulasi Tunggakan</h3>
-              <p className="text-[12px] text-gray-500 mt-1">Data per {filter.bulan === "Semua Bulan" ? "akhir semester" : `akhir bulan ${filter.bulan}`}</p>
+              <p className="text-[12px] text-gray-500 mt-1">Data akumulasi {selectedYear}</p>
             </div>
             <div className="px-3 py-1 bg-red-50 text-red-600 rounded-lg text-[11px] font-bold uppercase tracking-wider">
-              Total: {formatCurrencyFull(data.tunggakan)}
+              Total: {formatCurrency(sppData.tunggakan)}
             </div>
           </div>
           
           <div className="space-y-4">
-            {[
-              { grade: "VII", data: tunggakanVII },
-              { grade: "VIII", data: tunggakanVIII },
-              { grade: "IX", data: tunggakanIX }
-            ].map(({ grade, data: gradeData }) => (
-              <div key={grade} className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors">
+            {sppData.tunggakanPerKelas.map((kelas, idx) => (
+              <div key={idx} className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gray-50 border border-gray-100 text-gray-500 flex items-center justify-center font-black text-[12px]">{grade}</div>
+                  <div className="w-10 h-10 rounded-full bg-gray-50 border border-gray-100 text-gray-500 flex items-center justify-center font-black text-[12px]">{kelas.tingkat}</div>
                   <div>
-                    <div className="text-[13px] font-bold text-gray-800">Kelas {grade}</div>
-                    <div className="text-[11px] font-medium text-gray-500">{gradeData.length} Siswa belum lunas</div>
+                    <div className="text-[13px] font-bold text-gray-800">{kelas.label}</div>
+                    <div className="text-[11px] font-medium text-gray-500">{kelas.count} Siswa belum lunas</div>
                   </div>
                 </div>
-                <div className={`text-[14px] font-black ${grade === "IX" ? "text-red-600" : "text-gray-800"}`}>
-                  {formatCurrencyFull(sumNominal(gradeData))}
-                </div>
+                <div className="text-[14px] font-black text-gray-800">{formatCurrency(kelas.nominal)}</div>
               </div>
             ))}
           </div>
@@ -556,3 +308,5 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
 };
 
 export default MonitoringKeuanganKepsek;
+
+

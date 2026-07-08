@@ -53,30 +53,40 @@ const RiwayatSlipTab = ({ triggerToast }) => {
 
 
   useEffect(() => {
-    fetchSlips();
+    fetchSlips(false, page > 1);
   }, [page, bulan, tahun, status]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       if (page !== 1) setPage(1);
-      else fetchSlips();
+      else fetchSlips(false, false);
     }, 500);
     return () => clearTimeout(timer);
   }, [search]);
 
-  const fetchSlips = async (silent = false) => {
+  const fetchSlips = async (silent = false, isLoadMore = false) => {
     try {
-      if (!silent) setLoading(true);
+      if (!silent && !isLoadMore) setLoading(true);
       const res = await getAllSlips({
         page,
-        limit: 10,
+        limit: 15,
         bulan: bulan || undefined,
         tahun: tahun || undefined,
         status: status || undefined,
         search: search || undefined
       });
-      setSlips(res.data);
-      setSelectedSlips([]); // Reset selection on page change
+      
+      if (isLoadMore) {
+        setSlips(prev => {
+          const existingIds = new Set(prev.map(s => s.id));
+          const newSlips = res.data.filter(s => !existingIds.has(s.id));
+          return [...prev, ...newSlips];
+        });
+      } else {
+        setSlips(res.data);
+        setSelectedSlips([]); // Reset selection on new fetch
+      }
+
       if (res.meta) {
         setTotalPages(res.meta.totalPages);
         if (res.meta.summary) setSummary(res.meta.summary);
@@ -85,7 +95,7 @@ const RiwayatSlipTab = ({ triggerToast }) => {
       console.error(error);
       if (!silent) triggerToast("Gagal memuat riwayat slip gaji", "error");
     } finally {
-      if (!silent) setLoading(false);
+      if (!silent && !isLoadMore) setLoading(false);
     }
   };
 
@@ -109,7 +119,15 @@ const RiwayatSlipTab = ({ triggerToast }) => {
     const slipId = selectedSlipId;
     
     // Optimistic UI Update
-    setSlips(prev => prev.map(s => s.id === slipId ? { ...s, status: 'dibayar' } : s));
+    setSlips(prev => {
+      const updated = prev.map(s => s.id === slipId ? { ...s, status: 'dibayar' } : s);
+      return updated.sort((a, b) => {
+        if (a.tahun !== b.tahun) return b.tahun - a.tahun;
+        if (a.bulan !== b.bulan) return b.bulan - a.bulan;
+        const score = s => s.status === 'dibayar' ? 1 : (s.status === 'disetujui' ? 2 : 3);
+        return score(a) - score(b);
+      });
+    });
     setShowConfirmModal(false);
     setSelectedSlipId(null);
     triggerToast("Slip gaji berhasil dibayar!");
@@ -242,15 +260,15 @@ const RiwayatSlipTab = ({ triggerToast }) => {
             className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63]/20 transition-all"
           />
         </div>
-        <select value={bulan} onChange={(e) => setBulan(e.target.value)} className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A3D63] bg-white">
+        <select value={bulan} onChange={(e) => { setBulan(e.target.value); setPage(1); }} className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A3D63] bg-white">
           {months.map(m => <option key={m.label} value={m.value}>{m.label}</option>)}
         </select>
-        <select value={tahun} onChange={(e) => setTahun(e.target.value)} className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A3D63] bg-white">
+        <select value={tahun} onChange={(e) => { setTahun(e.target.value); setPage(1); }} className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A3D63] bg-white">
           <option value="">Semua Tahun</option>
           <option value="2026">2026</option>
           <option value="2025">2025</option>
         </select>
-        <select value={status} onChange={(e) => setStatus(e.target.value)} className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A3D63] bg-white">
+        <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }} className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A3D63] bg-white">
           <option value="">Semua Status</option>
           <option value="draft">Draft</option>
           <option value="disetujui">Disetujui</option>
@@ -275,9 +293,17 @@ const RiwayatSlipTab = ({ triggerToast }) => {
       )}
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-xl border border-gray-100 bg-white">
+      <div 
+        className="overflow-x-auto overflow-y-auto max-h-[500px] rounded-xl border border-gray-100 bg-white relative"
+        onScroll={(e) => {
+          const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
+          if (scrollHeight - scrollTop <= clientHeight + 50 && page < totalPages) {
+            setPage(prev => prev + 1);
+          }
+        }}
+      >
         <table className="w-full text-left border-collapse">
-          <thead>
+          <thead className="sticky top-0 bg-gray-50/80 border-b border-gray-100 z-10 backdrop-blur-sm">
             <tr className="bg-gray-50/80 border-b border-gray-100">
               <th className="py-3 px-4 w-10">
                 <input
@@ -296,91 +322,86 @@ const RiwayatSlipTab = ({ triggerToast }) => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {loading ? (
+            {loading && page === 1 ? (
               <tr><td colSpan="7" className="py-12 text-center"><div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#1A3D63]"></div></td></tr>
             ) : slips.length === 0 ? (
               <tr><td colSpan="7" className="py-12 text-center text-sm text-gray-500">Tidak ada data riwayat gaji.</td></tr>
             ) : (
-              slips.map((slip) => (
-                <tr key={slip.id} className="hover:bg-blue-50/20 transition-colors">
-                  <td className="py-3 px-4">
-                    {slip.status === 'draft' ? (
-                      <input
-                        type="checkbox"
-                        checked={selectedSlips.includes(slip.id)}
-                        onChange={(e) => handleSelectOne(e, slip.id)}
-                        className="w-4 h-4 text-[#1A3D63] rounded border-gray-300 focus:ring-[#1A3D63]"
-                      />
-                    ) : (
-                      <input type="checkbox" disabled className="w-4 h-4 rounded border-gray-200 bg-gray-100 opacity-50 cursor-not-allowed" />
-                    )}
-                  </td>
-                  <td className="py-3 px-4 text-sm text-gray-800">
-                    <span className="font-bold">{monthName(slip.bulan)} {slip.tahun}</span>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="text-sm font-bold text-gray-800">{slip.user_nama || slip.user_email || slip.user_id}</div>
-                    <div className="text-xs text-gray-400">{slip.user_email}</div>
-                  </td>
-                  <td className="py-3 px-4 text-sm font-bold text-[#059669]">
-                    {formatRupiah(slip.gaji_bersih)}
-                  </td>
-                  <td className="py-3 px-4">
-                    {renderStatusBadge(slip.status)}
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex justify-center">
-                      {/* Tombol Detail */}
-                      <button
-                        onClick={() => handleViewDetail(slip.id)}
-                        title="Lihat Detail"
-                        className="p-1.5 text-gray-400 hover:text-[#1A3D63] bg-gray-50 hover:bg-blue-50 rounded-lg transition-colors border border-gray-200 hover:border-blue-200 cursor-pointer"
-                      >
-                        <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
-                      </button>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex justify-center gap-2">
-                      {/* Tombol Approve (sekarang Konfirmasi) */}
-                      {slip.status === 'draft' && (
-                        <>
+              <>
+                {slips.map((slip) => (
+                  <tr key={slip.id} className="hover:bg-blue-50/20 transition-colors">
+                    <td className="py-3 px-4 border-b border-gray-50">
+                      {slip.status === 'draft' ? (
+                        <input
+                          type="checkbox"
+                          checked={selectedSlips.includes(slip.id)}
+                          onChange={(e) => handleSelectOne(e, slip.id)}
+                          className="w-4 h-4 text-[#1A3D63] rounded border-gray-300 focus:ring-[#1A3D63]"
+                        />
+                      ) : (
+                        <input type="checkbox" disabled className="w-4 h-4 rounded border-gray-200 bg-gray-100 opacity-50 cursor-not-allowed" />
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-800 border-b border-gray-50">
+                      <span className="font-bold">{monthName(slip.bulan)} {slip.tahun}</span>
+                    </td>
+                    <td className="py-3 px-4 border-b border-gray-50">
+                      <div className="text-sm font-bold text-gray-800">{slip.user_nama || slip.user_email || slip.user_id}</div>
+                      <div className="text-xs text-gray-400">{slip.user_email}</div>
+                    </td>
+                    <td className="py-3 px-4 text-sm font-bold text-[#059669] border-b border-gray-50">
+                      {formatRupiah(slip.gaji_bersih)}
+                    </td>
+                    <td className="py-3 px-4 border-b border-gray-50">
+                      {renderStatusBadge(slip.status)}
+                    </td>
+                    <td className="py-3 px-4 border-b border-gray-50">
+                      <div className="flex justify-center">
+                        <button
+                          onClick={() => handleViewDetail(slip.id)}
+                          title="Lihat Detail"
+                          className="p-1.5 text-gray-400 hover:text-[#1A3D63] bg-gray-50 hover:bg-blue-50 rounded-lg transition-colors border border-gray-200 hover:border-blue-200 cursor-pointer"
+                        >
+                          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+                        </button>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 border-b border-gray-50">
+                      <div className="flex justify-center gap-2">
+                        {slip.status === 'draft' && (
                           <button
                             onClick={() => { setSelectedSlipId(slip.id); setShowConfirmModal(true); }}
                             className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg text-xs font-bold transition-colors border border-blue-200 cursor-pointer whitespace-nowrap"
                           >
                             Konfirmasi
                           </button>
-                        </>
-                      )}
-                      {/* Tombol Batal Konfirmasi */}
-                      {['dibayar', 'disetujui'].includes(slip.status) && (
-                        <button
-                          onClick={() => { setSelectedSlipId(slip.id); setShowRevertModal(true); }}
-                          className="px-3 py-1.5 bg-orange-50 hover:bg-orange-100 text-orange-600 rounded-lg text-xs font-bold transition-colors border border-orange-200 cursor-pointer whitespace-nowrap"
-                        >
-                          Batal Konfirmasi
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))
+                        )}
+                        {['dibayar', 'disetujui'].includes(slip.status) && (
+                          <button
+                            onClick={() => { setSelectedSlipId(slip.id); setShowRevertModal(true); }}
+                            className="px-3 py-1.5 bg-orange-50 hover:bg-orange-100 text-orange-600 rounded-lg text-xs font-bold transition-colors border border-orange-200 cursor-pointer whitespace-nowrap"
+                          >
+                            Batal Konfirmasi
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {page < totalPages && (
+                  <tr>
+                    <td colSpan="7" className="py-4 text-center">
+                      <div className="inline-block animate-spin rounded-full h-5 w-5 border-b-2 border-[#1A3D63]"></div>
+                    </td>
+                  </tr>
+                )}
+              </>
             )}
           </tbody>
         </table>
       </div>
 
-      {/* Pagination */}
-      {!loading && totalPages > 1 && (
-        <div className="mt-6 flex justify-between items-center text-sm">
-          <span className="text-gray-500">Halaman <span className="font-bold text-gray-800">{page}</span> dari <span className="font-bold text-gray-800">{totalPages}</span></span>
-          <div className="flex gap-2">
-            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-gray-600 transition-colors bg-white">Sebelumnya</button>
-            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-gray-600 transition-colors bg-white">Selanjutnya</button>
-          </div>
-        </div>
-      )}
+      {/* Pagination removed - using infinite scroll */}
 
       {/* Modal Detail Slip Gaji */}
       {showDetail && ReactDOM.createPortal(

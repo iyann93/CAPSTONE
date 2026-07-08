@@ -6,7 +6,7 @@ const response = require('../utils/response');
 // eslint-disable-next-line no-unused-vars
 const fs = require('fs');
 const errorHandler = (err, req, res, next) => {
-  fs.appendFileSync('error.log', new Date().toISOString() + ' ' + err.stack + '\n');
+  try { fs.appendFileSync('error.log', new Date().toISOString() + ' ' + err.stack + '\n'); } catch (e) {}
   logger.error(`${err.message}`, { stack: err.stack, url: req.originalUrl });
 
   // Validation errors from express-validator (passed as array)

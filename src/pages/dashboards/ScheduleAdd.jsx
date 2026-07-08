@@ -1,4 +1,5 @@
-﻿import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import api from "../../api/axios";
 
 const timeSlots = [
   { label: "Jam 1-2",  time: "07:00 - 08:30" },
@@ -24,114 +25,20 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
   const [isActive, setIsActive] = useState(true);
   const [formData, setFormData] = useState({ class: "", subject: "", teacher: "", room: "" });
 
-  // 1. Ambil daftar mata pelajaran secara dinamis dari localStorage (terkoneksi dengan menu Mata Pelajaran)
-  const subjectsList = useMemo(() => {
-    const saved = localStorage.getItem("subjects_data");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error("Failed to parse subjects_data from localStorage", e);
-      }
-    }
-    // Default fallback jika data di localStorage kosong
-    return [
-      { code: "MTK", name: "Matematika", group: "Wajib", levels: "VII, VIII, IX", teacher: "Drs. Hendra, M.Pd.", status: "Aktif" },
-      { code: "BIN", name: "Bahasa Indonesia", group: "Wajib", levels: "VII, VIII, IX", teacher: "Ibu Nuraini, S.Pd.", status: "Aktif" },
-      { code: "BIG", name: "Bahasa Inggris", group: "Wajib", levels: "VII, VIII, IX", teacher: "Mr. Andrian, M.A.", status: "Aktif" },
-      { code: "FIS", name: "Fisika", group: "IPA", levels: "VII, VIII, IX", teacher: "Ibu Sari, S.Pd.", status: "Aktif" },
-      { code: "KIM", name: "Kimia", group: "IPA", levels: "VII, VIII, IX", teacher: "Bpk. Rudi, M.Si.", status: "Aktif" },
-      { code: "BIO", name: "Biologi", group: "IPA", levels: "VII, VIII, IX", teacher: "Ibu Dewi, S.Pd.", status: "Aktif" },
-      { code: "EKO", name: "Ekonomi", group: "IPS", levels: "VII, VIII, IX", teacher: "Ibu Kartika, S.E.", status: "Aktif" },
-      { code: "SEJ", name: "Sejarah", group: "IPS", levels: "VII, VIII, IX", teacher: "Bpk. Suherman, M.Pd.", status: "Aktif" },
-      { code: "SOS", name: "Sosiologi", group: "IPS", levels: "VIII, IX", teacher: "Ibu Ratna, S.Pd.", status: "Aktif" },
-      { code: "GEO", name: "Geografi", group: "IPS", levels: "VII, VIII, IX", teacher: "Bpk. Wahyu, M.Pd.", status: "Aktif" },
-      { code: "PKN", name: "PKn", group: "Wajib", levels: "VII, VIII, IX", teacher: "Ibu Marlina, S.Pd.", status: "Aktif" },
-      { code: "PJK", name: "Penjaskes", group: "Wajib", levels: "VII, VIII, IX", teacher: "Bpk. Eko, S.Pd.", status: "Nonaktif" }
-    ];
-  }, []);
+  const [classesList, setClassesList] = useState([]);
+  const [subjectsList, setSubjectsList] = useState([]);
+  const [teachersList, setTeachersList] = useState([]);
+  const [activeSemester, setActiveSemester] = useState(null);
 
-  // 2. Filter mapel berdasarkan kelas yang dipilih (tingkat jenjang & jurusan)
-  const availableSubjects = useMemo(() => {
-    if (!formData.class) return [];
-    
-    // Cari tingkat kelas (misal: "VII", "VIII", "IX")
-    const gradeMatch = formData.class.match(/^(VII|VIII|IX)\b/);
-    const grade = gradeMatch ? gradeMatch[1] : "";
-    
-    const isIpa = formData.class.includes("IPA");
-    const isIps = formData.class.includes("IPS");
-
-    return subjectsList.filter(subj => {
-      // Hanya tampilkan mapel yang berstatus Aktif
-      if (subj.status !== "Aktif") return false;
-
-      // Filter berdasarkan Jenjang/Level (misal: subj.levels = "VII, VIII, IX")
-      const subjLevels = subj.levels ? subj.levels.toString().toUpperCase() : "";
-      const matchesGrade = subjLevels.includes(grade.toUpperCase());
-      if (!matchesGrade) return false;
-
-      // Filter berdasarkan Kelompok/Jurusan
-      const group = subj.group ? subj.group.toUpperCase() : "";
-      if (group === "IPA" && !isIpa) return false;
-      if (group === "IPS" && !isIps) return false;
-
-      return true;
-    });
-  }, [formData.class, subjectsList]);
-
-  // 3. Ambil daftar guru pengampu dari mapel terpilih
-  const availableTeachers = useMemo(() => {
-    if (!formData.class || !formData.subject) return [];
-    
-    const subj = availableSubjects.find(s => s.name === formData.subject);
-    if (!subj) return [];
-
-    if (Array.isArray(subj.teacher)) {
-      return subj.teacher;
-    }
-    if (typeof subj.teacher === "string") {
-      // Jika menggunakan pemisah titik koma ';', langsung split
-      if (subj.teacher.includes(";")) {
-        return subj.teacher.split(";").map(t => t.trim()).filter(Boolean);
-      }
-
-      // Fallback pintar untuk data lama yang menggunakan koma agar gelar (seperti S.Pd., M.Pd.) tidak terpisah
-      const parts = subj.teacher.split(",").map(t => t.trim()).filter(Boolean);
-      const cleaned = [];
-      for (let i = 0; i < parts.length; i++) {
-        const part = parts[i];
-        const lowerPart = part.toLowerCase();
-        // Jika bagian ini merupakan gelar akademik, gabungkan dengan nama guru sebelumnya
-        if ((lowerPart === "s.pd" || lowerPart === "s.pd." || 
-             lowerPart === "m.pd" || lowerPart === "m.pd." || 
-             lowerPart === "m.a" || lowerPart === "m.a." || 
-             lowerPart === "m.si" || lowerPart === "m.si." || 
-             lowerPart === "s.e" || lowerPart === "s.e." || 
-             lowerPart === "s.sn" || lowerPart === "s.sn.") && cleaned.length > 0) {
-          cleaned[cleaned.length - 1] += ", " + part;
-        } else {
-          cleaned.push(part);
-        }
-      }
-      return cleaned;
-    }
-    return [subj.teacher].filter(Boolean);
-  }, [formData.class, formData.subject, availableSubjects]);
-
-  // 4. Ambil semester aktif dari localStorage secara dinamis (re-read on mount)
-  const [activeSemesterName, setActiveSemesterName] = useState("Ganjil 2023/2024");
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("semesters_data");
-      if (saved) {
-        const list = JSON.parse(saved);
-        const active = list.find(s => s.status === "Aktif");
-        if (active) { setActiveSemesterName(active.name); return; }
-      }
-    } catch (e) {
-      console.error("Failed to parse semesters_data from localStorage", e);
-    }
+    api.get('/kelas?limit=100').then(res => setClassesList(res.data.data || [])).catch(console.error);
+    api.get('/mapel?limit=100').then(res => setSubjectsList(res.data.data || [])).catch(console.error);
+    api.get('/guru?limit=100').then(res => setTeachersList(res.data.data || [])).catch(console.error);
+    api.get('/semester').then(res => {
+      const data = res.data.data || [];
+      const active = data.find(s => s.status === 'Aktif') || data[0];
+      if (active) setActiveSemester(active);
+    }).catch(console.error);
   }, []);
 
   const handleChange = (e) => {
@@ -145,39 +52,30 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
     }
   };
 
-  const onSave = () => {
-    if (!formData.class || !formData.subject || !formData.teacher || !selectedDay || !selectedSlot || !formData.room) {
+  const onSave = async () => {
+    if (!formData.class || !formData.subject || !formData.teacher || !selectedDay || !selectedSlot) {
       alert("Harap lengkapi semua data wajib (*).");
       return;
     }
     const timeObj = timeSlots.find(t => t.label === selectedSlot);
-    const subj = subjectsList.find(s => s.name === formData.subject);
-    const code = subj?.code || getSubjectCode(formData.subject);
+    const [jamMulai, jamSelesai] = timeObj ? timeObj.time.split(" - ") : ["", ""];
 
-    handleAdd({
-      class: formData.class,
-      day: selectedDay,
-      time: timeObj ? timeObj.time.replace(" - ", "-") : "",
-      period: selectedSlot.replace("Jam ", "Jam ke-"),
-      code,
-      subject: formData.subject,
-      teacher: formData.teacher,
-      room: formData.room,
-      status: isActive ? "Aktif" : "Nonaktif",
-      color: "bg-gray-50 border-gray-200 text-gray-700",
-      semester: activeSemesterName // Simpan semester yang aktif
-    });
+    try {
+      await api.post('/jadwal-pelajaran', {
+        kelas_id: formData.class,
+        mata_pelajaran_id: formData.subject,
+        guru_id: formData.teacher,
+        semester_id: activeSemester?.id,
+        hari: selectedDay,
+        jam_mulai: jamMulai,
+        jam_selesai: jamSelesai
+      });
+      handleAdd();
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || "Gagal menyimpan jadwal");
+    }
   };
-
-  const allClasses = [
-    "VII IPA 1",
-    "VII IPA 2",
-    "VII IPS 1",
-    "VIII IPA 1",
-    "VIII IPS 1",
-    "IX IPA 1",
-    "IX IPS 1"
-  ];
 
   return (
     <div className="p-6 md:p-8 animate-fadeIn space-y-6 bg-[#F4F6FA] min-h-full font-sans">
@@ -219,27 +117,27 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
                   <select name="class" value={formData.class} onChange={handleChange}
                     className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700">
                     <option value="">Pilih kelas...</option>
-                    {allClasses.map(c => <option key={c} value={c}>{c}</option>)}
+                    {classesList.map(c => <option key={c.id} value={c.id}>{c.nama_kelas}</option>)}
                   </select>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-4 top-4 text-gray-400 pointer-events-none"><polyline points="6 9 12 15 18 9"></polyline></svg>
                 </div>
               </div>
 
-              {/* Mata Pelajaran — filtered by kelas */}
+              {/* Mata Pelajaran */}
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-2">Mata Pelajaran<span className="text-red-500">*</span></label>
                 <div className="relative">
                   <select name="subject" value={formData.subject} onChange={handleChange} disabled={!formData.class}
                     className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700 disabled:bg-gray-50 disabled:text-gray-400">
                     <option value="">{formData.class ? "Pilih mata pelajaran..." : "Pilih kelas dulu"}</option>
-                    {availableSubjects.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
+                    {subjectsList.map(s => <option key={s.id} value={s.id}>{s.nama}</option>)}
                   </select>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-4 top-4 text-gray-400 pointer-events-none"><polyline points="6 9 12 15 18 9"></polyline></svg>
                 </div>
               </div>
             </div>
 
-            {/* Guru Pengampu — filtered by kelas + mapel */}
+            {/* Guru Pengampu */}
             <div>
               <label className="block text-[13px] font-bold text-gray-700 mb-2">Guru Pengampu<span className="text-red-500">*</span></label>
               <div className="relative">
@@ -249,23 +147,10 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
                   <option value="">
                     {!formData.class ? "Pilih kelas dulu" : !formData.subject ? "Pilih mata pelajaran dulu" : "Pilih guru pengampu..."}
                   </option>
-                  {availableTeachers.map(t => <option key={t} value={t}>{t}</option>)}
+                  {teachersList.map(t => <option key={t.id} value={t.id}>{t.nama_lengkap}</option>)}
                 </select>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-4 top-4 text-gray-400 pointer-events-none"><polyline points="6 9 12 15 18 9"></polyline></svg>
               </div>
-              {/* Helper text */}
-              {formData.class && formData.subject && availableTeachers.length === 0 && (
-                <p className="text-[12px] text-amber-600 mt-1.5 flex items-center gap-1">
-                  <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126Z"/></svg>
-                  Belum ada guru terdaftar untuk mapel ini di kelas tersebut.
-                </p>
-              )}
-              {formData.class && formData.subject && availableTeachers.length > 0 && (
-                <p className="text-[12px] text-emerald-600 mt-1.5 flex items-center gap-1">
-                  <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
-                  {availableTeachers.length} guru tersedia untuk mapel ini.
-                </p>
-              )}
             </div>
           </div>
 
@@ -297,12 +182,6 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
                 </div>
               </div>
             </div>
-            <div>
-              <label className="block text-[13px] font-bold text-gray-700 mb-2">Ruangan<span className="text-red-500">*</span></label>
-              <input type="text" name="room" value={formData.room} onChange={handleChange}
-                placeholder="cth. Ruang 101, Lab Fisika, Lapangan..."
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
-            </div>
           </div>
 
           {/* Semester */}
@@ -310,7 +189,7 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-4">Semester</h3>
             <div>
               <label className="block text-[13px] font-bold text-gray-700 mb-2">Tahun Ajaran &amp; Semester</label>
-              <input type="text" value={activeSemesterName} readOnly
+              <input type="text" value={activeSemester?.nama || "Sedang memuat..."} readOnly
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none bg-[#F8FAFC] text-gray-500 font-bold" />
             </div>
           </div>
@@ -329,10 +208,9 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
                   <span className="text-[14px] font-bold text-[#1e293b]">{formData.subject}</span>
                 </div>
                 <div className="text-[12px] text-gray-500 space-y-1">
-                  <p>ðŸ« <strong>{formData.class}</strong></p>
-                  <p>ðŸ‘¨â€ðŸ« {formData.teacher}</p>
+                  <p>🏫 <strong>{classesList.find(c => c.id == formData.class)?.nama_kelas || formData.class}</strong></p>
+                  <p>👨‍🏫 {teachersList.find(t => t.id == formData.teacher)?.nama || formData.teacher}</p>
                   {selectedDay && <p>📅 {selectedDay} · {selectedSlot}</p>}
-                  {formData.room && <p>ðŸ“ {formData.room}</p>}
                 </div>
               </div>
             ) : (
@@ -356,7 +234,7 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
               </div>
               <div onClick={() => setIsActive(!isActive)}
                 className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors ${isActive ? "bg-[#3B82F6]" : "bg-gray-200"}`}>
-                <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${isActive ? "translate-VII-6" : ""}`}></div>
+                <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${isActive ? "translate-x-6" : ""}`}></div>
               </div>
             </div>
           </div>

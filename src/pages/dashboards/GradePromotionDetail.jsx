@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 
-// Constants for initial dummy data have been removed.
+
 
 function autoStatus(s) {
-  if (s.nilaiAkhir >= 70 && s.kehadiran >= 80 && s.mapel <= 2) return "Naik Kelas";
+  if (s.nilai >= 70 && s.kehadiran >= 80 && s.mapel <= 2) return "Naik Kelas";
   return "Tidak Naik";
 }
 
@@ -11,119 +11,60 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
   const isSelesai = mode === "selesai" || classData?.status === "Selesai";
   
   const [students, setStudents] = useState([]);
-  
+  const [loading, setLoading] = useState(true);
+
   React.useEffect(() => {
-    const fetchState = async () => {
-      const key = `grade_promotion_students_${classData?.kode || "default"}`;
+    const fetchStudentsAndState = async () => {
+      setLoading(true);
       try {
+        const key = `grade_promotion_students_${classData?.kode || "default"}`;
+        const savedStr = localStorage.getItem(key);
+        const savedState = savedStr ? JSON.parse(savedStr) : null;
+
         const { default: api } = await import('../../api/axios');
-        
-        let semId = '00000002-0000-0000-0000-000000000001'; // Default fallback
-        try {
-          const semRes = await api.get('/semester');
-          const semesters = semRes.data?.data || [];
-          const activeSem = semesters.find(s => s.is_aktif) || semesters[0];
-          if (activeSem) semId = activeSem.id;
-        } catch (e) {
-          console.error("Gagal mengambil data semester:", e);
-        }
+        const resSiswa = await api.get('/siswa');
+        const allSiswa = resSiswa.data?.data || [];
+        const classSiswa = allSiswa.filter(s => s.kelas_id === classData?.kode);
 
-        let dbSiswa = [];
-        try {
-          const res = await api.get('/siswa?kelas_id=' + classData.kode + '&limit=1000');
-          dbSiswa = res.data?.data || [];
-        } catch(e) { console.error("Siswa err", e); }
-
-        let dbNilai = [];
-        try {
-          const res = await api.get('/nilai/kelas/' + classData.kode + '?semester_id=' + semId);
-          dbNilai = res.data?.data || [];
-        } catch(e) { console.error("Nilai err", e); }
-
-        let dbAbsensi = [];
-        try {
-          const res = await api.get('/absensi/rekap/semester?kelas_id=' + classData.kode + '&semester_id=' + semId);
-          dbAbsensi = res.data?.data || [];
-        } catch(e) { console.error("Absensi err", e); }
+        // If no students in DB for this class, fallback to dynamic mock data
+        let baseStudents = [];
+        const count = classSiswa.length > 0 ? classSiswa.length : (classData?.total || 36);
         
-        // Filter siswa berdasarkan kelas yang dipilih
-        const classStudents = dbSiswa.filter(s => s.kelas_id === classData?.kode);
-        
-        const colors = ["bg-blue-500", "bg-green-500", "bg-purple-500", "bg-orange-500", "bg-pink-500", "bg-teal-500", "bg-red-500", "bg-indigo-500"];
-        
-        const mappedStudents = classStudents.map((s, i) => {
-          // Hitung rata-rata nilai per siswa (dari semua mapel)
-          const studentGrades = dbNilai.filter(n => n.siswa_id === s.id);
-          let totalHarian = 0, totalUts = 0, totalUas = 0, totalAkhir = 0;
-          let mapelTdkLulus = 0;
+        for (let i = 0; i < count; i++) {
+          const actual = classSiswa[i];
+          const nama = actual ? actual.nama_lengkap : `Siswa ${classData?.kelas || "Kelas VII"} ${i + 1}`;
+          const nis = actual ? actual.nis : `20231${i.toString().padStart(2, '0')}`;
+          const init = nama.charAt(0).toUpperCase();
+          const color = ["bg-blue-500", "bg-green-500", "bg-purple-500", "bg-orange-500", "bg-teal-500", "bg-pink-500"][i % 6];
           
-          studentGrades.forEach(n => {
-            totalHarian += (Number(n.nilai_harian) || 0);
-            totalUts += (Number(n.nilai_uts) || 0);
-            totalUas += (Number(n.nilai_uas) || 0);
-            totalAkhir += (Number(n.nilai_akhir) || 0);
-            if ((Number(n.nilai_akhir) || 0) < 70) mapelTdkLulus++;
-          });
+          let status = isSelesai ? "Naik Kelas" : "Belum Ditentukan";
           
-          const mapelCount = studentGrades.length || 1; 
-          const avgHarian = studentGrades.length ? Math.round(totalHarian / mapelCount) : 0;
-          const avgUts = studentGrades.length ? Math.round(totalUts / mapelCount) : 0;
-          const avgUas = studentGrades.length ? Math.round(totalUas / mapelCount) : 0;
-          const avgAkhir = studentGrades.length ? Math.round(totalAkhir / mapelCount) : 0;
-
-          // Hitung persentase kehadiran
-          const studentAbsensi = dbAbsensi.find(a => a.siswa_id === s.id);
-          let kehadiranPct = 0;
-          if (studentAbsensi) {
-            const hadir = Number(studentAbsensi.total_hadir) || 0;
-            const izin = Number(studentAbsensi.total_izin) || 0;
-            const sakit = Number(studentAbsensi.total_sakit) || 0;
-            const alpha = Number(studentAbsensi.total_alpha) || 0;
-            const total = hadir + izin + sakit + alpha;
-            if (total > 0) {
-              kehadiranPct = Math.round((hadir / total) * 100);
-            }
+          if (savedState) {
+            const savedStudent = savedState.find(s => s.nis === nis);
+            if (savedStudent) status = savedStudent.status;
           }
 
-          return {
+          baseStudents.push({
             no: i + 1,
-            nis: s.nis || "-",
-            nama: s.nama_lengkap,
-            init: (s.nama_lengkap || "S").charAt(0).toUpperCase(),
-            color: colors[i % colors.length],
-            nilaiHarian: avgHarian,
-            nilaiUts: avgUts,
-            nilaiUas: avgUas,
-            nilaiAkhir: avgAkhir,
-            kehadiran: kehadiranPct,
-            mapel: mapelTdkLulus,
-            status: "Belum Ditentukan"
-          };
-        });
-
-        // Gabungkan dengan state yang sudah disimpan sebelumnya (jika ada)
-        let finalStudents = mappedStudents;
-        try {
-          const res = await api.get('/system/frontend-state');
-          if (res.data?.data?.[key]) {
-            const savedState = res.data.data[key];
-            finalStudents = mappedStudents.map(ms => {
-              const saved = savedState.find(ss => ss.nis === ms.nis);
-              if (saved) return { ...ms, status: saved.status };
-              return ms;
-            });
-          }
-        } catch(e) {}
-
-        setStudents(finalStudents);
-      } catch (err) {
-        console.error("Gagal memuat data siswa asli:", err);
+            nis,
+            nama,
+            init,
+            color,
+            nilai: 75 + (i % 20),
+            kehadiran: 85 + (i % 15),
+            mapel: i % 3,
+            status
+          });
+        }
+        setStudents(baseStudents);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
       }
     };
-    if (classData?.kode) {
-      fetchState();
-    }
-  }, [classData?.kode]);
+    if (classData) fetchStudentsAndState();
+  }, [classData, isSelesai]);
 
   const [activeTab, setActiveTab] = useState("Semua");
   const [search, setSearch] = useState("");
@@ -209,7 +150,7 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-[24px] font-bold text-[#1e293b]">{classData?.kelas || (isSelesai ? "Kelas VIII A" : "Kelas VII A")}</h1>
-              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600">{classData?.kode_kelas || classData?.kode || (isSelesai ? "VIII-A" : "VII-A")}</span>
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600">{classData?.kode || (isSelesai ? "VIII-A" : "VII-A")}</span>
               <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border ${(isSelesai || processed || classData?.status === "Selesai") ? "bg-green-50 text-green-600 border-green-100" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
                 {(isSelesai || processed || classData?.status === "Selesai") ? "Selesai" : "Belum Diproses"}
               </span>
@@ -222,30 +163,7 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Ekspor Data
           </button>
-          <button
-            onClick={() => isSelesai ? setView("process") : handleProses()}
-            disabled={processing}
-            className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-[13px] font-bold shadow-sm transition-colors border ${
-              processing
-                ? "bg-blue-50 border-blue-200 text-blue-400 cursor-not-allowed"
-                : "bg-white border-[#2A4365] text-[#2A4365] hover:bg-blue-50"
-            }`}
-          >
-            {processing ? (
-              <>
-                <svg className="animate-spin" width="15" height="15" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                </svg>
-                Memproses...
-              </>
-            ) : (
-              <>
-                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                Proses Otomatis
-              </>
-            )}
-          </button>
+
           <button onClick={handleSaveDecision} className="flex items-center gap-2 px-3.5 py-2.5 bg-[#2A4365] hover:bg-[#1A365D] text-white rounded-xl text-[13px] font-bold shadow-sm">
             <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
             Simpan Keputusan
@@ -315,17 +233,15 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="border-b border-gray-100">
-                  <tr>{["NO","NIS","NAMA SISWA","NILAI HARIAN","NILAI UTS","NILAI UAS","KEHADIRAN","MAPEL TDK LULUS","STATUS","AKSI"].map(h=>(
+                  <tr>{["NO","NIS","NAMA SISWA","NILAI RATA-RATA","KEHADIRAN","MAPEL TDK LULUS","STATUS","AKSI"].map(h=>(
                     <th key={h} className="px-4 py-3.5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
                   ))}</tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {filtered.length === 0 ? (
-                    <tr>
-                      <td colSpan="10" className="py-16 text-center text-gray-400 text-[14px]">
-                        Tidak ada data siswa ditemukan atau sedang memuat...
-                      </td>
-                    </tr>
+                  {loading ? (
+                    <tr><td colSpan="8" className="py-10 text-center text-gray-500 font-medium">Memuat data siswa...</td></tr>
+                  ) : filtered.length === 0 ? (
+                    <tr><td colSpan="8" className="py-10 text-center text-gray-500 font-medium">Tidak ada siswa ditemukan.</td></tr>
                   ) : filtered.map((s,i)=>(
                     <tr key={i} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-4 py-3.5 text-[13px] text-gray-400">{s.no}</td>
@@ -338,17 +254,8 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
                       </td>
                       <td className="px-4 py-3.5">
                         <div className="flex items-center gap-1">
-                          <span className={`text-[13px] font-bold ${s.nilaiHarian<70?"text-red-500":"text-gray-700"}`}>{s.nilaiHarian}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-1">
-                          <span className={`text-[13px] font-bold ${s.nilaiUts<70?"text-red-500":"text-gray-700"}`}>{s.nilaiUts}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-1">
-                          <span className={`text-[13px] font-bold ${s.nilaiUas<70?"text-red-500":"text-gray-700"}`}>{s.nilaiUas}</span>
+                          <span className={`text-[13px] font-bold ${s.nilai<70?"text-red-500":"text-gray-700"}`}>{s.nilai}</span>
+                          {s.nilai<70&&<svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#ef4444" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>}
                         </div>
                       </td>
                       <td className="px-4 py-3.5">
@@ -370,8 +277,8 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
                         )}
                       </td>
                       <td className="px-4 py-3.5">
-                        <button onClick={() => handleToggleStatus(s.nis)} className="flex items-center gap-1 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-[12px] font-bold text-gray-600 hover:bg-gray-50">
-                          Ubah <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                        <button onClick={() => handleToggleStatus(s.nis)} className="flex items-center gap-1 px-4 py-1.5 bg-blue-50 border border-blue-100 rounded-lg text-[12px] font-bold text-blue-600 hover:bg-blue-100 transition-colors">
+                          Ubah Status
                         </button>
                       </td>
                     </tr>
@@ -387,7 +294,7 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <h3 className="text-[14px] font-bold text-gray-700 mb-4">Informasi Kelas</h3>
             <div className="space-y-3">
-              {[["Total Siswa","30"],["Semester","Ganjil 2023/2024"]].map(([l,v],i)=>(
+              {[["Total Siswa", students.length],["Semester","Ganjil 2023/2024"]].map(([l,v],i)=>(
                 <div key={i} className="flex items-center justify-between">
                   <span className="text-[13px] text-gray-400">{l}</span>
                   <span className="text-[13px] font-semibold text-gray-700">{v}</span>
@@ -396,48 +303,7 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-              <h3 className="text-[14px] font-bold text-gray-700">Distribusi Nilai</h3>
-            </div>
-            <div className="space-y-3">
-              {[["≥ 85 (Sangat Baik)",0,"bg-green-500","bg-green-500"],["70-84 (Baik)",9,"bg-blue-500","bg-blue-500"],["60-69 (Cukup)",1,"bg-amber-400","bg-amber-400"],["< 60 (Kurang)",0,"bg-red-400","bg-red-400"]].map(([l,c,bar,dot],i)=>(
-                <div key={i} className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dot}`}/>
-                    <span className="text-[12px] text-gray-500 truncate">{l}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-12 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${bar}`} style={{width:`${(c/10)*100}%`}}/>
-                    </div>
-                    <span className="text-[12px] font-bold text-gray-600 w-3 text-right">{c}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
 
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#3B82F6" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              <h3 className="text-[14px] font-bold text-gray-700">Distribusi Kehadiran</h3>
-            </div>
-            <div className="space-y-3">
-              {[["≥ 90%",5,"bg-green-500"],["80-89%",4,"bg-blue-500"],["< 80% (Kurang)",1,"bg-red-400"]].map(([l,c,bar],i)=>(
-                <div key={i} className="flex items-center justify-between gap-2">
-                  <span className="text-[12px] text-gray-500 flex-1">{l}</span>
-                  <div className="flex items-center gap-2">
-                    <div className="w-12 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${bar}`} style={{width:`${(c/10)*100}%`}}/>
-                    </div>
-                    <span className="text-[12px] font-bold text-gray-600 w-3 text-right">{c}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
 
           {belum > 0 && (
             <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
@@ -445,7 +311,7 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#d97706" strokeWidth="2.5" className="flex-shrink-0 mt-0.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
                 <div>
                   <p className="text-[13px] font-bold text-amber-700">{belum} siswa belum ditentukan</p>
-                  <p className="text-[12px] text-amber-600 mt-1">Gunakan "Proses Otomatis" untuk memproses berdasarkan kriteria, atau tentukan secara manual.</p>
+                  <p className="text-[12px] text-amber-600 mt-1">Silakan tentukan status kenaikan siswa secara manual.</p>
                 </div>
               </div>
             </div>

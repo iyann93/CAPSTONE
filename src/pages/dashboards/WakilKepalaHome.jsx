@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { getBeasiswa, getDanaBeasiswa, getOperasional } from "../../api/finance";
+import { getGlobalFinanceSummary } from "../../utils/financeHelpers";
 
 
 
@@ -110,8 +111,7 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
   
   const [programList, setProgramList] = useState([]);
   const [danaBeasiswaList, setDanaBeasiswaList] = useState([]);
-  const [currentPemasukanData, setCurrentPemasukanData] = useState([]);
-  const [currentPengeluaranData, setCurrentPengeluaranData] = useState([]);
+  const [globalFinance, setGlobalFinance] = useState({ totalPemasukan: 0, totalPengeluaran: 0 });
   const [selectedDetailItem, setSelectedDetailItem] = useState(null);
 
   const formatRupiah = (value) => {
@@ -147,34 +147,17 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
       }
 
       try {
-        const ops = await getOperasional();
-        if (Array.isArray(ops)) {
-          setCurrentPemasukanData(ops.filter(d => d.tipe === 'pemasukan'));
-          setCurrentPengeluaranData(ops.filter(d => d.tipe === 'pengeluaran'));
-        }
+        const globalSummary = await getGlobalFinanceSummary();
+        setGlobalFinance(globalSummary);
       } catch (e) {
-        console.error("Error loading getOperasional in WakilKepalaHome:", e);
+        console.error("Error loading global finance:", e);
       }
     };
     loadData();
   }, []);
 
-  const penyaluranBeasiswaList = [];
-  programList.forEach(p => {
-    if (p.status === 'Aktif') {
-      const amountStr = String(p.amount || "0").replace(/[^0-9]/g, '');
-      const amountNum = parseInt(amountStr, 10) || 0;
-      const disalurkan = (p.penerima || []).reduce((s, r) => {
-        const rNominal = r.nominal ? Number(r.nominal) : amountNum;
-        return s + (rNominal || 0);
-      }, 0);
-      penyaluranBeasiswaList.push({ nominal: disalurkan });
-    }
-  });
-  const totalPenyaluranBeasiswa = penyaluranBeasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
-  const totalPengeluaranTahunan = currentPengeluaranData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0) + totalPenyaluranBeasiswa;
-  const totalBeasiswa = danaBeasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
-  const totalPemasukanTahunan = currentPemasukanData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0) + totalBeasiswa;
+  const totalPengeluaranTahunan = globalFinance.totalPengeluaran;
+  const totalPemasukanTahunan = globalFinance.totalPemasukan;
 
   // Load jadwal from localStorage or use initial
   const storedJadwal = localStorage.getItem("wakil_jadwal");

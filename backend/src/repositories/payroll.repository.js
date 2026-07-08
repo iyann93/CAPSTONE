@@ -56,7 +56,7 @@ const PayrollRepository = {
     const orderBy = buildOrderBy(
       sort,
       { nama: 'u.nama', bulan: 's.bulan', tahun: 's.tahun', status: 's.status', gaji_bersih: 's.gaji_bersih' },
-      's.tahun DESC, s.bulan DESC'
+      "s.tahun DESC, s.bulan DESC, CASE WHEN s.status = 'dibayar' THEN 1 WHEN s.status = 'disetujui' THEN 2 ELSE 3 END ASC, s.dibuat_at DESC"
     );
 
     const sql = `

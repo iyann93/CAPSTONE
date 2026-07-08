@@ -10,7 +10,7 @@ const KELOMPOK_COLORS = {
 };
 
 const KELOMPOK_LIST = ["Wajib", "IPA", "IPS", "Muatan Lokal", "Lintas Minat"];
-const TINGKAT_LIST  = ["VII", "VIII", "IX", "X", "XI", "XII"];
+const TINGKAT_LIST  = ["VII", "VIII", "IX"];
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 const Skeleton = () => (
@@ -30,26 +30,32 @@ const Skeleton = () => (
 // ─── Modal Form ───────────────────────────────────────────────────────────────
 const MapelModal = ({ data, onClose, onSave }) => {
   const [form, setForm] = useState(data || {
-    kode: "", nama: "", kelompok: "Wajib", kkm: 75, jumlah_jam: 2, tingkat: "X,XI,XII"
+    kode: "", nama: "", kelompok: "Wajib", kkm: 75, jumlah_jam: 2, tingkat: "VII,VIII,IX", guru_pengampu_id: ""
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [teachers, setTeachers] = useState([]);
+
+  useEffect(() => {
+    api.get("/guru?limit=1000")
+      .then(res => setTeachers(res.data?.data || []))
+      .catch(err => console.error("Gagal load guru", err));
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.kode || !form.nama) { setError("Kode dan Nama wajib diisi."); return; }
     setSaving(true);
     try {
+      const payload = {
+        kode: form.kode, nama: form.nama, kelompok: form.kelompok,
+        kkm: parseInt(form.kkm), jumlah_jam: parseInt(form.jumlah_jam), tingkat: form.tingkat,
+        guru_pengampu_id: form.guru_pengampu_id || null
+      };
       if (data?.id) {
-        await api.put(`/mapel/${data.id}`, {
-          kode: form.kode, nama: form.nama, kelompok: form.kelompok,
-          kkm: parseInt(form.kkm), jumlah_jam: parseInt(form.jumlah_jam), tingkat: form.tingkat
-        });
+        await api.put(`/mapel/${data.id}`, payload);
       } else {
-        await api.post("/mapel", {
-          kode: form.kode, nama: form.nama, kelompok: form.kelompok,
-          kkm: parseInt(form.kkm), jumlah_jam: parseInt(form.jumlah_jam), tingkat: form.tingkat
-        });
+        await api.post("/mapel", payload);
       }
       onSave();
     } catch (err) {
@@ -72,7 +78,7 @@ const MapelModal = ({ data, onClose, onSave }) => {
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">{error}</div>}
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">Kode <span className="text-red-500">*</span></label>
               <input value={form.kode} onChange={e => setForm({...form, kode: e.target.value})} placeholder="cth: MTK" maxLength={20} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" required />
@@ -107,7 +113,7 @@ const MapelModal = ({ data, onClose, onSave }) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">KKM</label>
               <input type="number" min={0} max={100} value={form.kkm} onChange={e => setForm({...form, kkm: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
@@ -116,6 +122,14 @@ const MapelModal = ({ data, onClose, onSave }) => {
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">Jam / Minggu</label>
               <input type="number" min={1} max={10} value={form.jumlah_jam} onChange={e => setForm({...form, jumlah_jam: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Guru Pengampu</label>
+            <select value={form.guru_pengampu_id || ""} onChange={e => setForm({...form, guru_pengampu_id: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
+              <option value="">-- Pilih Guru --</option>
+              {teachers.map(t => <option key={t.id} value={t.id}>{t.nama}</option>)}
+            </select>
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
@@ -233,7 +247,7 @@ const Subjects = () => {
           </div>
           <h1 className="text-[26px] font-bold text-[#1e293b]">Mata Pelajaran</h1>
           <p className="text-gray-500 text-[14px] mt-1">
-            Kelola daftar mata pelajaran SMP–SMA, alokasi jam, dan kelompok pelajaran.
+            Kelola daftar mata pelajaran SMP, alokasi jam, dan kelompok pelajaran.
           </p>
         </div>
         <div className="flex items-center gap-3">

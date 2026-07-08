@@ -56,18 +56,18 @@ const GradePromotion = () => {
         const kelasRes = await api.get('/kelas');
         const dbClasses = kelasRes.data?.data || [];
 
-        // Fetch siswa to get real counts
-        let dbSiswa = [];
+        // Fetch students to get actual counts
+        let allSiswa = [];
         try {
           const siswaRes = await api.get('/siswa');
-          dbSiswa = siswaRes.data?.data || [];
-        } catch(e) { console.error("Gagal memuat data siswa", e); }
+          allSiswa = siswaRes.data?.data || [];
+        } catch (e) {}
 
         // Fetch frontend state
         let savedProgress = [];
         try {
           const stateRes = await api.get('/system/frontend-state');
-          savedProgress = stateRes.data?.data?.grade_promotion_classes || [];
+          savedProgress = stateRes.data?.data?.grade_promotion_classes_v2 || [];
         } catch(e) {}
 
         const mappedClasses = dbClasses.map((c, index) => {
@@ -77,26 +77,35 @@ const GradePromotion = () => {
           const tingkat = isVII ? "Kelas VII" : isVIII ? "Kelas VIII" : "Kelas IX";
           
           const progress = savedProgress.find(p => p.kode === c.id) || {};
-          const classStudents = dbSiswa.filter(s => s.kelas_id === c.id);
-          const totalSiswa = classStudents.length;
+          const actualCount = allSiswa.filter(s => s.kelas_id === c.id).length;
+          const finalTotal = actualCount > 0 ? actualCount : (c.kapasitas || 0);
+          
+          let naik = progress.naik || 0;
+          let tidakNaik = progress.tidakNaik || 0;
+          
+          if (naik + tidakNaik > finalTotal) {
+            naik = 0;
+            tidakNaik = 0;
+          }
+          
+          const belum = finalTotal - naik - tidakNaik;
           
           return {
             no: index + 1,
             kelas: c.nama_kelas,
             kode: c.id,
-            kode_kelas: c.kode_kelas || c.nama_kelas,
             tingkat: tingkat,
-            wali: c.wali_kelas_nama || "Belum ditentukan",
-            total: totalSiswa,
-            naik: progress.naik || 0,
-            tidakNaik: progress.tidakNaik || 0,
-            belum: progress.belum !== undefined ? progress.belum : totalSiswa,
-            status: progress.status || "Belum Diproses"
+            wali: c.wali_kelas || "Belum ditentukan",
+            total: finalTotal,
+            naik,
+            tidakNaik,
+            belum,
+            status: belum === 0 ? "Selesai" : (naik > 0 || tidakNaik > 0 ? "Dalam Proses" : "Belum Diproses")
           };
         });
 
         setClasses(mappedClasses);
-        localStorage.setItem("grade_promotion_classes", JSON.stringify(mappedClasses));
+        localStorage.setItem("grade_promotion_classes_v2", JSON.stringify(mappedClasses));
       } catch (err) {
         console.error("Gagal memuat status kenaikan kelas dari backend", err);
         const saved = localStorage.getItem("grade_promotion_classes_v2");
@@ -272,7 +281,7 @@ const GradePromotion = () => {
                   <td className="px-5 py-4 text-[13px] text-gray-500">{row.no}</td>
                   <td className="px-5 py-4">
                     <p className="text-[13px] font-semibold text-gray-800">{row.kelas}</p>
-                    <p className="text-[11px] text-gray-400">{row.kode_kelas}</p>
+                    <p className="text-[11px] text-gray-400">{row.kode}</p>
                   </td>
                   <td className="px-5 py-4">
                     <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600">{row.tingkat}</span>
