@@ -1,9 +1,13 @@
 require('dotenv').config();
-const db = require('./src/config/db');
-db.query(`SELECT u.id, u.nama, u.email, r.nama_role 
-          FROM shared.users u 
-          JOIN shared.user_roles ur ON u.id = ur.user_id 
-          JOIN shared.roles r ON ur.role_id = r.id 
-          WHERE r.nama_role = 'Orang Tua'`)
-  .then(res => { console.log('Orang Tua users:', res.rows); process.exit(0); })
-  .catch(err => { console.error(err.message); process.exit(1); });
+const { query } = require('./src/config/db');
+
+async function check() {
+  const res = await query(`
+    SELECT column_name, data_type 
+    FROM information_schema.columns 
+    WHERE table_schema = 'academic' AND table_name = 'semester';
+  `);
+  console.log(res.rows);
+  process.exit(0);
+}
+check();

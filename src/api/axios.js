@@ -8,9 +8,16 @@ const api = axios.create({
   },
 });
 
-// Interceptor untuk menyematkan token ke setiap request
+// Interceptor untuk menyematkan token dan header cache ke setiap request
 api.interceptors.request.use(
   (config) => {
+    // Force bypass browser cache for all requests (SSOT enforcement)
+    if (config.method === 'get') {
+      config.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+      config.headers['Pragma'] = 'no-cache';
+      config.headers['Expires'] = '0';
+    }
+
     const user = JSON.parse(localStorage.getItem('siakad_user') || 'null');
     if (user?.accessToken) {
       config.headers['Authorization'] = `Bearer ${user.accessToken}`;

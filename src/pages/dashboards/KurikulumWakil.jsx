@@ -1,21 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import api from "../../api/axios";
 
-const initData = [
-  { id: 1, namaKurikulum: "Kurikulum Merdeka", mapel: "Matematika", kelas: "IX IPA", tingkat: "SMP", tahunAjaran: "2025/2026", deskripsi: "Kurikulum yang diterapkan untuk siswa kelas IX IPA pada tahun ajaran 2025/2026 berdasarkan Kurikulum Merdeka.", status: "Aktif" },
-  { id: 2, namaKurikulum: "Kurikulum Merdeka", mapel: "Fisika", kelas: "VIII IPA", tingkat: "SMP", tahunAjaran: "2025/2026", deskripsi: "Fisika modern dan mekanika kuantum", status: "Aktif" },
-  { id: 3, namaKurikulum: "Kurikulum Merdeka", mapel: "Biologi", kelas: "VII IPA", tingkat: "SMP", tahunAjaran: "2025/2026", deskripsi: "Pengantar biologi sel dan genetika", status: "Aktif" },
-  { id: 4, namaKurikulum: "Kurikulum 2013", mapel: "Sejarah Indonesia", kelas: "VII IPS", tingkat: "SMP", tahunAjaran: "2025/2026", deskripsi: "Sejarah nasional abad ke-20", status: "Revisi" },
-  { id: 5, namaKurikulum: "Kurikulum Merdeka", mapel: "Bahasa Inggris", kelas: "VII IPA", tingkat: "SMP", tahunAjaran: "2025/2026", deskripsi: "Grammar, speaking, dan writing", status: "Aktif" },
-  { id: 6, namaKurikulum: "Kurikulum 2013", mapel: "Kimia", kelas: "VIII IPA", tingkat: "SMP", tahunAjaran: "2025/2026", deskripsi: "Kimia organik dan reaksi", status: "Aktif" },
-];
-
-const emptyForm = { namaKurikulum: "", mapel: "", kelas: "", tingkat: "SMP", tahunAjaran: "2025/2026", deskripsi: "", status: "Aktif" };
+const emptyForm = { kodeKurikulum: "", namaKurikulum: "", tahunAjaranId: "", deskripsi: "", status: "Aktif" };
 
 const KurikulumWakil = () => {
-  const [data, setData] = useState(() => {
-    const s = localStorage.getItem("wakil_kurikulum");
-    return s ? JSON.parse(s) : initData;
-  });
+  const [data, setData] = useState([]);
+  const [tahunAjarans, setTahunAjarans] = useState([]);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("Semua");
   const [showForm, setShowForm] = useState(false);
@@ -24,60 +14,98 @@ const KurikulumWakil = () => {
   const [errors, setErrors] = useState({});
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [toast, setToast] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3000);
   };
 
-  const save = (d) => {
-    setData(d);
-    localStorage.setItem("wakil_kurikulum", JSON.stringify(d));
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [resKurikulum, resTA] = await Promise.all([
+        api.get('/kurikulum'),
+        api.get('/tahun-ajaran')
+      ]);
+      setData(resKurikulum.data.data);
+      setTahunAjarans(resTA.data.data);
+    } catch (error) {
+      console.error(error);
+      showToast("Gagal memuat data", "error");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const validate = () => {
     const e = {};
+    if (!form.kodeKurikulum?.trim()) e.kodeKurikulum = "Kode Kurikulum wajib diisi";
     if (!form.namaKurikulum?.trim()) e.namaKurikulum = "Nama Kurikulum wajib diisi";
-    if (!form.mapel.trim()) e.mapel = "Mata pelajaran wajib diisi";
-    if (!form.kelas.trim()) e.kelas = "Kelas wajib diisi";
-    if (!form.tahunAjaran.trim()) e.tahunAjaran = "Tahun ajaran wajib diisi";
+    if (!form.tahunAjaranId) e.tahunAjaranId = "Tahun ajaran wajib dipilih";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-    if (editId !== null) {
-      const updated = data.map(d => d.id === editId ? { ...d, ...form } : d);
-      save(updated);
-      showToast("Kurikulum berhasil diperbarui!");
-    } else {
-      const newItem = { ...form, id: Date.now() };
-      save([...data, newItem]);
-      showToast("Kurikulum berhasil ditambahkan!");
+    try {
+      const payload = {
+        kode_kurikulum: form.kodeKurikulum,
+        nama_kurikulum: form.namaKurikulum,
+        tahun_ajaran_id: form.tahunAjaranId,
+        deskripsi: form.deskripsi,
+        status: form.status
+      };
+      if (editId) {
+        await api.put(`/kurikulum/${editId}`, payload);
+        showToast("Kurikulum berhasil diperbarui!");
+      } else {
+        await api.post('/kurikulum', payload);
+        showToast("Kurikulum berhasil ditambahkan!");
+      }
+      setShowForm(false);
+      setEditId(null);
+      setForm(emptyForm);
+      setErrors({});
+      fetchData();
+    } catch (err) {
+      showToast(err.response?.data?.message || "Terjadi kesalahan", "error");
     }
-    setShowForm(false);
-    setEditId(null);
-    setForm(emptyForm);
-    setErrors({});
   };
 
   const handleEdit = (item) => {
-    setForm({ namaKurikulum: item.namaKurikulum || "", mapel: item.mapel, kelas: item.kelas, tingkat: item.tingkat, tahunAjaran: item.tahunAjaran, deskripsi: item.deskripsi, status: item.status });
+    setForm({ 
+      kodeKurikulum: item.kode_kurikulum || "", 
+      namaKurikulum: item.nama_kurikulum || "", 
+      tahunAjaranId: item.tahun_ajaran_id || "", 
+      deskripsi: item.deskripsi || "", 
+      status: item.status || "Aktif" 
+    });
     setEditId(item.id);
     setShowForm(true);
     setErrors({});
   };
 
-  const handleDelete = (id) => {
-    save(data.filter(d => d.id !== id));
-    setDeleteConfirm(null);
-    showToast("Kurikulum berhasil dihapus!", "error");
+  const handleDelete = async (id) => {
+    try {
+      await api.delete(`/kurikulum/${id}`);
+      setDeleteConfirm(null);
+      showToast("Kurikulum berhasil dihapus!");
+      fetchData();
+    } catch (err) {
+      setDeleteConfirm(null);
+      showToast(err.response?.data?.message || "Gagal menghapus", "error");
+    }
   };
 
   const filtered = data.filter(d => {
-    const s = d.mapel.toLowerCase().includes(search.toLowerCase()) || d.kelas.toLowerCase().includes(search.toLowerCase());
+    const s = (d.nama_kurikulum || '').toLowerCase().includes(search.toLowerCase()) || (d.kode_kurikulum || '').toLowerCase().includes(search.toLowerCase());
     const f = filterStatus === "Semua" || d.status === filterStatus;
     return s && f;
   });
@@ -97,7 +125,7 @@ const KurikulumWakil = () => {
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
           <h1 className="text-[26px] font-bold text-[#1e293b]">Kelola Kurikulum</h1>
-          <p className="text-[14px] text-gray-500 mt-1">Manajemen mata pelajaran dan kurikulum sekolah</p>
+          <p className="text-[14px] text-gray-500 mt-1">Manajemen kurikulum akademik (Master Data)</p>
         </div>
         <button
           onClick={() => { setShowForm(true); setEditId(null); setForm(emptyForm); setErrors({}); }}
@@ -111,7 +139,7 @@ const KurikulumWakil = () => {
       {/* Filters */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col md:flex-row gap-3 items-center justify-between">
         <div className="flex gap-2">
-          {["Semua", "Aktif", "Revisi"].map(f => (
+          {["Semua", "Aktif", "Draft", "Arsip"].map(f => (
             <button key={f} onClick={() => setFilterStatus(f)} className={`px-4 py-1.5 rounded-full text-[12px] font-semibold transition-colors ${filterStatus === f ? "bg-[#1A3D63] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>{f}</button>
           ))}
         </div>
@@ -127,25 +155,27 @@ const KurikulumWakil = () => {
           <table className="w-full">
             <thead className="border-b border-gray-100 bg-gray-50/50">
               <tr>
-                {["NO", "NAMA KURIKULUM", "MATA PELAJARAN", "KELAS", "TINGKAT", "TAHUN AJARAN", "STATUS", "AKSI"].map(h => (
+                {["NO", "KODE KURIKULUM", "NAMA KURIKULUM", "TAHUN AJARAN", "STATUS", "AKSI"].map(h => (
                   <th key={h} className="px-5 py-3.5 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filtered.map((item, i) => (
+              {loading ? (
+                <tr><td colSpan={6} className="px-5 py-8 text-center text-gray-400 text-[13px]">Memuat data...</td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={6} className="px-5 py-8 text-center text-gray-400 text-[13px]">Tidak ada data kurikulum ditemukan.</td></tr>
+              ) : filtered.map((item, i) => (
                 <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-5 py-4 text-[13px] text-gray-400">{i + 1}</td>
-                  <td className="px-5 py-4 text-[13px] font-bold text-gray-800">{item.namaKurikulum}</td>
+                  <td className="px-5 py-4 text-[13px] font-bold text-gray-800">{item.kode_kurikulum}</td>
                   <td className="px-5 py-4">
-                    <p className="text-[13px] font-bold text-gray-800">{item.mapel}</p>
+                    <p className="text-[13px] font-bold text-gray-800">{item.nama_kurikulum}</p>
                     <p className="text-[11px] text-gray-400 mt-0.5 max-w-[250px] whitespace-normal">{item.deskripsi}</p>
                   </td>
-                  <td className="px-5 py-4 text-[13px] text-gray-600">{item.kelas}</td>
-                  <td className="px-5 py-4 text-[13px] text-gray-500">{item.tingkat}</td>
-                  <td className="px-5 py-4 text-[13px] text-gray-500">{item.tahunAjaran}</td>
+                  <td className="px-5 py-4 text-[13px] text-gray-600">{item.tahun_ajaran_nama || '-'}</td>
                   <td className="px-5 py-4">
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${item.status === "Aktif" ? "bg-green-50 text-green-600 border border-green-100" : "bg-amber-50 text-amber-600 border border-amber-100"}`}>
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${item.status === "Aktif" ? "bg-green-50 text-green-600 border border-green-100" : item.status === "Draft" ? "bg-blue-50 text-blue-600 border border-blue-100" : "bg-gray-100 text-gray-600 border border-gray-200"}`}>
                       {item.status}
                     </span>
                   </td>
@@ -163,9 +193,6 @@ const KurikulumWakil = () => {
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 && (
-                <tr><td colSpan={8} className="px-5 py-8 text-center text-gray-400 text-[13px]">Tidak ada data kurikulum ditemukan.</td></tr>
-              )}
             </tbody>
           </table>
         </div>
@@ -183,44 +210,36 @@ const KurikulumWakil = () => {
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2 md:col-span-1">
+                  <label className="block text-[12px] font-bold text-gray-600 mb-1.5">Kode Kurikulum *</label>
+                  <input value={form.kodeKurikulum} onChange={e => setForm({ ...form, kodeKurikulum: e.target.value })} placeholder="cth: KUR-MERDEKA" className={`w-full px-3.5 py-2.5 rounded-xl border text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100 ${errors.kodeKurikulum ? "border-red-300 bg-red-50" : "border-gray-200"}`}/>
+                  {errors.kodeKurikulum && <p className="text-[11px] text-red-500 mt-1">{errors.kodeKurikulum}</p>}
+                </div>
+                <div className="col-span-2 md:col-span-1">
+                  <label className="block text-[12px] font-bold text-gray-600 mb-1.5">Tahun Ajaran *</label>
+                  <select value={form.tahunAjaranId} onChange={e => setForm({ ...form, tahunAjaranId: e.target.value })} className={`w-full px-3.5 py-2.5 rounded-xl border text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100 ${errors.tahunAjaranId ? "border-red-300 bg-red-50" : "border-gray-200"}`}>
+                    <option value="" disabled>Pilih Tahun Ajaran</option>
+                    {tahunAjarans.map(t => <option key={t.id} value={t.id}>{t.nama}</option>)}
+                  </select>
+                  {errors.tahunAjaranId && <p className="text-[11px] text-red-500 mt-1">{errors.tahunAjaranId}</p>}
+                </div>
                 <div className="col-span-2">
                   <label className="block text-[12px] font-bold text-gray-600 mb-1.5">Nama Kurikulum *</label>
-                  <input value={form.namaKurikulum || ""} onChange={e => setForm({ ...form, namaKurikulum: e.target.value })} placeholder="cth: kurikulum merdeka" className={`w-full px-3.5 py-2.5 rounded-xl border text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100 ${errors.namaKurikulum ? "border-red-300 bg-red-50" : "border-gray-200"}`}/>
+                  <input value={form.namaKurikulum} onChange={e => setForm({ ...form, namaKurikulum: e.target.value })} placeholder="cth: Kurikulum Merdeka 2025" className={`w-full px-3.5 py-2.5 rounded-xl border text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100 ${errors.namaKurikulum ? "border-red-300 bg-red-50" : "border-gray-200"}`}/>
                   {errors.namaKurikulum && <p className="text-[11px] text-red-500 mt-1">{errors.namaKurikulum}</p>}
-                </div>
-                <div>
-                  <label className="block text-[12px] font-bold text-gray-600 mb-1.5">Mata Pelajaran *</label>
-                  <input value={form.mapel} onChange={e => setForm({ ...form, mapel: e.target.value })} placeholder="cth: Matematika" className={`w-full px-3.5 py-2.5 rounded-xl border text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100 ${errors.mapel ? "border-red-300 bg-red-50" : "border-gray-200"}`}/>
-                  {errors.mapel && <p className="text-[11px] text-red-500 mt-1">{errors.mapel}</p>}
-                </div>
-                <div>
-                  <label className="block text-[12px] font-bold text-gray-600 mb-1.5">Kelas *</label>
-                  <input value={form.kelas} onChange={e => setForm({ ...form, kelas: e.target.value })} placeholder="cth: VII" className={`w-full px-3.5 py-2.5 rounded-xl border text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100 ${errors.kelas ? "border-red-300 bg-red-50" : "border-gray-200"}`}/>
-                  {errors.kelas && <p className="text-[11px] text-red-500 mt-1">{errors.kelas}</p>}
-                </div>
-                <div>
-                  <label className="block text-[12px] font-bold text-gray-600 mb-1.5">Tingkat</label>
-                  <select value={form.tingkat} onChange={e => setForm({ ...form, tingkat: e.target.value })} className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100">
-                    {["SMP", "SMA", "SMK"].map(t => <option key={t}>{t}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-[12px] font-bold text-gray-600 mb-1.5">Tahun Ajaran *</label>
-                  <input value={form.tahunAjaran} onChange={e => setForm({ ...form, tahunAjaran: e.target.value })} placeholder="cth: 2025/2026" className={`w-full px-3.5 py-2.5 rounded-xl border text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100 ${errors.tahunAjaran ? "border-red-300 bg-red-50" : "border-gray-200"}`}/>
-                  {errors.tahunAjaran && <p className="text-[11px] text-red-500 mt-1">{errors.tahunAjaran}</p>}
                 </div>
               </div>
               <div>
                 <label className="block text-[12px] font-bold text-gray-600 mb-1.5">Status</label>
                 <div className="flex gap-3">
-                  {["Aktif", "Revisi", "Nonaktif"].map(s => (
+                  {["Draft", "Aktif", "Arsip"].map(s => (
                     <button key={s} type="button" onClick={() => setForm({ ...form, status: s })} className={`flex-1 py-2.5 rounded-xl text-[12px] font-semibold border transition-colors ${form.status === s ? "bg-[#1A3D63] text-white border-[#1A3D63]" : "bg-white text-gray-600 border-gray-200 hover:border-gray-300"}`}>{s}</button>
                   ))}
                 </div>
               </div>
               <div>
                 <label className="block text-[12px] font-bold text-gray-600 mb-1.5">Deskripsi</label>
-                <textarea value={form.deskripsi} onChange={e => setForm({ ...form, deskripsi: e.target.value })} rows={3} placeholder="cth: Kurikulum yang diterapkan untuk siswa kelas VII pada tahun ajaran 2025/2026 berdasarkan Kurikulum Merdeka." className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100 resize-none"/>
+                <textarea value={form.deskripsi} onChange={e => setForm({ ...form, deskripsi: e.target.value })} rows={3} placeholder="Deskripsi kurikulum..." className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100 resize-none"/>
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => { setShowForm(false); setErrors({}); }} className="flex-1 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 font-bold hover:bg-gray-50">Batal</button>
@@ -242,7 +261,7 @@ const KurikulumWakil = () => {
             </div>
             <div className="text-center">
               <h3 className="text-[17px] font-bold text-gray-800">Hapus Kurikulum?</h3>
-              <p className="text-[13px] text-gray-500 mt-1"><strong>{deleteConfirm.mapel}</strong> — {deleteConfirm.kelas} akan dihapus permanen.</p>
+              <p className="text-[13px] text-gray-500 mt-1"><strong>{deleteConfirm.nama_kurikulum}</strong> akan dihapus permanen.</p>
             </div>
             <div className="flex gap-3">
               <button onClick={() => setDeleteConfirm(null)} className="flex-1 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 font-bold hover:bg-gray-50">Batal</button>
@@ -256,5 +275,3 @@ const KurikulumWakil = () => {
 };
 
 export default KurikulumWakil;
-
-

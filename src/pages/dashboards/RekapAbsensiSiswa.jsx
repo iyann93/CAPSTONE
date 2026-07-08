@@ -15,21 +15,32 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
 
   // Fetch classes and students from backend
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchData = async (isPolling = false) => {
       try {
-        setLoading(true);
+        if (!isPolling) setLoading(true);
         const { default: api } = await import('../../api/axios');
-        const [kelasRes, siswaRes] = await Promise.all([
+        const [kelasRes, siswaRes, jadwalRes, mapelRes] = await Promise.all([
           api.get('/kelas'),
-          api.get('/siswa')
+          api.get('/siswa'),
+          api.get('/jadwal_pelajaran?limit=2000'),
+          api.get('/mapel?limit=2000').catch(() => ({ data: { data: [] } }))
         ]);
         
         const dbClasses = kelasRes.data?.data || [];
         const dbSiswa = siswaRes.data?.data || [];
+        const dbJadwal = jadwalRes.data?.data || [];
+        const dbMapels = mapelRes.data?.data || [];
 
-        // Parse classes
+        const guruIdentifier = user?.fullName || user?.nip || user?.userId;
+        const guruJadwal = dbJadwal.filter(j => j.guru_nama === guruIdentifier || j.nip === guruIdentifier);
+        const taughtClassIds = new Set(guruJadwal.map(j => j.kelas_id));
+        
         const classNames = dbClasses.map(c => c.nama_kelas);
+        
         setClasses(classNames);
+        if (classNames.length > 0 && !classNames.includes(selectedClass)) {
+           setSelectedClass(classNames[0]);
+        }
 
         const classMap = {};
         classNames.forEach(cName => {
@@ -60,18 +71,17 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
           };
         });
 
-        // Fetch ALL absensi & nilai records from database with timestamp to bypass browser cache
-        const t = Date.now();
+        // Fetch ALL absensi & nilai records from database
         const [absensiRes, nilaiRes] = await Promise.all([
-          api.get(`/absensi?limit=2000&_t=${t}`),
-          api.get(`/nilai?limit=2000&_t=${t}`)
+          api.get(`/absensi?limit=2000`),
+          api.get(`/nilai?limit=2000`)
         ]);
         
         const dbAbsensi = absensiRes.data?.data || [];
         const dbNilai = nilaiRes.data?.data || [];
         
         // Save raw counts for debugging
-        setDebugInfo({ absensi: dbAbsensi.length, nilai: dbNilai.length });
+        setDebugInfo({ absensi: dbAbsensi.length, nilai: dbNilai.length, jadwal: dbJadwal.length });
 
         const sessionCountsMap = {};
 
@@ -107,10 +117,37 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
         });
         setDbSessionCounts(finalSessionCounts);
 
-        // Calculate average harian, uts, uas per student
-        Object.values(classMap).forEach(clsStudents => {
+        // Calculate grades explicitly for the Guru's mapel in that class
+        Object.keys(classMap).forEach(clsName => {
+          const clsStudents = classMap[clsName];
+          const clsObj = dbClasses.find(c => c.nama_kelas === clsName);
+          const clsId = clsObj ? clsObj.id : null;
+          
+          // Determine the mapel taught by this guru in this class
+          const jadwalGuru = dbJadwal.find(j => 
+             j.kelas_id === clsId && 
+             (j.guru_nama === guruIdentifier || j.nip === guruIdentifier)
+          );
+          
+          let guruMapelId = jadwalGuru ? jadwalGuru.mata_pelajaran_id : null;
+          
+          if (!guruMapelId) {
+             // Find the Guru's actual guru_id from ANY of their schedules
+             const anyJadwal = dbJadwal.find(j => j.guru_nama === guruIdentifier || j.nip === guruIdentifier);
+             const myGuruId = anyJadwal ? anyJadwal.guru_id : null;
+
+             // Fallback to finding ANY mapel this guru teaches (useful if jadwal is not fully configured)
+             const defaultMapel = dbMapels.find(m => m.guru_pengampu_id === myGuruId || m.guru_pengampu_id === user?.userId);
+             if (defaultMapel) guruMapelId = defaultMapel.id;
+          }
+
           Object.values(clsStudents).forEach(stu => {
-            const studentGrades = dbNilai.filter(n => n.siswa_id === stu.id);
+            // Filter grades strictly for this guru's mapel
+            const studentGrades = dbNilai.filter(n => 
+              n.siswa_id === stu.id && 
+              (!guruMapelId || n.mata_pelajaran_id === guruMapelId)
+            );
+            
             if (studentGrades.length > 0) {
               const sumHarian = studentGrades.reduce((sum, n) => sum + parseFloat(n.nilai_harian || 0), 0);
               const sumUts = studentGrades.reduce((sum, n) => sum + parseFloat(n.nilai_uts || 0), 0);
@@ -132,9 +169,10 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
-        setLoading(false);
+        if (!isPolling) setLoading(false);
       }
     };
+    
     fetchData();
   }, []); // Only fetch once on mount, selectedClass purely filters the local state
 

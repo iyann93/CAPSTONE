@@ -1,37 +1,33 @@
-const axios = require('axios');
 require('dotenv').config();
+const axios = require('axios');
+const { signAccessToken } = require('./src/utils/jwt');
+const db = require('./src/config/db');
 
-async function testAPI() {
+async function test() {
   try {
-    // Generate a quick token for Guru Mapel
-    const db = require('./src/config/db');
-    const jwt = require('jsonwebtoken');
-    const guru = await db.query("SELECT * FROM shared.users WHERE email = 'guru1@mbs.com' OR role = 'guru' LIMIT 1");
-    if (!guru.rows.length) {
-      console.log("No guru found");
-      return;
-    }
-    const token = jwt.sign({ userId: guru.rows[0].id, role: guru.rows[0].role }, process.env.JWT_SECRET || 'rahasiabesar', { expiresIn: '1h' });
-
-    console.log("Token generated");
-
-    const t = Date.now();
-    const res = await axios.get(`http://localhost:5000/api/nilai?limit=2000&_t=${t}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    console.log("Nilai data:", res.data.data.length);
-    if(res.data.data.length > 0) {
-      console.log("Sample:", res.data.data[0]);
-    }
+    const userRes = await db.query("SELECT * FROM shared.users WHERE role = 'Admin TU' LIMIT 1");
+    const user = userRes.rows[0];
+    const payload = { userId: user.id, email: user.email, nama: user.nama, role: user.role };
+    const token = signAccessToken(payload);
     
-    const absRes = await axios.get(`http://localhost:5000/api/absensi?limit=2000&_t=${t}`, {
+    const kelasRes = await db.query("SELECT id FROM academic.kelas WHERE nama_kelas = 'Kelas IX'");
+    const kelasId = kelasRes.rows[0].id;
+    
+    console.log('Fetching with token...');
+    const res = await axios.get(`http://localhost:5000/api/v1/siswa?kelas_id=${kelasId}&limit=1000`, {
       headers: { Authorization: `Bearer ${token}` }
     });
-    console.log("Absensi data:", absRes.data.data.length);
-
-  } catch (err) {
-    console.error("API Error:", err.response?.data || err.message);
+    console.log('Status:', res.status);
+    console.log('Data:', JSON.stringify(res.data, null, 2));
+  } catch(e) {
+    if (e.response) {
+      console.log('Error Status:', e.response.status);
+      console.log('Error Data:', e.response.data);
+    } else {
+      console.error(e.message);
+    }
+  } finally {
+    process.exit();
   }
-  process.exit(0);
 }
-testAPI();
+test();

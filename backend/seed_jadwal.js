@@ -1,55 +1,59 @@
 require('dotenv').config();
-const db = require('./src/config/db');
+const { query } = require('./src/config/db');
 
 async function seed() {
   try {
-    // Ambil semua kelas
-    const kelasRes = await db.query('SELECT id FROM academic.kelas');
-    if (kelasRes.rows.length === 0) return console.log("Tidak ada kelas di database.");
+    const mapel = await query('SELECT id FROM academic.mata_pelajaran');
+    const guru = await query('SELECT id FROM academic.guru');
+    
+    // 1. Sync mata pelajaran with guru
+    const gurus = guru.rows;
+    for (let i = 0; i < mapel.rows.length; i++) {
+      const gId = gurus[i % gurus.length].id;
+      await query('UPDATE academic.mata_pelajaran SET guru_pengampu_id = $1 WHERE id = $2', [gId, mapel.rows[i].id]);
+    }
+    console.log('Synced mapel with guru');
 
-    // Ambil guru (opsional)
-    const guruRes = await db.query('SELECT id FROM academic.guru LIMIT 1');
-    const guruId = guruRes.rows.length > 0 ? guruRes.rows[0].id : null;
+    // Delete existing schedules and absensi to prevent duplicate/mess
+    await query('DELETE FROM academic.absensi');
+    await query('DELETE FROM academic.jadwal_pelajaran');
 
-    // Ambil mapel (opsional)
-    const mapelRes = await db.query('SELECT id FROM academic.mata_pelajaran LIMIT 1');
-    const mapelId = mapelRes.rows.length > 0 ? mapelRes.rows[0].id : null;
+    // 2. Generate schedules
+    const mapelUpdated = await query('SELECT id, guru_pengampu_id FROM academic.mata_pelajaran');
+    const kelas = await query('SELECT id, nama_kelas FROM academic.kelas');
+    const semester = await query('SELECT id FROM academic.semester WHERE is_aktif = true');
+    const semesterId = semester.rows[0]?.id;
 
-    // Ambil semester aktif (opsional)
-    const semesterRes = await db.query('SELECT id FROM academic.semester WHERE is_aktif = true LIMIT 1');
-    const semesterId = semesterRes.rows.length > 0 ? semesterRes.rows[0].id : null;
-
-    if (!guruId || !mapelId || !semesterId) {
-      console.log("Data referensi (guru/mapel/semester) tidak lengkap.");
-      // Tetap lanjutkan jika constraint database memperbolehkan null, tapi kita anggap ada.
+    if (!semesterId) {
+      console.log('No active semester');
+      return;
     }
 
-    let inserted = 0;
-    let idx = 1;
-    for (const k of kelasRes.rows) {
-      // Cek apakah jadwal untuk kelas ini sudah ada
-      const checkRes = await db.query('SELECT id FROM academic.jadwal_pelajaran WHERE kelas_id = $1 LIMIT 1', [k.id]);
-      if (checkRes.rows.length === 0) {
-        const hariArr = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-        const hari = hariArr[idx % 6];
-        idx++;
-        const jamStr = '07:00:00';
-        const selStr = '08:30:00';
-        await db.query(
-          `INSERT INTO academic.jadwal_pelajaran 
-          (kelas_id, mata_pelajaran_id, guru_id, semester_id, hari, jam_mulai, jam_selesai, ruangan) 
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-          [k.id, mapelId, guruId, semesterId, hari, jamStr, selStr, 'Ruang Default']
+    const hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+    const jamMulaiList = ['07:00', '08:30', '10:15', '11:45', '13:05'];
+    const jamSelesaiList = ['08:30', '10:00', '11:45', '13:05', '14:35'];
+
+    for (let i = 0; i < kelas.rows.length; i++) {
+      const kId = kelas.rows[i].id;
+      // create 3 schedules for each class
+      for (let j = 0; j < 3; j++) {
+        const m = mapelUpdated.rows[(i + j) % mapelUpdated.rows.length];
+        const hari = hariList[j % hariList.length];
+        const jM = jamMulaiList[j];
+        const jS = jamSelesaiList[j];
+
+        await query(
+          'INSERT INTO academic.jadwal_pelajaran (kelas_id, mata_pelajaran_id, guru_id, semester_id, hari, jam_mulai, jam_selesai) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+          [kId, m.id, m.guru_pengampu_id, semesterId, hari, jM, jS]
         );
-        inserted++;
       }
     }
-    
-    console.log(`Berhasil menambahkan ${inserted} jadwal pelajaran.`);
-  } catch (err) {
-    console.error("DB Error:", err);
+    console.log('Schedules populated');
+  } catch(e) {
+    console.error(e);
   } finally {
-    process.exit(0);
+    process.exit();
   }
 }
+
 seed();

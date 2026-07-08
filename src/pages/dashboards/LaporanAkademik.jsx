@@ -1,9 +1,70 @@
-﻿import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AcademicChart from "../../components/AcademicChart";
+import api from "../../api/axios";
 
 const LaporanAkademik = () => {
   const [filter, setFilter] = useState({ tahunAjaran: "2024/2025", semester: "Ganjil", kelas: "Semua" });
   const [isExporting, setIsExporting] = useState(false);
+  
+  const [stats, setStats] = useState({
+    rataRata: 0,
+    kkm: 0,
+    kehadiran: 0,
+    loading: true
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setStats(prev => ({ ...prev, loading: true }));
+        // Fetch data nilai untuk agregat (contoh sederhana, idealnya dari endpoint khusus agregat)
+        const resNilai = await api.get('/nilai?limit=5000').catch(() => ({ data: { data: [] } }));
+        const nilaiData = resNilai.data?.data || [];
+        
+        let totalNilai = 0;
+        let countNilai = 0;
+        let countLulus = 0;
+        
+        nilaiData.forEach(n => {
+          const akhir = parseFloat(n.nilai_akhir);
+          if (!isNaN(akhir)) {
+            totalNilai += akhir;
+            countNilai++;
+            if (akhir >= 75) countLulus++;
+          }
+        });
+        
+        const rataRata = countNilai > 0 ? (totalNilai / countNilai) : 0;
+        const kkm = countNilai > 0 ? (countLulus / countNilai) * 100 : 0;
+        
+        // Mock kehadiran sementara (karena Modul Absensi belum digabungkan sepenuhnya)
+        // Jika endpoint absensi tersedia, kita bisa fetch.
+        const resAbsensi = await api.get('/absensi?limit=5000').catch(() => ({ data: { data: [] } }));
+        const absensiData = resAbsensi.data?.data || [];
+        let hadir = 0;
+        let totalAbsensi = 0;
+        if (absensiData.length > 0) {
+            absensiData.forEach(a => {
+                totalAbsensi++;
+                if (a.status === 'Hadir') hadir++;
+            });
+        }
+        const kehadiran = totalAbsensi > 0 ? (hadir / totalAbsensi) * 100 : 0;
+
+        setStats({
+          rataRata: rataRata.toFixed(1),
+          kkm: Math.round(kkm),
+          kehadiran: kehadiran > 0 ? kehadiran.toFixed(1) : 0, // 0 jika data belum ada
+          loading: false
+        });
+
+      } catch (err) {
+        console.error("Gagal mengambil laporan akademik:", err);
+        setStats({ rataRata: 0, kkm: 0, kehadiran: 0, loading: false });
+      }
+    };
+    fetchStats();
+  }, []);
 
   const handleExport = () => {
     setIsExporting(true);
@@ -88,38 +149,53 @@ const LaporanAkademik = () => {
         <div className="flex flex-col gap-6">
           <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
             <h3 className="text-[14px] font-bold text-gray-500 uppercase tracking-wider mb-4">Ringkasan Nilai</h3>
-            <div className="space-y-4">
-              <div>
-                <p className="text-[12px] text-gray-500">Rata-rata Nilai Sekolah</p>
-                <p className="text-[32px] font-bold text-[#1e293b]">84.5</p>
-                <p className="text-[12px] text-green-600 font-bold">↑ 2.4% dari semester lalu</p>
-              </div>
-              <div className="w-full bg-gray-100 rounded-full h-2 mb-1">
-                <div className="bg-[#1A3D63] h-2 rounded-full" style={{ width: "84.5%" }}></div>
-              </div>
-            </div>
-            <div className="space-y-4 mt-6">
-              <div>
-                <p className="text-[12px] text-gray-500">Tingkat Kelulusan KKM</p>
-                <p className="text-[32px] font-bold text-[#1e293b]">92%</p>
-              </div>
-              <div className="w-full bg-gray-100 rounded-full h-2 mb-1">
-                <div className="bg-green-500 h-2 rounded-full" style={{ width: "92%" }}></div>
-              </div>
-            </div>
+            {stats.loading ? (
+               <div className="animate-pulse space-y-4">
+                 <div className="h-10 bg-gray-100 rounded-md"></div>
+                 <div className="h-10 bg-gray-100 rounded-md"></div>
+               </div>
+            ) : (
+              <>
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-[12px] text-gray-500">Rata-rata Nilai Sekolah</p>
+                    <p className="text-[32px] font-bold text-[#1e293b]">{stats.rataRata > 0 ? stats.rataRata : "0"}</p>
+                    <p className="text-[12px] text-gray-400 font-bold">Dari data yang tersedia</p>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2 mb-1">
+                    <div className="bg-[#1A3D63] h-2 rounded-full" style={{ width: `${Math.min(100, stats.rataRata)}%` }}></div>
+                  </div>
+                </div>
+                <div className="space-y-4 mt-6">
+                  <div>
+                    <p className="text-[12px] text-gray-500">Tingkat Kelulusan KKM</p>
+                    <p className="text-[32px] font-bold text-[#1e293b]">{stats.kkm}%</p>
+                  </div>
+                  <div className="w-full bg-gray-100 rounded-full h-2 mb-1">
+                    <div className="bg-green-500 h-2 rounded-full" style={{ width: `${stats.kkm}%` }}></div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
           
           <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
             <h3 className="text-[14px] font-bold text-gray-500 uppercase tracking-wider mb-4">Tingkat Kehadiran</h3>
-            <div className="space-y-4">
-              <div>
-                <p className="text-[12px] text-gray-500">Rata-rata Kehadiran Siswa</p>
-                <p className="text-[32px] font-bold text-[#1e293b]">96.8%</p>
+            {stats.loading ? (
+               <div className="animate-pulse space-y-4">
+                 <div className="h-10 bg-gray-100 rounded-md"></div>
+               </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <p className="text-[12px] text-gray-500">Rata-rata Kehadiran Siswa</p>
+                  <p className="text-[32px] font-bold text-[#1e293b]">{stats.kehadiran > 0 ? `${stats.kehadiran}%` : "Data blm ada"}</p>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-2 mb-1">
+                  <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${stats.kehadiran}%` }}></div>
+                </div>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-2 mb-1">
-                <div className="bg-blue-500 h-2 rounded-full" style={{ width: "96.8%" }}></div>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

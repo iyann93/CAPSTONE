@@ -18,9 +18,10 @@ const CatatanSiswa = ({ user }) => {
       try {
         setLoading(true);
         const { default: api } = await import('../../api/axios');
-        const [kelasRes, siswaRes] = await Promise.all([
+        const [kelasRes, siswaRes, catatanRes] = await Promise.all([
           api.get('/kelas'),
-          api.get('/siswa')
+          api.get('/siswa?limit=1000'),
+          api.get('/catatan-siswa?limit=1000')
         ]);
         
         const dbClasses = kelasRes.data?.data || [];
@@ -37,11 +38,7 @@ const CatatanSiswa = ({ user }) => {
           groupedData[cName] = [];
         });
 
-        let localSaved = null;
-        try {
-          const savedStr = localStorage.getItem("wali_kelas_students");
-          if (savedStr) localSaved = JSON.parse(savedStr);
-        } catch(e) {}
+        const dbCatatan = catatanRes.data?.data || [];
 
         dbSiswa.forEach(siswa => {
           const cls = dbClasses.find(c => c.id === siswa.kelas_id);
@@ -53,11 +50,13 @@ const CatatanSiswa = ({ user }) => {
 
           let existingNote = "";
           let existingDate = null;
-          if (localSaved && localSaved[className]) {
-            const foundLocal = localSaved[className].find(s => s.id === siswa.id || s.nis === siswa.nis);
-            if (foundLocal) {
-              existingNote = foundLocal.note || "";
-              existingDate = foundLocal.lastUpdated || null;
+          
+          const foundServer = dbCatatan.find(c => c.siswa_id === siswa.id);
+          if (foundServer) {
+            existingNote = foundServer.isi_catatan || "";
+            if (foundServer.created_at) {
+               const dt = new Date(foundServer.created_at);
+               existingDate = dt.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
             }
           }
 
@@ -148,41 +147,52 @@ const CatatanSiswa = ({ user }) => {
     });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!selectedStudent) return;
     
-    const todayStr = new Date().toLocaleDateString("id-ID", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric"
-    });
-
-    setStudentsData((prev) => {
-      let foundClass = selectedClass;
-      for (const cls of classes) {
-        if ((prev[cls] || []).some((s) => s.id === selectedStudent.id)) {
-          foundClass = cls;
-          break;
-        }
-      }
-
-      const updatedList = (prev[foundClass] || []).map((s) => {
-        if (s.id === selectedStudent.id) {
-          return { ...s, lastUpdated: todayStr };
-        }
-        return s;
+    try {
+      const { default: api } = await import('../../api/axios');
+      await api.post('/catatan-siswa/upsert', {
+        siswa_id: selectedStudent.id,
+        isi_catatan: selectedStudent.note
       });
 
-      const newData = { ...prev, [foundClass]: updatedList };
-      
-      // Save to localStorage immediately
-      localStorage.setItem("wali_kelas_students", JSON.stringify(newData));
-      
-      return newData;
-    });
+      const todayStr = new Date().toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      });
 
-    setNotification(`Catatan untuk ${selectedStudent.name} berhasil disimpan! (Simulasi)`);
-    setTimeout(() => setNotification(null), 4000);
+      setStudentsData((prev) => {
+        let foundClass = selectedClass;
+        for (const cls of classes) {
+          if ((prev[cls] || []).some((s) => s.id === selectedStudent.id)) {
+            foundClass = cls;
+            break;
+          }
+        }
+
+        const updatedList = (prev[foundClass] || []).map((s) => {
+          if (s.id === selectedStudent.id) {
+            return { ...s, lastUpdated: todayStr };
+          }
+          return s;
+        });
+
+        return { ...prev, [foundClass]: updatedList };
+      });
+
+      setSaveSuccess(true);
+      setNotification(`Catatan untuk ${selectedStudent.name} berhasil disimpan!`);
+      setTimeout(() => {
+        setNotification(null);
+        setSaveSuccess(false);
+      }, 4000);
+    } catch (e) {
+      console.error("Gagal menyimpan catatan:", e);
+      setNotification("Gagal menyimpan catatan!");
+      setTimeout(() => setNotification(null), 4000);
+    }
   };
 
   if (loading) {

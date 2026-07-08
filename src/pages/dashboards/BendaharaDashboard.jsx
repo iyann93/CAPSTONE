@@ -699,7 +699,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
     loadPaidSlips();
     loadDanaBeasiswa();
     loadOperasional();
-    
     getGlobalFinanceSummary().then(setGlobalFinance).catch(console.error);
   }, [activeMenu, loadKomponenSpp, loadKomponenGaji, loadTagihan, loadBeasiswa, loadSiswa, loadPembayaran, loadPaidSlips, loadDanaBeasiswa, loadOperasional]);
 
@@ -2730,11 +2729,11 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                           }).format(dateObj);
                         };
                         
-                        let periodeBerlaku = activeProgram.periodePendaftaran || "-";
-                        if (periodeBerlaku.includes(' s/d ')) {
-                          periodeBerlaku = `${formatDateID(periodeBerlaku.split(' s/d ')[0])} - ${formatDateID(periodeBerlaku.split(' s/d ')[1])}`;
-                        } else {
-                          periodeBerlaku = periodeBerlaku.replace(/\s+\d{4}\/\d{4}$/, "");
+                        let tglBerlaku = "-";
+                        let jatuhTempo = "-";
+                        if (activeProgram.periodePendaftaran && activeProgram.periodePendaftaran !== "-" && activeProgram.periodePendaftaran.includes(' s/d ')) {
+                          tglBerlaku = formatDateID(activeProgram.periodePendaftaran.split(' s/d ')[0]);
+                          jatuhTempo = formatDateID(activeProgram.periodePendaftaran.split(' s/d ')[1]);
                         }
                         
                         return (
@@ -2765,8 +2764,12 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                             <div className="text-sm font-bold text-gray-800">{activeProgram.sumberDana || '-'}</div>
                           </div>
                           <div>
-                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Periode Berlaku</div>
-                            <div className="text-sm font-bold text-gray-800">{periodeBerlaku}</div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Tanggal Berlaku</div>
+                            <div className="text-sm font-bold text-gray-800">{tglBerlaku}</div>
+                          </div>
+                          <div>
+                            <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Jatuh Tempo</div>
+                            <div className="text-sm font-bold text-[#e11d48]">{jatuhTempo}</div>
                           </div>
                           <div>
                             <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Kuota Tersedia</div>
@@ -4987,18 +4990,17 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
       {/* Hidden PDF Report Template */}
       <div style={{ position: 'absolute', top: 0, left: 0, zIndex: -100, opacity: 0.01, pointerEvents: 'none' }}>
-        <div id="pdf-report-template" className="bg-white p-10" style={{ width: '800px', minHeight: '1122px', color: 'black', fontFamily: 'serif' }}>
+        <div id="pdf-report-template" className="bg-white p-10 flex flex-col" style={{ width: '794px', height: '1123px', color: 'black', fontFamily: 'serif' }}>
           {/* Header */}
-          <div className="flex items-center border-b-4 border-black pb-4 mb-6">
-            <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mr-6">
-              <span className="text-[10px] font-bold text-gray-500">LOGO</span>
+          <div className="flex items-center gap-6 border-b-4 border-black pb-4 mb-6 text-black">
+            <div className="w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0">
+              <img src="/Logo MBS Prambanan.png" alt="Logo MBS Prambanan" className="w-full h-full object-contain" />
             </div>
-            <div className="text-center flex-1">
-              <h1 className="text-2xl font-bold uppercase tracking-widest">Muhammadiyah Boarding School (MBS) Prambanan</h1>
-              <p className="text-sm mt-1">Jl. Raya Piyungan - Prambanan Km 4.5, Sleman, DI Yogyakarta</p>
-              <p className="text-sm">Telp: (0274) 123456 | Email: info@mbsprambanan.sch.id</p>
+            <div className="text-left flex-1">
+              <h1 className="text-xl sm:text-2xl font-bold uppercase tracking-widest text-gray-900">Muhammadiyah Boarding School (MBS) Prambanan</h1>
+              <p className="text-xs sm:text-sm mt-1 text-gray-800">Jl. Raya Piyungan - Prambanan Km 4.5, Sleman, DI Yogyakarta</p>
+              <p className="text-xs sm:text-sm text-gray-800">Telp: (0274) 123456 | Email: info@mbsprambanan.sch.id</p>
             </div>
-            <div className="w-24 h-24 invisible"></div>
           </div>
           
           {/* Title */}
@@ -5100,12 +5102,12 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
           </table>
           
           {/* Signature */}
-          <div className="flex justify-end mt-16 text-sm">
-            <div className="text-center">
-              <p>Sleman, {new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
-              <p className="font-bold mt-1">Bendahara Sekolah</p>
-              <br/><br/><br/><br/>
-              <p className="font-bold underline">{user?.name || "Siti Aminah"}</p>
+          {/* Signature */}
+          <div className="flex justify-end mt-4 text-sm pb-12">
+            <div className="text-left w-48">
+              <p className="mb-1">Sleman, {new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+              <p className="font-bold mb-24">Bendahara Sekolah</p>
+              <p className="font-bold underline">{user?.fullName || "Siti Aminah"}</p>
               <p>NIP. {user?.nip || "19800101 200501 2 001"}</p>
             </div>
           </div>

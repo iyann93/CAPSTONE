@@ -15,6 +15,7 @@ const InputNilai = ({ user }) => {
   const [dbClasses, setDbClasses] = useState([]);
   const [dbMapels, setDbMapels] = useState([]);
   const [dbSemesters, setDbSemesters] = useState([]);
+  const [dbJadwal, setDbJadwal] = useState([]);
   
   const [studentsData, setStudentsData] = useState({});
   const [loading, setLoading] = useState(true);
@@ -25,29 +26,34 @@ const InputNilai = ({ user }) => {
       try {
         setLoading(true);
         const { default: api } = await import('../../api/axios');
-        const [kelasRes, siswaRes, mapelRes, semesterRes] = await Promise.all([
+        const [kelasRes, siswaRes, mapelRes, semesterRes, jadwalRes] = await Promise.all([
           api.get('/kelas').catch(e => ({ data: { data: [] } })),
           api.get('/siswa').catch(e => ({ data: { data: [] } })),
           api.get('/mapel').catch(e => ({ data: { data: [] } })),
-          api.get('/semester').catch(e => ({ data: { data: [] } }))
+          api.get('/semester').catch(e => ({ data: { data: [] } })),
+          api.get('/jadwal_pelajaran').catch(e => ({ data: { data: [] } }))
         ]);
         
         const dbClassList = kelasRes.data?.data || [];
         const dbSiswaList = siswaRes.data?.data || [];
         const dbMapelList = mapelRes.data?.data || [];
         const dbSemesterList = semesterRes.data?.data || [];
+        const dbJadwalList = jadwalRes.data?.data || [];
 
         setDbClasses(dbClassList);
         setDbMapels(dbMapelList);
         setDbSemesters(dbSemesterList);
+        setDbJadwal(dbJadwalList);
 
         const classNames = dbClassList.map(c => c.nama_kelas);
         setClasses(classNames);
-        if (classNames.length > 0) setSelectedClass(classNames[0]);
+        if (classNames.length > 0 && !classNames.includes(selectedClass)) {
+           setSelectedClass(classNames[0]);
+        }
 
         const mapelNames = dbMapelList.map(m => m.nama);
         setMapels(mapelNames);
-        if (mapelNames.length > 0) setSelectedMapel(mapelNames[0]);
+        // Mapel will be set dynamically based on selectedClass
 
         const semesterNames = dbSemesterList.map(s => s.nama_semester);
         setSemesters(semesterNames);
@@ -103,8 +109,35 @@ const InputNilai = ({ user }) => {
         const cls = dbClasses.find(c => c.nama_kelas === selectedClass);
         if (!cls) return;
 
+        // Auto-determine mapel based on guru's jadwal OR their default mapel
+        let autoMapel = "";
+        const guruIdentifier = user?.fullName || user?.nip || user?.userId;
+        const jadwalGuru = dbJadwal.find(j => 
+          j.kelas_id === cls.id && 
+          (j.guru_nama === guruIdentifier || j.nip === guruIdentifier)
+        );
+
+        if (jadwalGuru && jadwalGuru.nama_mapel) {
+          autoMapel = jadwalGuru.nama_mapel;
+        } else {
+          // Find the Guru's actual guru_id from ANY of their schedules
+          const anyJadwal = dbJadwal.find(j => j.guru_nama === guruIdentifier || j.nip === guruIdentifier);
+          const myGuruId = anyJadwal ? anyJadwal.guru_id : null;
+          
+          // Fallback to finding ANY mapel this guru teaches (useful if jadwal is not fully configured)
+          const defaultMapel = dbMapels.find(m => m.guru_pengampu_id === myGuruId || m.guru_pengampu_id === user?.userId);
+          if (defaultMapel) autoMapel = defaultMapel.nama;
+          else if (mapels.length > 0) autoMapel = mapels[0];
+        }
+        
+        if (selectedMapel !== autoMapel) {
+          setSelectedMapel(autoMapel);
+          return; // The state change will trigger this useEffect again with the correct selectedMapel
+        }
+
         const semId = dbSemesters.length > 0 ? dbSemesters[0].id : "00000002-0000-0000-0000-000000000001";
-        const mapelId = dbMapels.length > 0 ? dbMapels[0].id : "7034fc60-28e5-4cb8-9de6-0b32b7934d42";
+        const mapelId = dbMapels.find(m => m.nama === autoMapel)?.id || dbMapels[0]?.id;
+        if (!mapelId) return;
 
         const res = await api.get(`/nilai/kelas/${cls.id}?semester_id=${semId}&mata_pelajaran_id=${mapelId}`);
         const existingData = res.data?.data || [];
@@ -136,7 +169,7 @@ const InputNilai = ({ user }) => {
     };
 
     fetchExistingNilai();
-  }, [selectedClass, dbClasses, dbMapels, dbSemesters, loading]);
+  }, [selectedClass, selectedMapel, dbClasses, dbMapels, dbSemesters, loading]);
 
   const handleGradeChange = (studentId, field, value) => {
     const sanitizedVal = value.replace(/[^0-9]/g, "");
@@ -191,7 +224,8 @@ const InputNilai = ({ user }) => {
       if (!cls) throw new Error("Data kelas tidak ditemukan");
 
       const semId = dbSemesters.length > 0 ? dbSemesters[0].id : "00000002-0000-0000-0000-000000000001";
-      const mapelId = dbMapels.length > 0 ? dbMapels[0].id : "7034fc60-28e5-4cb8-9de6-0b32b7934d42";
+      const mapelId = dbMapels.find(m => m.nama === selectedMapel)?.id;
+      if (!mapelId) throw new Error("Mata pelajaran belum dipilih");
 
       const studentsToSave = currentStudents.filter(s => s.harian !== "" || s.uts !== "" || s.uas !== "");
       
@@ -245,7 +279,17 @@ const InputNilai = ({ user }) => {
   };
 
   if (loading) {
-    return <div className="p-8">Memuat data dari database...</div>;
+    return (
+      <div className="p-6 md:p-8 flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-3 text-gray-500">
+          <svg className="animate-spin h-8 w-8 text-[#1A3D63]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span className="text-sm font-bold animate-pulse">Memuat data dari database...</span>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -302,6 +346,7 @@ const InputNilai = ({ user }) => {
               </svg>
             </div>
           </div>
+          
 
           <div className="flex items-center gap-3 flex-1 w-full pl-2">
             <div className="flex-1 max-w-[200px] h-3 bg-slate-100 rounded-full overflow-hidden">
@@ -417,8 +462,14 @@ const InputNilai = ({ user }) => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-sm font-bold text-gray-400">
-                    Tidak ada siswa ditemukan
+                  <td colSpan={7} className="py-12">
+                    <div className="flex flex-col items-center justify-center text-gray-400">
+                      <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-3">
+                        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                      </div>
+                      <p className="text-[14px] font-bold">Tidak ada siswa ditemukan</p>
+                      <p className="text-[12px] font-medium mt-1">Pastikan kelas ini memiliki siswa atau ubah filter pencarian Anda.</p>
+                    </div>
                   </td>
                 </tr>
               )}

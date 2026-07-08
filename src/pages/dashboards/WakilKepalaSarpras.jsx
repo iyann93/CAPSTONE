@@ -41,7 +41,7 @@ const formatRupiah = (value) => {
   }).format(value);
 };
 
-const WakilKepalaSarpras = () => {
+const WakilKepalaSarpras = ({ user }) => {
   const [activeTab, setActiveTab] = useState(() => {
     const savedTab = localStorage.getItem('wakil_sarpras_tab');
     if (savedTab) {
@@ -609,15 +609,15 @@ const WakilKepalaSarpras = () => {
               >
                 {/* Header MBS */}
                 <div className="flex items-center justify-between border-b-4 border-gray-800 pb-4 mb-8">
-                  <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-                    <span className="text-[10px] font-bold text-gray-500">LOGO</span>
+                  <div className="w-32 h-32 flex items-center justify-center">
+                    <img src="/Logo MBS Prambanan.png" alt="Logo MBS Prambanan" className="w-full h-full object-contain" />
                   </div>
                   <div className="text-center flex-1">
                     <h1 className="text-2xl font-bold uppercase tracking-widest">Muhammadiyah Boarding School (MBS) Prambanan</h1>
                     <p className="text-sm mt-1">Jl. Raya Piyungan - Prambanan Km 4.5, Sleman, DI Yogyakarta</p>
                     <p className="text-sm">Telp: (0274) 123456 | Email: info@mbsprambanan.sch.id</p>
                   </div>
-                  <div className="w-24 h-24 invisible"></div>
+                  <div className="w-32 h-32 invisible"></div>
                 </div>
 
                 {/* Title */}
@@ -677,22 +677,24 @@ const WakilKepalaSarpras = () => {
                   </tfoot>
                 </table>
 
-                {/* Signatures */}
-                <div className="flex justify-between mt-12 pt-8">
-                  <div className="text-center w-48">
-                    <p className="text-sm mb-16">Mengetahui,</p>
-                    <p className="font-bold underline">H. Wahyu Pratama, M.Pd.</p>
-                    <p className="text-xs">Kepala Sekolah</p>
+                <div className="flex justify-between mt-4 pb-12">
+                  <div className="text-left w-48">
+                    <p className="text-sm mb-1 invisible">Sleman, ........................</p>
+                    <p className="text-sm mb-24">Kepala Sekolah</p>
+                    <p className="text-sm font-bold underline">H. Wahyu Pratama, M.Pd.</p>
+                    <p className="text-sm">NIP. 19750815 200012 1 002</p>
                   </div>
-                  <div className="text-center w-48">
-                    <p className="text-sm mb-16">Menyetujui,</p>
-                    <p className="font-bold underline">Wakil Kepala Bid. Sarpras</p>
-                    <p className="text-xs">NBM. -</p>
+                  <div className="text-left w-48">
+                    <p className="text-sm mb-1 invisible">Sleman, ........................</p>
+                    <p className="text-sm mb-24">Wakil Kepala Bid. Sarpras</p>
+                    <p className="text-sm font-bold underline">{user?.fullName || "Drs. Hendra Kurniawan"}</p>
+                    <p className="text-sm">NIP. {user?.nip || "196905102000031005"}</p>
                   </div>
-                  <div className="text-center w-48">
-                    <p className="text-sm mb-16">Sleman, ........................</p>
-                    <p className="font-bold underline">Bendahara Sekolah</p>
-                    <p className="text-xs">NBM. -</p>
+                  <div className="text-left w-48">
+                    <p className="text-sm mb-1">Sleman, {new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                    <p className="text-sm mb-24">Bendahara Sekolah</p>
+                    <p className="text-sm font-bold underline">Siti Aminah</p>
+                    <p className="text-sm">NIP. 19800101 200501 2 001</p>
                   </div>
                 </div>
               </div>
@@ -703,18 +705,18 @@ const WakilKepalaSarpras = () => {
 
       {/* Template PDF Tersembunyi (Digunakan oleh html-to-image) */}
       <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
-        <div id="pdf-report-sarpras-template" className="bg-white p-12 text-gray-800 w-[794px] min-h-[1123px] font-sans">
+        <div id="pdf-report-sarpras-template" className="bg-white p-12 text-gray-800 w-[794px] h-[1123px] flex flex-col font-sans">
           {/* Header MBS */}
           <div className="flex items-center justify-between border-b-4 border-gray-800 pb-4 mb-8">
-            <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
-              <span className="text-[10px] font-bold text-gray-500">LOGO</span>
+            <div className="w-32 h-32 flex items-center justify-center">
+              <img src="/Logo MBS Prambanan.png" alt="Logo MBS Prambanan" className="w-full h-full object-contain" />
             </div>
             <div className="text-center flex-1">
               <h1 className="text-2xl font-bold uppercase tracking-widest">Muhammadiyah Boarding School (MBS) Prambanan</h1>
               <p className="text-sm mt-1">Jl. Raya Piyungan - Prambanan Km 4.5, Sleman, DI Yogyakarta</p>
               <p className="text-sm">Telp: (0274) 123456 | Email: info@mbsprambanan.sch.id</p>
             </div>
-            <div className="w-24 h-24 invisible"></div>
+            <div className="w-32 h-32 invisible"></div>
           </div>
           
           {/* Title */}
@@ -740,7 +742,7 @@ const WakilKepalaSarpras = () => {
           </div>
 
           {/* Data Table */}
-          <table className="w-full text-left border-collapse border border-gray-800 mb-12">
+          <table className="w-full text-left border-collapse border border-gray-800 mb-6">
             <thead>
               <tr className="bg-gray-100">
                 <th className="border border-gray-800 p-3 text-xs font-bold uppercase w-10 text-center">No</th>
@@ -775,21 +777,24 @@ const WakilKepalaSarpras = () => {
           </table>
           
           {/* Signatures */}
-          <div className="flex justify-between mt-12 pt-8">
-            <div className="text-center w-48">
-              <p className="text-sm mb-16">Mengetahui,</p>
-              <p className="font-bold underline">H. Wahyu Pratama, M.Pd.</p>
-              <p className="text-xs">Kepala Sekolah</p>
+          <div className="flex justify-between mt-4 pb-12">
+            <div className="text-left w-48">
+              <p className="text-sm mb-1 invisible">Sleman, ........................</p>
+              <p className="text-sm mb-24">Kepala Sekolah</p>
+              <p className="text-sm font-bold underline">H. Wahyu Pratama, M.Pd.</p>
+              <p className="text-sm">NIP. 19750815 200012 1 002</p>
             </div>
-            <div className="text-center w-48">
-              <p className="text-sm mb-16">Menyetujui,</p>
-              <p className="font-bold underline">Wakil Kepala Bid. Sarpras</p>
-              <p className="text-xs">NBM. -</p>
+            <div className="text-left w-48">
+              <p className="text-sm mb-1 invisible">Sleman, ........................</p>
+              <p className="text-sm mb-24">Wakil Kepala Bid. Sarpras</p>
+              <p className="text-sm font-bold underline">{user?.fullName || "Drs. Hendra Kurniawan"}</p>
+              <p className="text-sm">NIP. {user?.nip || "196905102000031005"}</p>
             </div>
-            <div className="text-center w-48">
-              <p className="text-sm mb-16">Sleman, ........................</p>
-              <p className="font-bold underline">Bendahara Sekolah</p>
-              <p className="text-xs">NBM. -</p>
+            <div className="text-left w-48">
+              <p className="text-sm mb-1">Sleman, {new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+              <p className="text-sm mb-24">Bendahara Sekolah</p>
+              <p className="text-sm font-bold underline">Siti Aminah</p>
+              <p className="text-sm">NIP. 19800101 200501 2 001</p>
             </div>
           </div>
         </div>

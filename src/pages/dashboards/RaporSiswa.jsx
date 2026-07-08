@@ -1,19 +1,50 @@
-﻿import React, { useState } from "react";
-
-const mockRapor = [
-  { id: 1, semester: "Genap 2024/2025", tanggal: "15 Jun 2025", status: "Tersedia", rataRata: 84.5, peringkat: 5 },
-  { id: 2, semester: "Ganjil 2024/2025", tanggal: "10 Jan 2025", status: "Tersedia", rataRata: 81.2, peringkat: 7 },
-  { id: 3, semester: "Genap 2023/2024", tanggal: "14 Jun 2024", status: "Tersedia", rataRata: 79.8, peringkat: 9 },
-  { id: 4, semester: "Ganjil 2025/2026", tanggal: "—", status: "Belum Tersedia", rataRata: null, peringkat: null },
-];
+import React, { useState, useEffect } from "react";
+import api from "../../api/axios";
 
 const RaporSiswa = ({ user }) => {
   const [downloading, setDownloading] = useState(null);
   const [downloaded, setDownloaded] = useState([]);
   const [preview, setPreview] = useState(null);
+  const [raporData, setRaporData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const studentName = user?.anak?.nama || "Ahmad Fauzi";
-  const studentClass = user?.anak?.kelas || "VIII A";
+  const studentName = user?.anak?.nama || user?.nama || "Siswa";
+  const studentId = user?.anak?.id || user?.userId;
+
+  useEffect(() => {
+    const fetchRapor = async () => {
+      if (!studentId) {
+        setLoading(false);
+        return;
+      }
+      try {
+        setLoading(true);
+        // Fallback endpoint if specific student endpoint doesn't exist yet, we try to use a valid one
+        const res = await api.get(`/rapor/siswa/${studentId}`).catch(() => ({ data: { data: [] } }));
+        const data = res.data?.data || [];
+        
+        // Map backend data to UI structure
+        const mapped = data.map(r => ({
+          id: r.id,
+          semester: r.tipe_semester + ' ' + r.tahun_ajaran,
+          tanggal: r.published_at ? new Date(r.published_at).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'}) : "—",
+          status: r.is_published ? "Tersedia" : "Belum Tersedia",
+          rataRata: r.rata_rata || null,
+          peringkat: r.peringkat || null,
+          kelas: r.nama_kelas
+        }));
+        
+        setRaporData(mapped);
+      } catch (err) {
+        console.error("Gagal mengambil data rapor:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRapor();
+  }, [studentId]);
+
+  const studentClass = raporData.length > 0 ? raporData[0].kelas : (user?.anak?.kelas || "—");
 
   const handleDownload = (rapor) => {
     if (rapor.status !== "Tersedia") return;
@@ -49,7 +80,24 @@ const RaporSiswa = ({ user }) => {
 
       {/* Rapor List */}
       <div className="space-y-4">
-        {mockRapor.map((rapor) => {
+        {loading ? (
+          <div className="p-8 flex items-center justify-center bg-white rounded-2xl border border-gray-100">
+             <div className="flex flex-col items-center gap-3 text-gray-500">
+               <svg className="animate-spin h-8 w-8 text-[#1A3D63]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+               </svg>
+               <span className="text-sm font-bold animate-pulse">Memuat data rapor...</span>
+             </div>
+          </div>
+        ) : raporData.length === 0 ? (
+          <div className="p-8 text-center bg-white rounded-2xl border border-gray-100">
+             <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+               <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#9ca3af" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+             </div>
+             <p className="text-[14px] font-bold text-gray-500">Belum ada rapor yang tersedia</p>
+          </div>
+        ) : raporData.map((rapor) => {
           const isAvailable = rapor.status === "Tersedia";
           const isDownloading = downloading === rapor.id;
           const isDownloaded = downloaded.includes(rapor.id);

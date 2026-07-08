@@ -3,20 +3,20 @@
 const { query } = require('../config/db');
 const { whereBuilder, buildOrderBy } = require('../utils/queryBuilder');
 
-const SORT_MAP = { nama: 'sm.nama', tanggal_mulai: 'sm.tanggal_mulai', created_at: 'sm.created_at' };
+const SORT_MAP = { nama: 'sm.nama', tanggal_mulai: 'sm.tanggal_mulai' };
 
 const SemesterRepository = {
-  findAll: async ({ limit, offset, search, sort, tahunAjaranId, isActive }) => {
+  findAll: async ({ limit, offset, search, sort, tahunAjaranId, is_aktif }) => {
     const wb = whereBuilder();
     wb.addLike(search, ['sm.nama']);
     wb.addExact(tahunAjaranId, 'sm.tahun_ajaran_id');
-    wb.addBool(isActive, 'sm.is_active');
+    wb.addBool(is_aktif, 'sm.is_aktif');
     const { where, values, nextIdx } = wb.build();
     const orderBy = buildOrderBy(sort, SORT_MAP, 'sm.tanggal_mulai DESC');
 
     const sql = `
       SELECT sm.id, sm.nama, sm.tahun_ajaran_id, sm.tanggal_mulai, sm.tanggal_selesai,
-             sm.is_active, sm.created_at,
+             sm.is_aktif,
              ta.nama AS tahun_ajaran_nama
       FROM academic.semester sm
       LEFT JOIN academic.tahun_ajaran ta ON sm.tahun_ajaran_id = ta.id
@@ -63,9 +63,16 @@ const SemesterRepository = {
     const client = await require('../config/db').getClient();
     try {
       await client.query('BEGIN');
-      await client.query('UPDATE academic.semester SET is_active = false');
+      
+      // Get the tahun_ajaran_id of this semester
+      const sm = await client.query('SELECT tahun_ajaran_id FROM academic.semester WHERE id = $1', [id]);
+      if (sm.rows.length === 0) throw new Error('Semester tidak ditemukan');
+      
+      // Deactivate all semesters IN THE SAME TAHUN AJARAN
+      await client.query('UPDATE academic.semester SET is_aktif = false WHERE tahun_ajaran_id = $1', [sm.rows[0].tahun_ajaran_id]);
+      
       const result = await client.query(
-        'UPDATE academic.semester SET is_active = true WHERE id = $1 RETURNING *',
+        'UPDATE academic.semester SET is_aktif = true WHERE id = $1 RETURNING *',
         [id]
       );
       await client.query('COMMIT');
@@ -79,11 +86,12 @@ const SemesterRepository = {
   },
 
   create: async ({ nama, tahunAjaranId, tanggalMulai, tanggalSelesai }) => {
+    const nomor = nama.toLowerCase().includes('ganjil') ? 1 : 2;
     const sql = `
-      INSERT INTO academic.semester (nama, tahun_ajaran_id, tanggal_mulai, tanggal_selesai, is_active, created_at)
-      VALUES ($1, $2, $3, $4, false, NOW()) RETURNING *
+      INSERT INTO academic.semester (nama, tahun_ajaran_id, nomor, tanggal_mulai, tanggal_selesai, is_aktif)
+      VALUES ($1, $2, $3, $4, $5, false) RETURNING *
     `;
-    const result = await query(sql, [nama, tahunAjaranId, tanggalMulai, tanggalSelesai]);
+    const result = await query(sql, [nama, tahunAjaranId, nomor, tanggalMulai, tanggalSelesai]);
     return result.rows[0];
   },
 

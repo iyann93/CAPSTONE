@@ -30,26 +30,40 @@ const Skeleton = () => (
 // ─── Modal Form ───────────────────────────────────────────────────────────────
 const MapelModal = ({ data, onClose, onSave }) => {
   const [form, setForm] = useState(data || {
-    kode: "", nama: "", kelompok: "Wajib", kkm: 75, jumlah_jam: 2, tingkat: "VII,VIII,IX"
+    kode: "", nama: "", kelompok: "Wajib", kkm: 75, jumlah_jam: 2, tingkat: "VII,VIII,IX", guru_pengampu_id: "", kurikulum_id: ""
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [teachers, setTeachers] = useState([]);
+  const [kurikulums, setKurikulums] = useState([]);
+
+  useEffect(() => {
+    Promise.all([
+      api.get("/guru?limit=1000"),
+      api.get("/kurikulum?limit=1000")
+    ])
+    .then(([resGuru, resKurikulum]) => {
+      setTeachers(resGuru.data?.data || []);
+      setKurikulums(resKurikulum.data?.data || []);
+    })
+    .catch(err => console.error("Gagal load data", err));
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.kode || !form.nama) { setError("Kode dan Nama wajib diisi."); return; }
     setSaving(true);
     try {
+      const payload = {
+        kode: form.kode, nama: form.nama, kelompok: form.kelompok,
+        kkm: parseInt(form.kkm), jumlah_jam: parseInt(form.jumlah_jam), tingkat: form.tingkat,
+        guru_pengampu_id: form.guru_pengampu_id || null,
+        kurikulum_id: form.kurikulum_id || null
+      };
       if (data?.id) {
-        await api.put(`/mapel/${data.id}`, {
-          kode: form.kode, nama: form.nama, kelompok: form.kelompok,
-          kkm: parseInt(form.kkm), jumlah_jam: parseInt(form.jumlah_jam), tingkat: form.tingkat
-        });
+        await api.put(`/mapel/${data.id}`, payload);
       } else {
-        await api.post("/mapel", {
-          kode: form.kode, nama: form.nama, kelompok: form.kelompok,
-          kkm: parseInt(form.kkm), jumlah_jam: parseInt(form.jumlah_jam), tingkat: form.tingkat
-        });
+        await api.post("/mapel", payload);
       }
       onSave();
     } catch (err) {
@@ -116,6 +130,22 @@ const MapelModal = ({ data, onClose, onSave }) => {
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">Jam / Minggu</label>
               <input type="number" min={1} max={10} value={form.jumlah_jam} onChange={e => setForm({...form, jumlah_jam: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Kurikulum</label>
+            <select value={form.kurikulum_id || ""} onChange={e => setForm({...form, kurikulum_id: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
+              <option value="">-- Pilih Kurikulum --</option>
+              {kurikulums.map(k => <option key={k.id} value={k.id}>{k.nama_kurikulum} ({k.tahun_ajaran_nama})</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Guru Pengampu</label>
+            <select value={form.guru_pengampu_id || ""} onChange={e => setForm({...form, guru_pengampu_id: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
+              <option value="">-- Pilih Guru --</option>
+              {teachers.map(t => <option key={t.id} value={t.id}>{t.nama}</option>)}
+            </select>
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">

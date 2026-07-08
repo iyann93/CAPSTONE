@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import GradePromotionCriteria from "./GradePromotionCriteria";
 import GradePromotionDetail from "./GradePromotionDetail";
-
 
 const TABS = ["Semua Tingkat", "Kelas VII", "Kelas VIII", "Kelas IX"];
 
@@ -26,20 +25,9 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const ProgressBar = ({ value, max, color = "bg-green-500" }) => {
-  const pct = max > 0 ? Math.round((value / max) * 100) : 0;
-  return (
-    <div className="flex items-center gap-2">
-      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden" style={{ minWidth: 60 }}>
-        <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
-      </div>
-      <span className="text-[12px] font-semibold text-gray-600 w-10 text-right">{value}/{max}</span>
-    </div>
-  );
-};
-
 const GradePromotion = () => {
   const [classes, setClasses] = useState([]);
+  const [activeTahunAjaran, setActiveTahunAjaran] = useState(null);
   const [selectedClass, setSelectedClass] = useState(null);
   const [activeTab, setActiveTab] = useState("Semua Tingkat");
   const [view, setView] = useState("list");
@@ -47,103 +35,77 @@ const GradePromotion = () => {
   const [showCriteria, setShowCriteria] = useState(false);
   const perPage = 10;
 
-  React.useEffect(() => {
-    // Load state from backend for true persistence across sessions
-    const fetchState = async () => {
-      try {
-        const { default: api } = await import('../../api/axios');
-        // Fetch kelas data
-        const kelasRes = await api.get('/kelas');
-        const dbClasses = kelasRes.data?.data || [];
+  const fetchState = async () => {
+    try {
+      const { default: api } = await import('../../api/axios');
+      // Fetch active tahun ajaran
+      const taRes = await api.get('/tahun-ajaran/active');
+      const activeTA = taRes.data?.data;
+      setActiveTahunAjaran(activeTA);
 
-        // Fetch students to get actual counts
-        let allSiswa = [];
-        try {
-          const siswaRes = await api.get('/siswa');
-          allSiswa = siswaRes.data?.data || [];
-        } catch (e) {}
+      if (!activeTA) return;
 
-        // Fetch frontend state
-        let savedProgress = [];
-        try {
-          const stateRes = await api.get('/system/frontend-state');
-          savedProgress = stateRes.data?.data?.grade_promotion_classes_v2 || [];
-        } catch(e) {}
+      // Fetch classes, students, and kenaikan kelas
+      const [kelasRes, siswaRes, kenaikanRes] = await Promise.all([
+        api.get('/kelas'),
+        api.get('/siswa?limit=1000'),
+        api.get(`/kenaikan-kelas?tahun_ajaran_id=${activeTA.id}`)
+      ]);
 
-        const mappedClasses = dbClasses.map((c, index) => {
-          const nameUpper = c.nama_kelas?.toUpperCase() || "";
-          const isVII = nameUpper.includes("VII") && !nameUpper.includes("VIII");
-          const isVIII = nameUpper.includes("VIII");
-          const tingkat = isVII ? "Kelas VII" : isVIII ? "Kelas VIII" : "Kelas IX";
-          
-          const progress = savedProgress.find(p => p.kode === c.id) || {};
-          const actualCount = allSiswa.filter(s => s.kelas_id === c.id).length;
-          const finalTotal = actualCount > 0 ? actualCount : (c.kapasitas || 0);
-          
-          let naik = progress.naik || 0;
-          let tidakNaik = progress.tidakNaik || 0;
-          
-          if (naik + tidakNaik > finalTotal) {
-            naik = 0;
-            tidakNaik = 0;
+      const dbClasses = kelasRes.data?.data || [];
+      const allSiswa = siswaRes.data?.data || [];
+      const kenaikanData = kenaikanRes.data?.data || [];
+
+      const mappedClasses = dbClasses.map((c, index) => {
+        const nameUpper = c.nama_kelas?.toUpperCase() || "";
+        const isVII = nameUpper.includes("VII") && !nameUpper.includes("VIII");
+        const isVIII = nameUpper.includes("VIII");
+        const tingkat = isVII ? "Kelas VII" : isVIII ? "Kelas VIII" : "Kelas IX";
+        
+        const classStudents = allSiswa.filter(s => s.kelas_id === c.id);
+        const actualCount = classStudents.length;
+        const finalTotal = actualCount > 0 ? actualCount : (c.kapasitas || 0);
+        
+        let naik = 0;
+        let tidakNaik = 0;
+
+        classStudents.forEach(s => {
+          const k = kenaikanData.find(kd => kd.siswa_id === s.id);
+          if (k) {
+            if (k.status === 'naik') naik++;
+            if (k.status === 'tinggal') tidakNaik++;
           }
-          
-          const belum = finalTotal - naik - tidakNaik;
-          
-          return {
-            no: index + 1,
-            kelas: c.nama_kelas,
-            kode: c.id,
-            tingkat: tingkat,
-            wali: c.wali_kelas || "Belum ditentukan",
-            total: finalTotal,
-            naik,
-            tidakNaik,
-            belum,
-            status: belum === 0 ? "Selesai" : (naik > 0 || tidakNaik > 0 ? "Dalam Proses" : "Belum Diproses")
-          };
         });
+        
+        const belum = finalTotal - naik - tidakNaik;
+        
+        return {
+          no: index + 1,
+          kelas: c.nama_kelas,
+          kode: c.id,
+          tingkat: tingkat,
+          wali: c.wali_kelas || "Belum ditentukan",
+          total: finalTotal,
+          naik,
+          tidakNaik,
+          belum,
+          status: belum === 0 && finalTotal > 0 ? "Selesai" : (naik > 0 || tidakNaik > 0 ? "Dalam Proses" : "Belum Diproses")
+        };
+      });
 
-        setClasses(mappedClasses);
-        localStorage.setItem("grade_promotion_classes_v2", JSON.stringify(mappedClasses));
-      } catch (err) {
-        console.error("Gagal memuat status kenaikan kelas dari backend", err);
-        const saved = localStorage.getItem("grade_promotion_classes_v2");
-        if (saved) setClasses(JSON.parse(saved));
-      }
-    };
+      setClasses(mappedClasses);
+    } catch (err) {
+      console.error("Gagal memuat status kenaikan kelas dari backend", err);
+    }
+  };
+
+  useEffect(() => {
     fetchState();
   }, []);
 
-  const handleSavePromotion = async (classId, updatedStats) => {
-    const updated = classes.map(c => {
-      if (c.kode === classId) {
-        return {
-          ...c,
-          naik: updatedStats.naik,
-          tidakNaik: updatedStats.tidakNaik,
-          belum: updatedStats.belum,
-          status: updatedStats.status
-        };
-      }
-      return c;
-    });
-    setClasses(updated);
-    localStorage.setItem("grade_promotion_classes_v2", JSON.stringify(updated));
+  const handleSavePromotion = async () => {
+    await fetchState();
     setView("list");
-    
-    // Save to backend database for persistent storage across logouts/sessions
-    try {
-      const { default: api } = await import('../../api/axios');
-      const res = await api.get('/system/frontend-state');
-      const currentState = res.data?.data || {};
-      await api.put('/system/frontend-state', {
-        ...currentState,
-        grade_promotion_classes_v2: updated
-      });
-    } catch (err) {
-      console.error("Gagal menyimpan ke database", err);
-    }
   };
 
   const filtered = activeTab === "Semua Tingkat"
@@ -160,18 +122,18 @@ const GradePromotion = () => {
   const selesai = classes.filter(c => c.status === "Selesai").length;
   const proses = classes.filter(c => c.status === "Dalam Proses").length;
   const belumProses = classes.filter(c => c.status === "Belum Diproses").length;
-  const progressPct = Math.round((selesai / classes.length) * 100);
+  const progressPct = classes.length > 0 ? Math.round((selesai / classes.length) * 100) : 0;
 
   if (view === "criteria") {
     return <GradePromotionCriteria setView={setView} />;
   }
 
   if (view === "detail") {
-    return <GradePromotionDetail setView={setView} classData={selectedClass} mode="selesai" onSave={handleSavePromotion} />;
+    return <GradePromotionDetail setView={setView} classData={selectedClass} activeTahunAjaran={activeTahunAjaran} onSave={handleSavePromotion} />;
   }
 
   if (view === "process") {
-    return <GradePromotionDetail setView={setView} classData={selectedClass} mode="process" onSave={handleSavePromotion} />;
+    return <GradePromotionDetail setView={setView} classData={selectedClass} activeTahunAjaran={activeTahunAjaran} onSave={handleSavePromotion} />;
   }
 
   return (
@@ -211,7 +173,7 @@ const GradePromotion = () => {
         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-3">
           <div className="flex items-center gap-2 text-[14px] font-bold text-[#1e293b]">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-            Progress Kenaikan Kelas — Ganjil 2023/2024
+            Progress Kenaikan Kelas — {activeTahunAjaran?.tahun_ajaran || "Tahun Ajaran Aktif"}
           </div>
           <div className="flex items-center gap-4 text-[13px]">
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block" /> Selesai: {selesai} kelas</span>
@@ -363,7 +325,7 @@ const GradePromotion = () => {
               </div>
               <div>
                 <h3 className="text-[17px] font-bold text-gray-900">Kriteria Kenaikan Kelas</h3>
-                <p className="text-[13px] text-gray-400 mt-0.5">Tahun Ajaran 2023/2024</p>
+                <p className="text-[13px] text-gray-400 mt-0.5">Tahun Ajaran {activeTahunAjaran?.tahun_ajaran || "Aktif"}</p>
               </div>
             </div>
             <div className="space-y-1 mb-5">
@@ -408,7 +370,3 @@ const GradePromotion = () => {
 };
 
 export default GradePromotion;
-
-
-
-// trigger HMR

@@ -6,8 +6,8 @@ const { paginate } = require('../utils/queryBuilder');
 const SemesterService = {
   getAll: async (query) => {
     const { page, limit, offset } = paginate(query);
-    const { search, sort, tahun_ajaran_id: tahunAjaranId, is_active: isActive } = query;
-    const { rows, total } = await SemesterRepository.findAll({ limit, offset, search, sort, tahunAjaranId, isActive });
+    const { search, sort, tahun_ajaran_id: tahunAjaranId, is_aktif } = query;
+    const { rows, total } = await SemesterRepository.findAll({ limit, offset, search, sort, tahunAjaranId, is_aktif });
     return { data: rows, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   },
 
@@ -42,7 +42,7 @@ const SemesterService = {
   delete: async (id) => {
     const existing = await SemesterRepository.findById(id);
     if (!existing) { const e = new Error('Semester tidak ditemukan'); e.statusCode = 404; throw e; }
-    if (existing.is_active) { const e = new Error('Tidak dapat menghapus semester yang sedang aktif'); e.statusCode = 400; throw e; }
+    if (existing.is_aktif) { const e = new Error('Tidak dapat menghapus semester yang sedang aktif'); e.statusCode = 400; throw e; }
     const deleted = await SemesterRepository.delete(id);
     if (!deleted) { const e = new Error('Semester tidak ditemukan'); e.statusCode = 404; throw e; }
     return deleted;

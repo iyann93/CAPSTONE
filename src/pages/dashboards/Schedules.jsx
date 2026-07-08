@@ -3,47 +3,32 @@ import ScheduleAdd from "./ScheduleAdd";
 import ScheduleEdit from "./ScheduleEdit";
 import api from "../../api/axios";
 
-// Mock Schedule Data
-const MOCK_SCHEDULES = [
-  { id: 1, class: "VII IPA 1", day: "Senin", time: "07:00-08:30", period: "Jam ke-1-2", code: "MTK", subject: "Matematika", teacher: "Drs. Hendra, M.Pd", room: "Ruang 101", status: "Aktif", color: "bg-blue-50 border-blue-200 text-blue-700" },
-  { id: 2, class: "VII IPA 1", day: "Senin", time: "08:30-10:00", period: "Jam ke-3-4", code: "IND", subject: "Bahasa Indonesia", teacher: "Ibu Rani Kusuma, S.Pd", room: "Ruang 101", status: "Aktif", color: "bg-yellow-50 border-yellow-200 text-yellow-700" },
-  { id: 3, class: "VII IPA 1", day: "Selasa", time: "07:00-08:30", period: "Jam ke-1-2", code: "FIS", subject: "Fisika", teacher: "Ibu Sari Dewi, S.Pd", room: "Lab Fisika", status: "Aktif", color: "bg-pink-50 border-pink-200 text-pink-700" },
-  { id: 4, class: "VII IPA 1", day: "Selasa", time: "08:30-10:00", period: "Jam ke-3-4", code: "KIM", subject: "Kimia", teacher: "Bpk. Ahmad Fauzi, M.Pd", room: "Lab Kimia", status: "Aktif", color: "bg-teal-50 border-teal-200 text-teal-700" },
-  { id: 5, class: "VII IPA 1", day: "Rabu", time: "07:00-08:30", period: "Jam ke-1-2", code: "BIO", subject: "Biologi", teacher: "Ibu Dewi Anggraini, S.Pd", room: "Lab Biologi", status: "Aktif", color: "bg-green-50 border-green-200 text-green-700" },
-  { id: 6, class: "VII IPA 1", day: "Rabu", time: "08:30-10:00", period: "Jam ke-3-4", code: "ENG", subject: "Bahasa Inggris", teacher: "Bpk. James Hutapea, S.Pd", room: "Ruang 101", status: "Aktif", color: "bg-sky-50 border-sky-200 text-sky-700" },
-  { id: 7, class: "VII IPA 1", day: "Kamis", time: "07:00-08:30", period: "Jam ke-1-2", code: "MTK", subject: "Matematika", teacher: "Drs. Hendra, M.Pd", room: "Ruang 101", status: "Aktif", color: "bg-blue-50 border-blue-200 text-blue-700" },
-  { id: 8, class: "VII IPA 1", day: "Kamis", time: "08:30-10:00", period: "Jam ke-3-4", code: "PKN", subject: "PKn", teacher: "Ibu Nurdiana, S.Pd", room: "Ruang 101", status: "Aktif", color: "bg-orange-50 border-orange-200 text-orange-700" },
-  { id: 9, class: "VII IPA 1", day: "Jumat", time: "07:00-08:30", period: "Jam ke-1-2", code: "SBD", subject: "Seni Budaya", teacher: "Ibu Ani Sulistyo, S.Sn", room: "Ruang Seni", status: "Aktif", color: "bg-purple-50 border-purple-200 text-purple-700" },
-  { id: 10, class: "VII IPA 1", day: "Jumat", time: "08:30-10:00", period: "Jam ke-3-4", code: "PJK", subject: "PJOK", teacher: "Bpk. Rizal Maulana, S.Pd", room: "Lapangan", status: "Aktif", color: "bg-emerald-50 border-emerald-200 text-emerald-700" },
-  
-  // Extra data for other classes to make list full
-  { id: 11, class: "VII IPA 2", day: "Senin", time: "07:00-08:30", period: "Jam ke-1-2", code: "IND", subject: "Bahasa Indonesia", teacher: "Ibu Rani Kusuma, S.Pd", room: "Ruang 102", status: "Aktif", color: "bg-yellow-50 border-yellow-200 text-yellow-700" },
-  { id: 12, class: "VII IPA 2", day: "Senin", time: "08:30-10:00", period: "Jam ke-3-4", code: "MTK", subject: "Matematika", teacher: "Drs. Hendra, M.Pd", room: "Ruang 102", status: "Aktif", color: "bg-blue-50 border-blue-200 text-blue-700" }
-];
-
 const Schedules = () => {
-  const [schedules, setSchedules] = useState(() => {
-    const saved = localStorage.getItem("schedules");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      const hasOldData = parsed.some(s => {
-        if (!s.class) return false;
-        const cls = s.class.toUpperCase();
-        return cls.startsWith("X ") || cls.startsWith("XI ") || cls.startsWith("XII ");
-      });
-      if (!hasOldData) return parsed;
-    }
-    return MOCK_SCHEDULES;
-  });
-
-  useEffect(() => {
-    localStorage.setItem("schedules", JSON.stringify(schedules));
-  }, [schedules]);
-
+  const [schedules, setSchedules] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState(null);
   const [teachers, setTeachers] = useState([]);
+
   useEffect(() => {
     api.get('/guru?limit=100').then(res => setTeachers(res.data.data || [])).catch(console.error);
+    fetchSchedules();
   }, []);
+
+  const fetchSchedules = () => {
+    setLoading(true);
+    setApiError(null);
+    const HARI_MAP = { 1: "Senin", 2: "Selasa", 3: "Rabu", 4: "Kamis", 5: "Jumat", 6: "Sabtu", 7: "Minggu" };
+    api.get('/jadwal-pelajaran?limit=100')
+      .then(res => {
+        const data = res.data.data || [];
+        setSchedules(data.map(j => ({ ...j, hari: HARI_MAP[j.hari] || j.hari })));
+      })
+      .catch(err => {
+        console.error(err);
+        setApiError(err.message || "Gagal mengambil data");
+      })
+      .finally(() => setLoading(false));
+  };
 
   const [view, setView] = useState("list"); // list, add, edit
   const [currentEditItem, setCurrentEditItem] = useState(null);
@@ -51,21 +36,25 @@ const Schedules = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedClassFilter, setSelectedClassFilter] = useState("Semua Kelas");
 
-  const handleAdd = (newSchedule) => {
-    const newId = schedules.length > 0 ? Math.max(...schedules.map(s => s.id)) + 1 : 1;
-    setSchedules([...schedules, { id: newId, ...newSchedule }]);
+  const handleAdd = () => {
+    fetchSchedules();
     setView("list");
   };
 
-  const handleEdit = (updatedSchedule) => {
-    setSchedules(schedules.map(s => s.id === updatedSchedule.id ? updatedSchedule : s));
+  const handleEdit = () => {
+    fetchSchedules();
     setView("list");
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm("Apakah anda yakin ingin menghapus jadwal ini?")) {
-      setSchedules(schedules.filter(s => s.id !== id));
-      setView("list");
+      try {
+        await api.delete(`/jadwal-pelajaran/${id}`);
+        fetchSchedules();
+      } catch (err) {
+        console.error("Gagal menghapus jadwal:", err);
+        alert("Gagal menghapus jadwal.");
+      }
     }
   };
 
@@ -76,6 +65,9 @@ const Schedules = () => {
   if (view === "edit") {
     return <ScheduleEdit setView={setView} handleEdit={handleEdit} handleDelete={handleDelete} currentSchedule={currentEditItem} />;
   }
+
+  const mapelCount = new Set(schedules.map(s => s.mata_pelajaran_id)).size;
+  const guruCount = new Set(schedules.map(s => s.guru_id)).size;
 
   return (
     <div className="p-6 md:p-8 animate-fadeIn space-y-6 bg-[#F4F6FA] min-h-full font-sans">
@@ -110,7 +102,7 @@ const Schedules = () => {
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
             <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Jadwal</div>
-            <div className="text-3xl font-black text-white">42</div>
+            <div className="text-3xl font-black text-white">{schedules.length}</div>
             <div className="text-xs font-medium text-blue-300 mt-2">Semua kelas & hari</div>
           </div>
         </div>
@@ -118,7 +110,7 @@ const Schedules = () => {
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
             <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Mata Pelajaran</div>
-            <div className="text-3xl font-black text-white">14</div>
+            <div className="text-3xl font-black text-white">{mapelCount}</div>
             <div className="text-xs font-medium text-blue-300 mt-2">Mapel terjadwal</div>
           </div>
         </div>
@@ -126,7 +118,7 @@ const Schedules = () => {
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
             <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Guru Mengajar</div>
-            <div className="text-3xl font-black text-white">14</div>
+            <div className="text-3xl font-black text-white">{guruCount}</div>
             <div className="text-xs font-medium text-blue-300 mt-2">Guru aktif terjadwal</div>
           </div>
         </div>
@@ -134,8 +126,8 @@ const Schedules = () => {
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
             <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Jam/Minggu</div>
-            <div className="text-3xl font-black text-white">63</div>
-            <div className="text-xs font-medium text-blue-300 mt-2">Jam pelajaran</div>
+            <div className="text-3xl font-black text-white">{schedules.length * 2}</div>
+            <div className="text-xs font-medium text-blue-300 mt-2">Perkiraan jam</div>
           </div>
         </div>
       </div>
@@ -166,9 +158,10 @@ const Schedules = () => {
                 onChange={(e) => setSelectedClassFilter(e.target.value)}
                 className="appearance-none pl-10 pr-8 py-2.5 bg-white border border-gray-200 rounded-xl text-[13px] font-bold text-gray-600 focus:outline-none focus:border-[#2563EB]"
               >
-                <option>Semua Kelas</option>
-                <option>VII IPA 1</option>
-                <option>VII IPA 2</option>
+                <option value="Semua Kelas">Semua Kelas</option>
+                {[...new Set(schedules.map(s => s.nama_kelas))].filter(Boolean).map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
               </select>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="absolute left-3.5 top-3.5 text-gray-400"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-3.5 text-gray-400 pointer-events-none"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -205,59 +198,70 @@ const Schedules = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {schedules.filter((item) => {
-                  // Filter berdasarkan Tingkat
+                {loading ? (
+                  <tr><td colSpan="9" className="text-center py-10 text-gray-400 font-medium">Memuat data...</td></tr>
+                ) : apiError ? (
+                  <tr><td colSpan="9" className="text-center py-10 text-red-500 font-medium">Error: {apiError}</td></tr>
+                ) : schedules.length === 0 ? (
+                  <tr><td colSpan="9" className="text-center py-10 text-gray-400 font-medium">Belum ada jadwal tersimpan.</td></tr>
+                ) : schedules.filter((item) => {
                   if (activeTingkat !== "Semua Tingkat") {
-                    const gradeMatch = item.class.match(/^(VII|VIII|IX)\b/);
-                    const grade = gradeMatch ? "Kelas " + gradeMatch[1] : "";
+                    const grade = item.tingkat ? "Kelas " + (item.tingkat === "9" ? "IX" : item.tingkat) : "";
                     if (grade !== activeTingkat) return false;
                   }
-                  // Filter berdasarkan Kelas dropdown
-                  if (selectedClassFilter !== "Semua Kelas" && item.class !== selectedClassFilter) return false;
-                  // Filter berdasarkan Pencarian
+                  if (selectedClassFilter !== "Semua Kelas" && item.nama_kelas !== selectedClassFilter) return false;
                   if (searchQuery) {
                     const q = searchQuery.toLowerCase();
-                    return item.subject.toLowerCase().includes(q) || item.teacher.toLowerCase().includes(q);
+                    return item.nama_mapel?.toLowerCase().includes(q) || item.guru_nama?.toLowerCase().includes(q);
+                  }
+                  return true;
+                }).length === 0 ? (
+                  <tr><td colSpan="9" className="text-center py-10 text-gray-400 font-medium">Tidak ada jadwal yang cocok dengan filter.</td></tr>
+                ) : schedules.filter((item) => {
+                  if (activeTingkat !== "Semua Tingkat") {
+                    const grade = item.tingkat ? "Kelas " + (item.tingkat === "9" ? "IX" : item.tingkat) : "";
+                    if (grade !== activeTingkat) return false;
+                  }
+                  if (selectedClassFilter !== "Semua Kelas" && item.nama_kelas !== selectedClassFilter) return false;
+                  if (searchQuery) {
+                    const q = searchQuery.toLowerCase();
+                    return item.nama_mapel?.toLowerCase().includes(q) || item.guru_nama?.toLowerCase().includes(q);
                   }
                   return true;
                 }).map((item, idx) => (
                   <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-5 py-4 text-[13px] text-gray-500 font-medium">{idx + 1}</td>
                     <td className="px-5 py-4">
-                      <div>
-                        <div className="text-[13px] font-bold text-[#1e293b]">{item.class}</div>
-                        <div className="text-[10px] text-gray-400">IPA</div>
-                      </div>
+                      <div className="text-[13px] font-bold text-[#1e293b]">{item.nama_kelas}</div>
                     </td>
                     <td className="px-5 py-4">
-                      <span className="text-[#1A3D63] text-[13px] font-bold">{item.day}</span>
+                      <span className="text-[#1A3D63] text-[13px] font-bold">{item.hari}</span>
                     </td>
                     <td className="px-5 py-4">
                       <div>
-                        <div className="text-[13px] font-bold text-[#1e293b]">{item.time}</div>
-                        <div className="text-[10px] text-gray-400">{item.period}</div>
+                        <div className="text-[13px] font-bold text-[#1e293b]">{item.jam_mulai?.substring(0,5)} - {item.jam_selesai?.substring(0,5)}</div>
                       </div>
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
                         <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
-                          ["MTK", "FIS", "KIM", "BIO", "ENG"].includes(item.code)
+                          ["MTK", "FIS", "KIM", "BIO", "ENG"].includes(item.kode_mapel)
                             ? 'bg-[#1A3D63]/10 text-[#1A3D63]'
                             : 'bg-slate-100 text-slate-700'
-                        }`}>{item.code}</span>
-                        <span className="text-[13px] font-bold text-[#1e293b]">{item.subject}</span>
+                        }`}>{item.kode_mapel || "---"}</span>
+                        <span className="text-[13px] font-bold text-[#1e293b]">{item.nama_mapel}</span>
                       </div>
                     </td>
                     <td className="px-5 py-4 text-[13px] text-gray-600 font-medium">
-                      {teachers.length > 0 ? teachers[idx % teachers.length]?.nama : item.teacher}
+                      {item.guru_nama || "Belum ada"}
                     </td>
                     <td className="px-5 py-4 text-[13px] text-gray-500 font-medium flex items-center gap-1.5 mt-2.5">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                      {item.room}
+                      {item.ruangan || "Ruang Kelas"}
                     </td>
                     <td className="px-5 py-4 text-center">
                       <span className="bg-emerald-50 text-emerald-600 text-[11px] font-bold px-2.5 py-1 rounded-md">
-                        {item.status}
+                        Aktif
                       </span>
                     </td>
                     <td className="px-5 py-4">
@@ -279,7 +283,7 @@ const Schedules = () => {
           {/* Table Pagination */}
           <div className="px-2 py-4 flex items-center justify-between border-t border-gray-50">
             <div className="text-[13px] text-gray-500">
-              Menampilkan 1-12 dari 42 jadwal
+              Menampilkan {schedules.length === 0 ? 0 : 1}-{Math.min(12, schedules.length)} dari {schedules.length} jadwal
             </div>
             <div className="flex items-center gap-1">
               <button className="w-8 h-8 flex items-center justify-center text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
@@ -309,5 +313,3 @@ const Schedules = () => {
 };
 
 export default Schedules;
-
-

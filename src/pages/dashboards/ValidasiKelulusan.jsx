@@ -15,44 +15,42 @@ const ValidasiKelulusan = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
+  const [activeTahunAjaran, setActiveTahunAjaran] = useState(null);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const resSiswa = await api.get('/siswa');
+      const taRes = await api.get('/tahun-ajaran/active').catch(() => ({ data: { data: null }}));
+      const activeTA = taRes.data?.data;
+      setActiveTahunAjaran(activeTA);
+
+      const resSiswa = await api.get('/siswa?limit=1000');
       const allSiswa = resSiswa.data?.data || [];
       
       let allLulus = [];
       try {
-        const resLulus = await api.get('/kelulusan');
+        const resLulus = await api.get(`/kelulusan${activeTA ? `?tahun_ajaran_id=${activeTA.id}` : ''}&limit=1000`);
         allLulus = resLulus.data?.data || [];
       } catch (err) {
         console.warn("Could not fetch /kelulusan, using empty array fallback.");
       }
       
       const ixSiswa = allSiswa.filter(s => s.nama_kelas?.toUpperCase().includes('IX'));
-      
-      const mockSaved = JSON.parse(localStorage.getItem("mock_kelulusan") || "{}");
 
       const mapped = ixSiswa.map((s, idx) => {
         const lulusData = allLulus.find(l => l.siswa_id === s.id) || {};
         let status = "Menunggu Validasi";
         
-        if (mockSaved[s.id]) {
-          if (mockSaved[s.id].status === "Lulus") status = "Valid (Lulus)";
-          if (mockSaved[s.id].status === "Tidak Lulus") status = "Belum Valid";
-        } else {
-          if (lulusData.status === "Lulus") status = "Valid (Lulus)";
-          if (lulusData.status === "Tidak Lulus") status = "Belum Valid";
-        }
+        if (lulusData.status === "Lulus") status = "Valid (Lulus)";
+        if (lulusData.status === "Tidak Lulus") status = "Belum Valid";
 
         return {
           id: s.id,
           nisn: s.nisn || (s.nis + "000"),
           nama: s.nama_lengkap,
           kelas: formatKelas(s.nama_kelas),
-          nilaiRata: (80 + (idx % 15)).toFixed(1),
-          kehadiran: (90 + (idx % 10)) + "%",
+          nilaiRata: (80 + (idx % 15)).toFixed(1), // Tetap mock nilai karena tidak ada api rekap nilai lengkap 6 semester
+          kehadiran: (90 + (idx % 10)) + "%",     // Tetap mock nilai karena tidak ada api rekap kehadiran lengkap 6 semester
           status: status,
           lulusDataId: lulusData.id
         };
@@ -75,18 +73,12 @@ const ValidasiKelulusan = () => {
       if (newStatus === "Valid (Lulus)") dbStatus = "Lulus";
       if (newStatus === "Belum Valid") dbStatus = "Tidak Lulus";
       
-      try {
-        await api.post('/kelulusan', {
-          siswaId: id,
-          status: dbStatus,
-          divalidasi_kepsek: true
-        });
-      } catch (err) {
-        console.warn("API /kelulusan tidak ditemukan, menyimpan ke localStorage sebagai simulasi.");
-        const saved = JSON.parse(localStorage.getItem("mock_kelulusan") || "{}");
-        saved[id] = { status: dbStatus, divalidasi_kepsek: true };
-        localStorage.setItem("mock_kelulusan", JSON.stringify(saved));
-      }
+      await api.post('/kelulusan', {
+        siswaId: id,
+        status: dbStatus,
+        divalidasi_kepsek: true,
+        tahun_ajaran_id: activeTahunAjaran?.id
+      });
       
       setData(data.map(item => item.id === id ? { ...item, status: newStatus } : item));
       setSelected(null);
@@ -97,7 +89,7 @@ const ValidasiKelulusan = () => {
       }
     } catch(e) {
       console.error(e);
-      alert("Gagal menyimpan validasi");
+      alert("Gagal menyimpan validasi. Pastikan backend berjalan dengan benar.");
     }
   };
 
@@ -116,6 +108,7 @@ const ValidasiKelulusan = () => {
       <div>
         <h1 className="text-[26px] font-bold text-[#1e293b]">Validasi Data Kelulusan</h1>
         <p className="text-[14px] text-gray-500 mt-1">Periksa kelengkapan nilai dan absensi calon lulusan sebelum menetapkan kelulusan akhir.</p>
+        <p className="text-[12px] font-semibold text-blue-600 mt-1">Tahun Ajaran: {activeTahunAjaran?.tahun_ajaran || "Tidak Ditemukan"}</p>
       </div>
 
       <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">

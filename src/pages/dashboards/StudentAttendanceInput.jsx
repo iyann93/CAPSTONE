@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 
 const initialStudents = [
   { id: 1, name: "Andi Pratama", nis: "2023001", initials: "AP", color: "bg-[#3B82F6]", gender: "L", status: "Hadir", ket: "" },
@@ -15,7 +15,7 @@ const initialStudents = [
   { id: 12, name: "Fira Aulia", nis: "2023012", initials: "FA", color: "bg-[#EF4444]", gender: "P", status: "Hadir", ket: "" },
 ];
 
-const StudentAttendanceInput = ({ classData, onBack, onSave }) => {
+const StudentAttendanceInput = ({ classData, selectedDate, onBack, onSave }) => {
   const [students, setStudents] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   
@@ -23,43 +23,66 @@ const StudentAttendanceInput = ({ classData, onBack, onSave }) => {
     const fetchStudents = async () => {
       try {
         const { default: api } = await import('../../api/axios');
-        const res = await api.get('/siswa?limit=1000');
-        const allStudents = res.data?.data || [];
-        const classStudents = allStudents.filter(s => s.nama_kelas === classData.name);
+        const [res, absensiRes] = await Promise.all([
+          api.get(`/siswa?kelas_id=${classData.id}&limit=1000`),
+          api.get(`/absensi?tanggal=${selectedDate}&kelas_id=${classData.id}&limit=1000`)
+        ]);
+        const classStudents = res.data?.data || [];
+        const existingAbsensi = absensiRes.data?.data || [];
         
         if (classStudents.length === 0) {
-          setStudents(initialStudents);
+          setStudents([]);
           return;
         }
 
-        const mapped = classStudents.map((s, idx) => ({
-          id: s.id,
-          name: s.nama_lengkap,
-          nis: s.nis,
-          initials: s.nama_lengkap.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase(),
-          color: ["bg-[#3B82F6]", "bg-[#10B981]", "bg-[#F59E0B]", "bg-[#EF4444]", "bg-[#8B5CF6]", "bg-[#EC4899]"][idx % 6],
-          gender: s.jenis_kelamin === "Perempuan" ? "P" : "L",
-          status: "Hadir", // default
-          ket: ""
-        }));
+        const mapped = classStudents.map((s, idx) => {
+          const existing = existingAbsensi.find(a => a.siswa_id === s.id);
+          return {
+            id: s.id,
+            name: s.nama_lengkap || "Tanpa Nama",
+            nis: s.nis || "-",
+            initials: (s.nama_lengkap || "S").split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase(),
+            color: ["bg-[#3B82F6]", "bg-[#10B981]", "bg-[#F59E0B]", "bg-[#EF4444]", "bg-[#8B5CF6]", "bg-[#EC4899]"][idx % 6],
+            gender: s.jenis_kelamin === "Perempuan" ? "P" : "L",
+            status: existing ? existing.status : "Hadir", // default Hadir jika belum ada
+            ket: existing ? (existing.keterangan || "") : ""
+          };
+        });
         setStudents(mapped);
       } catch (err) {
         console.error("Gagal memuat siswa:", err);
-        setStudents(initialStudents);
+        setStudents([]);
       }
     };
     fetchStudents();
-  }, [classData.name]);
+  }, [classData.id, selectedDate]);
   const [filterStatus, setFilterStatus] = useState("Semua");
 
-  const handleSave = () => {
-    onSave({
-      hadir: counts.Hadir,
-      sakit: counts.Sakit,
-      izin: counts.Izin,
-      alpha: counts.Alpha,
-      pct: pctHadir
-    });
+  const handleSave = async () => {
+    try {
+      const { default: api } = await import('../../api/axios');
+      // Prepare payload
+      const payload = students.map(s => ({
+        siswaId: s.id,
+        kelasId: classData.id,
+        tanggal: selectedDate || new Date().toISOString().split('T')[0],
+        status: s.status,
+        keterangan: s.ket
+      }));
+      
+      await api.post('/absensi', payload);
+
+      onSave({
+        hadir: counts.Hadir,
+        sakit: counts.Sakit,
+        izin: counts.Izin,
+        alpha: counts.Alpha,
+        pct: pctHadir
+      });
+    } catch (e) {
+      console.error("Gagal menyimpan absensi:", e);
+      alert("Gagal menyimpan absensi");
+    }
   };
 
   const setAllStatus = (status) => {
@@ -111,7 +134,7 @@ const StudentAttendanceInput = ({ classData, onBack, onSave }) => {
                 <span className="px-2.5 py-1 bg-orange-100 text-orange-600 rounded-md text-[12px] font-bold">Sedang Diedit</span>
               </div>
               <p className="text-gray-500 text-[14px] mt-1">
-                Senin, 20 November 2023 · Wali Kelas: {classData.wali}
+                {selectedDate} · Wali Kelas: {classData.wali}
               </p>
             </div>
           </div>

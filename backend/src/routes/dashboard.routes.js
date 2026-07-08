@@ -51,4 +51,11 @@ router.get('/bendahara',
   DashboardController.adminDashboard
 );
 
+// ─── Kepsek Dashboard ─────────────────────────────────────────────────────────
+// GET /api/v1/dashboard/kepsek/stats
+router.get('/kepsek/stats',
+  verifyToken,
+  DashboardController.kepsekStats
+);
+
 module.exports = router;

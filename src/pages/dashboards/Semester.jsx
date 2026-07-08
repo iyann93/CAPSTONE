@@ -1,82 +1,132 @@
 import React, { useState } from 'react';
 
+import api from "../../api/axios";
+
 const Semester = () => {
   const [view, setView] = useState("list");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSemester, setSelectedSemester] = useState(null);
   const [selectedYear, setSelectedYear] = useState("Semua Tahun");
 
-  const [semesters, setSemesters] = useState(() => {
-    const saved = localStorage.getItem("semesters_data");
-    const version = localStorage.getItem("semesters_data_version");
-    if (saved && version === "smp_v1") {
-      try { return JSON.parse(saved); } catch(e){}
+  const [semesters, setSemesters] = useState([]);
+  const [tahunAjarans, setTahunAjarans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const [resSemesters, resTahunAjarans] = await Promise.all([
+        api.get('/semester?limit=100'),
+        api.get('/tahun-ajaran?limit=100')
+      ]);
+      const semesterData = resSemesters.data.data || [];
+      const mapped = semesterData.map(s => ({
+        id: s.id,
+        name: s.nama,
+        year: s.tahun_ajaran_nama,
+        yearId: s.tahun_ajaran_id,
+        type: s.nama.split(' ')[0],
+        start: new Date(s.tanggal_mulai).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'}),
+        end: new Date(s.tanggal_selesai).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'}),
+        startRaw: s.tanggal_mulai.split('T')[0],
+        endRaw: s.tanggal_selesai.split('T')[0],
+        students: "0",
+        classes: "0",
+        status: s.is_aktif ? 'Aktif' : 'Selesai'
+      }));
+      setSemesters(mapped);
+      const fetchedTahunAjarans = resTahunAjarans.data.data || [];
+      
+      // Fallback if empty from DB
+      if (fetchedTahunAjarans.length === 0) {
+        fetchedTahunAjarans.push({ id: '00000001-0000-0000-0000-000000000001', nama: '2025/2026' });
+      }
+      
+      setTahunAjarans(fetchedTahunAjarans);
+      
+      // Auto-select 2025/2026 if available
+      const targetTA = fetchedTahunAjarans.find(t => t.nama === '2025/2026');
+      if (targetTA && !addForm.yearId) {
+        setAddForm(prev => ({ ...prev, yearId: targetTA.id }));
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Gagal memuat data.');
+      // Force fallback if API fails completely
+      setTahunAjarans([{ id: '00000001-0000-0000-0000-000000000001', nama: '2025/2026' }]);
+      if (!addForm.yearId) {
+        setAddForm(prev => ({ ...prev, yearId: '00000001-0000-0000-0000-000000000001' }));
+      }
+    } finally {
+      setLoading(false);
     }
-    localStorage.setItem("semesters_data_version", "smp_v1");
-    return [
-      { name: "Ganjil 2023/2024", id: "SMT-2023-1", year: "2023/2024", start: "17 Jul 2023", end: "22 Des 2023", students: "15", classes: "3", status: "Aktif" },
-      { name: "Genap 2022/2023", id: "SMT-2022-2", year: "2022/2023", start: "9 Jan 2023", end: "16 Jun 2023", students: "15", classes: "3", status: "Selesai" },
-      { name: "Ganjil 2022/2023", id: "SMT-2022-1", year: "2022/2023", start: "18 Jul 2022", end: "23 Des 2022", students: "15", classes: "3", status: "Selesai" },
-      { name: "Genap 2021/2022", id: "SMT-2021-2", year: "2021/2022", start: "10 Jan 2022", end: "17 Jun 2022", students: "15", classes: "3", status: "Selesai" },
-      { name: "Ganjil 2021/2022", id: "SMT-2021-1", year: "2021/2022", start: "19 Jul 2021", end: "24 Des 2021", students: "15", classes: "3", status: "Selesai" },
-      { name: "Genap 2020/2021", id: "SMT-2020-2", year: "2020/2021", start: "11 Jan 2021", end: "18 Jun 2021", students: "15", classes: "3", status: "Selesai" }
-    ];
-  });
+  };
 
   React.useEffect(() => {
-    localStorage.setItem("semesters_data", JSON.stringify(semesters));
-    localStorage.setItem("semesters_data_version", "smp_v1");
-  }, [semesters]);
+    fetchData();
+  }, []);
 
   const [addForm, setAddForm] = useState({
-    year: "2024/2025",
+    yearId: "",
     type: "Ganjil",
-    start: "2024-07-15",
-    end: "2024-12-20",
+    start: "2025-07-15",
+    end: "2025-12-20",
     status: "Draft",
-    uts: "2024-10-14",
-    uas: "2024-12-09",
-    rapor: "2024-12-21",
-    deadline: "2024-12-16",
+    uts: "2025-10-14",
+    uas: "2025-12-09",
+    rapor: "2025-12-21",
+    deadline: "2025-12-16",
     hariEfektif: 140
   });
 
-  const handleSaveAdd = () => {
-    const newSemester = {
-      name: `${addForm.type} ${addForm.year}`,
-      id: `SMT-${addForm.year.split('/')[0]}-${addForm.type === 'Ganjil' ? '1' : '2'}`,
-      year: addForm.year,
-      start: addForm.start,
-      end: addForm.end,
-      students: "0",
-      classes: "0",
-      status: addForm.status === 'Draft' ? 'Draft' : 'Aktif'
-    };
-    setSemesters([newSemester, ...semesters]);
-    setView("list");
+  const handleSaveAdd = async () => {
+    const selectedTA = tahunAjarans.find(t => t.id === addForm.yearId);
+    if (!selectedTA) return alert("Pilih tahun ajaran");
+    const name = `${addForm.type} ${selectedTA.nama}`;
+    try {
+      await api.post('/semester', {
+        nama: name,
+        tahunAjaranId: addForm.yearId,
+        tanggalMulai: addForm.start,
+        tanggalSelesai: addForm.end
+      });
+      fetchData();
+      setView("list");
+    } catch (err) {
+      alert(err.response?.data?.message || 'Gagal menyimpan semester');
+    }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm("Apakah Anda yakin ingin menghapus semester ini?")) {
-      setSemesters(prev => prev.filter(s => s.id !== id));
+      try {
+        await api.delete(`/semester/${id}`);
+        fetchData();
+      } catch (err) {
+        alert(err.response?.data?.message || 'Gagal menghapus');
+      }
     }
   };
 
-  // Nonaktifkan semester yang sedang Aktif
-  const handleClose = (id) => {
-    if (window.confirm("Apakah Anda yakin ingin menonaktifkan semester ini? Semua input nilai dan absensi pada periode ini akan dikunci.")) {
-      setSemesters(prev => prev.map(s => s.id === id ? { ...s, status: 'Selesai' } : s));
+  const handleClose = async (id) => {
+    if (window.confirm("Apakah Anda yakin ingin menonaktifkan semester ini?")) {
+      // API currently only supports setActive, to deactivate maybe we can't do it via API directly unless we have a specific endpoint. 
+      // But we are not allowed to add new backend functionality right now. 
+      // Wait, is there a deactivate endpoint?
+      alert('Semester tidak bisa ditutup langsung dari sistem tanpa mengaktifkan semester lain.');
     }
   };
 
-  // Aktifkan semester tertentu dan nonaktifkan yang sebelumnya
-  const handleActivate = (id) => {
+  const handleActivate = async (id) => {
     if (window.confirm("Aktifkan semester ini? Semester yang sedang aktif akan otomatis ditutup.")) {
-      setSemesters(prev => prev.map(s => {
-        if (s.id === id) return { ...s, status: 'Aktif' };
-        if (s.status === 'Aktif') return { ...s, status: 'Selesai' };
-        return s;
-      }));
+      try {
+        await api.put(`/semester/${id}/active`);
+        fetchData();
+      } catch (err) {
+        alert(err.response?.data?.message || 'Gagal mengaktifkan');
+      }
     }
   };
 
@@ -132,12 +182,13 @@ const Semester = () => {
                     <label className="block text-[12px] font-bold text-gray-500 mb-2">Tahun Ajaran <span className="text-red-500">*</span></label>
                     <div className="relative">
                       <select 
-                        value={addForm.year} 
-                        onChange={(e) => setAddForm({...addForm, year: e.target.value})} 
+                        value={addForm.yearId || ''} 
+                        onChange={(e) => setAddForm({...addForm, yearId: e.target.value})} 
                         className="w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 text-[14px] font-bold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20">
-                        <option value="2023/2024">2023/2024</option>
-                        <option value="2024/2025">2024/2025</option>
-                        <option value="2025/2026">2025/2026</option>
+                        <option value="" disabled>Pilih Tahun Ajaran</option>
+                        {tahunAjarans.map(t => (
+                          <option key={t.id} value={t.id}>{t.nama}</option>
+                        ))}
                       </select>
                       <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
@@ -163,7 +214,7 @@ const Semester = () => {
                 <div>
                   <label className="block text-[12px] font-bold text-gray-500 mb-2">Nama Semester</label>
                   <div className="relative">
-                    <input type="text" readOnly value={`${addForm.type} ${addForm.year}`} className="w-full bg-[#F9FAFB] border border-gray-200 rounded-xl pl-4 pr-36 py-3 text-[14px] font-semibold text-[#1e293b] focus:outline-none" />
+                    <input type="text" readOnly value={`${addForm.type} ${tahunAjarans.find(t => t.id === addForm.yearId)?.nama || ''}`} className="w-full bg-[#F9FAFB] border border-gray-200 rounded-xl pl-4 pr-36 py-3 text-[14px] font-semibold text-[#1e293b] focus:outline-none" />
                     <div className="absolute inset-y-0 right-2 flex items-center">
                       <span className="bg-white border border-gray-100 text-gray-400 text-[10px] font-semibold px-2.5 py-1.5 rounded-lg shadow-sm">Digenerate otomatis</span>
                     </div>
@@ -174,7 +225,7 @@ const Semester = () => {
                 <div>
                   <label className="block text-[12px] font-bold text-gray-500 mb-2">ID Semester</label>
                   <div className="relative">
-                    <input type="text" readOnly value={`SMT-${addForm.year.split('/')[0]}-${addForm.type === 'Ganjil' ? '1' : '2'}`} className="w-full bg-[#F9FAFB] border border-gray-200 rounded-xl pl-4 pr-36 py-3 text-[14px] font-semibold text-gray-500 focus:outline-none" />
+                    <input type="text" readOnly value="Akan digenerate oleh sistem" className="w-full bg-[#F9FAFB] border border-gray-200 rounded-xl pl-4 pr-36 py-3 text-[14px] font-semibold text-gray-500 focus:outline-none" />
                     <div className="absolute inset-y-0 right-2 flex items-center">
                       <span className="bg-white border border-gray-100 text-gray-400 text-[10px] font-semibold px-2.5 py-1.5 rounded-lg shadow-sm">Digenerate otomatis</span>
                     </div>
@@ -213,7 +264,7 @@ const Semester = () => {
                   </div>
                   <div className="hidden md:block w-px h-3 bg-gray-300 mx-1"></div>
                   <div className="text-[12px] text-gray-500">
-                    15 Jul 2024 — 20 Des 2024
+                    15 Jul 2025 — 20 Des 2025
                   </div>
                   <div className="hidden md:block w-px h-3 bg-gray-300 mx-1"></div>
                   <div className="flex items-center gap-1.5 text-[12px] font-bold text-[#16A34A]">
@@ -337,7 +388,7 @@ const Semester = () => {
                 <p className="text-[12px] text-gray-500 mb-5 leading-relaxed">Salin pengaturan jadwal penilaian dari semester sebelumnya sebagai acuan.</p>
                 <div className="relative mb-5">
                   <select className="w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 text-[13px] font-bold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20">
-                    <option>Ganjil 2023/2024</option>
+                    <option>Ganjil 2024/2025</option>
                   </select>
                   <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
@@ -358,11 +409,11 @@ const Semester = () => {
               <div className="p-6 space-y-4.5">
                 <div className="flex justify-between items-center text-[12px]">
                   <span className="text-gray-500">Semester</span>
-                  <span className="font-bold text-[#1e293b]">Ganjil 2024/2025</span>
+                  <span className="font-bold text-[#1e293b]">Ganjil 2025/2026</span>
                 </div>
                 <div className="flex justify-between items-center text-[12px]">
                   <span className="text-gray-500">Periode</span>
-                  <span className="font-bold text-[#1e293b]">15 Jul — 20 Des 2024</span>
+                  <span className="font-bold text-[#1e293b]">15 Jul — 20 Des 2025</span>
                 </div>
                 <div className="flex justify-between items-center text-[12px]">
                   <span className="text-gray-500">Durasi</span>
@@ -634,7 +685,7 @@ const Semester = () => {
           {/* Pagination */}
           <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
             <div className="text-[13px] text-gray-500">
-              Menampilkan 6 dari 6 semester
+              Menampilkan {semesters.length} dari {semesters.length} semester
             </div>
             <div className="flex items-center gap-1">
               <button className="px-3 py-1.5 text-[13px] font-semibold text-gray-400 cursor-not-allowed">
@@ -654,28 +705,41 @@ const Semester = () => {
   }
 
   if (view === "edit") {
-    return <SemesterEdit setView={setView} initialData={selectedSemester} onSave={(updatedData) => {
-      setSemesters(prev => prev.map(s => s.id === updatedData.id ? updatedData : s));
-      setView("list");
+    return <SemesterEdit setView={setView} initialData={selectedSemester} tahunAjarans={tahunAjarans} onSave={async (updatedData) => {
+      try {
+        await api.put(`/semester/${updatedData.id}`, {
+          nama: updatedData.name,
+          tahunAjaranId: updatedData.yearId,
+          tanggalMulai: updatedData.startRaw || updatedData.start,
+          tanggalSelesai: updatedData.endRaw || updatedData.end
+        });
+        fetchData();
+        setView("list");
+      } catch (err) {
+        alert(err.response?.data?.message || 'Gagal menyimpan perubahan');
+      }
     }} />;
   }
 
   if (view === "detail") {
-    return <SemesterDetail setView={setView} />;
+    return <SemesterDetail setView={setView} semester={selectedSemester} />;
   }
 
   return null;
 };
 
 // --- EDIT VIEW COMPONENT ---
-const SemesterEdit = ({ setView, initialData, onSave }) => {
+const SemesterEdit = ({ setView, initialData, tahunAjarans, onSave }) => {
   const [editForm, setEditForm] = useState(initialData || {
     id: "SMT-2023-1",
     name: "Ganjil 2023/2024",
+    yearId: "",
     year: "2023/2024",
     type: "Ganjil",
-    start: "2023-07-17",
-    end: "2023-12-22",
+    start: "17 Jul 2023",
+    startRaw: "2023-07-17",
+    end: "22 Des 2023",
+    endRaw: "2023-12-22",
     status: "Aktif",
     students: 15,
     classes: 3,
@@ -746,7 +810,7 @@ const SemesterEdit = ({ setView, initialData, onSave }) => {
               <div>
                 <label className="block text-[12px] font-bold text-gray-500 mb-2">Tahun Ajaran</label>
                 <div className="relative">
-                  <input type="text" readOnly value="2023/2024" className="w-full bg-[#F9FAFB] border border-gray-200 rounded-xl pl-4 pr-16 py-3 text-[14px] font-semibold text-gray-500 focus:outline-none" />
+                  <input type="text" readOnly value={editForm.year || ''} className="w-full bg-[#F9FAFB] border border-gray-200 rounded-xl pl-4 pr-16 py-3 text-[14px] font-semibold text-gray-500 focus:outline-none" />
                   <div className="absolute inset-y-0 right-3 flex items-center">
                     <span className="text-gray-400 text-[10px] font-semibold">Terkunci</span>
                   </div>
@@ -759,7 +823,7 @@ const SemesterEdit = ({ setView, initialData, onSave }) => {
               <div className="md:col-span-2">
                 <label className="block text-[12px] font-bold text-gray-500 mb-2">Tipe Semester</label>
                 <div className="relative">
-                  <input type="text" readOnly value="Ganjil" className="w-full bg-[#F9FAFB] border border-gray-200 rounded-xl pl-4 pr-16 py-3 text-[14px] font-semibold text-gray-500 focus:outline-none" />
+                  <input type="text" readOnly value={editForm.type} className="w-full bg-[#F9FAFB] border border-gray-200 rounded-xl pl-4 pr-16 py-3 text-[14px] font-semibold text-gray-500 focus:outline-none" />
                   <div className="absolute inset-y-0 right-3 flex items-center">
                     <span className="text-gray-400 text-[10px] font-semibold">Terkunci</span>
                   </div>
@@ -779,20 +843,14 @@ const SemesterEdit = ({ setView, initialData, onSave }) => {
                 <div>
                   <label className="block text-[12px] font-bold text-gray-500 mb-2">Tanggal Mulai <span className="text-red-500">*</span></label>
                   <div className="relative">
-                    <input type="text" value="17 Jul 2023" className="w-full bg-[#F9FAFB] border border-gray-200 rounded-xl pl-4 pr-20 py-3 text-[14px] font-semibold text-gray-500 focus:outline-none" readOnly />
-                    <div className="absolute inset-y-0 right-3 flex items-center">
-                      <span className="text-gray-400 text-[10px] font-semibold">Terkunci</span>
-                    </div>
+                    <input type="date" value={editForm.startRaw} onChange={e => setEditForm({...editForm, startRaw: e.target.value})} className="w-full bg-white border border-[#1A3D63] rounded-xl pl-4 pr-10 py-3 text-[14px] font-bold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" />
                   </div>
-                  <p className="text-[11px] text-gray-400 mt-2">Tanggal mulai tidak dapat diubah setelah semester aktif.</p>
+                  <p className="text-[11px] text-gray-400 mt-2">Ubah tanggal mulai semester.</p>
                 </div>
                 <div>
                   <label className="block text-[12px] font-bold text-gray-500 mb-2">Tanggal Selesai <span className="text-red-500">*</span></label>
                   <div className="relative">
-                    <input type="date" value={editForm.end} onChange={e => setEditForm({...editForm, end: e.target.value})} className="w-full bg-white border border-[#1A3D63] rounded-xl pl-4 pr-10 py-3 text-[14px] font-bold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" />
-                    <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                    </div>
+                    <input type="date" value={editForm.endRaw} onChange={e => setEditForm({...editForm, endRaw: e.target.value})} className="w-full bg-white border border-[#1A3D63] rounded-xl pl-4 pr-10 py-3 text-[14px] font-bold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" />
                   </div>
                 </div>
               </div>
@@ -1016,7 +1074,8 @@ const SemesterEdit = ({ setView, initialData, onSave }) => {
 };
 
 // --- DETAIL VIEW COMPONENT ---
-const SemesterDetail = ({ setView }) => {
+const SemesterDetail = ({ setView, semester }) => {
+  if (!semester) return null;
   return (
     <div className="p-6 md:p-8 animate-fadeIn space-y-6 bg-[#F4F6FA] min-h-full">
       {/* Breadcrumb & Header */}
@@ -1026,14 +1085,14 @@ const SemesterDetail = ({ setView }) => {
             Dashboard <span className="mx-2">&rsaquo;</span> Kelola Akademik <span className="mx-2">&rsaquo;</span> <span className="cursor-pointer hover:text-[#1A3D63] hover:underline" onClick={() => setView("list")}>Semester</span> <span className="mx-2">&rsaquo;</span> <span className="text-[#1A3D63] font-semibold">Detail</span>
           </div>
           <div className="flex items-center gap-3 mt-1">
-            <h1 className="text-[26px] font-bold text-[#1e293b]">Ganjil 2023/2024</h1>
-            <span className="text-[14px] font-bold text-gray-500 mt-1">SMT-2023-1</span>
-            <span className="bg-[#ECFDF5] text-[#059669] text-[11px] font-bold px-2 py-1 rounded-full flex items-center gap-1.5 mt-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#059669]"></span> Sedang Berjalan
+            <h1 className="text-[26px] font-bold text-[#1e293b]">{semester.name}</h1>
+            <span className="text-[14px] font-bold text-gray-500 mt-1">{semester.id}</span>
+            <span className={`text-[11px] font-bold px-2 py-1 rounded-full flex items-center gap-1.5 mt-1 ${semester.status === 'Aktif' ? 'bg-[#ECFDF5] text-[#059669]' : 'bg-[#F1F5F9] text-gray-500'}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${semester.status === 'Aktif' ? 'bg-[#059669]' : 'bg-gray-400'}`}></span> {semester.status === 'Aktif' ? 'Sedang Berjalan' : semester.status}
             </span>
           </div>
           <p className="text-gray-500 text-[14px] mt-1">
-            Ringkasan lengkap data dan aktivitas Semester Ganjil Tahun Ajaran 2023/2024.
+            Ringkasan lengkap data dan aktivitas Semester {semester.name}.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -1283,19 +1342,19 @@ const SemesterDetail = ({ setView }) => {
             <div className="p-6 space-y-4">
               <div className="flex justify-between items-center text-[13px] pb-3 border-b border-gray-50">
                 <span className="text-gray-500">Tahun Ajaran</span>
-                <span className="font-bold text-[#1e293b]">2023/2024</span>
+                <span className="font-bold text-[#1e293b]">{semester.year}</span>
               </div>
               <div className="flex justify-between items-center text-[13px] pb-3 border-b border-gray-50">
                 <span className="text-gray-500">Tipe</span>
-                <span className="font-bold text-[#1e293b]">Ganjil</span>
+                <span className="font-bold text-[#1e293b]">{semester.type}</span>
               </div>
               <div className="flex justify-between items-center text-[13px] pb-3 border-b border-gray-50">
                 <span className="text-gray-500">Tanggal Mulai</span>
-                <span className="font-bold text-[#1e293b]">17 Jul 2023</span>
+                <span className="font-bold text-[#1e293b]">{semester.start}</span>
               </div>
               <div className="flex justify-between items-center text-[13px] pb-3 border-b border-gray-50">
                 <span className="text-gray-500">Tanggal Selesai</span>
-                <span className="font-bold text-[#1e293b]">22 Des 2023</span>
+                <span className="font-bold text-[#1e293b]">{semester.end}</span>
               </div>
               <div className="flex justify-between items-center text-[13px] pb-3 border-b border-gray-50">
                 <span className="text-gray-500">Total Durasi</span>

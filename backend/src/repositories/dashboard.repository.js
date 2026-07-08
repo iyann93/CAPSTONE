@@ -459,6 +459,39 @@ const DashboardRepository = {
       tagihan_spp: tagihan,
     };
   },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // KEPSEK DASHBOARD
+  // ══════════════════════════════════════════════════════════════════════════
+  
+  /**
+   * Statistik untuk dashboard Kepala Sekolah
+   */
+  getKepsekStats: async () => {
+    const [siswaRes, guruRes, kelasRes, lulusanRes] = await Promise.all([
+      query(`SELECT COUNT(*) AS total FROM academic.siswa WHERE status = 'aktif' AND deleted_at IS NULL`),
+      query(`SELECT COUNT(*) AS total FROM academic.guru WHERE status_kepegawaian = 'aktif' AND deleted_at IS NULL`),
+      query(`
+        SELECT COUNT(*) AS total
+        FROM academic.kelas k
+        INNER JOIN academic.tahun_ajaran ta ON ta.id = k.tahun_ajaran_id
+        WHERE ta.is_active = true
+      `),
+      query(`
+        SELECT COUNT(*) AS total
+        FROM academic.siswa s
+        INNER JOIN academic.kelas k ON s.kelas_id = k.id
+        WHERE k.tingkat = 'IX' AND s.status = 'aktif' AND s.deleted_at IS NULL
+      `)
+    ]);
+
+    return {
+      total_siswa: parseInt(siswaRes.rows[0].total, 10),
+      total_guru: parseInt(guruRes.rows[0].total, 10),
+      total_kelas: parseInt(kelasRes.rows[0].total, 10),
+      calon_lulusan: parseInt(lulusanRes.rows[0].total, 10)
+    };
+  }
 };
 
 module.exports = DashboardRepository;

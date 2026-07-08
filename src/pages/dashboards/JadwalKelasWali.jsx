@@ -1,12 +1,73 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import api from "../../api/axios";
 
 const JadwalKelasWali = ({ user }) => {
-  const classInfo = {
-    kelas: "VII A",
-    waliKelas: user?.fullName || "Asih Kinanti, S.Pd",
-    tahunAjaran: "Ganjil 2025/2026",
-    jumlahSiswa: 32,
+  const [scheduleData, setScheduleData] = useState([]);
+  const [classInfo, setClassInfo] = useState({
+    kelas: "Memuat...",
+    waliKelas: user?.fullName || "Memuat...",
+    tahunAjaran: "Ganjil 2026/2027",
+    jumlahSiswa: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchClassSchedule = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // 1. Dapatkan Guru ID
+      const searchKey = user.email || user.fullName;
+      const guruRes = await api.get(`/guru?search=${encodeURIComponent(searchKey)}`);
+      const guru = guruRes.data?.data?.find(g => 
+        (g.email && g.email === user.email) || 
+        (g.nama === user.fullName) ||
+        (g.nama_lengkap === user.fullName)
+      );
+      
+      if (!guru) {
+        setError("Data Guru tidak ditemukan untuk akun ini.");
+        setLoading(false);
+        return;
+      }
+
+      // 2. Dapatkan Kelas di mana Guru ini adalah Wali Kelas
+      const kelasRes = await api.get(`/kelas?limit=100`);
+      const kelasList = kelasRes.data?.data || [];
+      const myClass = kelasList.find(c => c.wali_kelas_id === guru.id);
+
+      if (!myClass) {
+        setError("Anda belum ditetapkan sebagai wali kelas untuk kelas mana pun.");
+        setLoading(false);
+        return;
+      }
+
+      setClassInfo(prev => ({
+        ...prev,
+        kelas: myClass.nama_kelas,
+        waliKelas: guru.nama,
+        tahunAjaran: myClass.tahun_ajaran || "Ganjil 2026/2027",
+        jumlahSiswa: myClass.kapasitas || 0 // Sebagai contoh jumlah kapasitas
+      }));
+
+      // 3. Dapatkan jadwal untuk kelas ini
+      const jadwalRes = await api.get(`/jadwal-pelajaran?kelas_id=${myClass.id}&limit=100`);
+      setScheduleData(jadwalRes.data?.data || []);
+
+    } catch (err) {
+      console.error("Gagal mengambil data jadwal wali kelas:", err);
+      setError("Terjadi kesalahan saat memuat jadwal. Silakan coba lagi.");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    if (user?.email) {
+      fetchClassSchedule();
+    }
+  }, [user]);
 
   const days = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
   const timeRows = [
@@ -23,47 +84,28 @@ const JadwalKelasWali = ({ user }) => {
     { label: "Jam 8", time: "13:45-14:30", isBreak: false },
   ];
 
-  // Dummy data representing the schedule for class VII A
-  const scheduleData = [
-    // Senin
-    { day: "Senin", slot: "Jam 1", subject: "Matematika", teacher: "Drs. Hendra G.", type: "wajib" },
-    { day: "Senin", slot: "Jam 2", subject: "Matematika", teacher: "Drs. Hendra G.", type: "wajib" },
-    { day: "Senin", slot: "Jam 3", subject: "Pend. Agama", teacher: "Ahmad Rifai, S.Ag", type: "wajib" },
-    { day: "Senin", slot: "Jam 4", subject: "Pend. Agama", teacher: "Ahmad Rifai, S.Ag", type: "wajib" },
-    { day: "Senin", slot: "Jam 5", subject: "Bahasa Indonesia", teacher: "Rina Kumala, S.Pd", type: "wajib" },
-    { day: "Senin", slot: "Jam 6", subject: "Bahasa Indonesia", teacher: "Rina Kumala, S.Pd", type: "wajib" },
-    { day: "Senin", slot: "Jam 7", subject: "Seni Budaya", teacher: "Citra Dewi, S.Sn", type: "muatan" },
-    { day: "Senin", slot: "Jam 8", subject: "Seni Budaya", teacher: "Citra Dewi, S.Sn", type: "muatan" },
-    // Selasa
-    { day: "Selasa", slot: "Jam 1", subject: "IPA Terpadu", teacher: "Budi Santoso, S.Si", type: "wajib" },
-    { day: "Selasa", slot: "Jam 2", subject: "IPA Terpadu", teacher: "Budi Santoso, S.Si", type: "wajib" },
-    { day: "Selasa", slot: "Jam 3", subject: "Bahasa Inggris", teacher: "Sarah Johnson, M.Pd", type: "wajib" },
-    { day: "Selasa", slot: "Jam 4", subject: "Bahasa Inggris", teacher: "Sarah Johnson, M.Pd", type: "wajib" },
-    { day: "Selasa", slot: "Jam 5", subject: "IPS Terpadu", teacher: "Agus Salim, M.Si", type: "wajib" },
-    { day: "Selasa", slot: "Jam 6", subject: "IPS Terpadu", teacher: "Agus Salim, M.Si", type: "wajib" },
-    { day: "Selasa", slot: "Jam 7", subject: "Penjasorkes", teacher: "Deni Irawan, S.Or", type: "muatan" },
-    { day: "Selasa", slot: "Jam 8", subject: "Penjasorkes", teacher: "Deni Irawan, S.Or", type: "muatan" },
-    // Rabu
-    { day: "Rabu", slot: "Jam 1", subject: "PPKn", teacher: "Dra. Siti Aminah", type: "wajib" },
-    { day: "Rabu", slot: "Jam 2", subject: "PPKn", teacher: "Dra. Siti Aminah", type: "wajib" },
-    { day: "Rabu", slot: "Jam 3", subject: "Matematika", teacher: "Drs. Hendra G.", type: "wajib" },
-    { day: "Rabu", slot: "Jam 4", subject: "Matematika", teacher: "Drs. Hendra G.", type: "wajib" },
-    { day: "Rabu", slot: "Jam 5", subject: "Prakarya", teacher: "Lestari, S.Pd", type: "muatan" },
-    { day: "Rabu", slot: "Jam 6", subject: "Prakarya", teacher: "Lestari, S.Pd", type: "muatan" },
-    { day: "Rabu", slot: "Jam 7", subject: "Bimbingan Konseling", teacher: "M. Yusuf, M.Psi", type: "peminatan" },
-    { day: "Rabu", slot: "Jam 8", subject: "Ekstrakurikuler", teacher: "Pembina Ekskul", type: "peminatan" },
-  ];
-
-  const getCellContent = (day, slot) => {
-    return scheduleData.find((c) => c.day === day && c.slot === slot);
+  const getCellContent = (day, rowTime) => {
+    if (!rowTime) return null;
+    const [rowStart, rowEnd] = rowTime.split('-');
+    
+    // Evaluasi dari waktu jadwal_pelajaran asli di database
+    return scheduleData.find((c) => {
+      if (c.hari !== day) return false;
+      const cMulai = c.jam_mulai.substring(0, 5);
+      const cSelesai = c.jam_selesai.substring(0, 5);
+      
+      // Mengembalikan jadwal jika waktu jam (rowStart dan rowEnd) jatuh di dalam durasi jadwal ini
+      return cMulai <= rowStart && cSelesai >= rowEnd;
+    });
   };
 
   const getBadgeStyle = (type) => {
+    // Karena kita tidak menyimpan type spesifik di tabel jadwal_pelajaran, kita bisa fallback
     switch (type) {
       case "wajib": return "bg-blue-50/70 border-blue-100/80 text-[#1A3D63]";
       case "muatan": return "bg-emerald-50/70 border-emerald-100/80 text-emerald-800";
       case "peminatan": return "bg-purple-50/70 border-purple-100/80 text-purple-900";
-      default: return "bg-gray-50/70 border-gray-100/80 text-gray-700";
+      default: return "bg-blue-50/70 border-blue-100/80 text-[#1A3D63]"; // default style
     }
   };
 
@@ -72,9 +114,44 @@ const JadwalKelasWali = ({ user }) => {
       case "wajib": return "text-blue-600";
       case "muatan": return "text-emerald-600";
       case "peminatan": return "text-purple-600";
-      default: return "text-gray-600";
+      default: return "text-blue-600";
     }
   };
+
+  if (loading) {
+    return (
+      <div className="p-6 md:p-8 flex items-center justify-center min-h-screen bg-[#F8FAFC]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-500 font-medium">Memuat jadwal kelas...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 md:p-8 min-h-screen bg-[#F8FAFC]">
+        <div className="bg-red-50 border border-red-200 text-red-700 p-6 rounded-2xl flex flex-col items-center gap-4 text-center">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <div>
+            <h3 className="font-bold text-lg">Terjadi Kesalahan</h3>
+            <p className="text-red-600 mt-1">{error}</p>
+          </div>
+          <button 
+            onClick={fetchClassSchedule}
+            className="px-6 py-2 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors"
+          >
+            Coba Lagi
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 md:p-8 space-y-8 animate-fadeIn bg-[#F8FAFC] min-h-screen">
@@ -107,7 +184,7 @@ const JadwalKelasWali = ({ user }) => {
         </div>
         <div className="flex items-center gap-4">
           <div className="text-right">
-            <p className="text-blue-200 text-[11px] font-semibold">Total Siswa</p>
+            <p className="text-blue-200 text-[11px] font-semibold">Estimasi Siswa (Kapasitas)</p>
             <p className="text-[16px] font-bold">{classInfo.jumlahSiswa} Orang</p>
           </div>
         </div>
@@ -115,18 +192,10 @@ const JadwalKelasWali = ({ user }) => {
 
       {/* Legend */}
       <div className="flex flex-wrap items-center gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider mr-2">Kategori:</span>
+        <span className="text-xs font-bold text-gray-400 uppercase tracking-wider mr-2">Keterangan:</span>
         <div className="flex items-center gap-2">
           <span className="w-3 h-3 rounded-full bg-blue-500"></span>
-          <span className="text-xs font-bold text-gray-700">Wajib Nasional</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
-          <span className="text-xs font-bold text-gray-700">Muatan Lokal</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-purple-500"></span>
-          <span className="text-xs font-bold text-gray-700">Peminatan / BK</span>
+          <span className="text-xs font-bold text-gray-700">Jadwal Pelajaran</span>
         </div>
       </div>
 
@@ -181,7 +250,7 @@ const JadwalKelasWali = ({ user }) => {
                       </div>
                     </td>
                     {days.map((day) => {
-                      const cell = getCellContent(day, row.label);
+                      const cell = getCellContent(day, row.time);
                       return (
                         <td
                           key={day}
@@ -193,16 +262,16 @@ const JadwalKelasWali = ({ user }) => {
                             >
                               <div
                                 className={`text-[11px] font-extrabold uppercase tracking-wide mb-1 line-clamp-1 ${getTextStyle(cell.type)}`}
-                                title={cell.subject}
+                                title={cell.nama_mapel}
                               >
-                                {cell.subject}
+                                {cell.nama_mapel}
                               </div>
                               <div className="mt-2 flex items-center gap-1.5 text-[10px] text-gray-600 font-semibold bg-white/50 py-1 px-2 rounded-lg border border-black/5">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                                   <circle cx="12" cy="7" r="4" />
                                 </svg>
-                                <span className="truncate">{cell.teacher}</span>
+                                <span className="truncate">{cell.guru_nama}</span>
                               </div>
                             </div>
                           ) : (

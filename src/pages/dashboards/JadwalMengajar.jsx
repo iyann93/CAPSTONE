@@ -1,77 +1,58 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import api from "../../api/axios";
 
 const JadwalMengajar = ({ user }) => {
-  const guruInfo = {
-    nama: user?.fullName || "Drs. Hendra Gunawan, M.Pd",
-    mapel: "Matematika",
-    tahunAjaran: "Ganjil 2023/2024",
+  const [scheduleData, setScheduleData] = useState([]);
+  const [guruInfo, setGuruInfo] = useState({
+    nama: user?.fullName || "Memuat...",
+    mapel: "-",
+    tahunAjaran: "Ganjil 2026/2027",
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchSchedules = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Cari Guru ID
+      const searchKey = user.email || user.fullName;
+      const guruRes = await api.get(`/guru?search=${encodeURIComponent(searchKey)}`);
+      const guru = guruRes.data?.data?.find(g => 
+        (g.email && g.email === user.email) || 
+        (g.nama === user.fullName) ||
+        (g.nama_lengkap === user.fullName)
+      );
+      
+      if (!guru) {
+        setError("Data Guru tidak ditemukan untuk akun ini.");
+        setLoading(false);
+        return;
+      }
+
+      setGuruInfo(prev => ({
+        ...prev,
+        nama: guru.nama,
+        mapel: guru.mata_pelajaran || "-"
+      }));
+
+      // Ambil Jadwal
+      const jadwalRes = await api.get(`/jadwal-pelajaran?guru_id=${guru.id}&limit=100`);
+      setScheduleData(jadwalRes.data?.data || []);
+    } catch (err) {
+      console.error("Gagal mengambil jadwal:", err);
+      setError("Gagal memuat jadwal pelajaran. Silakan coba lagi.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const scheduleCards = [
-    {
-      day: "Senin",
-      slot: "Jam 1-2",
-      subject: "Matematika",
-      class: "VII A",
-      room: "Ruang 101",
-      type: "wajib",
-      time: "07:00",
-    },
-    {
-      day: "Senin",
-      slot: "Jam 3-4",
-      subject: "Matematika",
-      class: "VII B",
-      room: "Ruang 102",
-      type: "wajib",
-      time: "08:30",
-    },
-    {
-      day: "Senin",
-      slot: "Jam 9-10",
-      subject: "Mat. Peminatan",
-      class: "IX A",
-      room: "Ruang 401",
-      type: "peminatan",
-      time: "13:05",
-    },
-    {
-      day: "Selasa",
-      slot: "Jam 5-6",
-      subject: "Matematika",
-      class: "VIII A",
-      room: "Ruang 301",
-      type: "wajib",
-      time: "10:15",
-    },
-    {
-      day: "Rabu",
-      slot: "Jam 5-6",
-      subject: "Matematika",
-      class: "VII C",
-      room: "Ruang 201",
-      type: "wajib",
-      time: "10:15",
-    },
-    {
-      day: "Kamis",
-      slot: "Jam 1-2",
-      subject: "Mat. Peminatan",
-      class: "IX A",
-      room: "Ruang 401",
-      type: "peminatan",
-      time: "07:00",
-    },
-    {
-      day: "Jumat",
-      slot: "Jam 1-2",
-      subject: "Matematika",
-      class: "VIII B",
-      room: "Ruang 302",
-      type: "wajib",
-      time: "07:00",
-    },
-  ];
+  useEffect(() => {
+    if (user?.email) {
+      fetchSchedules();
+    }
+  }, [user]);
 
   const days = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
 
@@ -85,9 +66,53 @@ const JadwalMengajar = ({ user }) => {
     { label: "Jam 9-10", time: "13:15-14:35", isBreak: false },
   ];
 
-  const getCellContent = (day, slot) => {
-    return scheduleCards.find((c) => c.day === day && c.slot === slot);
+  const getCellContent = (day, rowTime) => {
+    if (!rowTime) return null;
+    const [rowStart, rowEnd] = rowTime.split('-');
+    
+    // Pencocokan riil berdasarkan waktu database mencakup rentang waktu slot
+    return scheduleData.find((c) => {
+      if (c.hari !== day) return false;
+      const cMulai = c.jam_mulai.substring(0, 5);
+      const cSelesai = c.jam_selesai.substring(0, 5);
+      return cMulai <= rowStart && cSelesai >= rowEnd;
+    });
   };
+
+  if (loading) {
+    return (
+      <div className="p-6 md:p-8 flex items-center justify-center min-h-screen bg-[#F8FAFC]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-500 font-medium">Memuat jadwal...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 md:p-8 min-h-screen bg-[#F8FAFC]">
+        <div className="bg-red-50 border border-red-200 text-red-700 p-6 rounded-2xl flex flex-col items-center gap-4 text-center">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <div>
+            <h3 className="font-bold text-lg">Terjadi Kesalahan</h3>
+            <p className="text-red-600 mt-1">{error}</p>
+          </div>
+          <button 
+            onClick={fetchSchedules}
+            className="px-6 py-2 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors"
+          >
+            Coba Lagi
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 md:p-8 space-y-8 animate-fadeIn bg-[#F8FAFC] min-h-screen">
@@ -95,7 +120,7 @@ const JadwalMengajar = ({ user }) => {
       <div className="flex flex-col gap-1.5">
         <h1 className="text-[26px] font-black text-[#1e293b] tracking-tight">Jadwal Mengajar</h1>
         <p className="text-sm text-gray-400 font-semibold">
-          Semester Ganjil 2023/2024 • SMPN 1 Contoh
+          Semester {guruInfo.tahunAjaran} • SMPN 1 Contoh
         </p>
       </div>
 
@@ -113,14 +138,7 @@ const JadwalMengajar = ({ user }) => {
               <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
               <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
             </svg>
-            6 kelas
-          </div>
-          <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50/50 border border-emerald-100 text-emerald-700 rounded-xl text-xs font-bold shadow-sm">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
-            </svg>
-            10.5 jam/minggu
+            {scheduleData.length} Sesi
           </div>
         </div>
       </div>
@@ -132,11 +150,11 @@ const JadwalMengajar = ({ user }) => {
           <div className="flex items-center gap-3">
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-xs font-bold text-[#1A3D63]">
               <span className="w-2 h-2 rounded-full bg-[#1A3D63]"></span>
-              Matematika
+              Wajib
             </span>
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-50 border border-purple-100 text-xs font-bold text-purple-700">
               <span className="w-2 h-2 rounded-full bg-purple-600"></span>
-              Mat. Peminatan
+              Peminatan
             </span>
           </div>
         </div>
@@ -147,7 +165,7 @@ const JadwalMengajar = ({ user }) => {
             <line x1="8" y1="2" x2="8" y2="6" />
             <line x1="3" y1="10" x2="21" y2="10" />
           </svg>
-          Selasa, 30 Juni 2026
+          Jadwal Aktif
         </div>
       </div>
 
@@ -166,11 +184,6 @@ const JadwalMengajar = ({ user }) => {
                     className="px-4 py-5 text-center text-[11px] font-black text-gray-500 uppercase tracking-widest relative"
                   >
                     {day}
-                    {day === "Selasa" && (
-                      <span className="ml-1.5 inline-block bg-green-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider scale-90">
-                        Hari Ini
-                      </span>
-                    )}
                   </th>
                 ))}
               </tr>
@@ -206,38 +219,28 @@ const JadwalMengajar = ({ user }) => {
 
                     {/* Day Columns */}
                     {days.map((day) => {
-                      const cell = getCellContent(day, row.label);
+                      const cell = getCellContent(day, row.time);
                       return (
                         <td
                           key={day}
-                          className={`p-3 text-center border-r border-gray-50 relative align-middle ${
-                            day === "Selasa" ? "bg-green-50/5" : ""
-                          }`}
+                          className="p-3 text-center border-r border-gray-50 relative align-middle"
                         >
                           {cell ? (
                             <div
-                              className={`p-4 rounded-2xl border text-left transition-all hover:scale-[1.02] shadow-sm ${
-                                cell.type === "peminatan"
-                                  ? "bg-purple-50/70 border-purple-100/80 text-purple-900"
-                                  : "bg-blue-50/70 border-blue-100/80 text-[#1A3D63]"
-                              }`}
+                              className="p-4 rounded-2xl border text-left transition-all hover:scale-[1.02] shadow-sm bg-blue-50/70 border-blue-100/80 text-[#1A3D63]"
                             >
-                              <div
-                                className={`text-[11px] font-extrabold uppercase tracking-wide mb-1 ${
-                                  cell.type === "peminatan" ? "text-purple-600" : "text-[#1A3D63]"
-                                }`}
-                              >
-                                {cell.subject}
+                              <div className="text-[11px] font-extrabold uppercase tracking-wide mb-1 text-[#1A3D63]">
+                                {cell.nama_mapel}
                               </div>
                               <div className="text-sm font-black text-gray-800">
-                                {cell.class}
+                                {cell.nama_kelas}
                               </div>
                               <div className="mt-2 flex items-center gap-1 text-[10px] text-gray-400 font-semibold">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                                   <circle cx="12" cy="10" r="3" />
                                 </svg>
-                                {cell.room}
+                                {cell.jam_mulai.substring(0,5)} - {cell.jam_selesai.substring(0,5)}
                               </div>
                             </div>
                           ) : (
@@ -253,56 +256,43 @@ const JadwalMengajar = ({ user }) => {
           </table>
         </div>
       </div>
-
+      
       {/* Summary Section */}
-      <div className="space-y-4">
-        <h3 className="text-base font-bold text-gray-800">Ringkasan Jadwal Minggu Ini</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {scheduleCards.map((card, idx) => (
-            <div
-              key={idx}
-              className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-4 hover:shadow-md transition-all"
-            >
+      {scheduleData.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-base font-bold text-gray-800">Ringkasan Jadwal</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {scheduleData.map((card, idx) => (
               <div
-                className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                  card.type === "peminatan" ? "bg-purple-50 text-purple-600" : "bg-blue-50 text-[#1A3D63]"
-                }`}
+                key={idx}
+                className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-4 hover:shadow-md transition-all"
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                  <line x1="16" y1="2" x2="16" y2="6" />
-                  <line x1="8" y1="2" x2="8" y2="6" />
-                  <line x1="3" y1="10" x2="21" y2="10" />
-                </svg>
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h4 className="text-sm font-black text-gray-800">{card.class}</h4>
-                  <span
-                    className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${
-                      card.type === "peminatan"
-                        ? "bg-purple-100/60 text-purple-600"
-                        : "bg-blue-100/60 text-[#1A3D63]"
-                    }`}
-                  >
-                    {card.subject}
-                  </span>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-blue-50 text-[#1A3D63]">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                  </svg>
                 </div>
-                <p className="text-xs text-gray-500 font-semibold mt-1">
-                  {card.day} @ {card.time}
-                </p>
-                <p className="text-[10px] text-gray-400 font-medium mt-0.5">{card.room}</p>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-sm font-black text-gray-800">{card.nama_kelas}</h4>
+                    <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-blue-100/60 text-[#1A3D63]">
+                      {card.nama_mapel}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 font-semibold mt-1">
+                    {card.hari} @ {card.jam_mulai.substring(0,5)}-{card.jam_selesai.substring(0,5)}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
 
 export default JadwalMengajar;
-
-
-
-

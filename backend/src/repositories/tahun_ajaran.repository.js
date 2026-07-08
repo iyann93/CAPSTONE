@@ -3,18 +3,18 @@
 const { query } = require('../config/db');
 const { whereBuilder, buildOrderBy } = require('../utils/queryBuilder');
 
-const SORT_MAP = { nama: 'ta.nama', tanggal_mulai: 'ta.tanggal_mulai', created_at: 'ta.created_at' };
+const SORT_MAP = { nama: 'ta.nama', tanggal_mulai: 'ta.tanggal_mulai' };
 
 const TahunAjaranRepository = {
-  findAll: async ({ limit, offset, search, sort, isActive }) => {
+  findAll: async ({ limit, offset, search, sort, is_aktif }) => {
     const wb = whereBuilder();
     wb.addLike(search, ['ta.nama']);
-    wb.addBool(isActive, 'ta.is_active');
+    wb.addBool(is_aktif, 'ta.is_aktif');
     const { where, values, nextIdx } = wb.build();
     const orderBy = buildOrderBy(sort, SORT_MAP, 'ta.tanggal_mulai DESC');
 
     const sql = `
-      SELECT ta.id, ta.nama, ta.tanggal_mulai, ta.tanggal_selesai, ta.is_active, ta.created_at
+      SELECT ta.id, ta.nama, ta.tanggal_mulai, ta.tanggal_selesai, ta.is_aktif
       FROM academic.tahun_ajaran ta
       ${where}
       ${orderBy}
@@ -43,7 +43,7 @@ const TahunAjaranRepository = {
   },
 
   findActive: async () => {
-    const result = await query('SELECT * FROM academic.tahun_ajaran WHERE is_active = true LIMIT 1');
+    const result = await query('SELECT * FROM academic.tahun_ajaran WHERE is_aktif = true LIMIT 1');
     return result.rows[0] || null;
   },
 
@@ -54,9 +54,9 @@ const TahunAjaranRepository = {
     const client = await require('../config/db').getClient();
     try {
       await client.query('BEGIN');
-      await client.query('UPDATE academic.tahun_ajaran SET is_active = false');
+      await client.query('UPDATE academic.tahun_ajaran SET is_aktif = false');
       const result = await client.query(
-        'UPDATE academic.tahun_ajaran SET is_active = true WHERE id = $1 RETURNING *',
+        'UPDATE academic.tahun_ajaran SET is_aktif = true WHERE id = $1 RETURNING *',
         [id]
       );
       await client.query('COMMIT');
@@ -71,8 +71,8 @@ const TahunAjaranRepository = {
 
   create: async ({ nama, tanggalMulai, tanggalSelesai }) => {
     const sql = `
-      INSERT INTO academic.tahun_ajaran (nama, tanggal_mulai, tanggal_selesai, is_active, created_at)
-      VALUES ($1, $2, $3, false, NOW()) RETURNING *
+      INSERT INTO academic.tahun_ajaran (nama, tanggal_mulai, tanggal_selesai, is_aktif)
+      VALUES ($1, $2, $3, false) RETURNING *
     `;
     const result = await query(sql, [nama, tanggalMulai, tanggalSelesai]);
     return result.rows[0];

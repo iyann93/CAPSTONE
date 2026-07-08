@@ -6,7 +6,7 @@ const env = require('./env');
 const poolConfig = env.db.connectionString 
   ? {
       connectionString: env.db.connectionString,
-      max: 20,
+      max: 10,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 5000,
       ssl: { rejectUnauthorized: false }
@@ -17,7 +17,7 @@ const poolConfig = env.db.connectionString
       database: env.db.database,
       password: String(env.db.password), // Force to string
       port: env.db.port,
-      max: 20,
+      max: 10,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 5000,
       ssl: false,

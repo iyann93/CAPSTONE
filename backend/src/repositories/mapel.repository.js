@@ -11,11 +11,12 @@ const MapelRepository = {
     wb.addLike(search, ['m.nama', 'm.kode']);
     wb.addExact(kelompok, 'm.kelompok');
     wb.addExact(tingkat, 'm.tingkat');
+    if (arguments[0].kurikulum_id) wb.addExact(arguments[0].kurikulum_id, 'm.kurikulum_id');
     const { where, values, nextIdx } = wb.build();
     const orderBy = buildOrderBy(sort, SORT_MAP, 'm.kelompok ASC, m.nama ASC');
 
     const sql = `
-      SELECT m.id, m.kode, m.nama, m.kelompok, m.kkm, m.jumlah_jam, m.tingkat, m.guru_pengampu_id,
+      SELECT m.id, m.kode, m.nama, m.kelompok, m.kkm, m.jumlah_jam, m.tingkat, m.guru_pengampu_id, m.kurikulum_id,
              g.nama_lengkap as guru_nama
       FROM academic.mata_pelajaran m
       LEFT JOIN academic.guru g ON m.guru_pengampu_id = g.id
@@ -51,16 +52,16 @@ const MapelRepository = {
     return result.rows[0] || null;
   },
 
-  create: async ({ kode, nama, kelompok, kkm, jumlahJam, tingkat, guruPengampuId }) => {
+  create: async ({ kode, nama, kelompok, kkm, jumlahJam, tingkat, guruPengampuId, kurikulum_id }) => {
     const sql = `
-      INSERT INTO academic.mata_pelajaran (kode, nama, kelompok, kkm, jumlah_jam, tingkat, guru_pengampu_id)
-      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *
+      INSERT INTO academic.mata_pelajaran (kode, nama, kelompok, kkm, jumlah_jam, tingkat, guru_pengampu_id, kurikulum_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *
     `;
-    const result = await query(sql, [kode, nama, kelompok, kkm || 75, jumlahJam || 2, tingkat, guruPengampuId || null]);
+    const result = await query(sql, [kode, nama, kelompok, kkm || 75, jumlahJam || 2, tingkat, guruPengampuId || null, kurikulum_id || null]);
     return result.rows[0];
   },
 
-  update: async (id, { kode, nama, kelompok, kkm, jumlahJam, tingkat, guruPengampuId }) => {
+  update: async (id, { kode, nama, kelompok, kkm, jumlahJam, tingkat, guruPengampuId, kurikulum_id }) => {
     const sql = `
       UPDATE academic.mata_pelajaran
       SET kode             = COALESCE($1, kode),
@@ -69,10 +70,11 @@ const MapelRepository = {
           kkm              = COALESCE($4, kkm),
           jumlah_jam       = COALESCE($5, jumlah_jam),
           tingkat          = COALESCE($6, tingkat),
-          guru_pengampu_id = $7
-      WHERE id = $8 RETURNING *
+          guru_pengampu_id = $7,
+          kurikulum_id     = $8
+      WHERE id = $9 RETURNING *
     `;
-    const result = await query(sql, [kode, nama, kelompok, kkm, jumlahJam, tingkat, guruPengampuId || null, id]);
+    const result = await query(sql, [kode, nama, kelompok, kkm, jumlahJam, tingkat, guruPengampuId || null, kurikulum_id !== undefined ? kurikulum_id : null, id]);
     return result.rows[0] || null;
   },
 

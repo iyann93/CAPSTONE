@@ -1,31 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import api from "../../api/axios";
 
+// Map frontend string to backend integer
+const HARI_MAP = { "Senin": 1, "Selasa": 2, "Rabu": 3, "Kamis": 4, "Jumat": 5, "Sabtu": 6, "Minggu": 7 };
 const HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
 const JAM = ["07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00"];
-const KELAS_LIST = ["VII IPA 1", "VII IPA 2", "VII IPS 1", "VIII IPA 1", "VIII IPA 2", "VIII IPS 1", "IX IPA 1", "IX IPA 2"];
-const GURU_LIST = ["Bpk. Hendra", "Ibu Sari", "Bpk. Agus", "Ibu Lena", "Ibu Rina", "Bpk. Joko"];
-const RUANG_LIST = ["R. 01", "R. 02", "R. 03", "Lab Fisika", "Lab Kimia", "Lab Komputer"];
-const MAPEL_LIST = ["Matematika", "Fisika", "Kimia", "Biologi", "B. Indonesia", "B. Inggris", "Sejarah", "PKN"];
 
-const initJadwal = [
-  { id: 1, mapel: "Matematika", guru: "Bpk. Hendra", kelas: "VIII IPA 1", hari: "Senin", jam: "07:00", ruang: "R. 01", semester: "Genap 2023/2024" },
-  { id: 2, mapel: "Fisika", guru: "Bpk. Hendra", kelas: "VIII IPA 2", hari: "Senin", jam: "08:00", ruang: "Lab Fisika", semester: "Genap 2023/2024" },
-  { id: 3, mapel: "Kimia", guru: "Ibu Rina", kelas: "VIII IPA 1", hari: "Selasa", jam: "07:00", ruang: "Lab Kimia", semester: "Genap 2023/2024" },
-  { id: 4, mapel: "B. Indonesia", guru: "Ibu Sari", kelas: "VII IPS 1", hari: "Rabu", jam: "10:00", ruang: "R. 12", semester: "Genap 2023/2024" },
-  { id: 5, mapel: "B. Inggris", guru: "Ibu Lena", kelas: "VII IPA 1", hari: "Kamis", jam: "09:00", ruang: "R. 03", semester: "Genap 2023/2024" },
-];
-
-const emptyForm = { mapel: "Matematika", guru: "Bpk. Hendra", kelas: "VII IPA 1", hari: "Senin", jam: "07:00", ruang: "R. 01", semester: "Genap 2023/2024" };
+const emptyForm = { mapelId: "", guruId: "", kelasId: "", hari: "Senin", jamMulai: "07:00", jamSelesai: "08:00", semesterId: "" };
 
 const detectConflicts = (jadwal) => {
   const conflicts = [];
   for (let i = 0; i < jadwal.length; i++) {
     for (let j = i + 1; j < jadwal.length; j++) {
       const a = jadwal[i], b = jadwal[j];
-      if (a.hari === b.hari && a.jam === b.jam) {
-        if (a.guru === b.guru) conflicts.push({ type: "guru", msg: `${a.guru} dijadwalkan 2x pada ${a.hari} ${a.jam}`, ids: [a.id, b.id] });
-        if (a.ruang === b.ruang) conflicts.push({ type: "ruang", msg: `Ruang ${a.ruang} dipakai 2x pada ${a.hari} ${a.jam}`, ids: [a.id, b.id] });
-        if (a.kelas === b.kelas) conflicts.push({ type: "kelas", msg: `Kelas ${a.kelas} dijadwalkan 2x pada ${a.hari} ${a.jam}`, ids: [a.id, b.id] });
+      if (a.hari === b.hari && a.jam_mulai === b.jam_mulai) {
+        if (a.guru_id === b.guru_id) conflicts.push({ type: "guru", msg: `${a.guru_nama} dijadwalkan 2x pada ${a.hari} ${a.jam_mulai}`, ids: [a.id, b.id] });
+        if (a.kelas_id === b.kelas_id) conflicts.push({ type: "kelas", msg: `Kelas ${a.nama_kelas} dijadwalkan 2x pada ${a.hari} ${a.jam_mulai}`, ids: [a.id, b.id] });
       }
     }
   }
@@ -33,10 +23,7 @@ const detectConflicts = (jadwal) => {
 };
 
 const JadwalPelajaranWakil = () => {
-  const [jadwal, setJadwal] = useState(() => {
-    const s = localStorage.getItem("wakil_jadwal");
-    return s ? JSON.parse(s) : initJadwal;
-  });
+  const [jadwal, setJadwal] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -46,30 +33,105 @@ const JadwalPelajaranWakil = () => {
   const [filterKelas, setFilterKelas] = useState("Semua");
   const [viewMode, setViewMode] = useState("tabel");
 
+  // Master Data States
+  const [mapelList, setMapelList] = useState([]);
+  const [guruList, setGuruList] = useState([]);
+  const [kelasList, setKelasList] = useState([]);
+  const [semesterList, setSemesterList] = useState([]);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const [resMapel, resGuru, resKelas, resSemester, resJadwal] = await Promise.all([
+        api.get('/mapel?limit=100'),
+        api.get('/guru?limit=100'),
+        api.get('/kelas?limit=100'),
+        api.get('/semester'),
+        api.get('/jadwal-pelajaran?limit=100')
+      ]);
+      setMapelList(resMapel.data.data || []);
+      setGuruList(resGuru.data.data || []);
+      setKelasList(resKelas.data.data || []);
+      setSemesterList(resSemester.data.data || []);
+      
+      const jadwalDataRaw = resJadwal.data.data || [];
+      const INVERSE_HARI_MAP = { 1: "Senin", 2: "Selasa", 3: "Rabu", 4: "Kamis", 5: "Jumat", 6: "Sabtu", 7: "Minggu" };
+      const jadwalData = jadwalDataRaw.map(j => ({
+        ...j,
+        hari: INVERSE_HARI_MAP[j.hari] || j.hari
+      }));
+      setJadwal(jadwalData);
+    } catch (err) {
+      console.error("Gagal memuat master data:", err);
+    }
+  };
+
   const conflicts = detectConflicts(jadwal);
   const conflictIds = new Set(conflicts.flatMap(c => c.ids));
 
-  const save = (d) => { setJadwal(d); localStorage.setItem("wakil_jadwal", JSON.stringify(d)); };
   const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const updated = editId
-      ? jadwal.map(j => j.id === editId ? { ...j, ...form } : j)
-      : [...jadwal, { ...form, id: Date.now() }];
-    save(updated);
-    showToast(editId ? "Jadwal berhasil diperbarui!" : "Jadwal berhasil ditambahkan!");
-    setShowForm(false); setEditId(null); setForm(emptyForm);
+    try {
+      const payload = {
+        mapelId: form.mapelId,
+        guruId: form.guruId,
+        kelasId: form.kelasId,
+        semesterId: form.semesterId,
+        hari: HARI_MAP[form.hari],
+        jamMulai: form.jamMulai,
+        jamSelesai: form.jamSelesai
+      };
+      
+      if (editId) {
+        await api.put(`/jadwal-pelajaran/${editId}`, payload);
+        showToast("Jadwal berhasil diperbarui!");
+      } else {
+        await api.post('/jadwal-pelajaran', payload);
+        showToast("Jadwal berhasil ditambahkan!");
+      }
+      setShowForm(false);
+      setEditId(null);
+      setForm(emptyForm);
+      fetchData(); // reload
+    } catch (err) {
+      showToast(err.response?.data?.message || "Terjadi kesalahan", "error");
+    }
   };
 
   const handleEdit = (item) => {
-    setForm({ mapel: item.mapel, guru: item.guru, kelas: item.kelas, hari: item.hari, jam: item.jam, ruang: item.ruang, semester: item.semester });
-    setEditId(item.id); setShowForm(true);
+    setForm({ 
+      mapelId: item.mata_pelajaran_id, 
+      guruId: item.guru_id, 
+      kelasId: item.kelas_id, 
+      hari: item.hari, 
+      jamMulai: item.jam_mulai, 
+      jamSelesai: item.jam_selesai, 
+      semesterId: item.semester_id 
+    });
+    setEditId(item.id); 
+    setShowForm(true);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteConfirm) return;
+    try {
+      await api.delete(`/jadwal-pelajaran/${deleteConfirm.id}`);
+      showToast("Jadwal dihapus!");
+      setDeleteConfirm(null);
+      fetchData(); // reload
+    } catch (err) {
+      showToast("Gagal menghapus jadwal", "error");
+    }
   };
 
   const filtered = jadwal.filter(j => {
     const hOk = filterHari === "Semua" || j.hari === filterHari;
-    const kOk = filterKelas === "Semua" || j.kelas === filterKelas;
+    const kOk = filterKelas === "Semua" || j.kelas_id === filterKelas;
     return hOk && kOk;
   });
 
@@ -96,13 +158,12 @@ const JadwalPelajaranWakil = () => {
         </button>
       </div>
 
-      {/* Conflict Alerts */}
       {conflicts.length > 0 && (
         <div className="space-y-2">
           {conflicts.map((c, i) => (
             <div key={i} className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-3">
               <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#d97706" strokeWidth="2.5" className="flex-shrink-0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              <p className="text-[13px] font-semibold text-amber-800">⚠️ Bentrok: {c.msg}</p>
+              <p className="text-[13px] font-semibold text-amber-800">⚠️  Bentrok: {c.msg}</p>
             </div>
           ))}
         </div>
@@ -114,7 +175,6 @@ const JadwalPelajaranWakil = () => {
         </div>
       )}
 
-      {/* Filters + View Toggle */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-wrap gap-3 items-center justify-between">
         <div className="flex gap-2 flex-wrap">
           <select value={filterHari} onChange={e => setFilterHari(e.target.value)} className="px-3 py-2 border border-gray-200 rounded-xl text-[12px] font-semibold text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-100">
@@ -123,7 +183,7 @@ const JadwalPelajaranWakil = () => {
           </select>
           <select value={filterKelas} onChange={e => setFilterKelas(e.target.value)} className="px-3 py-2 border border-gray-200 rounded-xl text-[12px] font-semibold text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-100">
             <option value="Semua">Semua Kelas</option>
-            {KELAS_LIST.map(k => <option key={k}>{k}</option>)}
+            {kelasList.map(k => <option key={k.id} value={k.id}>{k.nama_kelas}</option>)}
           </select>
         </div>
         <div className="flex gap-2">
@@ -135,13 +195,12 @@ const JadwalPelajaranWakil = () => {
         </div>
       </div>
 
-      {/* Table View */}
       {viewMode === "tabel" && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="border-b border-gray-100 bg-gray-50/50">
-                <tr>{["MATA PELAJARAN", "GURU", "KELAS", "HARI", "JAM", "RUANG", "SEMESTER", "AKSI"].map(h => (
+                <tr>{["MATA PELAJARAN", "GURU", "KELAS", "HARI", "JAM", "SEMESTER", "AKSI"].map(h => (
                   <th key={h} className="px-4 py-3.5 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
                 ))}</tr>
               </thead>
@@ -150,16 +209,15 @@ const JadwalPelajaranWakil = () => {
                   <tr key={j.id} className={`transition-colors ${conflictIds.has(j.id) ? "bg-amber-50/50 hover:bg-amber-50" : "hover:bg-gray-50/50"}`}>
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-2">
-                        {conflictIds.has(j.id) && <span className="text-amber-500 text-[14px]">⚠️</span>}
-                        <span className="text-[13px] font-bold text-gray-800">{j.mapel}</span>
+                        {conflictIds.has(j.id) && <span className="text-amber-500 text-[14px]">⚠️ </span>}
+                        <span className="text-[13px] font-bold text-gray-800">{j.nama_mapel}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3.5 text-[13px] text-gray-600">{j.guru}</td>
-                    <td className="px-4 py-3.5"><span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-lg text-[11px] font-bold">{j.kelas}</span></td>
+                    <td className="px-4 py-3.5 text-[13px] text-gray-600">{j.guru_nama}</td>
+                    <td className="px-4 py-3.5"><span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-lg text-[11px] font-bold">{j.nama_kelas}</span></td>
                     <td className="px-4 py-3.5 text-[13px] text-gray-600">{j.hari}</td>
-                    <td className="px-4 py-3.5 text-[13px] font-semibold text-[#1A3D63]">{j.jam}</td>
-                    <td className="px-4 py-3.5 text-[13px] text-gray-500">{j.ruang}</td>
-                    <td className="px-4 py-3.5 text-[12px] text-gray-400">{j.semester}</td>
+                    <td className="px-4 py-3.5 text-[13px] font-semibold text-[#1A3D63]">{j.jam_mulai} - {j.jam_selesai}</td>
+                    <td className="px-4 py-3.5 text-[12px] text-gray-400">{j.semester_nama}</td>
                     <td className="px-4 py-3.5">
                       <div className="flex gap-2">
                         <button onClick={() => handleEdit(j)} className="px-3 py-1.5 bg-blue-50 text-[#1A3D63] rounded-lg text-[11px] font-bold hover:bg-blue-100">Edit</button>
@@ -169,7 +227,7 @@ const JadwalPelajaranWakil = () => {
                   </tr>
                 ))}
                 {filtered.length === 0 && (
-                  <tr><td colSpan={8} className="px-5 py-8 text-center text-gray-400 text-[13px]">Tidak ada jadwal untuk filter ini.</td></tr>
+                  <tr><td colSpan={7} className="px-5 py-8 text-center text-gray-400 text-[13px]">Tidak ada jadwal untuk filter ini.</td></tr>
                 )}
               </tbody>
             </table>
@@ -177,7 +235,6 @@ const JadwalPelajaranWakil = () => {
         </div>
       )}
 
-      {/* Grid View */}
       {viewMode === "grid" && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
           <div className="min-w-[700px]">
@@ -191,15 +248,14 @@ const JadwalPelajaranWakil = () => {
               <div key={jam} className="grid grid-cols-6 border-b border-gray-50 min-h-[56px]">
                 <div className="px-4 py-3 text-[12px] font-bold text-[#1A3D63] flex items-center">{jam}</div>
                 {HARI.map(hari => {
-                  const cell = jadwal.find(j => j.jam === jam && j.hari === hari);
+                  const cell = jadwal.find(j => j.jam_mulai === jam && j.hari === hari);
                   return (
                     <div key={hari} className="px-2 py-2 border-l border-gray-50 flex items-center">
                       {cell ? (
                         <div className={`w-full px-2.5 py-2 rounded-lg text-[10px] leading-tight cursor-pointer hover:opacity-90 transition-opacity ${conflictIds.has(cell.id) ? "bg-amber-100 border border-amber-300" : "bg-blue-50 border border-blue-100"}`}
                           onClick={() => handleEdit(cell)}>
-                          <p className="font-bold text-gray-800 truncate">{cell.mapel}</p>
-                          <p className="text-gray-500 truncate">{cell.kelas}</p>
-                          <p className="text-gray-400 truncate">{cell.ruang}</p>
+                          <p className="font-bold text-gray-800 truncate">{cell.nama_mapel}</p>
+                          <p className="text-gray-500 truncate">{cell.nama_kelas}</p>
                         </div>
                       ) : <div className="w-full h-8" />}
                     </div>
@@ -211,7 +267,6 @@ const JadwalPelajaranWakil = () => {
         </div>
       )}
 
-      {/* Form Modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fadeIn">
           <div className="bg-white rounded-2xl w-full max-w-[560px] shadow-2xl max-h-[90vh] overflow-y-auto">
@@ -223,29 +278,56 @@ const JadwalPelajaranWakil = () => {
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                {[
-                  { label: "Mata Pelajaran", key: "mapel", opts: MAPEL_LIST },
-                  { label: "Guru", key: "guru", opts: GURU_LIST },
-                  { label: "Kelas", key: "kelas", opts: KELAS_LIST },
-                  { label: "Ruang", key: "ruang", opts: RUANG_LIST },
-                  { label: "Hari", key: "hari", opts: HARI },
-                  { label: "Jam Mulai", key: "jam", opts: JAM },
-                ].map(({ label, key, opts }) => (
-                  <div key={key}>
-                    <label className="block text-[12px] font-bold text-gray-600 mb-1.5">{label}</label>
-                    <select value={form[key]} onChange={e => setForm({ ...form, [key]: e.target.value })} className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100">
-                      {opts.map(o => <option key={o}>{o}</option>)}
-                    </select>
-                  </div>
-                ))}
+                <div>
+                  <label className="block text-[12px] font-bold text-gray-600 mb-1.5">Mata Pelajaran</label>
+                  <select value={form.mapelId} onChange={e => setForm({ ...form, mapelId: e.target.value })} required className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                    <option value="" disabled>Pilih Mapel</option>
+                    {mapelList.map(o => <option key={o.id} value={o.id}>{o.nama}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[12px] font-bold text-gray-600 mb-1.5">Guru</label>
+                  <select value={form.guruId} onChange={e => setForm({ ...form, guruId: e.target.value })} required className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                    <option value="" disabled>Pilih Guru</option>
+                    {guruList.map(o => <option key={o.id} value={o.id}>{o.nama_lengkap || o.nama}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[12px] font-bold text-gray-600 mb-1.5">Kelas</label>
+                  <select value={form.kelasId} onChange={e => setForm({ ...form, kelasId: e.target.value })} required className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                    <option value="" disabled>Pilih Kelas</option>
+                    {kelasList.map(o => <option key={o.id} value={o.id}>{o.nama_kelas}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[12px] font-bold text-gray-600 mb-1.5">Hari</label>
+                  <select value={form.hari} onChange={e => setForm({ ...form, hari: e.target.value })} required className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                    {HARI.map(o => <option key={o}>{o}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[12px] font-bold text-gray-600 mb-1.5">Jam Mulai</label>
+                  <select value={form.jamMulai} onChange={e => setForm({ ...form, jamMulai: e.target.value })} required className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                    {JAM.map(o => <option key={o}>{o}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[12px] font-bold text-gray-600 mb-1.5">Jam Selesai</label>
+                  <select value={form.jamSelesai} onChange={e => setForm({ ...form, jamSelesai: e.target.value })} required className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                    {JAM.map(o => <option key={o}>{o}</option>)}
+                  </select>
+                </div>
               </div>
               <div>
                 <label className="block text-[12px] font-bold text-gray-600 mb-1.5">Semester</label>
-                <input value={form.semester} onChange={e => setForm({ ...form, semester: e.target.value })} placeholder="Genap 2023/2024" className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100"/>
+                <select value={form.semesterId} onChange={e => setForm({ ...form, semesterId: e.target.value })} required className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100">
+                  <option value="" disabled>Pilih Semester</option>
+                  {semesterList.map(s => <option key={s.id} value={s.id}>{s.nama}</option>)}
+                </select>
               </div>
               <div className="bg-blue-50 border border-blue-100 rounded-xl p-3 text-[12px] text-blue-700 flex gap-2">
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" className="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
-                Sistem akan otomatis mendeteksi bentrok guru, ruang, dan kelas setelah disimpan. Guru & Wali Kelas akan menerima notifikasi jadwal baru.
+                Sistem akan otomatis mendeteksi bentrok guru dan kelas setelah disimpan.
               </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => { setShowForm(false); setEditId(null); }} className="flex-1 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 font-bold hover:bg-gray-50">Batal</button>
@@ -256,7 +338,6 @@ const JadwalPelajaranWakil = () => {
         </div>
       )}
 
-      {/* Delete Confirm */}
       {deleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl w-full max-w-[380px] shadow-2xl p-6 space-y-4">
@@ -265,11 +346,11 @@ const JadwalPelajaranWakil = () => {
                 <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#ef4444" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
               </div>
               <h3 className="text-[17px] font-bold text-gray-800">Hapus Jadwal?</h3>
-              <p className="text-[13px] text-gray-500 mt-1">{deleteConfirm.mapel} — {deleteConfirm.kelas} ({deleteConfirm.hari}, {deleteConfirm.jam})</p>
+              <p className="text-[13px] text-gray-500 mt-1">{deleteConfirm.nama_mapel} — {deleteConfirm.nama_kelas} ({deleteConfirm.hari}, {deleteConfirm.jam_mulai})</p>
             </div>
             <div className="flex gap-3">
               <button onClick={() => setDeleteConfirm(null)} className="flex-1 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 font-bold">Batal</button>
-              <button onClick={() => { save(jadwal.filter(j => j.id !== deleteConfirm.id)); setDeleteConfirm(null); showToast("Jadwal dihapus!", "error"); }} className="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold">Hapus</button>
+              <button onClick={handleDelete} className="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold">Hapus</button>
             </div>
           </div>
         </div>
@@ -279,5 +360,3 @@ const JadwalPelajaranWakil = () => {
 };
 
 export default JadwalPelajaranWakil;
-
-
