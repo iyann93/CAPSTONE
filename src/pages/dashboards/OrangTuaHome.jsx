@@ -271,47 +271,7 @@ const OrangTuaHome = ({ user, onNavigate }) => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Notifikasi */}
-        <div className="lg:col-span-1 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="px-5 pt-5 pb-3 border-b border-gray-50 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <h3 className="text-[15px] font-bold text-gray-800">Notifikasi</h3>
-              {unreadCount > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-bold">{unreadCount}</span>
-              )}
-            </div>
-            <button onClick={() => setShowAllNotif(!showAllNotif)} className="text-[12px] text-[#2A4365] font-semibold hover:underline">
-              {showAllNotif ? "Sembunyikan" : "Lihat Semua"}
-            </button>
-          </div>
-          <div className="divide-y divide-gray-50">
-            {(showAllNotif ? notifications : notifications.slice(0, 2)).map((notif) => (
-              <div key={notif.id} className={`px-5 py-4 flex items-start gap-3 ${!notif.read ? "bg-blue-50/40" : ""}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                  notif.type === "tagihan" ? "bg-amber-100" : notif.type === "nilai" ? "bg-green-100" : "bg-blue-100"
-                }`}>
-                  {notif.type === "tagihan" && (
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#d97706" strokeWidth="2.5"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1z"/></svg>
-                  )}
-                  {notif.type === "nilai" && (
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#16a34a" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0"/></svg>
-                  )}
-                  {notif.type === "pengumuman" && (
-                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#2563eb" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 0 1-3.417.592l-2.147-6.15M18 13a3 3 0 1 0 0-6M5.436 13.683A4.001 4.001 0 0 1 7 6h1.832"/></svg>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-[13px] font-semibold ${!notif.read ? "text-gray-900" : "text-gray-600"}`}>{notif.title}</p>
-                  <p className="text-[12px] text-gray-400 mt-0.5 leading-relaxed">{notif.desc}</p>
-                  <p className="text-[11px] text-gray-300 mt-1">{notif.time}</p>
-                </div>
-                {!notif.read && <div className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0 mt-1.5"/>}
-              </div>
-            ))}
-          </div>
-        </div>
-
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Tagihan Terdekat */}
         <div className="lg:col-span-1 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-5 pt-5 pb-3 border-b border-gray-50">

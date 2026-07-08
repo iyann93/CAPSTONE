@@ -48,3 +48,16 @@ export const sendResetPasswordEmail = (id) =>
 // === SISWA LIST (untuk dropdown pilih anak orang tua) ===
 export const getSiswaDropdown = () =>
   api.get('/system/siswa').then(r => r.data.data);
+
+// === BACKUPS ===
+export const getSystemBackups = () =>
+  api.get('/system/backups').then(r => r.data.data);
+
+export const createSystemBackup = () =>
+  api.post('/system/backups').then(r => r.data.data);
+
+export const deleteSystemBackup = (filename) =>
+  api.delete(`/system/backups/${filename}`).then(r => r.data);
+
+export const getSystemStats = () =>
+  api.get('/system/stats').then(r => r.data.data);

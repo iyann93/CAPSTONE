@@ -2,8 +2,8 @@
 
 const GuruHome = ({ user, onNavigate }) => {
   const guruData = {
-    nama: user?.fullName || "Dra Sri Wahyuni",
-    mapel: "Bahasa Indonesia",
+    nama: user?.fullName || "Drs. Hendra, M.Pd",
+    mapel: "Pendidikan Pancasila",
     tahunAjaran: "2025/2026",
     jumlahKelas: 4,
     jumlahSiswa: 128,
@@ -144,9 +144,9 @@ const GuruHome = ({ user, onNavigate }) => {
           </div>
           <div className="space-y-4">
             {[
-              { time: "07:30 - 09:00", kelas: "VII A", subject: "Bahasa Indonesia", active: true },
-              { time: "09:15 - 10:45", kelas: "VII B", subject: "Bahasa Indonesia", active: false },
-              { time: "11:00 - 12:30", kelas: "VIII A", subject: "Bahasa Indonesia Lanjut", active: false },
+              { time: "07:30 - 09:00", kelas: "VII A", subject: "Pendidikan Pancasila", active: true },
+              { time: "09:15 - 10:45", kelas: "VII B", subject: "Pendidikan Pancasila", active: false },
+              { time: "11:00 - 12:30", kelas: "VIII A", subject: "Pendidikan Pancasila Lanjut", active: false },
             ].map((jadwal, idx) => (
               <div key={idx} className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${jadwal.active ? "bg-blue-50/50 border-blue-100 shadow-sm" : "bg-gray-50/50 border-gray-100 hover:bg-gray-50"}`}>
                 <div className={`font-bold px-3 py-2 rounded-lg text-sm whitespace-nowrap ${jadwal.active ? "bg-[#1A3D63] text-white" : "bg-white border border-gray-200 text-gray-600"}`}>

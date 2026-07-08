@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import GraduationDataDetail from "./GraduationDataDetail";
+import api from '../../api/axios';
 
 const StatusBadge = ({ s }) => {
   if (s==="Selesai") return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-50 text-green-600 border border-green-100"><svg width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>Selesai</span>;
@@ -18,7 +19,7 @@ const GraduationData = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const { default: api } = await import('../../api/axios');
+      
       
       let dbClasses = [];
       try { const res = await api.get('/kelas'); dbClasses = res.data?.data || []; } catch(e){}

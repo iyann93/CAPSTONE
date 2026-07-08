@@ -811,21 +811,10 @@ const RolePermissionModule = () => {
     });
   }, []);
 
-  const handleDuplicateRole = () => {
-    const selectedRole = roleList.find(r => r.id === selectedRoleId);
-    if (!selectedRole) return;
-    
-    setNewRoleName(selectedRole.name + " (Copy)");
-    setNewRoleDesc(selectedRole.description);
-    setNewRolePerms(permissions[selectedRoleId] ? JSON.parse(JSON.stringify(permissions[selectedRoleId])) : {});
-    setSelectedRoleId(null);
-    setIsCreating(true);
-  };
-
   const permissionStructure = [
     {
       category: "OVERVIEW & LAPORAN",
-      features: ["Dashboard", "Laporan Akademik", "Monitoring Siswa", "Monitoring Keuangan", "Laporan Integrasi", "Perkembangan Akademik", "Unduh Rapor"]
+      features: ["Dashboard", "Laporan Akademik", "Monitoring Siswa", "Monitoring Keuangan", "Perkembangan Akademik", "Unduh Rapor"]
     },
     {
       category: "AKADEMIK & KURIKULUM",
@@ -991,22 +980,13 @@ const RolePermissionModule = () => {
               Batal
             </button>
           ) : (
-            <>
-              <button 
-                onClick={handleDuplicateRole}
-                className="flex items-center justify-center w-full sm:w-auto gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:bg-gray-50 transition-all"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
-                Duplikat Role
-              </button>
-              <button
-                onClick={() => { setIsCreating(true); setSelectedRoleId(null); }}
-                className="flex items-center justify-center w-full sm:w-auto gap-2 bg-[#1A3D63] hover:bg-[#122a47] text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-md shadow-[#1A3D63]/10 transition-all"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
-                Tambah Role Baru
-              </button>
-            </>
+            <button
+              onClick={() => { setIsCreating(true); setSelectedRoleId(null); }}
+              className="flex items-center justify-center w-full sm:w-auto gap-2 bg-[#1A3D63] hover:bg-[#122a47] text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-md shadow-[#1A3D63]/10 transition-all"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
+              Tambah Role Baru
+            </button>
           )}
         </div>
       </div>
@@ -1538,7 +1518,7 @@ const SuperAdminOverview = ({ onExportClick, onViewChange }) => {
         <StatCard icon={<IconBriefcase />} label="Guru & Staf" value={stats.staffCount.toLocaleString()} color="text-emerald-600" iconBg="bg-emerald-50" onClick={() => onViewChange?.("Data Guru & Karyawan")} />
         <StatCard icon={<IconPulse />} label="Sistem Uptime" value="99.9%" color="text-teal-600" iconBg="bg-teal-50" />
         <StatCard icon={<IconDatabase />} label="Storage" value="68%" color="text-amber-600" iconBg="bg-amber-50" onClick={() => onViewChange?.("Backup & Maintenance")} />
-        <StatCard icon={<IconAlert />} label="Error Logs" value={stats.errorLogs.toString()} color="text-red-600" iconBg="bg-red-50" onClick={() => onViewChange?.("Laporan Integrasi")} />
+        <StatCard icon={<IconAlert />} label="Error Logs" value={stats.errorLogs.toString()} color="text-red-600" iconBg="bg-red-50" />
       </div>
 
       {/* Tables Row */}
@@ -2959,6 +2939,7 @@ const AksesSeluruhDataModule = () => {
 };
 // ============================================================================================================================
 
+
 const BackupMaintenanceModule = () => {
   const [showManualBackupModal, setShowManualBackupModal] = useState(false);
   const [backupType, setBackupType] = useState("full");
@@ -2966,9 +2947,54 @@ const BackupMaintenanceModule = () => {
   const [dailyBackup, setDailyBackup] = useState(true);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
-  const [autoBackupBeforeMaintenance, setAutoBackupBeforeMaintenance] = useState(true);
-  const [agreeMaintenanceImpact, setAgreeMaintenanceImpact] = useState(false);
   
+  const [backups, setBackups] = useState([]);
+  const [stats, setStats] = useState({ totalSpace: 1000*1024**3, usedSpace: 0, freeSpace: 1000*1024**3 });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isBackingUp, setIsBackingUp] = useState(false);
+
+  const fetchData = async () => {
+    try {
+      const { getSystemBackups, getSystemStats } = await import('../../api/system');
+      const bData = await getSystemBackups();
+      const sData = await getSystemStats();
+      setBackups(bData || []);
+      setStats(sData || { totalSpace: 1000*1024**3, usedSpace: 0, freeSpace: 1000*1024**3 });
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleCreateBackup = async () => {
+    try {
+      setIsBackingUp(true);
+      const { createSystemBackup } = await import('../../api/system');
+      await createSystemBackup();
+      await fetchData();
+      setShowManualBackupModal(false);
+      alert('Backup berhasil dibuat!');
+    } catch (e) {
+      alert('Gagal membuat backup!');
+    } finally {
+      setIsBackingUp(false);
+    }
+  };
+
+  const formatBytes = (bytes, decimals = 2) => {
+    if (!+bytes) return '0 Bytes';
+    const k = 1024, dm = decimals < 0 ? 0 : decimals, sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+  };
+
+  const usedPercentage = ((stats.usedSpace / stats.totalSpace) * 100).toFixed(1);
+
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Header */}
@@ -2978,20 +3004,15 @@ const BackupMaintenanceModule = () => {
           <p className="text-sm text-gray-500 mt-1 font-medium">Kelola cadangan data, jadwal pemeliharaan, dan status penyimpanan server.</p>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={() => setShowScheduleModal(true)} className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-bold hover:bg-gray-50 transition-all shadow-sm">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
-            Jadwalkan Maintenance
-          </button>
-          <button onClick={() => setShowManualBackupModal(true)} className="flex items-center gap-2 px-5 py-2.5 bg-[#1A3D63] text-white rounded-xl text-sm font-bold hover:bg-[#122a47] transition-all shadow-md shadow-[#1A3D63]/20">
+          <button onClick={() => setShowManualBackupModal(true)} disabled={isBackingUp} className="flex items-center gap-2 px-5 py-2.5 bg-[#1A3D63] text-white rounded-xl text-sm font-bold hover:bg-[#122a47] transition-all shadow-md shadow-[#1A3D63]/20 disabled:opacity-50">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="21 8 21 21 3 21 3 8" /><rect x="1" y="3" width="22" height="5" /><line x1="10" y1="12" x2="14" y2="12" /></svg>
-            Buat Backup Manual
+            {isBackingUp ? "Sedang Membuat..." : "Buat Backup Manual"}
           </button>
         </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Penyimpanan Server */}
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-start gap-4">
           <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center flex-shrink-0">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="12" x2="2" y2="12" /><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" /><line x1="6" y1="16" x2="6.01" y2="16" /><line x1="10" y1="16" x2="14" y2="16" /></svg>
@@ -2999,32 +3020,32 @@ const BackupMaintenanceModule = () => {
           <div className="flex-1">
             <p className="text-xs font-bold text-gray-400 mb-1">Penyimpanan Server</p>
             <div className="flex items-baseline gap-1.5 mb-3">
-              <span className="text-2xl font-black text-gray-800">850 GB</span>
-              <span className="text-sm font-semibold text-gray-400">/ 1 TB</span>
+              <span className="text-2xl font-black text-gray-800">{formatBytes(stats.usedSpace)}</span>
+              <span className="text-sm font-semibold text-gray-400">/ {formatBytes(stats.totalSpace)}</span>
             </div>
             <div className="w-full bg-gray-100 rounded-full h-1.5 mb-1.5">
-              <div className="bg-[#1A3D63] h-1.5 rounded-full" style={{ width: "85%" }}></div>
+              <div className="bg-[#1A3D63] h-1.5 rounded-full" style={{ width: `${usedPercentage}%` }}></div>
             </div>
-            <p className="text-[10px] font-semibold text-gray-400 text-right">85% Terpakai</p>
+            <p className="text-[10px] font-semibold text-gray-400 text-right">{usedPercentage}% Terpakai</p>
           </div>
         </div>
 
-        {/* Status Backup Terakhir */}
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-start gap-4">
           <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
           </div>
           <div>
             <p className="text-xs font-bold text-gray-400 mb-1">Status Backup Terakhir</p>
-            <p className="text-xl font-black text-gray-800 mb-1">Berhasil</p>
-            <div className="flex items-center gap-1.5 text-xs font-medium text-gray-500">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-              Hari ini, 02:00 WIB
-            </div>
+            <p className="text-xl font-black text-gray-800 mb-1">{backups.length > 0 ? "Berhasil" : "Belum Ada"}</p>
+            {backups.length > 0 && (
+              <div className="flex items-center gap-1.5 text-xs font-medium text-gray-500">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+                {new Date(backups[0].createdAt).toLocaleString('id-ID')}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Kesehatan Database */}
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-start gap-4">
           <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" /></svg>
@@ -3037,18 +3058,12 @@ const BackupMaintenanceModule = () => {
         </div>
       </div>
 
-      {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Col (Table) */}
         <div className="lg:col-span-8 bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
           <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h3 className="text-lg font-bold text-gray-800">Riwayat Backup</h3>
               <p className="text-xs text-gray-500 mt-1">Daftar cadangan data yang tersimpan di server.</p>
-            </div>
-            <div className="relative">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              <input type="text" placeholder="Cari backup..." className="w-full sm:w-64 pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63] transition-all" />
             </div>
           </div>
           
@@ -3057,30 +3072,27 @@ const BackupMaintenanceModule = () => {
               <thead>
                 <tr className="bg-gray-50/50 border-b border-gray-100">
                   <th className="px-6 py-4 text-[11px] font-black text-gray-500 uppercase tracking-wider">Waktu Backup</th>
-                  <th className="px-6 py-4 text-[11px] font-black text-gray-500 uppercase tracking-wider">Nama File & ID</th>
+                  <th className="px-6 py-4 text-[11px] font-black text-gray-500 uppercase tracking-wider">Nama File</th>
                   <th className="px-6 py-4 text-[11px] font-black text-gray-500 uppercase tracking-wider">Ukuran</th>
                   <th className="px-6 py-4 text-[11px] font-black text-gray-500 uppercase tracking-wider">Tipe</th>
                   <th className="px-6 py-4 text-[11px] font-black text-gray-500 uppercase tracking-wider">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {[
-                  { time: "24 Okt 2026, 02:00", name: "Full_Backup_System_v2", id: "BKP-20261024-0200", size: "1.2 GB", type: "Otomatis", status: "Berhasil" },
-                  { time: "23 Okt 2026, 02:00", name: "Full_Backup_System_v2", id: "BKP-20261023-0200", size: "1.2 GB", type: "Otomatis", status: "Berhasil" },
-                  { time: "22 Okt 2026, 14:30", name: "Manual_Pre_Update_v2.1", id: "BKP-20261022-1430", size: "1.15 GB", type: "Manual", status: "Berhasil" },
-                  { time: "22 Okt 2026, 02:00", name: "Full_Backup_System_v2", id: "BKP-20261022-0200", size: "1.15 GB", type: "Otomatis", status: "Berhasil" },
-                  { time: "21 Okt 2026, 02:00", name: "Full_Backup_System_v2", id: "BKP-20261021-0200", size: "1.12 GB", type: "Otomatis", status: "Gagal" },
-                ].map((row, i) => (
+                {isLoading ? (
+                  <tr><td colSpan="5" className="p-8 text-center text-gray-500">Loading...</td></tr>
+                ) : backups.length === 0 ? (
+                  <tr><td colSpan="5" className="p-8 text-center text-gray-500">Belum ada file backup.</td></tr>
+                ) : backups.map((row, i) => (
                   <tr key={i} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4">
-                      <span className="text-sm font-semibold text-gray-700">{row.time}</span>
+                      <span className="text-sm font-semibold text-gray-700">{new Date(row.createdAt).toLocaleString('id-ID')}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm font-bold text-gray-800">{row.name}</p>
-                      <p className="text-xs font-medium text-gray-400 font-mono mt-0.5 tracking-wide">{row.id}</p>
+                      <p className="text-sm font-bold text-gray-800">{row.filename}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-semibold text-gray-600">{row.size}</span>
+                      <span className="text-sm font-semibold text-gray-600">{formatBytes(row.size)}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold bg-gray-100 text-gray-600">
@@ -3088,375 +3100,47 @@ const BackupMaintenanceModule = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      {row.status === "Berhasil" ? (
-                        <div className="flex items-center gap-1.5 text-emerald-600">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                          <span className="text-xs font-bold">Berhasil</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-1.5 text-red-500">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                          <span className="text-xs font-bold">Gagal</span>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-1.5 text-emerald-600">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        <span className="text-xs font-bold">Berhasil</span>
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          
-          <div className="p-4 border-t border-gray-100 flex items-center justify-between">
-            <span className="text-xs font-semibold text-gray-500">Menampilkan 5 dari 42 total backup</span>
-            <div className="flex items-center gap-2">
-              <button className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors bg-white shadow-sm">Sebelumnya</button>
-              <button className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors bg-white shadow-sm">Selanjutnya</button>
-            </div>
-          </div>
         </div>
 
-        {/* Right Col */}
         <div className="lg:col-span-4 space-y-6">
-          {/* Pengaturan Backup Otomatis */}
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-            <div className="flex items-center gap-2.5 mb-6">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-              <h3 className="text-base font-bold text-gray-800">Pengaturan Backup Otomatis</h3>
-            </div>
-            
-            <div className="space-y-5">
-              <div className="flex items-start justify-between pb-4 border-b border-gray-100">
-                <div className="pr-4">
-                  <p className="text-sm font-bold text-gray-800">Aktifkan Backup Harian</p>
-                  <p className="text-xs text-gray-500 mt-1 leading-relaxed font-medium">Sistem akan melakukan pencadangan otomatis setiap hari.</p>
-                </div>
-                <button 
-                  onClick={() => setDailyBackup(!dailyBackup)}
-                  className={`w-11 h-6 rounded-full flex items-center transition-colors px-0.5 shrink-0 ${dailyBackup ? 'bg-[#1A3D63]' : 'bg-gray-200'}`}
-                >
-                  <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${dailyBackup ? 'translate-VII-5' : 'translate-VII-0'}`}></div>
-                </button>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">Waktu Eksekusi</label>
-                <div className="relative">
-                  <select className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-700 appearance-none focus:outline-none focus:border-[#1A3D63] cursor-pointer">
-                    <option>02:00 AM (Disarankan)</option>
-                    <option>03:00 AM</option>
-                    <option>04:00 AM</option>
-                  </select>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="absolute inset-y-0 right-4 my-auto text-gray-400 pointer-events-none"><polyline points="6 9 12 15 18 9"/></svg>
-                </div>
-                <p className="text-xs text-gray-500 mt-2 font-medium">Pilih waktu dengan lalu lintas akses terendah.</p>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">Kebijakan Retensi</label>
-                <div className="relative">
-                  <select className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-700 appearance-none focus:outline-none focus:border-[#1A3D63] cursor-pointer">
-                    <option>Simpan selama 30 Hari</option>
-                    <option>Simpan selama 60 Hari</option>
-                    <option>Simpan selama 90 Hari</option>
-                  </select>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="absolute inset-y-0 right-4 my-auto text-gray-400 pointer-events-none"><polyline points="6 9 12 15 18 9"/></svg>
-                </div>
-                <p className="text-xs text-gray-500 mt-2 font-medium leading-relaxed">Backup yang lebih lama dari periode ini akan dihapus otomatis untuk menghemat ruang server.</p>
-              </div>
-              
-              <button className="w-full py-3 bg-gray-50 text-gray-700 rounded-xl text-sm font-bold hover:bg-gray-100 transition-colors">
-                Simpan Pengaturan
-              </button>
-            </div>
-          </div>
-
-          {/* Mode Pemeliharaan */}
-          <div className="bg-orange-50/50 p-6 rounded-3xl border border-orange-100">
-            <div className="flex items-center gap-2.5 mb-3">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              <h3 className="text-base font-bold text-gray-800">Mode Pemeliharaan (Maintenance)</h3>
-            </div>
-            <p className="text-sm text-gray-600 mb-5 leading-relaxed font-medium">
-              Mengaktifkan mode ini akan memblokir akses login bagi semua pengguna kecuali Super Admin. Gunakan saat melakukan update sistem besar atau restorasi data.
-            </p>
-            <button onClick={() => setShowMaintenanceModal(true)} className="w-full py-2.5 bg-white border border-orange-200 text-orange-600 rounded-xl text-sm font-bold hover:bg-orange-50 transition-colors shadow-sm">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-2 -mt-0.5"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
-              Aktifkan Mode Maintenance
+            <h3 className="text-base font-bold text-gray-800 mb-4">Pengaturan Backup Otomatis</h3>
+            <p className="text-xs text-gray-500 mb-4">Fitur ini belum aktif. Server saat ini hanya menerima Backup Manual.</p>
+            <button className="w-full py-3 bg-gray-50 text-gray-400 rounded-xl text-sm font-bold border border-gray-200 cursor-not-allowed">
+              Segera Hadir
             </button>
           </div>
         </div>
       </div>
 
-      {/* Buat Backup Manual Modal */}
-      {showManualBackupModal && createPortal(
+      {showManualBackupModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-slideUp">
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="21 8 21 21 3 21 3 8" /><rect x="1" y="3" width="22" height="5" /><line x1="10" y1="12" x2="14" y2="12" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-gray-800">Buat Backup Manual</h3>
-                  <p className="text-xs text-gray-400 mt-0.5 font-medium">Buat cadangan data sistem secara instan (on-demand).</p>
-                </div>
-              </div>
-              <button onClick={() => setShowManualBackupModal(false)} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-              </button>
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-slideUp">
+            <div className="px-6 py-5 border-b border-gray-100">
+              <h3 className="text-base font-bold text-gray-800">Buat Backup Database Manual</h3>
             </div>
-
-            {/* Body */}
-            <div className="px-6 py-5 space-y-5">
-              {/* Nama Backup */}
-              <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">Nama Backup</label>
-                <input type="text" defaultValue="Manual_Backup_20261024" className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63] transition-all" />
-                <p className="text-xs text-gray-500 mt-2 font-medium">Gunakan nama yang deskriptif untuk memudahkan identifikasi (misal: Manual_Pre_Update_v3).</p>
-              </div>
-
-              {/* Tipe Backup */}
-              <div>
-                <label className="block text-sm font-bold text-gray-800 mb-3">Tipe Backup</label>
-                <div className="space-y-3">
-                  <label className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-colors ${backupType === "full" ? "border-[#1A3D63] bg-blue-50/30" : "border-gray-100 bg-white"}`}>
-                    <div className={`mt-0.5 shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center ${backupType === "full" ? "border-[#1A3D63]" : "border-gray-300"}`}>
-                      {backupType === "full" && <div className="w-2.5 h-2.5 rounded-full bg-[#1A3D63]"></div>}
-                    </div>
-                    <input type="radio" name="backupType" className="hidden" checked={backupType === "full"} onChange={() => setBackupType("full")} />
-                    <div>
-                      <p className="text-sm font-bold text-gray-800">Backup Penuh (Full System)</p>
-                      <p className="text-xs text-gray-500 mt-1 font-medium leading-relaxed">Mencadangkan seluruh database, konfigurasi sistem, dan file yang diunggah. Perkiraan ukuran: ~1.2 GB.</p>
-                    </div>
-                  </label>
-                  <label className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-colors ${backupType === "db" ? "border-[#1A3D63] bg-blue-50/30" : "border-gray-100 bg-white"}`}>
-                    <div className={`mt-0.5 shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center ${backupType === "db" ? "border-[#1A3D63]" : "border-gray-300"}`}>
-                      {backupType === "db" && <div className="w-2.5 h-2.5 rounded-full bg-[#1A3D63]"></div>}
-                    </div>
-                    <input type="radio" name="backupType" className="hidden" checked={backupType === "db"} onChange={() => setBackupType("db")} />
-                    <div>
-                      <p className="text-sm font-bold text-gray-800">Backup Database Saja</p>
-                      <p className="text-xs text-gray-500 mt-1 font-medium leading-relaxed">Hanya mencadangkan struktur dan data tabel (SQL Dump). Tidak termasuk file lampiran. Perkiraan ukuran: ~450 MB.</p>
-                    </div>
-                  </label>
-                </div>
-              </div>
-
-              {/* Opsi Tambahan */}
-              <div>
-                <label className="block text-sm font-bold text-gray-800 mb-3">Opsi Tambahan</label>
-                <label className="flex items-start gap-3 cursor-pointer group">
-                  <div onClick={() => setHighCompression(!highCompression)} className={`mt-0.5 shrink-0 w-5 h-5 rounded flex items-center justify-center transition-colors border-2 ${highCompression ? "bg-[#1A3D63] border-[#1A3D63]" : "border-gray-300 bg-white group-hover:border-[#1A3D63]"}`}>
-                    {highCompression && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-gray-800">Kompresi Tinggi (High Compression)</p>
-                    <p className="text-xs text-gray-500 mt-1 font-medium">Mengurangi ukuran file hasil backup (proses mungkin lebih lama).</p>
-                  </div>
-                </label>
-              </div>
-              
-              {/* Warning Alert */}
-              <div className="flex gap-3 bg-orange-50/80 p-4 rounded-xl border border-orange-100">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                <p className="text-xs text-gray-600 font-medium leading-relaxed">
-                  Sistem mungkin akan mengalami <strong className="font-bold">sedikit penurunan performa</strong> selama proses backup penuh berlangsung. Disarankan untuk melakukannya di luar jam aktif (Peak Hours).
-                </p>
-              </div>
+            <div className="px-6 py-6">
+              <p className="text-sm text-gray-600">Apakah Anda yakin ingin membuat backup sistem sekarang? Proses ini akan mengambil seluruh data dari PostgreSQL dan menyimpannya sebagai file JSON.</p>
             </div>
-
-            {/* Footer */}
-            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-3 bg-gray-50/50 rounded-b-2xl">
-              <button onClick={() => setShowManualBackupModal(false)} className="text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors px-4 py-2.5">Batal</button>
-              <button
-                onClick={() => setShowManualBackupModal(false)}
-                className="flex items-center gap-2 bg-[#1A3D63] hover:bg-[#122a47] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-[#1A3D63]/20 transition-all active:scale-[0.98]"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                Mulai Proses Backup
+            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-3">
+              <button onClick={() => setShowManualBackupModal(false)} className="px-4 py-2 text-sm font-bold text-gray-500 hover:text-gray-700">Batal</button>
+              <button onClick={handleCreateBackup} className="px-5 py-2.5 bg-[#1A3D63] text-white text-sm font-bold rounded-xl hover:bg-[#122a47]">
+                Mulai Backup
               </button>
             </div>
           </div>
-        </div>,
-        document.body
-      )}
-
-      {/* Jadwalkan Maintenance Modal */}
-      {showScheduleModal && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-slideUp">
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-gray-800">Jadwalkan Maintenance</h3>
-                  <p className="text-xs text-gray-400 mt-0.5 font-medium">Atur waktu sistem offline untuk pemeliharaan rutin.</p>
-                </div>
-              </div>
-              <button onClick={() => setShowScheduleModal(false)} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-              </button>
-            </div>
-
-            {/* Body */}
-            <div className="px-6 py-5 space-y-5">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-bold text-gray-800 mb-2">Tanggal Mulai</label>
-                  <input type="text" defaultValue="11/01/2026" className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-[#d97706] focus:ring-1 focus:ring-[#d97706] transition-all" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-800 mb-2">Waktu Mulai (WIB)</label>
-                  <input type="text" defaultValue="11:00 PM" className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-[#d97706] focus:ring-1 focus:ring-[#d97706] transition-all" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">Perkiraan Durasi (Jam)</label>
-                <div className="relative">
-                  <select className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-700 appearance-none focus:outline-none focus:border-[#d97706] cursor-pointer">
-                    <option>1 Jam</option>
-                    <option>2 Jam</option>
-                    <option>3 Jam</option>
-                    <option>4 Jam</option>
-                  </select>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="absolute inset-y-0 right-4 my-auto text-gray-400 pointer-events-none"><polyline points="6 9 12 15 18 9"/></svg>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">Pesan untuk Pengguna</label>
-                <textarea 
-                  defaultValue="Sistem sedang dalam masa pemeliharaan rutin untuk peningkatan performa. Silakan kembali lagi setelah proses selesai."
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 h-24 resize-none focus:outline-none focus:border-[#d97706] focus:ring-1 focus:ring-[#d97706] transition-all"
-                ></textarea>
-                <p className="text-[11px] text-gray-400 mt-1.5 font-medium">Pesan ini akan ditampilkan di halaman login selama masa maintenance.</p>
-              </div>
-
-              <label className="flex items-start gap-3 p-4 rounded-xl border border-gray-200 cursor-pointer transition-colors bg-white hover:border-[#f59e0b]">
-                <div onClick={() => setAutoBackupBeforeMaintenance(!autoBackupBeforeMaintenance)} className={`mt-0.5 shrink-0 w-5 h-5 rounded flex items-center justify-center transition-colors border-2 ${autoBackupBeforeMaintenance ? "bg-[#f59e0b] border-[#f59e0b]" : "border-gray-300 bg-white"}`}>
-                  {autoBackupBeforeMaintenance && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-gray-800">Otomatis Lakukan Backup Penuh</p>
-                  <p className="text-xs text-gray-500 mt-1 font-medium leading-relaxed">Sistem akan melakukan backup otomatis tepat sebelum maintenance dimulai.</p>
-                </div>
-              </label>
-
-              <div className="flex gap-3 bg-orange-50 p-4 rounded-xl border border-orange-100">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                <div>
-                  <p className="text-sm font-bold text-gray-800 mb-1">Dampak Maintenance</p>
-                  <ul className="text-xs text-gray-600 font-medium leading-relaxed list-disc list-inside space-y-1">
-                    <li>Seluruh pengguna (kecuali Super Admin) akan otomatis ter-logout.</li>
-                    <li>Akses API dan integrasi sistem akan terhenti sementara.</li>
-                    <li>Sistem akan kembali normal secara otomatis setelah durasi berakhir.</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-3 bg-gray-50/50 rounded-b-2xl">
-              <button onClick={() => setShowScheduleModal(false)} className="text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors px-4 py-2.5">Batal</button>
-              <button
-                onClick={() => setShowScheduleModal(false)}
-                className="flex items-center gap-2 bg-[#d97706] hover:bg-[#b45309] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-[#d97706]/20 transition-all active:scale-[0.98]"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                Simpan Jadwal
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
-
-      {/* Peringatan Mode Maintenance Modal */}
-      {showMaintenanceModal && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-slideUp">
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-red-600">Peringatan: Aktifkan Mode Maintenance?</h3>
-                </div>
-              </div>
-              <button onClick={() => setShowMaintenanceModal(false)} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-              </button>
-            </div>
-
-            {/* Body */}
-            <div className="px-6 py-5 space-y-5">
-              <p className="text-sm text-gray-600 leading-relaxed font-medium">
-                Tindakan ini akan menghentikan seluruh aktivitas pengguna saat ini. Seluruh pengguna aktif (kecuali Super Admin) akan dikeluarkan secara paksa dan tidak dapat login kembali sampai mode ini dinonaktifkan.
-              </p>
-
-              <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">STATUS SAAT INI:</p>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-gray-600">Pengguna Aktif (Online)</span>
-                    <span className="text-sm font-black text-red-600">142 Pengguna</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-gray-600">Proses Background Berjalan</span>
-                    <span className="text-sm font-black text-orange-600">3 Proses</span>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">Pesan untuk Pengguna</label>
-                <textarea 
-                  defaultValue="Sistem sedang dalam masa pemeliharaan darurat. Mohon maaf atas ketidaknyamanan ini."
-                  className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 h-20 resize-none focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all"
-                ></textarea>
-              </div>
-
-              <label className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-colors ${agreeMaintenanceImpact ? "bg-red-50/50 border-red-200" : "bg-white border-gray-200"}`}>
-                <div onClick={() => setAgreeMaintenanceImpact(!agreeMaintenanceImpact)} className={`mt-0.5 shrink-0 w-5 h-5 rounded flex items-center justify-center transition-colors border-2 ${agreeMaintenanceImpact ? "bg-red-500 border-red-500" : "border-gray-300 bg-white"}`}>
-                  {agreeMaintenanceImpact && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-700 leading-relaxed">Saya mengerti dampak dari tindakan ini dan menyetujui untuk memaksa keluar seluruh pengguna aktif saat ini.</p>
-                </div>
-              </label>
-            </div>
-
-            {/* Footer */}
-            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-center gap-3 bg-gray-50/50 rounded-b-2xl">
-              <button onClick={() => setShowMaintenanceModal(false)} className="flex-1 text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors px-6 py-2.5">Batal</button>
-              <button
-                disabled={!agreeMaintenanceImpact}
-                onClick={() => setShowMaintenanceModal(false)}
-                className={`flex-1 flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold shadow-md transition-all active:scale-[0.98] ${agreeMaintenanceImpact ? "bg-red-500 hover:bg-red-600 text-white shadow-red-500/20" : "bg-red-300 text-white/80 cursor-not-allowed shadow-none"}`}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
-                Ya, Aktifkan Sekarang
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
+        </div>
       )}
     </div>
   );
@@ -3702,8 +3386,7 @@ const SuperAdminDashboard = ({ user, activeMenu, onViewChange }) => {
         return <StudentData />;
       case "Data Guru & Karyawan":
         return <EmployeeData />;
-      case "Laporan Integrasi":
-        return <LaporanIntegrasi />;
+      
       case "Pengaturan Sistem":
         return <SystemSettings />;
       case "My Profile":

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+.wrapper {
+  display: flex;
+  justify-content: center; /* This causes left cutoff when overflowing */
+  align-items: flex-start;
+  width: 400px;
+  height: 400px;
+  overflow: auto;
+  background: #ccc;
+}
+.doc {
+  width: 800px;
+  min-width: 800px;
+  height: 800px;
+  background: white;
+  border: 1px solid black;
+}
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="doc">Content</div>
+</div>
+</body>
+</html>
