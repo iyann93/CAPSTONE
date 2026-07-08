@@ -15,9 +15,9 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
 
   // Fetch classes and students from backend
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchData = async (isPolling = false) => {
       try {
-        setLoading(true);
+        if (!isPolling) setLoading(true);
         const { default: api } = await import('../../api/axios');
         const [kelasRes, siswaRes] = await Promise.all([
           api.get('/kelas'),
@@ -132,10 +132,13 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
-        setLoading(false);
+        if (!isPolling) setLoading(false);
       }
     };
+    
     fetchData();
+    const interval = setInterval(() => fetchData(true), 5000);
+    return () => clearInterval(interval);
   }, []); // Only fetch once on mount, selectedClass purely filters the local state
 
   const currentStudents = derivedStudentsData[selectedClass] || [];
