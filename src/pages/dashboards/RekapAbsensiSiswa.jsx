@@ -174,6 +174,13 @@ const RekapAbsensiSiswa = ({ user, attendanceSessions = [] }) => {
     };
     
     fetchData();
+    
+    // Real-time polling
+    const intervalId = setInterval(() => {
+      fetchData(true);
+    }, 5000);
+    
+    return () => clearInterval(intervalId);
   }, []); // Only fetch once on mount, selectedClass purely filters the local state
 
   const currentStudents = derivedStudentsData[selectedClass] || [];

@@ -242,9 +242,9 @@ const InputNilai = ({ user }) => {
           siswaId: student.id,
           mataPelajaranId: mapelId,
           semesterId: semId,
-          nilaiHarian: parseInt(student.harian || 0),
-          nilaiUts: parseInt(student.uts || 0),
-          nilaiUas: parseInt(student.uas || 0),
+          nilaiHarian: student.harian !== "" && student.harian != null ? parseInt(student.harian) : null,
+          nilaiUts: student.uts !== "" && student.uts != null ? parseInt(student.uts) : null,
+          nilaiUas: student.uas !== "" && student.uas != null ? parseInt(student.uas) : null,
           catatan: student.catatan
         };
 

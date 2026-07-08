@@ -1,25 +1,15 @@
 require('dotenv').config();
-const { query } = require('./src/config/db');
-
-const sql = `
-  SELECT u.id, u.nama as name, u.email,
-         STRING_AGG(r.nama_role, ', ') as role,
-         j.nama as nama_jabatan
-  FROM shared.users u
-  LEFT JOIN shared.user_roles ur ON u.id = ur.user_id
-  LEFT JOIN shared.roles r ON ur.role_id = r.id
-  LEFT JOIN shared.jabatan j ON u.jabatan_id = j.id
-  WHERE r.nama_role IS NULL OR r.nama_role NOT IN ('Siswa', 'Orang Tua')
-  GROUP BY u.id, j.nama
-  ORDER BY u.nama ASC
-`;
-
-query(sql)
-  .then(res => {
-    console.log("Success! Rows:", res.rows.length);
-    process.exit(0);
-  })
-  .catch(err => {
-    console.error("SQL Error:", err.message);
-    process.exit(1);
-  });
+const db = require('./src/config/db');
+async function test() {
+  const c = await db.query('SELECT id, nama_kelas FROM academic.kelas LIMIT 1');
+  const kelas = c.rows[0];
+  const s = await db.query('SELECT id, nama FROM academic.semester LIMIT 1');
+  const semester = s.rows[0];
+  console.log('kelas:', kelas.nama_kelas, kelas.id, 'semester:', semester.nama, semester.id);
+  
+  const NilaiRepo = require('./src/repositories/nilai.repository');
+  const res = await NilaiRepo.findByKelas(kelas.id, semester.id);
+  console.log(res);
+  process.exit(0);
+}
+test();
