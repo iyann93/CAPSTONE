@@ -47,27 +47,31 @@ const IconUpload = () => (
 
 // No mock data needed
 
+// Helper untuk membuat item form kosong
+const emptyItem = () => ({
+  id: Date.now() + Math.random(),
+  tanggal: "",
+  kategori: "",
+  nama: "",
+  nominal: "",
+  sumberDana: "",
+  keterangan: "",
+  uploadedFiles: [],
+  fileUploadError: ""
+});
+
 const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasiswaList = [], sppPayments = [] }) => {
   const [activeTab, setActiveTab] = useState("pemasukan"); // 'pemasukan' atau 'pengeluaran'
   const [selectedYear, setSelectedYear] = useState("2025/2026");
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("Semua Kategori");
   const [showAddModal, setShowAddModal] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [fileUploadError, setFileUploadError] = useState("");
-
-  // Form State
-  const [formData, setFormData] = useState({
-    tanggal: "",
-    kategori: "",
-    nama: "",
-    nominal: "",
-    sumberDana: "",
-    keterangan: ""
-  });
   const [isDirty, setIsDirty] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Multi-item Form State
+  const [formItems, setFormItems] = useState([emptyItem()]);
   
   // Local Data State
   const [localPemasukanData, setLocalPemasukanData] = useState([]);
@@ -134,9 +138,55 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
     }
   };
 
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleItemChange = (itemId, field, value) => {
+    setFormItems(prev => prev.map(item =>
+      item.id === itemId ? { ...item, [field]: value } : item
+    ));
     setIsDirty(true);
+  };
+
+  const handleAddItem = () => {
+    setFormItems(prev => [...prev, emptyItem()]);
+    setIsDirty(true);
+  };
+
+  const handleRemoveItem = (itemId) => {
+    setFormItems(prev => prev.length > 1 ? prev.filter(item => item.id !== itemId) : prev);
+    setIsDirty(true);
+  };
+
+  const handleItemFileChange = (itemId, files) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+    let fileUploadError = "";
+    const validFiles = [];
+    for (const file of files) {
+      if (!allowedTypes.includes(file.type)) {
+        fileUploadError = "Format file tidak didukung! Harap upload file JPG, PNG, atau PDF.";
+        continue;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        fileUploadError = "Ukuran file terlalu besar! Maksimal 2 MB.";
+        continue;
+      }
+      if (file.type.includes('image')) {
+        file.preview = URL.createObjectURL(file);
+      }
+      validFiles.push(file);
+    }
+    setFormItems(prev => prev.map(item =>
+      item.id === itemId
+        ? { ...item, uploadedFiles: [...item.uploadedFiles, ...validFiles], fileUploadError }
+        : item
+    ));
+    setIsDirty(true);
+  };
+
+  const handleRemoveItemFile = (itemId, fileIdx) => {
+    setFormItems(prev => prev.map(item =>
+      item.id === itemId
+        ? { ...item, uploadedFiles: item.uploadedFiles.filter((_, i) => i !== fileIdx) }
+        : item
+    ));
   };
 
   const handleCancel = () => {
@@ -150,55 +200,63 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
   const handleConfirmCancel = () => {
     setShowCancelConfirm(false);
     setShowAddModal(false);
-    setFormData({ tanggal: "", kategori: "", nama: "", nominal: "", sumberDana: "", keterangan: "" });
-    setUploadedFiles([]);
-    setFileUploadError("");
+    setFormItems([emptyItem()]);
     setIsDirty(false);
   };
 
   const handleSave = async () => {
-    if (!formData.tanggal || !formData.kategori || !formData.nama || !formData.nominal || !formData.sumberDana) {
-      triggerToast ? triggerToast("Mohon isi semua kolom yang wajib (*)", "error") : alert("Mohon isi semua kolom yang wajib (*)");
-      return;
-    }
-    // Require at least one uploaded proof file
-    if (uploadedFiles.length === 0) {
-      setFileUploadError("Harap unggah bukti transaksi sebelum menyimpan!");
-      return;
+    // Validasi semua item
+    for (let i = 0; i < formItems.length; i++) {
+      const item = formItems[i];
+      if (!item.tanggal || !item.kategori || !item.nama || !item.nominal || !item.sumberDana) {
+        triggerToast
+          ? triggerToast(`Item ke-${i + 1}: Mohon isi semua kolom yang wajib (*)`, "error")
+          : alert(`Item ke-${i + 1}: Mohon isi semua kolom yang wajib (*)`);
+        return;
+      }
+      if (item.uploadedFiles.length === 0) {
+        setFormItems(prev => prev.map((fi, idx) =>
+          idx === i ? { ...fi, fileUploadError: "Harap unggah bukti transaksi sebelum menyimpan!" } : fi
+        ));
+        return;
+      }
     }
 
     setIsSaving(true);
     try {
-      // Convert files to Base64 to save them via the mock backend
-      const buktiArray = await Promise.all(uploadedFiles.map(file => {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.readAsDataURL(file);
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = error => reject(error);
-        });
-      }));
+      // Simpan semua item satu per satu
+      for (const item of formItems) {
+        const buktiArray = await Promise.all(item.uploadedFiles.map(file => {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+          });
+        }));
 
-      const payload = {
-        tipe: activeTab,
-        tanggal: formData.tanggal,
-        nama: formData.nama,
-        kategori: formData.kategori,
-        nominal: Number(String(formData.nominal).replace(/[^0-9]/g, '')),
-        sumber_dana: formData.sumberDana,
-        keterangan: formData.keterangan,
-        bukti: buktiArray
-      };
+        const payload = {
+          tipe: activeTab,
+          tanggal: item.tanggal,
+          nama: item.nama,
+          kategori: item.kategori,
+          nominal: Number(String(item.nominal).replace(/[^0-9]/g, '')),
+          sumber_dana: item.sumberDana,
+          keterangan: item.keterangan,
+          bukti: buktiArray
+        };
+        await createOperasional(payload);
+      }
 
-      await createOperasional(payload);
-      
       setIsSaving(false);
       setShowAddModal(false);
-      setFormData({ tanggal: "", kategori: "", nama: "", nominal: "", sumberDana: "", keterangan: "" });
-      setUploadedFiles([]);
-      setFileUploadError("");
+      setFormItems([emptyItem()]);
       setIsDirty(false);
-      const msg = activeTab === "pemasukan" ? "Data pemasukan berhasil disimpan!" : "Data pengeluaran berhasil disimpan!";
+      const jumlah = formItems.length;
+      const tipe = activeTab === "pemasukan" ? "pemasukan" : "pengeluaran";
+      const msg = jumlah > 1
+        ? `${jumlah} data ${tipe} berhasil disimpan!`
+        : `Data ${tipe} berhasil disimpan!`;
       triggerToast ? triggerToast(msg, "success") : alert(msg);
       loadOperasionalData();
     } catch (err) {
@@ -336,9 +394,10 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
             </div>
           </div>
           <button
-            onClick={() => { setFormData({ tanggal: "", kategori: "", nama: "", nominal: "", sumberDana: "", keterangan: "" }); setShowAddModal(true); }}
+            onClick={() => { setFormItems([emptyItem()]); setIsDirty(false); setShowAddModal(true); }}
             className="flex items-center gap-2 justify-center bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-5 py-2.5 text-xs font-bold cursor-pointer transition-all active:scale-95 shadow-sm w-full sm:w-auto"
           >
+            <IconPlus />
             {activeTab === "pemasukan" ? "Tambah Pemasukan" : "Tambah Pengeluaran"}
           </button>
         </div>
@@ -645,17 +704,21 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
         </div>
       )}
 
-      {/* Modal Tambah Pengeluaran */}
+      {/* Modal Tambah Pengeluaran / Pemasukan - Multi-item */}
       {showAddModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]">
             {/* Header Modal */}
-            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between shrink-0">
               <div>
                 <h2 className="text-lg font-bold text-gray-800">{activeTab === "pemasukan" ? "Tambah Pemasukan" : "Tambah Pengeluaran"}</h2>
-                <p className="text-[11px] text-gray-500 mt-1">{activeTab === "pemasukan" ? "Catat transaksi pemasukan dana sekolah." : "Catat transaksi pengeluaran operasional sekolah."}</p>
+                <p className="text-[11px] text-gray-500 mt-1">
+                  {activeTab === "pemasukan"
+                    ? `Catat ${formItems.length > 1 ? `${formItems.length} transaksi` : 'transaksi'} pemasukan dana sekolah.`
+                    : `Catat ${formItems.length > 1 ? `${formItems.length} transaksi` : 'transaksi'} pengeluaran operasional sekolah.`}
+                </p>
               </div>
-              <button 
+              <button
                 onClick={handleCancel}
                 className="text-gray-400 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 p-2 rounded-xl transition-colors border-none cursor-pointer"
               >
@@ -664,248 +727,274 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
             </div>
 
             {/* Body Modal */}
-            <div className="p-5 overflow-y-auto custom-scrollbar flex-1 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">{activeTab === "pemasukan" ? "Tanggal Pemasukan" : "Tanggal Pengeluaran"} <span className="text-red-500">*</span></label>
-                  <input 
-                    type="date" 
-                    value={formData.tanggal}
-                    onChange={(e) => handleInputChange('tanggal', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] font-medium text-gray-700" 
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">{activeTab === "pemasukan" ? "Kategori Pemasukan" : "Kategori Pengeluaran"} <span className="text-red-500">*</span></label>
-                  <div className="relative">
-                    <select 
-                      value={formData.kategori}
-                      onChange={(e) => handleInputChange('kategori', e.target.value)}
-                      className="w-full pl-3 pr-8 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] appearance-none font-medium text-gray-700"
-                    >
-                      <option value="">Pilih kategori...</option>
-                      {activeTab === "pemasukan" ? (
-                        <>
-                          <option value="Dana BOS">Dana BOS</option>
-                          <option value="Donasi">Donasi</option>
-                          <option value="Hibah/Bantuan">Hibah/Bantuan</option>
-                          <option value="Lainnya">Lainnya</option>
-                        </>
-                      ) : (
-                        <>
-                          <option value="Listrik">Listrik</option>
-                          <option value="Air">Air</option>
-                          <option value="Internet">Internet</option>
-                          <option value="ATK">ATK</option>
-                          <option value="Kebersihan">Kebersihan</option>
-                          <option value="Perawatan Gedung">Perawatan Gedung</option>
-                          <option value="Peralatan Sekolah">Peralatan Sekolah</option>
-                          <option value="Transportasi">Transportasi</option>
-                          <option value="Kegiatan Sekolah">Kegiatan Sekolah</option>
-                          <option value="Lain-lain">Lain-lain</option>
-                        </>
-                      )}
-                    </select>
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                      <IconChevronDown />
-                    </div>
+            <div className="p-5 overflow-y-auto custom-scrollbar flex-1 space-y-5">
+              {formItems.map((item, itemIndex) => (
+                <div
+                  key={item.id}
+                  className="border border-gray-200 rounded-2xl p-4 relative bg-gray-50/40"
+                  style={{ borderLeft: '4px solid #1A3D63' }}
+                >
+                  {/* Item Header */}
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs font-bold text-[#1A3D63] bg-blue-50 px-3 py-1 rounded-full">
+                      {activeTab === "pemasukan" ? "Pemasukan" : "Pengeluaran"} #{itemIndex + 1}
+                    </span>
+                    {formItems.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveItem(item.id)}
+                        className="text-red-400 hover:text-red-600 bg-red-50 hover:bg-red-100 border border-red-100 rounded-xl p-1.5 cursor-pointer transition-colors"
+                        title="Hapus item ini"
+                      >
+                        <IconX />
+                      </button>
+                    )}
                   </div>
-                </div>
-              </div>
 
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1.5">{activeTab === "pemasukan" ? "Nama Pemasukan" : "Nama Pengeluaran"} <span className="text-red-500">*</span></label>
-                <input 
-                  type="text" 
-                  value={formData.nama}
-                  onChange={(e) => handleInputChange('nama', e.target.value)}
-                  placeholder={activeTab === "pemasukan" ? "Misal: Penerimaan BOS Tahap 1" : "Misal: Pembayaran Listrik Bulan Juni"}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] font-medium text-gray-700 placeholder-gray-400" 
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">{activeTab === "pemasukan" ? "Nominal Pemasukan" : "Nominal Pengeluaran"} <span className="text-red-500">*</span></label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <span className="text-gray-500 font-bold text-xs">Rp</span>
-                    </div>
-                    <input 
-                      type="text" 
-                      value={formData.nominal}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/[^0-9]/g, '');
-                        handleInputChange('nominal', val ? new Intl.NumberFormat('id-ID').format(val) : '');
-                      }}
-                      placeholder="0" 
-                      className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] font-medium text-gray-700" 
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1.5">Sumber Dana <span className="text-red-500">*</span></label>
-                  <div className="relative">
-                    <select 
-                      value={formData.sumberDana}
-                      onChange={(e) => handleInputChange('sumberDana', e.target.value)}
-                      className="w-full pl-3 pr-8 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] appearance-none font-medium text-gray-700"
-                    >
-                      <option value="">Pilih sumber...</option>
-                      {activeTab === "pemasukan" ? (
-                        <>
-                          <option value="Pemerintah Pusat">Pemerintah Pusat</option>
-                          <option value="Donatur">Donatur</option>
-                          <option value="Yayasan">Yayasan</option>
-                          <option value="Lainnya">Lainnya</option>
-                        </>
-                      ) : (
-                        <>
-                          <option value="Dana BOS">Dana BOS</option>
-                          <option value="Dana Donatur">Dana Donatur</option>
-                          <option value="Lainnya">Lainnya</option>
-                        </>
-                      )}
-                    </select>
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                      <IconChevronDown />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1.5">Upload Bukti Transaksi <span className="text-red-500">*</span></label>
-                <label className="border-2 border-dashed border-gray-200 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-all text-center">
-                  <div className="text-gray-400 mb-2">
-                    <IconUpload />
-                  </div>
-                  <span className="text-[11px] font-bold text-[#1A3D63]">Klik untuk upload file</span>
-                  <span className="text-[10px] text-gray-400 mt-0.5">Maks. 2MB per file (JPG, PNG, PDF)</span>
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept=".jpg,.jpeg,.png,.pdf"
-                    multiple
-                    onChange={(e) => {
-                      const files = Array.from(e.target.files);
-                      if (files.length === 0) return;
-
-                        setFileUploadError("");
-                        let hasInvalid = false;
-                        const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-                        const validFiles = [];
-
-                        for (const file of files) {
-                          if (!allowedTypes.includes(file.type)) {
-                            const message = `Format file tidak didukung! Harap upload file JPG, PNG, atau PDF.`;
-                            setFileUploadError(message);
-                            hasInvalid = true;
-                            continue;
-                          }
-                          if (file.size > 2 * 1024 * 1024) {
-                            const message = `Ukuran file terlalu besar! Maksimal 2 MB.`;
-                            setFileUploadError(message);
-                            hasInvalid = true;
-                            continue;
-                          }
-                          if (file.type.includes('image')) {
-                            file.preview = URL.createObjectURL(file);
-                          }
-                          validFiles.push(file);
-                        }
-
-                        if (validFiles.length > 0) {
-                          setUploadedFiles(prev => [...prev, ...validFiles]);
-                          if (!hasInvalid) {
-                            // clear any previous upload error; keep toast for success optional
-                            setFileUploadError("");
-                          }
-                        }
-                        e.target.value = ''; // Reset input to allow selecting the same file again if removed
-                      }}
-                    />
-                  </label>
-                  {fileUploadError && (
-                    <p className="mt-2 text-[11px] text-red-600 font-medium">{fileUploadError}</p>
-                  )}
-                  {uploadedFiles.length > 0 && (
-                    <div className="mt-3 space-y-2">
-                      {uploadedFiles.map((file, idx) => (
-                        <div key={idx} className="flex items-center justify-between bg-gray-50 border border-gray-200 p-3 rounded-xl hover:border-blue-300 transition-colors">
-                          <div className="flex items-center gap-3 overflow-hidden">
-                            <div 
-                              className="w-10 h-10 bg-white text-blue-600 rounded-lg flex items-center justify-center shrink-0 overflow-hidden cursor-pointer border border-gray-200 hover:opacity-80 transition-opacity shadow-sm"
-                              onClick={() => {
-                                setSelectedPreviewFile(file);
-                                setShowPreviewModal(true);
-                              }}
-                              title="Klik untuk melihat pratinjau penuh"
-                            >
-                              {file.type?.includes('image') && file.preview ? (
-                                <img src={file.preview} alt="Thumbnail" className="w-full h-full object-cover" />
-                              ) : (
-                                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                                </svg>
-                              )}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-sm font-bold text-gray-800 truncate">{file.name}</p>
-                              <p className="text-[11px] text-gray-500 font-medium">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <button
-                              type="button"
-                              onClick={() => setUploadedFiles(prev => prev.filter((_, i) => i !== idx))}
-                              className="text-red-500 hover:text-red-700 bg-white border border-gray-200 cursor-pointer p-1.5 rounded-lg hover:bg-red-50 hover:border-red-200 transition-colors shrink-0 shadow-sm"
-                              title="Hapus File"
-                            >
-                              <IconX />
-                            </button>
+                  <div className="space-y-4">
+                    {/* Row 1: Tanggal + Kategori */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                          {activeTab === "pemasukan" ? "Tanggal Pemasukan" : "Tanggal Pengeluaran"} <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="date"
+                          value={item.tanggal}
+                          onChange={(e) => handleItemChange(item.id, 'tanggal', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] font-medium text-gray-700 bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                          {activeTab === "pemasukan" ? "Kategori Pemasukan" : "Kategori Pengeluaran"} <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <select
+                            value={item.kategori}
+                            onChange={(e) => handleItemChange(item.id, 'kategori', e.target.value)}
+                            className="w-full pl-3 pr-8 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] appearance-none font-medium text-gray-700 bg-white"
+                          >
+                            <option value="">Pilih kategori...</option>
+                            {activeTab === "pemasukan" ? (
+                              <>
+                                <option value="Dana BOS">Dana BOS</option>
+                                <option value="Donasi">Donasi</option>
+                                <option value="Hibah/Bantuan">Hibah/Bantuan</option>
+                                <option value="Lainnya">Lainnya</option>
+                              </>
+                            ) : (
+                              <>
+                                <option value="Listrik">Listrik</option>
+                                <option value="Air">Air</option>
+                                <option value="Internet">Internet</option>
+                                <option value="ATK">ATK</option>
+                                <option value="Kebersihan">Kebersihan</option>
+                                <option value="Perawatan Gedung">Perawatan Gedung</option>
+                                <option value="Peralatan Sekolah">Peralatan Sekolah</option>
+                                <option value="Transportasi">Transportasi</option>
+                                <option value="Kegiatan Sekolah">Kegiatan Sekolah</option>
+                                <option value="Lain-lain">Lain-lain</option>
+                              </>
+                            )}
+                          </select>
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                            <IconChevronDown />
                           </div>
                         </div>
-                      ))}
+                      </div>
                     </div>
-                  )}
-              </div>
 
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1.5">Keterangan (Opsional)</label>
-                <textarea 
-                  rows="2" 
-                  value={formData.keterangan}
-                  onChange={(e) => handleInputChange('keterangan', e.target.value)}
-                  placeholder="Catatan tambahan..." 
-                  className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] font-medium text-gray-700 placeholder-gray-400"
-                ></textarea>
-              </div>
+                    {/* Row 2: Nama */}
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                        {activeTab === "pemasukan" ? "Nama Pemasukan" : "Nama Pengeluaran"} <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={item.nama}
+                        onChange={(e) => handleItemChange(item.id, 'nama', e.target.value)}
+                        placeholder={activeTab === "pemasukan" ? "Misal: Penerimaan BOS Tahap 1" : "Misal: Pembayaran Listrik Bulan Juni"}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] font-medium text-gray-700 placeholder-gray-400 bg-white"
+                      />
+                    </div>
+
+                    {/* Row 3: Nominal + Sumber Dana */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                          {activeTab === "pemasukan" ? "Nominal Pemasukan" : "Nominal Pengeluaran"} <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span className="text-gray-500 font-bold text-xs">Rp</span>
+                          </div>
+                          <input
+                            type="text"
+                            value={item.nominal}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/[^0-9]/g, '');
+                              handleItemChange(item.id, 'nominal', val ? new Intl.NumberFormat('id-ID').format(val) : '');
+                            }}
+                            placeholder="0"
+                            className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] font-medium text-gray-700 bg-white"
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                          Sumber Dana <span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <select
+                            value={item.sumberDana}
+                            onChange={(e) => handleItemChange(item.id, 'sumberDana', e.target.value)}
+                            className="w-full pl-3 pr-8 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] appearance-none font-medium text-gray-700 bg-white"
+                          >
+                            <option value="">Pilih sumber...</option>
+                            {activeTab === "pemasukan" ? (
+                              <>
+                                <option value="Pemerintah Pusat">Pemerintah Pusat</option>
+                                <option value="Donatur">Donatur</option>
+                                <option value="Yayasan">Yayasan</option>
+                                <option value="Lainnya">Lainnya</option>
+                              </>
+                            ) : (
+                              <>
+                                <option value="Dana BOS">Dana BOS</option>
+                                <option value="Dana Donatur">Dana Donatur</option>
+                                <option value="Lainnya">Lainnya</option>
+                              </>
+                            )}
+                          </select>
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                            <IconChevronDown />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Row 4: Upload Bukti */}
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                        Upload Bukti Transaksi <span className="text-red-500">*</span>
+                      </label>
+                      <label className="border-2 border-dashed border-gray-200 rounded-xl p-3 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-all text-center bg-white">
+                        <div className="text-gray-400 mb-1">
+                          <IconUpload />
+                        </div>
+                        <span className="text-[11px] font-bold text-[#1A3D63]">Klik untuk upload file</span>
+                        <span className="text-[10px] text-gray-400 mt-0.5">Maks. 2MB per file (JPG, PNG, PDF)</span>
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept=".jpg,.jpeg,.png,.pdf"
+                          multiple
+                          onChange={(e) => {
+                            const files = Array.from(e.target.files);
+                            if (files.length > 0) {
+                              handleItemFileChange(item.id, files);
+                            }
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
+                      {item.fileUploadError && (
+                        <p className="mt-1.5 text-[11px] text-red-600 font-medium">{item.fileUploadError}</p>
+                      )}
+                      {item.uploadedFiles.length > 0 && (
+                        <div className="mt-2 space-y-2">
+                          {item.uploadedFiles.map((file, fIdx) => (
+                            <div key={fIdx} className="flex items-center justify-between bg-white border border-gray-200 p-2.5 rounded-xl hover:border-blue-300 transition-colors">
+                              <div className="flex items-center gap-2.5 overflow-hidden">
+                                <div
+                                  className="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center shrink-0 overflow-hidden cursor-pointer border border-blue-100 hover:opacity-80 transition-opacity"
+                                  onClick={() => { setSelectedPreviewFile(file); setShowPreviewModal(true); }}
+                                  title="Klik untuk melihat pratinjau"
+                                >
+                                  {file.type?.includes('image') && file.preview ? (
+                                    <img src={file.preview} alt="Thumb" className="w-full h-full object-cover rounded-lg" />
+                                  ) : (
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                                    </svg>
+                                  )}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-[11px] font-bold text-gray-700 truncate">{file.name}</p>
+                                  <p className="text-[10px] text-gray-400">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveItemFile(item.id, fIdx)}
+                                className="text-red-400 hover:text-red-600 bg-red-50 border border-red-100 cursor-pointer p-1 rounded-lg hover:bg-red-100 transition-colors shrink-0"
+                                title="Hapus File"
+                              >
+                                <IconX />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Row 5: Keterangan */}
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1.5">Keterangan (Opsional)</label>
+                      <textarea
+                        rows="2"
+                        value={item.keterangan}
+                        onChange={(e) => handleItemChange(item.id, 'keterangan', e.target.value)}
+                        placeholder="Catatan tambahan..."
+                        className="w-full px-3 py-2 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] font-medium text-gray-700 placeholder-gray-400 bg-white"
+                      ></textarea>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {/* Tombol Tambah Item */}
+              <button
+                type="button"
+                onClick={handleAddItem}
+                className="w-full py-3 border-2 border-dashed border-[#1A3D63]/30 rounded-2xl text-xs font-bold text-[#1A3D63] hover:bg-blue-50 hover:border-[#1A3D63]/60 transition-all cursor-pointer flex items-center justify-center gap-2"
+              >
+                <IconPlus />
+                Tambah {activeTab === "pemasukan" ? "Pemasukan" : "Pengeluaran"} Lainnya
+              </button>
             </div>
 
             {/* Footer Modal */}
-            <div className="p-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
-              <button 
-                onClick={handleCancel}
-                disabled={isSaving}
-                className="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-xl text-xs font-bold hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50"
-              >
-                Batal
-              </button>
-              <button 
-                onClick={handleSave}
-                disabled={isSaving}
-                className="px-5 py-2 bg-[#1A3D63] text-white rounded-xl text-xs font-bold hover:bg-[#122A44] transition-colors shadow-sm cursor-pointer border-none disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {isSaving ? (
-                  <>
-                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    Menyimpan...
-                  </>
-                ) : (
-                  activeTab === "pemasukan" ? "Simpan Pemasukan" : "Simpan Pengeluaran"
-                )}
-              </button>
+            <div className="p-4 border-t border-gray-100 flex items-center justify-between gap-3 bg-gray-50/50 shrink-0">
+              <span className="text-[11px] text-gray-500 font-medium">
+                {formItems.length} item {activeTab === "pemasukan" ? "pemasukan" : "pengeluaran"} akan disimpan
+              </span>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCancel}
+                  disabled={isSaving}
+                  className="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-xl text-xs font-bold hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="px-5 py-2 bg-[#1A3D63] text-white rounded-xl text-xs font-bold hover:bg-[#122A44] transition-colors shadow-sm cursor-pointer border-none disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isSaving ? (
+                    <>
+                      <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      Menyimpan...
+                    </>
+                  ) : (
+                    formItems.length > 1
+                      ? `Simpan ${formItems.length} ${activeTab === "pemasukan" ? "Pemasukan" : "Pengeluaran"}`
+                      : (activeTab === "pemasukan" ? "Simpan Pemasukan" : "Simpan Pengeluaran")
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
