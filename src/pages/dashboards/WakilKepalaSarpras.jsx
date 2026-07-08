@@ -67,7 +67,8 @@ const WakilKepalaSarpras = ({ user }) => {
       try {
         const data = await getOperasional();
         if (Array.isArray(data)) {
-          setPengeluaranData(data.filter(d => d.tipe === 'pengeluaran'));
+          // Sarpras hanya mencatat pengeluaran operasional (bukan Gaji Pegawai)
+          setPengeluaranData(data.filter(d => d.tipe === 'pengeluaran' && d.kategori !== 'Gaji Pegawai'));
           setPemasukanData(data.filter(d => d.tipe === 'pemasukan'));
         }
       } catch (err) {
@@ -125,7 +126,8 @@ const WakilKepalaSarpras = ({ user }) => {
   };
 
   // Data Anggaran dari Total Pemasukan Bendahara
-  const TOTAL_ANGGARAN = pemasukanData.filter(d => d.kategori === 'Dana BOS').reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+  const totalDanaBOS = pemasukanData.filter(d => d.kategori === 'Dana BOS').reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+  const TOTAL_ANGGARAN = totalDanaBOS * 0.7; // 70% of Dana BOS goes to Sarpras, 30% to gaji
   const REALISASI = pengeluaranData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
   const SISA_ANGGARAN = Math.max(0, TOTAL_ANGGARAN - REALISASI);
   
@@ -240,7 +242,7 @@ const WakilKepalaSarpras = ({ user }) => {
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5"><InfoIcon /></div>
-                  <p className="text-[13px] text-gray-600 leading-relaxed">Pagu anggaran Sarpras ditetapkan sebesar <span className="font-bold text-gray-800">{formatRupiah(TOTAL_ANGGARAN)}</span> untuk tahun ajaran ini.</p>
+                  <p className="text-[13px] text-gray-600 leading-relaxed">Pagu anggaran Sarpras ditetapkan sebesar <span className="font-bold text-gray-800">{formatRupiah(TOTAL_ANGGARAN)}</span> untuk tahun ajaran ini (berasal dari 70% total Dana BOS).</p>
                 </div>
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center flex-shrink-0 mt-0.5"><InfoIcon /></div>

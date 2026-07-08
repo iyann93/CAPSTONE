@@ -232,6 +232,32 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
   const [paidSlips, setPaidSlips] = useState([]);
   const [globalFinance, setGlobalFinance] = useState({ totalPemasukan: 0, totalPengeluaran: 0 });
   const [totalEmployees, setTotalEmployees] = useState(0);
+
+  // Role Permissions
+  const [rolePermissions, setRolePermissions] = useState(null);
+  useEffect(() => {
+    const fetchPerms = () => {
+      import('../../api/system').then(({ getRolePermissions }) => {
+        getRolePermissions().then(data => {
+          if (data && Object.keys(data).length > 0) {
+            setRolePermissions(data);
+            localStorage.setItem('rolePermissions', JSON.stringify(data));
+          } else {
+            const saved = localStorage.getItem('rolePermissions');
+            if (saved) setRolePermissions(JSON.parse(saved));
+          }
+        }).catch(() => {
+          setTimeout(fetchPerms, 2000);
+        });
+      });
+    };
+    fetchPerms();
+  }, []);
+
+  const bendaharaPerms = rolePermissions?.["bendahara"] || {};
+  const canViewTagihan = bendaharaPerms["Tagihan SPP"]?.lihat !== false;
+  const canViewPengaturan = bendaharaPerms["Pengaturan SPP"]?.lihat !== false;
+  const canViewGaji = bendaharaPerms["Riwayat Terima Gaji"]?.lihat !== false;
   
   // Laporan States
   const [laporanType, setLaporanType] = useState("Laporan Pembayaran SPP (Pemasukan)");
@@ -3479,7 +3505,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
             <form onSubmit={handleGenerateBilling} className="space-y-4">
               <div>
-                <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase">Sasaran Kelas</label>
+                <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase uppercase tracking-wide">Sasaran Kelas</label>
                 <select
                   value={billClass}
                   onChange={(e) => setBillClass(e.target.value)}
@@ -5049,7 +5075,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
               {laporanType.includes("Penggajian") && (paidSlips.length > 0 ? paidSlips.map((s, i) => (
                 <tr key={i} className="border-b border-gray-300">
                   <td className="py-2 px-3">{i + 1}</td>
-                  <td className="py-2 px-3">{s.nama_pegawai}</td>
+                  <td className="py-2 px-3">{s.user_nama || s.user_email || s.user_id || 'Tanpa Nama'}</td>
                   <td className="py-2 px-3">{s.bulan_nama || s.bulan} {s.tahun}</td>
                   <td className="py-2 px-3">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(s.gaji_bersih)}</td>
                 </tr>

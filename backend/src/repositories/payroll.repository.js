@@ -372,6 +372,12 @@ const PayrollRepository = {
       // Delete transfer record if exists
       await client.query(`DELETE FROM finance.transfer_gaji WHERE slip_gaji_id = $1`, [slipGajiId]);
 
+      // Delete the corresponding expense record in operasional_transactions
+      await client.query(
+        `DELETE FROM finance.operasional_transactions WHERE keterangan = $1`,
+        [`Pembayaran gaji untuk slip ID ${slipGajiId}`]
+      );
+
       // Update status back to draft
       const res = await client.query(
         `UPDATE finance.slip_gaji SET status = 'draft' WHERE id = $1 RETURNING *`,
@@ -398,8 +404,10 @@ const PayrollRepository = {
 
       // Lock slip gaji row
       const slipRes = await client.query(
-        `SELECT id, status, gaji_bersih, user_id, bulan, tahun
-         FROM finance.slip_gaji WHERE id = $1 FOR UPDATE`,
+        `SELECT s.id, s.status, s.gaji_bersih, s.user_id, s.bulan, s.tahun, u.nama as user_nama
+         FROM finance.slip_gaji s 
+         LEFT JOIN shared.users u ON s.user_id = u.id 
+         WHERE s.id = $1 FOR UPDATE OF s`,
         [slipGajiId]
       );
 
@@ -447,6 +455,38 @@ const PayrollRepository = {
         `UPDATE finance.slip_gaji SET status = 'dibayar' WHERE id = $1`,
         [slipGajiId]
       );
+
+      // --- VIRTUAL BUDGET VALIDATION & OPERASIONAL EXPENSE ---
+      const nominalTransfer = parseFloat(slip.gaji_bersih);
+
+      // 1. Hitung Total SPP
+      const sppRes = await client.query('SELECT COALESCE(SUM(jumlah_bayar), 0) AS total FROM finance.transaksi_pembayaran');
+      const totalSpp = parseFloat(sppRes.rows[0].total);
+
+      // 2. Hitung Total 30% BOS
+      const bosRes = await client.query(`SELECT COALESCE(SUM(nominal), 0) AS total FROM finance.operasional_transactions WHERE kategori = 'Dana BOS' AND tipe = 'pemasukan'`);
+      const totalBos = parseFloat(bosRes.rows[0].total) * 0.3;
+
+      // 3. Hitung Total Gaji yang sudah ditransfer (tidak termasuk transaksi yang baru kita insert ini, makanya kita kurangi nominalTransfer jika query membaca yang baru di-insert)
+      // Karena kita baru insert `transfer_gaji` di transaksi ini, query ini akan membacanya. Jadi kita kurangi.
+      const gajiRes = await client.query(`SELECT COALESCE(SUM(jumlah), 0) AS total FROM finance.transfer_gaji WHERE status = 'berhasil'`);
+      const totalGajiPaid = parseFloat(gajiRes.rows[0].total) - nominalTransfer;
+
+      // 4. Validasi Budget
+      const availableBudget = totalSpp + totalBos - totalGajiPaid;
+
+      if (availableBudget < nominalTransfer) {
+        const err = new Error(`Dana tidak mencukupi. Sisa Dana Gabungan (SPP & 30% BOS): Rp ${availableBudget.toLocaleString('id-ID')}, Dibutuhkan: Rp ${nominalTransfer.toLocaleString('id-ID')}`);
+        err.statusCode = 400;
+        throw err;
+      }
+
+      // 5. Insert pengeluaran ke operasional_transactions
+      await client.query(`
+        INSERT INTO finance.operasional_transactions 
+        (tipe, tanggal, nama, kategori, nominal, sumber_dana, keterangan, bukti)
+        VALUES ('pengeluaran', NOW(), $1, 'Gaji Pegawai', $2, 'Dana BOS / SPP', $3, '[]')
+      `, [`Pembayaran Gaji ${slip.user_nama || 'Pegawai'}`, nominalTransfer, `Pembayaran gaji untuk slip ID ${slipGajiId}`]);
 
       await client.query('COMMIT');
 

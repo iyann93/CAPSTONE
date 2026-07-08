@@ -28,6 +28,31 @@ router.put('/frontend-state', verifyToken, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+const fs = require('fs');
+const path = require('path');
+const PERMS_FILE = path.join(__dirname, '../../data/role_permissions.json');
+
+router.get('/role-permissions', verifyToken, (req, res) => {
+  try {
+    if (fs.existsSync(PERMS_FILE)) {
+      const data = fs.readFileSync(PERMS_FILE, 'utf8');
+      res.json({ success: true, data: JSON.parse(data) });
+    } else {
+      res.json({ success: true, data: {} });
+    }
+  } catch (err) { res.json({ success: true, data: {} }); }
+});
+
+router.put('/role-permissions', verifyToken, (req, res) => {
+  try {
+    if (!fs.existsSync(path.dirname(PERMS_FILE))) {
+      fs.mkdirSync(path.dirname(PERMS_FILE), { recursive: true });
+    }
+    fs.writeFileSync(PERMS_FILE, JSON.stringify(req.body, null, 2));
+    res.json({ success: true });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+});
+
 // GET /api/v1/system/roles
 router.get('/roles', verifyToken, authorize('system.read'), SystemController.getAllRoles);
 

@@ -311,6 +311,14 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
   const card2Value = activeTab === "pemasukan" ? totalKeseluruhan : totalOperasionalSaja;
   const jumlahKategori = new Set(currentData.map(item => item.kategori)).size;
 
+  // === SISA DANA (Total Pemasukan Tahunan - Total Pengeluaran Tahunan) ===
+  const totalPemasukanTahunan = totalSppTahunan
+    + localPemasukanData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0)
+    + danaBeasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+  const totalPengeluaranTahunan = localPengeluaranData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0)
+    + beasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+  const sisaDanaGaji = Math.max(0, totalPemasukanTahunan - totalPengeluaranTahunan);
+
   // Aggregate SPP payments by month into summary rows
   const sppByMonth = {};
   sppPayments.forEach(p => {
@@ -341,6 +349,8 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
 
   const filteredData = [
     ...currentData.filter(item => {
+      // Pisahkan Gaji Pegawai ke section tersendiri saat tab pengeluaran
+      if (activeTab === 'pengeluaran' && item.kategori === 'Gaji Pegawai') return false;
       const matchesSearch = item.nama.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = categoryFilter === "Semua Kategori" || item.kategori === categoryFilter;
       return matchesSearch && matchesCategory;
@@ -404,7 +414,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
       </div>
 
       {/* Stat Cards Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+      <div className={`grid grid-cols-1 ${activeTab === 'pengeluaran' ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-5 mb-5`}>
         {/* Card 1 */}
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
@@ -420,6 +430,32 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
             <div className="text-3xl font-black text-white">Rp {card2Value.toLocaleString('id-ID')}</div>
           </div>
         </div>
+
+        {/* Card 3: Sisa Dana Gaji — hanya tampil di tab Pengeluaran */}
+        {activeTab === 'pengeluaran' && (
+          <div className={`rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px] relative overflow-hidden ${
+            sisaDanaGaji <= 0
+              ? 'bg-gradient-to-br from-red-500 to-rose-600'
+              : sisaDanaGaji < 5000000
+              ? 'bg-gradient-to-br from-amber-500 to-orange-500'
+              : 'bg-gradient-to-br from-emerald-500 to-green-600'
+          }`}>
+            <div className="relative z-10">
+              <div className="text-xs font-bold text-white/80 uppercase tracking-wider mb-2">Sisa Dana</div>
+              <div className="text-2xl font-black text-white">Rp {sisaDanaGaji.toLocaleString('id-ID')}</div>
+              <div className="text-[10px] font-semibold text-white/70 mt-2">
+                {sisaDanaGaji <= 0
+                  ? '⚠️ Dana tidak mencukupi'
+                  : `Total Pemasukan − Total Pengeluaran`}
+              </div>
+            </div>
+            <div className="absolute -right-3 -bottom-3 opacity-10">
+              <svg width="80" height="80" fill="white" viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+              </svg>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Filter and Table Container */}
@@ -704,6 +740,69 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
         </div>
       )}
 
+      {/* Container Riwayat Pengeluaran Gaji — khusus tab Pengeluaran */}
+      {activeTab === "pengeluaran" && (() => {
+        const gajiRows = localPengeluaranData.filter(d => d.kategori === 'Gaji Pegawai');
+        return (
+          <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm mt-2">
+            <div className="mb-5">
+              <h2 className="text-lg font-bold text-gray-800 tracking-tight">Riwayat Pengeluaran Gaji</h2>
+              <p className="text-xs text-gray-500 mt-1">Tercatat otomatis setiap kali pembayaran gaji berhasil diproses.</p>
+            </div>
+
+            <div className="overflow-x-auto overflow-y-auto max-h-[300px] custom-scrollbar rounded-xl border border-gray-100">
+              <table className="w-full text-left border-collapse">
+                <thead className="sticky top-0 z-10">
+                  <tr className="border-b border-gray-100 bg-gray-50 text-[10px] font-bold text-gray-500 uppercase tracking-wider shadow-sm">
+                    <th className="py-4 px-4 w-12 text-center rounded-tl-xl bg-gray-50">NO</th>
+                    <th className="py-4 px-4 bg-gray-50">TANGGAL</th>
+                    <th className="py-4 px-4 bg-gray-50">KETERANGAN</th>
+                    <th className="py-4 px-4 bg-gray-50">SUMBER DANA</th>
+                    <th className="py-4 px-4 bg-gray-50">NOMINAL</th>
+                    <th className="py-4 px-4 text-center rounded-tr-xl bg-gray-50">AKSI</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50 text-xs">
+                  {gajiRows.length === 0 ? (
+                    <tr>
+                      <td colSpan="6" className="py-8 text-center text-gray-400 font-medium">Belum ada riwayat pembayaran gaji.</td>
+                    </tr>
+                  ) : (
+                    gajiRows
+                      .sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal))
+                      .map((row, idx) => (
+                        <tr key={row.id} className="hover:bg-gray-50/80 transition-colors">
+                          <td className="py-4 px-4 text-center text-gray-500 font-bold">{idx + 1}.</td>
+                          <td className="py-4 px-4 font-medium text-gray-600">{formatTanggal(row.tanggal)}</td>
+                          <td className="py-4 px-4 font-bold text-gray-800">{row.nama}</td>
+                          <td className="py-4 px-4">
+                            <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-lg font-semibold text-[10px]">{row.sumber_dana || 'Dana BOS / SPP'}</span>
+                          </td>
+                          <td className="py-4 px-4 font-bold text-red-500">Rp {Number(row.nominal || 0).toLocaleString('id-ID')}</td>
+                          <td className="py-4 px-4 text-center">
+                            <button
+                              onClick={() => setSelectedDetailItem(row)}
+                              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 text-[11px] font-bold rounded-lg transition-colors cursor-pointer border-none shadow-sm mx-auto"
+                            >
+                              <IconEye />
+                              Detail
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="mt-4 px-2">
+              <span className="text-[11px] font-semibold text-gray-500">
+                Total {gajiRows.length} data pembayaran gaji &bull; Total: Rp {gajiRows.reduce((s, r) => s + Number(r.nominal || 0), 0).toLocaleString('id-ID')}
+              </span>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Modal Tambah Pengeluaran / Pemasukan */}
       {showAddModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -769,6 +868,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
                                 <option value="Peralatan Sekolah">Peralatan Sekolah</option>
                                 <option value="Transportasi">Transportasi</option>
                                 <option value="Kegiatan Sekolah">Kegiatan Sekolah</option>
+                                <option value="Gaji Pegawai">Gaji Pegawai</option>
                                 <option value="Lain-lain">Lain-lain</option>
                               </>
                             )}

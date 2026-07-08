@@ -1,6 +1,6 @@
 'use strict';
 
-const { query } = require('../config/db');
+const { query, getClient } = require('../config/db');
 
 const OperasionalRepository = {
   findAll: async () => {
@@ -28,7 +28,17 @@ const OperasionalRepository = {
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
     `, [tipe, tanggal, nama, kategori, nominal, sumber_dana, keterangan, bukti ? JSON.stringify(bukti) : '[]']);
-    return res.rows[0];
+    
+    return {
+      ...res.rows[0],
+      bukti: (() => {
+        try {
+          if (!res.rows[0].bukti) return [];
+          if (Array.isArray(res.rows[0].bukti)) return res.rows[0].bukti;
+          return JSON.parse(res.rows[0].bukti);
+        } catch (_) { return []; }
+      })()
+    };
   },
 
   deleteMultiple: async (ids) => {
