@@ -42,7 +42,8 @@ const SystemService = {
       nama: data.nama,
       email: data.email,
       passwordHash: passwordHash,
-      roleId: data.roleId
+      roleId: data.roleId,
+      isActive: data.isActive !== undefined ? data.isActive : true
     });
 
     // Jika role Orang Tua dan ada siswaId, simpan relasi

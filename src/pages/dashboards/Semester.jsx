@@ -4,6 +4,7 @@ const Semester = () => {
   const [view, setView] = useState("list");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSemester, setSelectedSemester] = useState(null);
+  const [selectedYear, setSelectedYear] = useState("Semua Tahun");
 
   const [semesters, setSemesters] = useState(() => {
     const saved = localStorage.getItem("semesters_data");
@@ -30,9 +31,14 @@ const Semester = () => {
   const [addForm, setAddForm] = useState({
     year: "2024/2025",
     type: "Ganjil",
-    start: "15 Jul 2024",
-    end: "20 Des 2024",
-    status: "Draft"
+    start: "2024-07-15",
+    end: "2024-12-20",
+    status: "Draft",
+    uts: "2024-10-14",
+    uas: "2024-12-09",
+    rapor: "2024-12-21",
+    deadline: "2024-12-16",
+    hariEfektif: 140
   });
 
   const handleSaveAdd = () => {
@@ -220,14 +226,15 @@ const Semester = () => {
                   <div>
                     <label className="block text-[12px] font-bold text-gray-500 mb-2">Hari Efektif Belajar</label>
                     <div className="relative">
-                      <input type="text" value="140" className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-16 py-3 text-[14px] font-semibold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" readOnly />
+                      <input type="number" value={addForm.hariEfektif || 140} onChange={e => setAddForm({...addForm, hariEfektif: parseInt(e.target.value) || 0})} className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-16 py-3 text-[14px] font-semibold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" style={{MozAppearance: 'textfield'}} />
+                      <style>{`input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }`}</style>
                       <div className="absolute inset-y-0 right-0 flex">
                         <div className="flex items-center px-4 text-[13px] font-medium text-gray-500 border-l border-gray-200">
                           hari
                         </div>
                         <div className="flex flex-col border-l border-gray-200 w-8">
-                          <button className="flex-1 flex items-center justify-center hover:bg-gray-50 border-b border-gray-200 rounded-tr-xl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg></button>
-                          <button className="flex-1 flex items-center justify-center hover:bg-gray-50 rounded-br-xl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></button>
+                          <button onClick={() => setAddForm({...addForm, hariEfektif: (addForm.hariEfektif || 140) + 1})} className="flex-1 flex items-center justify-center hover:bg-gray-50 border-b border-gray-200 rounded-tr-xl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg></button>
+                          <button onClick={() => setAddForm({...addForm, hariEfektif: (addForm.hariEfektif || 140) - 1})} className="flex-1 flex items-center justify-center hover:bg-gray-50 rounded-br-xl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></button>
                         </div>
                       </div>
                     </div>
@@ -236,7 +243,7 @@ const Semester = () => {
                   <div>
                     <label className="block text-[12px] font-bold text-gray-500 mb-2">Minggu Efektif</label>
                     <div className="relative">
-                      <input type="text" value="20" className="w-full bg-[#F9FAFB] border border-gray-200 rounded-xl pl-4 pr-24 py-3 text-[14px] font-semibold text-[#1e293b] focus:outline-none" readOnly />
+                      <input type="text" value={Math.floor((addForm.hariEfektif || 140) / 7)} className="w-full bg-[#F9FAFB] border border-gray-200 rounded-xl pl-4 pr-24 py-3 text-[14px] font-semibold text-[#1e293b] focus:outline-none" readOnly />
                       <div className="absolute inset-y-0 right-28 flex items-center pointer-events-none">
                         <span className="text-[13px] font-medium text-gray-500">minggu</span>
                       </div>
@@ -260,37 +267,25 @@ const Semester = () => {
                   <div>
                     <label className="block text-[12px] font-bold text-gray-500 mb-2">Ujian Tengah Semester (UTS)</label>
                     <div className="relative">
-                      <input type="text" value="14 Oktober 2024" className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-[14px] font-semibold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" readOnly />
-                      <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                      </div>
+                      <input type="date" value={addForm.uts} onChange={e => setAddForm({...addForm, uts: e.target.value})} className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-[14px] font-semibold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" />
                     </div>
                   </div>
                   <div>
                     <label className="block text-[12px] font-bold text-gray-500 mb-2">Ujian Akhir Semester (UAS)</label>
                     <div className="relative">
-                      <input type="text" value="9 Desember 2024" className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-[14px] font-semibold text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" readOnly />
-                      <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                      </div>
+                      <input type="date" value={addForm.uas} onChange={e => setAddForm({...addForm, uas: e.target.value})} className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-[14px] font-semibold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" />
                     </div>
                   </div>
                   <div>
                     <label className="block text-[12px] font-bold text-gray-500 mb-2">Pembagian Rapor</label>
                     <div className="relative">
-                      <input type="text" value="21 Desember 2024" className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-[14px] font-semibold text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" readOnly />
-                      <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                      </div>
+                      <input type="date" value={addForm.rapor} onChange={e => setAddForm({...addForm, rapor: e.target.value})} className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-[14px] font-semibold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" />
                     </div>
                   </div>
                   <div>
                     <label className="block text-[12px] font-bold text-gray-500 mb-2">Deadline Input Nilai Guru</label>
                     <div className="relative">
-                      <input type="text" value="16 Desember 2024" className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-[14px] font-semibold text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" readOnly />
-                      <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                      </div>
+                      <input type="date" value={addForm.deadline} onChange={e => setAddForm({...addForm, deadline: e.target.value})} className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-[14px] font-semibold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" />
                     </div>
                   </div>
                 </div>
@@ -308,31 +303,27 @@ const Semester = () => {
                 <h2 className="text-[15px] font-bold text-[#1e293b]">Status Awal</h2>
               </div>
               <div className="p-6 space-y-4">
-                <label className="flex items-start gap-4 p-4 border-2 border-[#1A3D63] bg-[#F8FAFC] rounded-2xl cursor-pointer">
-                  <div className="mt-0.5">
-                    <div className="w-4 h-4 rounded-full border-[5px] border-[#1A3D63] bg-white shadow-sm"></div>
+                <label className="block text-[12px] font-bold text-gray-500 mb-2">Pilih Status Awal Semester</label>
+                <div className="relative">
+                  <select 
+                    value={addForm.status} 
+                    onChange={e => setAddForm({...addForm, status: e.target.value})}
+                    className="w-full appearance-none bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-[14px] font-bold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20"
+                  >
+                    <option value="Draft">Simpan sebagai Draft (Tidak aktif)</option>
+                    <option value="Aktif">Langsung Aktifkan</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                   </div>
-                  <div>
-                    <div className="text-[14px] font-bold text-[#1e293b]">Simpan sebagai Draft</div>
-                    <div className="text-[12px] text-gray-500 mt-1">Semester tidak aktif. Dapat diaktifkan nanti.</div>
-                  </div>
-                </label>
+                </div>
 
-                <label className="block p-4 border border-gray-200 rounded-2xl cursor-pointer hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start gap-4">
-                    <div className="mt-0.5">
-                      <div className="w-4 h-4 rounded-full border border-gray-300 bg-white"></div>
-                    </div>
-                    <div>
-                      <div className="text-[14px] font-bold text-[#1e293b] opacity-80">Langsung Aktifkan</div>
-                      <div className="text-[12px] text-gray-500 mt-1">Semester aktif berjalan akan ditutup otomatis.</div>
-                    </div>
-                  </div>
+                {addForm.status === 'Aktif' && (
                   <div className="mt-4 p-3 bg-[#FFF8EB] border border-[#FBE3B8] rounded-xl flex items-start gap-3">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EAB308" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                    <p className="text-[11px] text-[#A67417] leading-relaxed">Menutup semester aktif akan mengunci semua input nilai dan absensi pada periode tersebut.</p>
+                    <p className="text-[11px] text-[#A67417] leading-relaxed">Menutup semester aktif sebelumnya akan mengunci semua input nilai dan absensi pada periode tersebut.</p>
                   </div>
-                </label>
+                )}
               </div>
             </div>
 
@@ -547,8 +538,10 @@ const Semester = () => {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="absolute left-3 top-2.5 text-gray-400"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
               </div>
               <div className="relative">
-                <select className="appearance-none pl-4 pr-9 py-2 bg-white border border-gray-200 rounded-xl text-[13px] font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20">
-                  <option>Semua Tahun</option>
+                <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)} className="appearance-none pl-4 pr-9 py-2 bg-white border border-gray-200 rounded-xl text-[13px] font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20">
+                  {["Semua Tahun", ...new Set(semesters.map(s => s.year))].map((y, idx) => (
+                    <option key={idx} value={y}>{y}</option>
+                  ))}
                 </select>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-2.5 text-gray-400"><polyline points="6 9 12 15 18 9"></polyline></svg>
               </div>
@@ -569,11 +562,13 @@ const Semester = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {semesters.filter(item =>
-                  item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  item.year.toLowerCase().includes(searchTerm.toLowerCase())
-                ).map((item, idx) => (
+                {semesters.filter(item => {
+                  const matchSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                      item.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                      item.year.toLowerCase().includes(searchTerm.toLowerCase());
+                  const matchYear = selectedYear === "Semua Tahun" || item.year === selectedYear;
+                  return matchSearch && matchYear;
+                }).map((item, idx) => (
                   <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -679,11 +674,16 @@ const SemesterEdit = ({ setView, initialData, onSave }) => {
     name: "Ganjil 2023/2024",
     year: "2023/2024",
     type: "Ganjil",
-    start: "17 Jul 2023",
-    end: "22 Des 2023",
+    start: "2023-07-17",
+    end: "2023-12-22",
     status: "Aktif",
     students: 15,
-    classes: 3
+    classes: 3,
+    uts: "2023-10-16",
+    uas: "2023-12-11",
+    rapor: "2023-12-23",
+    deadline: "2023-12-18",
+    hariEfektif: 140
   });
 
   return (
@@ -820,12 +820,13 @@ const SemesterEdit = ({ setView, initialData, onSave }) => {
                 <div>
                   <label className="block text-[12px] font-bold text-gray-500 mb-2">Hari Efektif Belajar</label>
                   <div className="relative">
-                    <input type="text" defaultValue="140" className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-16 py-3 text-[14px] font-semibold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" />
+                    <input type="number" value={editForm.hariEfektif || 140} onChange={e => setEditForm({...editForm, hariEfektif: parseInt(e.target.value) || 0})} className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-16 py-3 text-[14px] font-semibold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" style={{MozAppearance: 'textfield'}} />
+                    <style>{`input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }`}</style>
                     <div className="absolute inset-y-0 right-0 flex">
                       <div className="flex items-center px-4 text-[13px] font-medium text-gray-500 border-l border-gray-200">hari</div>
                       <div className="flex flex-col border-l border-gray-200 w-8">
-                        <button className="flex-1 flex items-center justify-center hover:bg-gray-50 border-b border-gray-200 rounded-tr-xl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg></button>
-                        <button className="flex-1 flex items-center justify-center hover:bg-gray-50 rounded-br-xl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></button>
+                        <button onClick={() => setEditForm({...editForm, hariEfektif: (editForm.hariEfektif || 140) + 1})} className="flex-1 flex items-center justify-center hover:bg-gray-50 border-b border-gray-200 rounded-tr-xl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg></button>
+                        <button onClick={() => setEditForm({...editForm, hariEfektif: (editForm.hariEfektif || 140) - 1})} className="flex-1 flex items-center justify-center hover:bg-gray-50 rounded-br-xl"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></button>
                       </div>
                     </div>
                   </div>
@@ -833,7 +834,7 @@ const SemesterEdit = ({ setView, initialData, onSave }) => {
                 <div>
                   <label className="block text-[12px] font-bold text-gray-500 mb-2">Minggu Efektif</label>
                   <div className="relative">
-                    <input type="text" readOnly value="20" className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-32 py-3 text-[14px] font-semibold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" />
+                    <input type="text" readOnly value={Math.floor((editForm.hariEfektif || 140) / 7)} className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-32 py-3 text-[14px] font-semibold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" />
                     <div className="absolute inset-y-0 right-24 flex items-center pointer-events-none">
                       <span className="text-[13px] font-medium text-gray-500">minggu</span>
                     </div>
@@ -857,37 +858,25 @@ const SemesterEdit = ({ setView, initialData, onSave }) => {
                 <div>
                   <label className="block text-[12px] font-bold text-gray-500 mb-2">Ujian Tengah Semester (UTS)</label>
                   <div className="relative">
-                    <input type="text" readOnly value="16 Okt 2023" className="w-full bg-[#F9FAFB] border border-gray-200 rounded-xl pl-4 pr-16 py-3 text-[14px] font-semibold text-gray-600 focus:outline-none" />
-                    <div className="absolute inset-y-0 right-3 flex items-center">
-                      <span className="bg-[#ECFDF5] text-[#059669] text-[10px] font-bold px-2 py-1 rounded">Selesai</span>
-                    </div>
+                    <input type="date" value={editForm.uts} onChange={e => setEditForm({...editForm, uts: e.target.value})} className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-[14px] font-semibold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-[12px] font-bold text-gray-500 mb-2">Ujian Akhir Semester (UAS)</label>
                   <div className="relative">
-                    <input type="text" defaultValue="11 Des 2023" className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-[14px] font-semibold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" />
-                    <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                    </div>
+                    <input type="date" value={editForm.uas} onChange={e => setEditForm({...editForm, uas: e.target.value})} className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-[14px] font-semibold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-[12px] font-bold text-gray-500 mb-2">Pembagian Rapor</label>
                   <div className="relative">
-                    <input type="text" defaultValue="23 Des 2023" className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-[14px] font-semibold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" />
-                    <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                    </div>
+                    <input type="date" value={editForm.rapor} onChange={e => setEditForm({...editForm, rapor: e.target.value})} className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-[14px] font-semibold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-[12px] font-bold text-gray-500 mb-2">Deadline Input Nilai Guru</label>
                   <div className="relative">
-                    <input type="text" defaultValue="18 Des 2023" className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-[14px] font-semibold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" />
-                    <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                    </div>
+                    <input type="date" value={editForm.deadline} onChange={e => setEditForm({...editForm, deadline: e.target.value})} className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-10 py-3 text-[14px] font-semibold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20" />
                   </div>
                 </div>
               </div>

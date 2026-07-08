@@ -6,7 +6,8 @@ import StudentData from "./StudentData";
 import EmployeeData from "./EmployeeData";
 import SystemSettings from "./SystemSettings";
 import PlaceholderDashboard from "./PlaceholderDashboard";
-import { getPendingUsers, activateUser, deactivateUser, getAuditLogs } from "../../api/system";
+import LaporanIntegrasi from "./LaporanIntegrasi";
+import { getPendingUsers, activateUser, deactivateUser, getAuditLogs, getAllSystemUsers, getSiswaDropdown } from "../../api/system";
 
 // Icons
 const IconUsers = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>;
@@ -18,8 +19,8 @@ const IconAlert = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="no
 const IconSearch = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>;
 const IconChevronDown = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>;
 
-const StatCard = ({ icon, label, value, color, iconBg }) => (
-  <div className="bg-white rounded-2xl p-5 flex flex-col gap-3 shadow-sm border border-gray-100/50 hover:shadow-md transition-all duration-300">
+const StatCard = ({ icon, label, value, color, iconBg, onClick }) => (
+  <div onClick={onClick} className={`bg-white rounded-2xl p-5 flex flex-col gap-3 shadow-sm border border-gray-100/50 hover:shadow-md transition-all duration-300 ${onClick ? 'cursor-pointer active:scale-[0.98] hover:border-gray-200' : ''}`}>
     <div className="flex items-center gap-3">
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${iconBg} ${color}`}>
         {icon}
@@ -446,10 +447,15 @@ const ActivationModule = () => {
 
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredUsers = allUsers.filter(u => 
+  const pendingUsers = allUsers.filter(u => !u.is_active && !u.roles); // Fake pending logic: no roles assigned yet
+  const nonaktifUsers = allUsers.filter(u => !u.is_active && u.roles); // Fake nonaktif logic: has roles but deactivated
+  
+  const currentTabUsers = activeTab === "Pending" ? pendingUsers : nonaktifUsers;
+
+  const filteredUsers = currentTabUsers.filter(u => 
     (u.nama || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
     (u.email || '').toLowerCase().includes(searchQuery.toLowerCase())
-  ).filter(u => activeTab === "Pending" ? !u.is_active : !u.is_active);
+  );
 
   return (
     <div className="flex flex-col gap-6 animate-fadeIn">
@@ -468,7 +474,7 @@ const ActivationModule = () => {
         </div>
         <button 
           onClick={() => setShowMassActivationModal(true)}
-          className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-semibold shadow-sm hover:bg-gray-50 transition-all"
+          className="flex items-center justify-center w-full md:w-auto gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-semibold shadow-sm hover:bg-gray-50 transition-all"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="m9 12 2 2 4-4" /></svg>
           Aktivasi Massal
@@ -520,26 +526,26 @@ const ActivationModule = () => {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
         {/* Tabs & Search */}
         <div className="px-6 py-5 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white">
-          <div className="flex gap-2">
+          <div className="flex gap-1.5 w-full md:w-auto overflow-x-auto hide-scrollbar bg-gray-100/80 p-1.5 rounded-[14px] border border-gray-200/50">
             <button
               onClick={() => setActiveTab("Pending")}
-              className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all ${
+              className={`whitespace-nowrap px-6 py-2.5 rounded-xl text-[13px] font-bold transition-all flex-1 md:flex-none text-center ${
                 activeTab === "Pending"
-                  ? "bg-white border border-gray-200 text-gray-800 shadow-sm"
-                  : "text-gray-400 hover:text-gray-600 border border-transparent"
+                  ? "bg-white text-[#1A3D63] shadow-sm"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
               }`}
             >
-              Pending (24)
+              Pending ({pendingUsers.length})
             </button>
             <button
               onClick={() => setActiveTab("Nonaktif")}
-              className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all ${
+              className={`whitespace-nowrap px-6 py-2.5 rounded-xl text-[13px] font-bold transition-all flex-1 md:flex-none text-center ${
                 activeTab === "Nonaktif"
-                  ? "bg-white border border-gray-200 text-gray-800 shadow-sm"
-                  : "text-gray-400 hover:text-gray-600 border border-transparent"
+                  ? "bg-white text-[#1A3D63] shadow-sm"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
               }`}
             >
-              Nonaktif (156)
+              Nonaktif ({nonaktifUsers.length})
             </button>
           </div>
           <div className="relative">
@@ -630,6 +636,143 @@ const ActivationModule = () => {
   );
 };
 
+const GlobalResetModal = ({ onClose }) => {
+  const [step, setStep] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [users, setUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [resetMethod, setResetMethod] = useState("email");
+  const [newPassword, setNewPassword] = useState("");
+  const [requireChange, setRequireChange] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    // Fetch users for search
+    import("../../api/system").then(({ getAllSystemUsers }) => {
+      getAllSystemUsers().then(res => setUsers(Array.isArray(res) ? res : []));
+    });
+  }, []);
+
+  const filteredUsers = users.filter(u => 
+    (u.nama || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (u.email || u.username || "").toLowerCase().includes(searchTerm.toLowerCase())
+  ).slice(0, 5); // show max 5
+
+  const handleReset = async () => {
+    setIsLoading(true);
+    try {
+      if (resetMethod === "manual") {
+        const { updateSystemUser } = await import("../../api/system");
+        await updateSystemUser(selectedUser.id, { password: newPassword });
+        alert("Password berhasil diperbarui!");
+      } else {
+        const { sendResetPasswordEmail } = await import("../../api/system");
+        await sendResetPasswordEmail(selectedUser.id);
+        alert("Link reset berhasil dikirim ke email pengguna!");
+      }
+      onClose();
+    } catch (e) {
+      alert("Gagal mereset password");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={onClose}></div>
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-slideUp">
+        <div className="flex items-center justify-between px-6 pt-6 pb-2">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-orange-50 flex items-center justify-center text-orange-500">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3m-3-3l2.5-2.5"/></svg>
+            </div>
+            <h3 className="text-[15px] font-bold text-gray-800">Reset Password Cepat</h3>
+          </div>
+          <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-full text-gray-400 transition-colors"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+
+        <div className="p-6">
+          {step === 1 && (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-500">Cari pengguna yang ingin direset passwordnya.</p>
+              <input 
+                type="text" 
+                placeholder="Ketik nama atau email..." 
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#1A3D63]"
+              />
+              <div className="space-y-2 mt-4 max-h-48 overflow-y-auto">
+                {searchTerm.length > 1 && filteredUsers.map(u => (
+                  <div key={u.id} onClick={() => { setSelectedUser(u); setStep(2); }} className="flex items-center justify-between p-3 border border-gray-100 rounded-xl cursor-pointer hover:border-[#1A3D63] hover:bg-blue-50/20 transition-colors">
+                    <div>
+                      <div className="text-sm font-bold text-gray-800">{u.nama}</div>
+                      <div className="text-xs text-gray-500">{u.email || u.username} &bull; {u.role}</div>
+                    </div>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-400"><polyline points="9 18 15 12 9 6"/></svg>
+                  </div>
+                ))}
+                {searchTerm.length > 1 && filteredUsers.length === 0 && (
+                  <div className="text-center text-sm text-gray-400 py-4">Pengguna tidak ditemukan</div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {step === 2 && selectedUser && (
+            <div className="space-y-5">
+              <div className="flex items-center gap-4 p-3.5 bg-[#F8FAFC]/50 rounded-2xl border border-gray-100/80">
+                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">
+                  {selectedUser.nama ? selectedUser.nama.substring(0,1).toUpperCase() : "?"}
+                </div>
+                <div className="flex-1">
+                  <div className="text-[13px] text-gray-500">{selectedUser.email || selectedUser.username}</div>
+                </div>
+                <button onClick={() => setStep(1)} className="text-[13px] font-bold text-[#1A3D63] hover:underline px-2">Ganti</button>
+              </div>
+
+              <div className="space-y-3 mt-2">
+                <label className={`flex items-start gap-3 p-4 rounded-xl border cursor-pointer transition-all ${resetMethod === "email" ? "border-[#1A3D63] shadow-sm" : "border-gray-200 hover:border-gray-300"}`}>
+                  <input type="radio" className="mt-1 w-4 h-4 text-[#1A3D63] focus:ring-[#1A3D63]" checked={resetMethod === "email"} onChange={() => setResetMethod("email")} />
+                  <div>
+                    <div className="text-[13px] font-bold text-gray-800">Kirim Link Reset ke Email</div>
+                    <div className="text-[12px] text-gray-500 mt-1">Sistem akan mengirim link ke email pengguna.</div>
+                  </div>
+                </label>
+                <label className={`flex flex-col gap-3 p-4 rounded-xl border cursor-pointer transition-all ${resetMethod === "manual" ? "border-[#1A3D63] shadow-sm" : "border-gray-200 hover:border-gray-300"}`}>
+                  <div className="flex items-center gap-3">
+                    <input type="radio" className="w-4 h-4 text-[#1A3D63] focus:ring-[#1A3D63]" checked={resetMethod === "manual"} onChange={() => setResetMethod("manual")} />
+                    <div className="text-[13px] font-bold text-gray-800">Atur Password Manual</div>
+                  </div>
+                  {resetMethod === "manual" && (
+                    <div className="pl-7 space-y-3 mt-1">
+                      <input type="password" placeholder="••••••••••" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full bg-[#EEF2F6] border-0 rounded-lg px-4 py-2.5 text-sm font-medium outline-none focus:ring-2 focus:ring-[#1A3D63]/20" />
+                      <label className="flex items-center gap-2 cursor-pointer mt-2">
+                        <input type="checkbox" className="rounded border-gray-300 text-[#1A3D63] focus:ring-[#1A3D63]" checked={requireChange} onChange={e => setRequireChange(e.target.checked)} />
+                        <span className="text-[12px] text-gray-500">Wajib ganti password saat login</span>
+                      </label>
+                    </div>
+                  )}
+                </label>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="px-6 pb-6 pt-2 flex justify-end items-center gap-4">
+          <button onClick={onClose} className="text-[13px] font-bold text-gray-500 hover:text-gray-800 transition-colors">Batal</button>
+          {step === 2 && (
+            <button onClick={handleReset} disabled={isLoading || (resetMethod === "manual" && newPassword.length < 6)} className="px-5 py-2.5 bg-[#1A3D63] text-white text-[13px] font-bold rounded-xl shadow-md hover:bg-[#122A44] disabled:opacity-50 transition-all">
+              {isLoading ? "Memproses..." : (resetMethod === "manual" ? "Simpan Password" : "Kirim Link")}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const RolePermissionModule = () => {
   const [selectedRoleId, setSelectedRoleId] = useState("admintu");
   const [searchQuery, setSearchQuery] = useState("");
@@ -638,7 +781,7 @@ const RolePermissionModule = () => {
   const [newRoleDesc, setNewRoleDesc] = useState("");
   const [newRolePerms, setNewRolePerms] = useState({});
 
-  const roles = [
+  const initialRoles = [
     { id: "superadmin", name: "Super Admin", usersCount: 2, isSystem: true, locked: true, description: "Hak akses penuh untuk mengelola seluruh aspek sistem, konfigurasi, backup, restore, dan database." },
     { id: "kepsek", name: "Kepala Sekolah", usersCount: 1, isSystem: true, locked: true, description: "Memantau laporan akademik, keuangan, guru, staf, siswa, serta menyetujui kebijakan strategis sekolah." },
     { id: "wakepsek", name: "Wakil Kepala", usersCount: 3, isSystem: true, locked: true, description: "Mengelola operasional sekolah harian, kurikulum, kesiswaan, humas, dan sarana prasarana." },
@@ -648,6 +791,19 @@ const RolePermissionModule = () => {
     { id: "orangtua", name: "Orang Tua", usersCount: 1240, isSystem: true, locked: true, description: "Memantau perkembangan belajar anak, absensi, jadwal pelajaran, tagihan SPP, dan pengumuman sekolah." },
     { id: "bendaharaosis", name: "Bendahara OSIS", usersCount: 4, isSystem: false, locked: false, description: "Kelola anggaran kegiatan kesiswaan, iuran OSIS, serta laporan pertanggungjawaban dana kegiatan." }
   ];
+
+  const [roleList, setRoleList] = useState(initialRoles);
+
+  const handleDuplicateRole = () => {
+    const selectedRole = roleList.find(r => r.id === selectedRoleId);
+    if (!selectedRole) return;
+    
+    setNewRoleName(selectedRole.name + " (Copy)");
+    setNewRoleDesc(selectedRole.description);
+    setNewRolePerms(permissions[selectedRoleId] ? JSON.parse(JSON.stringify(permissions[selectedRoleId])) : {});
+    setSelectedRoleId(null);
+    setIsCreating(true);
+  };
 
   // Default permissions map
   const [permissions, setPermissions] = useState({
@@ -683,7 +839,7 @@ const RolePermissionModule = () => {
     }
   });
 
-  const selectedRole = roles.find(r => r.id === selectedRoleId) || roles[0];
+  const selectedRole = roleList.find(r => r.id === selectedRoleId) || roleList[0];
 
   const handleToggle = (feature, action) => {
     setPermissions(prev => {
@@ -725,7 +881,7 @@ const RolePermissionModule = () => {
     return rolePerms[feature]?.[action] || false;
   };
 
-  const filteredRoles = roles.filter(r => 
+  const filteredRoles = roleList.filter(r => 
     r.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -752,23 +908,26 @@ const RolePermissionModule = () => {
           <h1 className="text-[26px] font-bold text-gray-800 tracking-tight">Role & Permission (RBAC)</h1>
           <p className="text-gray-400 text-[14px] mt-1 font-medium font-sans">Kelola hak akses untuk setiap role dalam sistem.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
           {isCreating ? (
             <button
               onClick={() => { setIsCreating(false); setNewRoleName(""); setNewRoleDesc(""); setNewRolePerms({}); }}
-              className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:bg-gray-50 transition-all"
+              className="flex items-center justify-center w-full sm:w-auto gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:bg-gray-50 transition-all"
             >
               Batal
             </button>
           ) : (
             <>
-              <button className="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:bg-gray-50 transition-all">
+              <button 
+                onClick={handleDuplicateRole}
+                className="flex items-center justify-center w-full sm:w-auto gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:bg-gray-50 transition-all"
+              >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
                 Duplikat Role
               </button>
               <button
                 onClick={() => { setIsCreating(true); setSelectedRoleId(null); }}
-                className="flex items-center gap-2 bg-[#1A3D63] hover:bg-[#122a47] text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-md shadow-[#1A3D63]/10 transition-all"
+                className="flex items-center justify-center w-full sm:w-auto gap-2 bg-[#1A3D63] hover:bg-[#122a47] text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-md shadow-[#1A3D63]/10 transition-all"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
                 Tambah Role Baru
@@ -785,7 +944,7 @@ const RolePermissionModule = () => {
           <div className="flex items-center justify-between">
             <h3 className="text-base font-bold text-gray-800">Daftar Role</h3>
             <span className="bg-gray-100 text-gray-500 text-xs font-semibold px-2 py-0.5 rounded-full">
-              {roles.length}
+              {roleList.length}
             </span>
           </div>
 
@@ -868,8 +1027,23 @@ const RolePermissionModule = () => {
                     <button
                       onClick={() => {
                         if (!newRoleName.trim()) { alert("Nama role tidak boleh kosong!"); return; }
+                        const newId = newRoleName.toLowerCase().replace(/\s+/g, '');
+                        const newRoleObj = {
+                          id: newId,
+                          name: newRoleName,
+                          usersCount: 0,
+                          isSystem: false,
+                          locked: false,
+                          description: newRoleDesc
+                        };
+                        setRoleList([...roleList, newRoleObj]);
+                        setPermissions({ ...permissions, [newId]: newRolePerms });
+                        setSelectedRoleId(newId);
+                        setIsCreating(false);
+                        setNewRoleName("");
+                        setNewRoleDesc("");
+                        setNewRolePerms({});
                         alert(`Role "${newRoleName}" berhasil disimpan!`);
-                        setIsCreating(false); setNewRoleName(""); setNewRoleDesc(""); setNewRolePerms({});
                       }}
                       className="flex items-center gap-1.5 bg-[#1A3D63] hover:bg-[#122a47] text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-md shadow-[#1A3D63]/10 transition-all flex-shrink-0"
                     >
@@ -909,17 +1083,39 @@ const RolePermissionModule = () => {
                 </div>
                 <p className="text-xs text-gray-400 leading-relaxed max-w-[560px]">{selectedRole?.description}</p>
               </div>
-              <button
-                onClick={() => alert("Perubahan hak akses berhasil disimpan!")}
-                className="flex items-center gap-1.5 bg-[#1A3D63] text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow-md shadow-[#1A3D63]/10 hover:bg-[#122a47] transition-all self-start flex-shrink-0"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                  <polyline points="17 21 17 13 7 13 7 21" />
-                  <polyline points="7 3 7 8 15 8" />
-                </svg>
-                Simpan Perubahan
-              </button>
+              <div className="flex items-center gap-2 self-start flex-shrink-0">
+                {!selectedRole?.isSystem && (
+                  <button
+                    onClick={() => {
+                      if (confirm(`Apakah Anda yakin ingin menghapus role "${selectedRole?.name}"?`)) {
+                        setRoleList(roleList.filter(r => r.id !== selectedRole.id));
+                        const newPerms = { ...permissions };
+                        delete newPerms[selectedRole.id];
+                        setPermissions(newPerms);
+                        setSelectedRoleId(roleList.find(r => r.isSystem)?.id || "admintu");
+                        alert(`Role "${selectedRole?.name}" berhasil dihapus.`);
+                      }
+                    }}
+                    className="flex items-center gap-1.5 bg-red-50 text-red-600 px-4 py-2.5 rounded-xl text-xs font-semibold shadow-sm hover:bg-red-100 transition-all border border-red-100"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line>
+                    </svg>
+                    Hapus Role
+                  </button>
+                )}
+                <button
+                  onClick={() => alert("Perubahan hak akses berhasil disimpan!")}
+                  className="flex items-center gap-1.5 bg-[#1A3D63] text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow-md shadow-[#1A3D63]/10 hover:bg-[#122a47] transition-all"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                    <polyline points="17 21 17 13 7 13 7 21" />
+                    <polyline points="7 3 7 8 15 8" />
+                  </svg>
+                  Simpan Perubahan
+                </button>
+              </div>
             </div>
           )}
 
@@ -996,7 +1192,50 @@ const RolePermissionModule = () => {
 
 const SuperAdminOverview = ({ onExportClick, onViewChange }) => {
   const [showQuickAction, setShowQuickAction] = useState(false);
+  const [showMassActivationModal, setShowMassActivationModal] = useState(false);
+  const [reactivateUser, setReactivateUser] = useState(null);
+  const [showGlobalResetModal, setShowGlobalResetModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    activeStudents: 0,
+    staffCount: 0,
+    errorLogs: 0
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const users = await getAllSystemUsers().catch(() => []);
+        const logs = await getAuditLogs().catch(() => []);
+        const siswa = await getSiswaDropdown().catch(() => []); // Ambil dari tabel academic.siswa
+        
+        // Menghitung siswa yang terdaftar di sekolah (hapus duplikasi akibat LEFT JOIN data orang tua)
+        const uniqueStudents = new Set(siswa.map(s => s.id));
+        const activeStudents = uniqueStudents.size;
+        
+        const staffCount = users.filter(u => {
+          const r = u.role?.toLowerCase() || "";
+          return r.includes("guru") || r.includes("staf") || r.includes("admin") || r.includes("kepala");
+        }).length;
+
+        const errorLogsCount = logs.filter(l => 
+          l.detail?.toLowerCase().includes("gagal") || l.detail?.toLowerCase().includes("error")
+        ).length;
+
+        setStats({
+          totalUsers: users.length,
+          activeStudents,
+          staffCount,
+          errorLogs: errorLogsCount
+        });
+      } catch (error) {
+        console.error("Failed to fetch dashboard stats", error);
+      }
+    };
+    fetchStats();
+  }, []);
 
   const rbacChanges = [
     { name: "Dr. Wahyu", oldRole: "Guru", newRole: "Admin TU", time: "10:45" },
@@ -1081,7 +1320,7 @@ const SuperAdminOverview = ({ onExportClick, onViewChange }) => {
                       </svg>
                       Aktivasi / Nonaktif User
                     </button>
-                    <button onClick={() => { onViewChange?.("Kelola Pengguna"); setShowQuickAction(false); }} className="w-full text-left px-3 py-2 text-[13px] font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
+                    <button onClick={() => { setShowGlobalResetModal(true); setShowQuickAction(false); }} className="w-full text-left px-3 py-2 text-[13px] font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500">
                         <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zM12 12l.5-1.5L14 11l.5-1.5L16 10l3.5-3.5L21 4" />
                       </svg>
@@ -1124,12 +1363,12 @@ const SuperAdminOverview = ({ onExportClick, onViewChange }) => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-        <StatCard icon={<IconUsers />} label="Total User" value="1,582" color="text-blue-600" iconBg="bg-blue-50" />
-        <StatCard icon={<IconGraduation />} label="Siswa Aktif" value="1,248" color="text-indigo-600" iconBg="bg-indigo-50" />
-        <StatCard icon={<IconBriefcase />} label="Guru & Staf" value="112" color="text-emerald-600" iconBg="bg-emerald-50" />
+        <StatCard icon={<IconUsers />} label="Total User" value={stats.totalUsers.toLocaleString()} color="text-blue-600" iconBg="bg-blue-50" onClick={() => onViewChange?.("Mengelola Akun User")} />
+        <StatCard icon={<IconGraduation />} label="Siswa Aktif" value={stats.activeStudents.toLocaleString()} color="text-indigo-600" iconBg="bg-indigo-50" onClick={() => onViewChange?.("Data Siswa")} />
+        <StatCard icon={<IconBriefcase />} label="Guru & Staf" value={stats.staffCount.toLocaleString()} color="text-emerald-600" iconBg="bg-emerald-50" onClick={() => onViewChange?.("Data Guru & Karyawan")} />
         <StatCard icon={<IconPulse />} label="Sistem Uptime" value="99.9%" color="text-teal-600" iconBg="bg-teal-50" />
-        <StatCard icon={<IconDatabase />} label="Storage" value="68%" color="text-amber-600" iconBg="bg-amber-50" />
-        <StatCard icon={<IconAlert />} label="Error Logs" value="3" color="text-red-600" iconBg="bg-red-50" />
+        <StatCard icon={<IconDatabase />} label="Storage" value="68%" color="text-amber-600" iconBg="bg-amber-50" onClick={() => onViewChange?.("Backup & Maintenance")} />
+        <StatCard icon={<IconAlert />} label="Error Logs" value={stats.errorLogs.toString()} color="text-red-600" iconBg="bg-red-50" onClick={() => onViewChange?.("Laporan Integrasi")} />
       </div>
 
       {/* Tables Row */}
@@ -1203,6 +1442,7 @@ const SuperAdminOverview = ({ onExportClick, onViewChange }) => {
           </div>
         </div>
       </div>
+      {showGlobalResetModal && <GlobalResetModal onClose={() => setShowGlobalResetModal(false)} />}
     </div>
   );
 };
@@ -3277,7 +3517,7 @@ const SuperAdminDashboard = ({ user, activeMenu, onViewChange }) => {
     switch (activeMenu) {
       case "Mengelola Akun User":
       case "Kelola Pengguna":
-        return <ManageUsers />;
+        return <ManageUsers onViewChange={onViewChange} />;
       case "Aktivasi & Nonaktif":
         return <ActivationModule />;
       case "Role & Permission":
@@ -3293,7 +3533,7 @@ const SuperAdminDashboard = ({ user, activeMenu, onViewChange }) => {
       case "Data Guru & Karyawan":
         return <EmployeeData />;
       case "Laporan Integrasi":
-        return <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
+        return <LaporanIntegrasi />;
       case "Pengaturan Sistem":
         return <SystemSettings />;
       case "My Profile":

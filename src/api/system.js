@@ -36,6 +36,9 @@ export const updateSystemUser = (id, data) =>
 export const deleteSystemUser = (id) =>
   api.delete(`/system/users/${id}`).then(r => r.data);
 
+export const sendResetPasswordEmail = (id) =>
+  api.post(`/system/users/${id}/reset-password-email`).then(r => r.data);
+
 // === SISWA LIST (untuk dropdown pilih anak orang tua) ===
 export const getSiswaDropdown = () =>
   api.get('/system/siswa').then(r => r.data.data);

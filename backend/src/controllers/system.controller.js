@@ -1,6 +1,7 @@
 'use strict';
 
 const SystemService = require('../services/system.service');
+const EmailService = require('../services/email.service');
 const response = require('../utils/response');
 
 const SystemController = {
@@ -58,6 +59,34 @@ const SystemController = {
     try {
       const user = await SystemService.createUser(req.body);
       return response.success(res, 201, 'Berhasil membuat pengguna', user);
+    } catch (err) { next(err); }
+  },
+
+  sendResetPasswordEmail: async (req, res, next) => {
+    try {
+      const userId = req.params.id;
+      
+      // Ambil data user dari database (kita butuh email dan nama)
+      const users = await SystemService.getAllUsers(); // Atau method findById jika ada
+      const user = users.find(u => String(u.id) === String(userId));
+      
+      if (!user) {
+        return response.error(res, 404, 'Pengguna tidak ditemukan');
+      }
+
+      if (!user.email) {
+        return response.error(res, 400, 'Pengguna ini tidak memiliki alamat email terdaftar.');
+      }
+
+      // Generate token dummy atau bisa save ke DB untuk divalidasi nanti
+      const crypto = require('crypto');
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      
+      // Kirim email
+      const userName = user.name || user.nama || 'Pengguna';
+      await EmailService.sendResetPasswordEmail(user.email, userName, resetToken);
+      
+      return response.success(res, 200, 'Link reset password berhasil dikirim ke email pengguna.');
     } catch (err) { next(err); }
   },
 

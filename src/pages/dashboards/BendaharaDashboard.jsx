@@ -1333,11 +1333,17 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
         });
         const totalPenyaluranBeasiswa = penyaluranBeasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
         const totalPenggajianTahunan = paidSlips.reduce((acc, curr) => acc + (Number(curr.gaji_bersih) || 0), 0);
-        const totalPengeluaranTahunan = globalFinance.totalPengeluaran;
+        const totalOperasionalSaja = currentPengeluaranData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+        
+        // Sinkronkan Total Pengeluaran dengan menu Pemasukan & Pengeluaran (Operasional + Beasiswa)
+        const totalPengeluaranTahunan = totalOperasionalSaja + totalPenyaluranBeasiswa;
         
         const totalBeasiswa = danaBeasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
         const totalSppTahunan = sppPayments.reduce((acc, curr) => acc + (Number(String(curr.amount).replace(/[^0-9]/g, '')) || 0), 0);
-        const totalPemasukanTahunan = globalFinance.totalPemasukan;
+        
+        // Pemasukan juga sinkron dengan menu: SPP + Operasional Masuk + Dana Beasiswa
+        const totalOperasionalMasuk = currentPemasukanData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+        const totalPemasukanTahunan = totalSppTahunan + totalOperasionalMasuk + totalBeasiswa;
 
         return (
           <div className="flex flex-col gap-6 animate-fadeIn font-sans">

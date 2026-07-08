@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { getAllSystemUsers, createSystemUser, updateSystemUser, deleteSystemUser, getRoles, getSiswaDropdown } from "../../api/system";
 
@@ -19,10 +19,12 @@ const SendIcon = () => <svg width="16" height="16" fill="none" stroke="currentCo
 
 const MOCK_USERS = []; // Removed, now using API
 
-const ManageUsers = () => {
+const ManageUsers = ({ onViewChange }) => {
   const [view, setView] = useState("list"); // "list", "add", "edit"
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterRole, setFilterRole] = useState("Semua");
+  const [filterStatus, setFilterStatus] = useState("Semua");
   const [users, setUsers] = useState([]);
   const [roles, setRoles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,6 +40,10 @@ const ManageUsers = () => {
     isActive: true
   });
   const [siswaList, setSiswaList] = useState([]);
+  
+  // Password Visibility State
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const triggerToast = (msg, type = 'success') => {
     setToast({ msg, type });
@@ -69,11 +75,30 @@ const ManageUsers = () => {
   const [showResetModal, setShowResetModal] = useState(false);
   const [userForReset, setUserForReset] = useState(null);
   const [resetMethod, setResetMethod] = useState("email");
+  const [resetPasswordManual, setResetPasswordManual] = useState("");
+  const [resetRequireChange, setResetRequireChange] = useState(false);
 
-  const filteredUsers = users.filter(u => 
-    (u.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (u.email || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users.filter(u => {
+    const matchesSearch = (u.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          (u.email || u.user || '').toLowerCase().includes(searchTerm.toLowerCase());
+    
+    let matchesRole = true;
+    if (filterRole !== "Semua") {
+      const userRole = (u.role || "").toLowerCase();
+      const filterR = filterRole.toLowerCase();
+      // Handle mapping "Admin Global" -> "super admin" / "admin" if necessary, but "Admin" usually works.
+      matchesRole = userRole.includes(filterR.replace(' global', ''));
+    }
+
+    let matchesStatus = true;
+    if (filterStatus === "Aktif") {
+      matchesStatus = u.is_active === true;
+    } else if (filterStatus === "Nonaktif") {
+      matchesStatus = u.is_active === false;
+    }
+
+    return matchesSearch && matchesRole && matchesStatus;
+  });
 
   const handleSaveUser = async () => {
     if (!formData.nama || !formData.email || (!selectedUser && !formData.password)) {
@@ -108,6 +133,43 @@ const ManageUsers = () => {
     }
   };
 
+  const exportToCSV = () => {
+    if (users.length === 0) {
+      triggerToast('Tidak ada data untuk diekspor', 'error');
+      return;
+    }
+    
+    // Headers
+    const headers = ['ID', 'Nama Lengkap', 'Email/Username', 'Role', 'Status', 'Terakhir Login', 'Tanggal Daftar'];
+    
+    // Rows
+    const rows = users.map(u => [
+      u.id,
+      `"${u.name || ''}"`,
+      `"${u.email || u.user || ''}"`,
+      `"${u.role || ''}"`,
+      u.is_active ? 'Aktif' : (!u.role || u.role.trim() === '' ? 'Pending' : 'Nonaktif'),
+      `"${u.lastLogin ? new Date(u.lastLogin).toLocaleString() : 'Belum Login'}"`,
+      `"${u.created_at ? new Date(u.created_at).toLocaleString() : ''}"`
+    ]);
+    
+    // Combine
+    const csvContent = [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    
+    // Trigger Download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `data_pengguna_${new Date().toISOString().slice(0,10)}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    triggerToast('Data berhasil diekspor ke CSV');
+  };
+
   const getInitials = (name) => {
     if (!name) return "?";
     return name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase();
@@ -116,6 +178,8 @@ const ManageUsers = () => {
   const openResetModal = (user) => {
     setUserForReset(user);
     setResetMethod("email");
+    setResetPasswordManual("");
+    setResetRequireChange(false);
     setShowResetModal(true);
   };
 
@@ -129,14 +193,16 @@ const ManageUsers = () => {
       siswaId: user.linked_siswa_id || '', // pre-fill dari relasi yang sudah ada
       isActive: user.is_active
     });
+    setShowPassword(false);
+    setShowConfirmPassword(false);
     setView("edit");
   };
 
   const handleAddClick = () => {
     setSelectedUser(null);
-    setFormData({
-      nama: '', email: '', password: '', roleId: '', siswaId: '', isActive: true
-    });
+    setFormData({ nama: '', email: '', password: '', roleId: '', siswaId: '', isActive: true });
+    setShowPassword(false);
+    setShowConfirmPassword(false);
     setView("add");
   };
 
@@ -163,14 +229,14 @@ const ManageUsers = () => {
             <h1 className="text-2xl font-black text-gray-800 tracking-tight">{title}</h1>
             <p className="text-sm text-gray-400 mt-1 font-medium">{subtitle}</p>
           </div>
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto shrink-0">
             <button
               onClick={() => setView("list")}
-              className="px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-all bg-white shadow-sm"
+              className="w-full sm:w-auto text-center px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-all bg-white shadow-sm"
             >
               Batal
             </button>
-            <button onClick={handleSaveUser} className="flex items-center gap-2 bg-[#1A3D63] hover:bg-[#122A44] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-[#1A3D63]/20 transition-all">
+            <button onClick={handleSaveUser} className="flex items-center justify-center w-full sm:w-auto gap-2 bg-[#1A3D63] hover:bg-[#122A44] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-[#1A3D63]/20 transition-all">
               <SaveIcon />
               {isAdd ? "Simpan Pengguna" : "Simpan Perubahan"}
             </button>
@@ -274,14 +340,22 @@ const ManageUsers = () => {
                   <label className="block text-sm font-bold text-gray-700 mb-2">Password Sementara</label>
                   <div className="relative">
                     <input
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       placeholder="Masukkan password awal"
                       value={formData.password}
                       onChange={(e) => setFormData({...formData, password: e.target.value})}
                       className="w-full px-4 py-3 bg-white border border-gray-200 focus:border-[#1A3D63] rounded-xl text-sm font-semibold text-gray-800 outline-none transition-all pr-10 focus:ring-1 focus:ring-[#1A3D63]"
                     />
-                    <button className="absolute inset-y-0 right-4 flex items-center text-gray-400 hover:text-gray-600">
-                      <EyeOffIcon />
+                    <button 
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-4 flex items-center text-gray-400 hover:text-gray-600"
+                    >
+                      {showPassword ? (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      ) : (
+                        <EyeOffIcon />
+                      )}
                     </button>
                   </div>
                   <p className="text-xs text-gray-400 mt-2">Minimal 8 karakter, kombinasi huruf dan angka.</p>
@@ -290,12 +364,20 @@ const ManageUsers = () => {
                   <label className="block text-sm font-bold text-gray-700 mb-2">Konfirmasi Password</label>
                   <div className="relative">
                     <input
-                      type="password"
+                      type={showConfirmPassword ? "text" : "password"}
                       defaultValue="12345678"
                       className="w-full px-4 py-3 bg-white border border-gray-200 focus:border-[#1A3D63] rounded-xl text-sm font-semibold text-gray-800 outline-none transition-all pr-10 focus:ring-1 focus:ring-[#1A3D63]"
                     />
-                    <button className="absolute inset-y-0 right-4 flex items-center text-gray-400 hover:text-gray-600">
-                      <EyeOffIcon />
+                    <button 
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute inset-y-0 right-4 flex items-center text-gray-400 hover:text-gray-600"
+                    >
+                      {showConfirmPassword ? (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      ) : (
+                        <EyeOffIcon />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -405,15 +487,24 @@ const ManageUsers = () => {
       {/* Header Area */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
         <div>
+          {onViewChange && (
+            <button 
+              onClick={() => onViewChange("Dashboard")}
+              className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-[#1A3D63] transition-colors mb-3"
+            >
+              <ArrowLeftIcon />
+              Kembali ke Dashboard
+            </button>
+          )}
           <h1 className="text-[26px] font-black text-gray-800 tracking-tight">Kelola Akun Pengguna</h1>
           <p className="text-[14px] text-gray-400 mt-1 font-medium">Melihat, menambah, dan mengelola seluruh akun pengguna dalam sistem.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-[14px] text-[13px] font-bold text-gray-600 shadow-sm hover:bg-gray-50 transition-all active:scale-95">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+          <button onClick={exportToCSV} className="flex items-center justify-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-[14px] text-[13px] font-bold text-gray-600 shadow-sm hover:bg-gray-50 transition-all active:scale-95">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
             Export Data
           </button>
-          <button onClick={handleAddClick} className="flex items-center gap-2 bg-[#1A3D63] text-white px-6 py-3 rounded-[14px] text-[13px] font-bold shadow-md shadow-[#1A3D63]/20 hover:bg-[#122A44] transition-all active:scale-95">
+          <button onClick={handleAddClick} className="flex items-center justify-center gap-2 bg-[#1A3D63] text-white px-6 py-3 rounded-[14px] text-[13px] font-bold shadow-md shadow-[#1A3D63]/20 hover:bg-[#122A44] transition-all active:scale-95">
             <UserPlusIcon />
             Tambah Pengguna
           </button>
@@ -439,21 +530,31 @@ const ManageUsers = () => {
           
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative">
-              <select className="appearance-none bg-gray-50/80 border border-transparent focus:bg-white focus:border-gray-200 rounded-[20px] pl-5 pr-10 py-3.5 text-[13px] font-bold text-gray-600 outline-none w-36 cursor-pointer transition-all">
-                <option>Role: Semua</option>
-                <option>Admin Global</option>
-                <option>Guru</option>
-                <option>Siswa</option>
+              <select 
+                value={filterRole}
+                onChange={(e) => setFilterRole(e.target.value)}
+                className="appearance-none bg-gray-50/80 border border-transparent focus:bg-white focus:border-gray-200 rounded-[20px] pl-5 pr-10 py-3.5 text-[13px] font-bold text-gray-600 outline-none w-36 cursor-pointer transition-all"
+              >
+                <option value="Semua">Role: Semua</option>
+                <option value="Admin">Admin</option>
+                <option value="Guru">Guru</option>
+                <option value="Siswa">Siswa</option>
+                <option value="Orang Tua">Orang Tua</option>
+                <option value="Bendahara">Bendahara</option>
               </select>
               <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
                 <ChevronDownIcon />
               </div>
             </div>
             <div className="relative">
-              <select className="appearance-none bg-gray-50/80 border border-transparent focus:bg-white focus:border-gray-200 rounded-[20px] pl-5 pr-10 py-3.5 text-[13px] font-bold text-gray-600 outline-none w-40 cursor-pointer transition-all">
-                <option>Status: Semua</option>
-                <option>Aktif</option>
-                <option>Nonaktif</option>
+              <select 
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="appearance-none bg-gray-50/80 border border-transparent focus:bg-white focus:border-gray-200 rounded-[20px] pl-5 pr-10 py-3.5 text-[13px] font-bold text-gray-600 outline-none w-40 cursor-pointer transition-all"
+              >
+                <option value="Semua">Status: Semua</option>
+                <option value="Aktif">Aktif</option>
+                <option value="Nonaktif">Nonaktif</option>
               </select>
               <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
                 <ChevronDownIcon />
@@ -503,6 +604,11 @@ const ManageUsers = () => {
                           <div className="w-2 h-2 rounded-full bg-green-500"></div>
                           <span className="text-[13px] font-bold text-green-600">Aktif</span>
                         </div>
+                      ) : (!user.role || user.role.trim() === '') ? (
+                        <div className="flex items-center gap-1.5 ml-4">
+                          <div className="w-2 h-2 rounded-full bg-amber-500"></div>
+                          <span className="text-[13px] font-bold text-amber-500">Pending</span>
+                        </div>
                       ) : (
                         <div className="flex items-center gap-1.5 ml-4">
                           <div className="w-2 h-2 rounded-full bg-red-500"></div>
@@ -516,10 +622,9 @@ const ManageUsers = () => {
                   </td>
                   <td className="px-8 py-6 text-right">
                     <div className="flex items-center justify-end gap-3 text-gray-300">
-                      <button className="hover:text-gray-600 transition-colors p-1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
-                      <button onClick={() => openResetModal(user)} className="hover:text-orange-500 transition-colors p-1"><KeyIcon /></button>
-                      <button onClick={() => handleEditClick(user)} className="hover:text-blue-600 transition-colors p-1"><EditIcon /></button>
-                      <button onClick={() => handleDelete(user.id)} className="hover:text-red-500 transition-colors p-1"><TrashIcon /></button>
+                      <button onClick={() => openResetModal(user)} className="hover:text-orange-500 transition-colors p-1" title="Reset Password"><KeyIcon /></button>
+                      <button onClick={() => handleEditClick(user)} className="hover:text-blue-600 transition-colors p-1" title="Edit Pengguna"><EditIcon /></button>
+                      <button onClick={() => handleDelete(user.id)} className="hover:text-red-500 transition-colors p-1" title="Hapus Pengguna"><TrashIcon /></button>
                     </div>
                   </td>
                 </tr>
@@ -593,6 +698,8 @@ const ManageUsers = () => {
                         <input
                           type="password"
                           placeholder="Ketik password baru..."
+                          value={resetPasswordManual}
+                          onChange={(e) => setResetPasswordManual(e.target.value)}
                           disabled={resetMethod !== "manual"}
                           className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:border-[#1A3D63] focus:ring-1 focus:ring-[#1A3D63] disabled:opacity-50 disabled:bg-gray-50"
                         />
@@ -600,8 +707,11 @@ const ManageUsers = () => {
                           <EyeOffIcon />
                         </button>
                       </div>
-                      <label className={`flex items-center gap-2 cursor-pointer ${resetMethod !== "manual" ? "opacity-50" : ""}`}>
-                        <div className="w-4 h-4 rounded border border-gray-300 flex items-center justify-center bg-white"></div>
+                      <label className={`flex items-center gap-2 cursor-pointer ${resetMethod !== "manual" ? "opacity-50 pointer-events-none" : ""}`}>
+                        <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${resetRequireChange ? 'bg-[#1A3D63] border-[#1A3D63]' : 'border-gray-300 bg-white'}`}>
+                          {resetRequireChange && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                        </div>
+                        <input type="checkbox" className="hidden" disabled={resetMethod !== "manual"} checked={resetRequireChange} onChange={(e) => setResetRequireChange(e.target.checked)} />
                         <span className="text-xs font-semibold text-gray-600">Wajib ganti password saat login</span>
                       </label>
                     </div>
@@ -614,11 +724,26 @@ const ManageUsers = () => {
             <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-3 bg-gray-50/50 rounded-b-2xl">
               <button onClick={() => setShowResetModal(false)} className="text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors px-4 py-2.5">Batal</button>
               <button
-                onClick={() => setShowResetModal(false)}
-                className="flex items-center gap-2 bg-[#1A3D63] hover:bg-[#122a47] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-[#1A3D63]/20 transition-all active:scale-[0.98]"
+                onClick={async () => {
+                  try {
+                    if (resetMethod === "manual") {
+                      await updateSystemUser(userForReset.id, { password: resetPasswordManual });
+                      triggerToast("Password berhasil disimpan", "success");
+                    } else {
+                      const { sendResetPasswordEmail } = await import("../../api/system");
+                      await sendResetPasswordEmail(userForReset.id);
+                      triggerToast("Link reset berhasil dikirim ke email", "success");
+                    }
+                    setShowResetModal(false);
+                  } catch (e) {
+                    triggerToast("Gagal memproses permintaan", "error");
+                  }
+                }}
+                disabled={resetMethod === "manual" && resetPasswordManual.length < 6}
+                className="flex items-center gap-2 bg-[#1A3D63] hover:bg-[#122a47] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-[#1A3D63]/20 transition-all active:scale-[0.98] disabled:opacity-50"
               >
-                <SendIcon />
-                Kirim Link Reset
+                {resetMethod === "manual" ? <SaveIcon /> : <SendIcon />}
+                {resetMethod === "manual" ? "Simpan Password" : "Kirim Link Reset"}
               </button>
             </div>
           </div>

@@ -163,12 +163,22 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
     }
     // Require at least one uploaded proof file
     if (uploadedFiles.length === 0) {
-      setFileUploadError("Harap unggah bukti pembayaran sebelum menyimpan!");
+      setFileUploadError("Harap unggah bukti transaksi sebelum menyimpan!");
       return;
     }
 
     setIsSaving(true);
     try {
+      // Convert files to Base64 to save them via the mock backend
+      const buktiArray = await Promise.all(uploadedFiles.map(file => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = error => reject(error);
+        });
+      }));
+
       const payload = {
         tipe: activeTab,
         tanggal: formData.tanggal,
@@ -177,7 +187,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
         nominal: Number(String(formData.nominal).replace(/[^0-9]/g, '')),
         sumber_dana: formData.sumberDana,
         keterangan: formData.keterangan,
-        bukti: []
+        bukti: buktiArray
       };
 
       await createOperasional(payload);
@@ -765,7 +775,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1.5">Upload Bukti Pembayaran <span className="text-red-500">*</span></label>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Upload Bukti Transaksi <span className="text-red-500">*</span></label>
                 <label className="border-2 border-dashed border-gray-200 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-all text-center">
                   <div className="text-gray-400 mb-2">
                     <IconUpload />
@@ -799,6 +809,9 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
                             hasInvalid = true;
                             continue;
                           }
+                          if (file.type.includes('image')) {
+                            file.preview = URL.createObjectURL(file);
+                          }
                           validFiles.push(file);
                         }
 
@@ -819,26 +832,39 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
                   {uploadedFiles.length > 0 && (
                     <div className="mt-3 space-y-2">
                       {uploadedFiles.map((file, idx) => (
-                        <div key={idx} className="flex items-center justify-between bg-emerald-50 border border-emerald-200 p-3 rounded-xl">
+                        <div key={idx} className="flex items-center justify-between bg-gray-50 border border-gray-200 p-3 rounded-xl hover:border-blue-300 transition-colors">
                           <div className="flex items-center gap-3 overflow-hidden">
-                            <div className="w-8 h-8 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center shrink-0">
-                              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                              </svg>
+                            <div 
+                              className="w-10 h-10 bg-white text-blue-600 rounded-lg flex items-center justify-center shrink-0 overflow-hidden cursor-pointer border border-gray-200 hover:opacity-80 transition-opacity shadow-sm"
+                              onClick={() => {
+                                setSelectedPreviewFile(file);
+                                setShowPreviewModal(true);
+                              }}
+                              title="Klik untuk melihat pratinjau penuh"
+                            >
+                              {file.type?.includes('image') && file.preview ? (
+                                <img src={file.preview} alt="Thumbnail" className="w-full h-full object-cover" />
+                              ) : (
+                                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                                </svg>
+                              )}
                             </div>
                             <div className="min-w-0">
-                              <p className="text-sm font-bold text-emerald-800 truncate">{file.name}</p>
-                              <p className="text-[11px] text-emerald-600 font-medium">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                              <p className="text-sm font-bold text-gray-800 truncate">{file.name}</p>
+                              <p className="text-[11px] text-gray-500 font-medium">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
                             </div>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => setUploadedFiles(prev => prev.filter((_, i) => i !== idx))}
-                            className="text-emerald-600 hover:text-emerald-800 bg-transparent border-none cursor-pointer p-1.5 rounded-lg hover:bg-emerald-100/50 transition-colors shrink-0"
-                            title="Hapus File"
-                          >
-                            <IconX />
-                          </button>
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => setUploadedFiles(prev => prev.filter((_, i) => i !== idx))}
+                              className="text-red-500 hover:text-red-700 bg-white border border-gray-200 cursor-pointer p-1.5 rounded-lg hover:bg-red-50 hover:border-red-200 transition-colors shrink-0 shadow-sm"
+                              title="Hapus File"
+                            >
+                              <IconX />
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -963,34 +989,36 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
 
               {selectedDetailItem.kategori !== 'Beasiswa' && (
                 <div>
-                  <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Bukti Pembayaran</div>
+                  <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Bukti Transaksi</div>
                   {selectedDetailItem.bukti && selectedDetailItem.bukti.length > 0 ? (
                     <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
                       {selectedDetailItem.bukti.map((file, idx) => (
                         <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                          <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                            <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                            </svg>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-xs font-bold text-gray-800 truncate">{file}</div>
-                            <div className="text-[10px] text-gray-500">Klik untuk melihat lampiran</div>
-                          </div>
-                          <button 
+                          <div 
+                            className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 overflow-hidden cursor-pointer border border-blue-200 hover:opacity-80 transition-opacity"
                             onClick={() => {
                               setSelectedPreviewFile(file);
                               setShowPreviewModal(true);
                             }}
-                            className="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 text-[10px] font-bold rounded-lg hover:bg-gray-50 cursor-pointer shrink-0"
+                            title="Klik untuk melihat pratinjau penuh"
                           >
-                            Lihat
-                          </button>
+                            {file.match(/\.(jpg|jpeg|png|gif)$/i) || file.startsWith('data:image') ? (
+                              <img src={file} alt="Thumbnail" className="w-full h-full object-cover" />
+                            ) : (
+                              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                              </svg>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs font-bold text-gray-800 truncate">{file.startsWith('data:') ? 'Bukti Transaksi' : file}</div>
+                            <div className="text-[10px] text-gray-500">Klik ikon gambar untuk melihat lampiran</div>
+                          </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-xs text-gray-500 italic">Tidak ada bukti pembayaran yang dilampirkan.</div>
+                    <div className="text-xs text-gray-500 italic">Tidak ada bukti transaksi yang dilampirkan.</div>
                   )}
                 </div>
               )}
@@ -1065,9 +1093,9 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
         </div>
       )}
 
-      {/* Modal Preview Bukti Pembayaran */}
+      {/* Modal Preview Bukti Transaksi */}
       {showPreviewModal && selectedPreviewFile && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
               <div className="flex items-center gap-3">
@@ -1077,7 +1105,11 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
                   </svg>
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-sm font-bold text-gray-800 truncate max-w-[200px] sm:max-w-[300px]">{selectedPreviewFile}</h3>
+                  <h3 className="text-sm font-bold text-gray-800 truncate max-w-[200px] sm:max-w-[300px]">
+                    {typeof selectedPreviewFile === 'string' 
+                      ? (selectedPreviewFile.startsWith('data:') ? 'Bukti Transaksi' : selectedPreviewFile) 
+                      : selectedPreviewFile?.name}
+                  </h3>
                   <p className="text-[10px] text-gray-500">Pratinjau Dokumen</p>
                 </div>
               </div>
@@ -1092,14 +1124,22 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
               </button>
             </div>
             
-            <div className="bg-gray-100 p-8 flex flex-col items-center justify-center min-h-[300px]">
-              <div className="w-24 h-24 mb-4 text-gray-300">
-                <svg fill="none" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                </svg>
-              </div>
-              <p className="text-sm font-bold text-gray-400 text-center max-w-[80%] break-words">Menampilkan Pratinjau: {selectedPreviewFile}</p>
-              <p className="text-xs text-gray-400 mt-2 text-center">Mode Mockup: Gambar/dokumen sebenarnya akan tampil di sini saat terhubung API.</p>
+            <div className="bg-gray-100 p-4 sm:p-8 flex flex-col items-center justify-center min-h-[300px]">
+              {selectedPreviewFile && typeof selectedPreviewFile !== 'string' && selectedPreviewFile.type?.includes('image') ? (
+                <img src={selectedPreviewFile.preview || URL.createObjectURL(selectedPreviewFile)} alt="Preview Bukti" className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-sm" />
+              ) : selectedPreviewFile && typeof selectedPreviewFile === 'string' && (selectedPreviewFile.match(/\.(jpg|jpeg|png|gif)$/i) || selectedPreviewFile.startsWith('data:image')) ? (
+                <img src={selectedPreviewFile} alt="Preview Bukti" className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-sm" />
+              ) : (
+                <>
+                  <div className="w-24 h-24 mb-4 text-gray-300">
+                    <svg fill="none" stroke="currentColor" strokeWidth="1" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                    </svg>
+                  </div>
+                  <p className="text-sm font-bold text-gray-400 text-center max-w-[80%] break-words">Menampilkan Pratinjau: {typeof selectedPreviewFile === 'string' ? selectedPreviewFile : selectedPreviewFile?.name}</p>
+                  <p className="text-xs text-gray-400 mt-2 text-center">Pratinjau khusus untuk file gambar (JPG/PNG). Dokumen PDF akan dapat dilihat saat diunduh.</p>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -24,6 +24,9 @@ const errorHandler = (err, req, res, next) => {
 
   // PostgreSQL unique constraint
   if (err.code === '23505') {
+    if (err.constraint === 'users_email_key' || (err.detail && err.detail.includes('email'))) {
+      return response.error(res, 409, 'Email sudah digunakan');
+    }
     return response.error(res, 409, 'Data sudah ada (duplikat)');
   }
   // PostgreSQL foreign key violation
