@@ -181,16 +181,16 @@
       "hapus": false
     },
     "Tagihan SPP": {
-      "lihat": false,
+      "lihat": true,
       "buat": true,
       "ubah": true,
-      "hapus": false
+      "hapus": true
     },
     "Pengaturan SPP": {
-      "lihat": false,
+      "lihat": true,
       "buat": true,
       "ubah": true,
-      "hapus": false
+      "hapus": true
     },
     "Riwayat Pembayaran": {
       "lihat": true,
@@ -483,16 +483,16 @@
       "hapus": false
     },
     "Tagihan SPP": {
-      "lihat": false,
+      "lihat": true,
       "buat": true,
       "ubah": true,
-      "hapus": false
+      "hapus": true
     },
     "Pengaturan SPP": {
-      "lihat": false,
+      "lihat": true,
       "buat": true,
       "ubah": true,
-      "hapus": false
+      "hapus": true
     },
     "Riwayat Pembayaran": {
       "lihat": true,
