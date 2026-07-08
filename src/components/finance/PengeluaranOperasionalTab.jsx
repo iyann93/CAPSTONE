@@ -989,36 +989,51 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
 
               {selectedDetailItem.kategori !== 'Beasiswa' && (
                 <div>
-                  <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Bukti Transaksi</div>
+                  <div className="text-[10px] font-bold text-gray-400 uppercase mb-2">Bukti Transaksi</div>
                   {selectedDetailItem.bukti && selectedDetailItem.bukti.length > 0 ? (
-                    <div className="space-y-2 max-h-[140px] overflow-y-auto pr-1">
+                    <div className="space-y-3">
                       {selectedDetailItem.bukti.map((file, idx) => (
-                        <div key={idx} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
-                          <div 
-                            className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 overflow-hidden cursor-pointer border border-blue-200 hover:opacity-80 transition-opacity"
-                            onClick={() => {
-                              setSelectedPreviewFile(file);
-                              setShowPreviewModal(true);
-                            }}
-                            title="Klik untuk melihat pratinjau penuh"
-                          >
-                            {file.match(/\.(jpg|jpeg|png|gif)$/i) || file.startsWith('data:image') ? (
-                              <img src={file} alt="Thumbnail" className="w-full h-full object-cover" />
-                            ) : (
-                              <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-                              </svg>
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-xs font-bold text-gray-800 truncate">{file.startsWith('data:') ? 'Bukti Transaksi' : file}</div>
-                            <div className="text-[10px] text-gray-500">Klik ikon gambar untuk melihat lampiran</div>
-                          </div>
+                        <div key={idx} className="rounded-xl border border-gray-100 overflow-hidden bg-gray-50">
+                          {(file.startsWith('data:image') || file.match(/\.(jpg|jpeg|png|gif)$/i)) ? (
+                            <div>
+                              <img
+                                src={file}
+                                alt={`Bukti ${idx + 1}`}
+                                className="w-full max-h-48 object-contain bg-white cursor-pointer hover:opacity-90 transition-opacity"
+                                onClick={() => { setSelectedPreviewFile(file); setShowPreviewModal(true); }}
+                                title="Klik untuk memperbesar"
+                              />
+                              <div className="px-3 py-2 flex items-center justify-between">
+                                <span className="text-[10px] text-gray-500 font-medium">Bukti Transaksi {idx + 1}</span>
+                                <button
+                                  onClick={() => { setSelectedPreviewFile(file); setShowPreviewModal(true); }}
+                                  className="text-[10px] text-blue-600 font-bold hover:underline cursor-pointer border-none bg-transparent"
+                                >Lihat Penuh</button>
+                              </div>
+                            </div>
+                          ) : file.startsWith('data:application/pdf') ? (
+                            <div className="p-3 flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-lg bg-red-50 border border-red-100 flex items-center justify-center shrink-0">
+                                <svg width="18" height="18" fill="none" stroke="#ef4444" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-xs font-bold text-gray-800">Dokumen PDF {idx + 1}</div>
+                                <a
+                                  href={file}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[10px] text-blue-600 font-bold hover:underline"
+                                >Buka PDF di tab baru</a>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="p-3 text-xs text-gray-500">Bukti Transaksi {idx + 1}</div>
+                          )}
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-xs text-gray-500 italic">Tidak ada bukti transaksi yang dilampirkan.</div>
+                    <div className="text-xs text-gray-500 italic bg-gray-50 rounded-xl p-3 border border-gray-100">Tidak ada bukti transaksi yang dilampirkan.</div>
                   )}
                 </div>
               )}
