@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { jsPDF } from "jspdf";
 import * as htmlToImage from "html-to-image";
 import {
@@ -5041,7 +5041,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
               {laporanType.includes("Penggajian") && (paidSlips.length > 0 ? paidSlips.map((s, i) => (
                 <tr key={i} className="border-b border-gray-300">
                   <td className="py-2 px-3">{i + 1}</td>
-                  <td className="py-2 px-3">{s.nama_pegawai}</td>
+                  <td className="py-2 px-3">{s.user_nama || s.user_email || s.user_id || 'Tanpa Nama'}</td>
                   <td className="py-2 px-3">{s.bulan_nama || s.bulan} {s.tahun}</td>
                   <td className="py-2 px-3">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(s.gaji_bersih)}</td>
                 </tr>
