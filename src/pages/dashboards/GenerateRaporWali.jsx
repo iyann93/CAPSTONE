@@ -1,94 +1,158 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 const GenerateRaporWali = ({ user }) => {
-  const [studentsData, setStudentsData] = useState(() => {
-    const saved = localStorage.getItem("wali_kelas_students");
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      for (const key in parsed) {
-        parsed[key] = parsed[key].map((s, idx) => ({
-          ...s,
-          hadir: s.hadir !== undefined ? s.hadir : (85 + (idx % 15)),
-          mapel: s.mapel !== undefined ? s.mapel : 12,
-          statusRapor: s.statusRapor || "Belum Terbit"
-        }));
-      }
-      return parsed;
-    }
-    return {
-      "VII A": [
-        { id: "2023001", name: "Andi Pratama", gender: "Laki-laki", note: "Aktif dan rajin. Kemampuan aljabar meningkat pesat.", lastUpdated: "15 Nov 2023", avatarBg: "bg-blue-500", statusRapor: "Belum Terbit", hadir: 90, mapel: 12 },
-        { id: "2023002", name: "Dewi Sartika", gender: "Perempuan", note: "Nilai tertinggi di kelas. Sangat direkomendasikan mengikuti olimpiade.", lastUpdated: "12 Nov 2023", avatarBg: "bg-slate-700", statusRapor: "Terbit", hadir: 100, mapel: 12 },
-        { id: "2023003", name: "Ricky Firmansyah", gender: "Laki-laki", note: "", lastUpdated: null, avatarBg: "bg-amber-600", statusRapor: "Belum Terbit", hadir: 85, mapel: 10 },
-        { id: "2023004", name: "Nurul Hidayah", gender: "Perempuan", note: "Sangat baik", lastUpdated: "12 Nov 2023", avatarBg: "bg-red-500", statusRapor: "Terbit", hadir: 98, mapel: 12 },
-      ]
-    };
-  });
+  const [classes, setClasses] = useState([]);
+  const [selectedClassId, setSelectedClassId] = useState("");
+  const [activeSemester, setActiveSemester] = useState(null);
 
-  const classList = Object.keys(studentsData);
-  const [selectedClass, setSelectedClass] = useState(classList[0] || "VII A");
-  
-  const activeClass = studentsData[selectedClass] ? selectedClass : (classList[0] || "VII A");
-  const students = studentsData[activeClass] || [];
+  const [studentsData, setStudentsData] = useState([]);
+  const [nilaiData, setNilaiData] = useState([]);
+  const [absensiData, setAbsensiData] = useState([]);
+  const [catatanData, setCatatanData] = useState([]);
+  const [raporData, setRaporData] = useState([]);
+
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const [activeDetailModal, setActiveDetailModal] = useState(null); // 'mapel' | 'absensi' | null
-
-  // Dummy detail data
+  const [activeDetailModal, setActiveDetailModal] = useState(null);
   const [expandedMapel, setExpandedMapel] = useState(null);
-  
-  const mockDetailMapel = [
-    { mapel: "Pendidikan Agama Islam", kkm: 75, harian: 85, uts: 89, uas: 90, nilai: 88, predikat: "B",
-      breakdown: [{name: "Tugas 1", score: 85}, {name: "Tugas 2", score: 88}, {name: "Kuis 1", score: 82}]
-    },
-    { mapel: "Pendidikan Pancasila", kkm: 75, harian: 90, uts: 92, uas: 88, nilai: 90, predikat: "A",
-      breakdown: [{name: "Tugas 1", score: 92}, {name: "Tugas 2", score: 90}, {name: "Kuis 1", score: 88}]
-    },
-    { mapel: "Bahasa Indonesia", kkm: 75, harian: 80, uts: 86, uas: 89, nilai: 85, predikat: "B",
-      breakdown: [{name: "Tugas 1", score: 78}, {name: "Tugas 2", score: 82}, {name: "Kuis 1", score: 80}]
-    },
-    { mapel: "Matematika", kkm: 70, harian: 75, uts: 78, uas: 81, nilai: 78, predikat: "C",
-      breakdown: [{name: "Tugas 1", score: 70}, {name: "Tugas 2", score: 80}, {name: "Kuis 1", score: 75}]
-    },
-    { mapel: "Ilmu Pengetahuan Alam", kkm: 70, harian: 82, uts: 80, uas: 84, nilai: 82, predikat: "B",
-      breakdown: [{name: "Tugas 1", score: 85}, {name: "Tugas 2", score: 80}, {name: "Kuis 1", score: 81}]
-    },
-    { mapel: "Ilmu Pengetahuan Sosial", kkm: 75, harian: 88, uts: 84, uas: 86, nilai: 86, predikat: "B",
-      breakdown: [{name: "Tugas 1", score: 90}, {name: "Tugas 2", score: 88}, {name: "Kuis 1", score: 86}]
-    },
-    { mapel: "Bahasa Inggris", kkm: 75, harian: 92, uts: 90, uas: 94, nilai: 92, predikat: "A",
-      breakdown: [{name: "Tugas 1", score: 95}, {name: "Tugas 2", score: 90}, {name: "Kuis 1", score: 91}]
-    },
-  ];
 
-  const mockDetailAbsensi = {
-    hadir: 90,
-    izin: 4,
-    sakit: 6,
-    alpa: 0,
-    totalHari: 100
+  // Initialization
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const { default: api } = await import('../../api/axios');
+        const [kelasRes, semRes] = await Promise.all([
+          api.get('/kelas'),
+          api.get('/semester')
+        ]);
+        const dbClasses = kelasRes.data?.data || [];
+        setClasses(dbClasses);
+        if (dbClasses.length > 0) setSelectedClassId(dbClasses[0].id);
+
+        const active = (semRes.data?.data || []).find(s => s.is_active);
+        setActiveSemester(active);
+      } catch (e) {
+        console.error("Gagal inisialisasi:", e);
+      }
+    };
+    init();
+  }, []);
+
+  // Fetch data per class
+  const fetchClassData = async () => {
+    if (!selectedClassId || !activeSemester) return;
+    try {
+      const { default: api } = await import('../../api/axios');
+      const [siswaRes, nilaiRes, absRes, catRes, raporRes] = await Promise.all([
+        api.get(`/siswa?kelas_id=${selectedClassId}&limit=1000`),
+        api.get(`/nilai/kelas/${selectedClassId}?semester_id=${activeSemester.id}`),
+        api.get(`/absensi/rekap/semester?semester_id=${activeSemester.id}&kelas_id=${selectedClassId}`),
+        api.get(`/catatan-siswa?limit=1000`),
+        api.get(`/rapor/kelas/${selectedClassId}?semester_id=${activeSemester.id}`)
+      ]);
+
+      setStudentsData(siswaRes.data?.data || []);
+      setNilaiData(nilaiRes.data?.data || []);
+      setAbsensiData(absRes.data?.data || []);
+      setCatatanData(catRes.data?.data || []);
+      setRaporData(raporRes.data?.data || []);
+    } catch (e) {
+      console.error("Gagal mengambil data kelas:", e);
+    }
   };
 
-  const handlePublish = () => {
+  useEffect(() => {
+    fetchClassData();
+  }, [selectedClassId, activeSemester]);
+
+  // Derived Data for Selected Student
+  const currentDetails = useMemo(() => {
+    if (!selectedStudent) return null;
+    const sId = selectedStudent.id;
+    
+    // Nilai Mapel
+    const studentNilai = nilaiData.filter(n => n.siswa_id === sId);
+    const detailMapel = studentNilai.map(n => {
+      const akhir = n.nilai_akhir || ((n.nilai_harian*0.3) + (n.nilai_uts*0.3) + (n.nilai_uas*0.4)).toFixed(0);
+      const na = parseFloat(akhir);
+      return {
+        mapel: n.nama_mapel,
+        kkm: 75,
+        harian: parseFloat(n.nilai_harian).toFixed(0),
+        uts: parseFloat(n.nilai_uts).toFixed(0),
+        uas: parseFloat(n.nilai_uas).toFixed(0),
+        nilai: na.toFixed(0),
+        predikat: na >= 90 ? 'A' : na >= 80 ? 'B' : na >= 70 ? 'C' : 'D',
+        breakdown: [
+          {name: "Tugas/Harian", score: parseFloat(n.nilai_harian).toFixed(0)},
+          {name: "UTS", score: parseFloat(n.nilai_uts).toFixed(0)},
+          {name: "UAS", score: parseFloat(n.nilai_uas).toFixed(0)}
+        ]
+      };
+    });
+
+    // Absensi
+    const abs = absensiData.find(a => a.siswa_id === sId) || { total_hadir: 0, total_izin: 0, total_sakit: 0, total_alpha: 0 };
+    const totalAbsensi = parseInt(abs.total_hadir) + parseInt(abs.total_izin) + parseInt(abs.total_sakit) + parseInt(abs.total_alpha);
+    const persentaseHadir = totalAbsensi > 0 ? Math.round((parseInt(abs.total_hadir) / totalAbsensi) * 100) : 0;
+    
+    // Catatan
+    const catatan = catatanData.find(c => c.siswa_id === sId)?.isi_catatan || "";
+    
+    // Status Rapor
+    const rapor = raporData.find(r => r.siswa_id === sId);
+    const statusRapor = rapor?.is_published ? "Terbit" : "Belum Terbit";
+    
+    return {
+      mapelList: detailMapel,
+      mapelCount: detailMapel.length,
+      absensi: {
+        hadir: parseInt(abs.total_hadir) || 0,
+        izin: parseInt(abs.total_izin) || 0,
+        sakit: parseInt(abs.total_sakit) || 0,
+        alpa: parseInt(abs.total_alpha) || 0,
+        persenHadir: persentaseHadir
+      },
+      catatan,
+      statusRapor,
+      avatarBg: ["bg-blue-500", "bg-emerald-500", "bg-amber-500", "bg-rose-500", "bg-purple-500", "bg-indigo-500"][sId.charCodeAt(0) % 6] || "bg-[#1A3D63]"
+    };
+  }, [selectedStudent, nilaiData, absensiData, catatanData, raporData]);
+
+  const handlePublish = async () => {
+    if (!selectedClassId || !activeSemester) return;
     setPublishing(true);
-    setTimeout(() => {
-      const updatedList = students.map(s => s.id === selectedStudent.id ? { ...s, statusRapor: "Terbit" } : s);
-      const newData = { ...studentsData, [activeClass]: updatedList };
-      setStudentsData(newData);
-      localStorage.setItem("wali_kelas_students", JSON.stringify(newData));
+    try {
+      const { default: api } = await import('../../api/axios');
+      // Step 1: Generate rapor for the class
+      await api.post('/rapor/generate', {
+        mode: 'kelas',
+        kelasId: selectedClassId,
+        semesterId: activeSemester.id
+      });
+      // Step 2: Publish rapor for the class
+      await api.post('/rapor/publish', {
+        kelasId: selectedClassId,
+        semesterId: activeSemester.id
+      });
       
-      setPublishing(false);
+      await fetchClassData();
       setShowPreview(false);
-      setSelectedStudent(null);
       alert("Rapor berhasil diterbitkan dan siap diakses oleh orang tua!");
-    }, 1500);
+    } catch (e) {
+      console.error(e);
+      alert("Gagal menerbitkan rapor.");
+    } finally {
+      setPublishing(false);
+    }
   };
 
   const handleDownloadPDF = () => {
+    if (!selectedStudent || !currentDetails) return;
     setDownloading(true);
     try {
         const doc = new jsPDF();
@@ -98,24 +162,25 @@ const GenerateRaporWali = ({ user }) => {
         doc.setFontSize(14);
         doc.text("LAPORAN HASIL BELAJAR", 105, 20, { align: "center" });
         doc.setFontSize(10);
-        doc.text("Semester Ganjil Tahun Ajaran 2024/2025", 105, 26, { align: "center" });
+        doc.text(`Semester ${activeSemester?.tipe} Tahun Ajaran ${activeSemester?.tahun_ajaran}`, 105, 26, { align: "center" });
         
         doc.setLineWidth(0.5);
         doc.line(14, 30, 196, 30);
         
         // Student Info
         doc.setFont("times", "normal");
-        doc.text(`Nama Siswa    : ${selectedStudent.name}`, 14, 40);
+        doc.text(`Nama Siswa    : ${selectedStudent.nama_lengkap}`, 14, 40);
         doc.text(`NISN / NIS    : ${selectedStudent.nisn || '-'} / ${selectedStudent.nis || '-'}`, 14, 46);
         
-        doc.text(`Kelas         : ${activeClass}`, 140, 40);
+        const clsName = classes.find(c => c.id === selectedClassId)?.nama_kelas || "-";
+        doc.text(`Kelas         : ${clsName}`, 140, 40);
         doc.text(`Fase          : D (SMP)`, 140, 46);
         
         // A. Sikap
         doc.setFont("times", "bold");
         doc.text("A. Sikap", 14, 60);
         doc.setFont("times", "normal");
-        const sikapText = `Deskripsi: ${selectedStudent.name} menunjukkan sikap spiritual dan sosial yang ${selectedStudent.hadir >= 90 ? 'sangat baik' : 'baik'} dalam mengikuti pembelajaran, menjunjung tinggi nilai gotong royong, dan berinteraksi secara sopan di lingkungan sekolah.`;
+        const sikapText = `Deskripsi: ${selectedStudent.nama_lengkap} menunjukkan sikap spiritual dan sosial yang ${currentDetails.absensi.persenHadir >= 90 ? 'sangat baik' : 'baik'} dalam mengikuti pembelajaran, menjunjung tinggi nilai gotong royong, dan berinteraksi secara sopan di lingkungan sekolah.`;
         const splitSikap = doc.splitTextToSize(sikapText, 182);
         doc.text(splitSikap, 14, 66);
         
@@ -123,7 +188,7 @@ const GenerateRaporWali = ({ user }) => {
         doc.setFont("times", "bold");
         doc.text("B. Pengetahuan & Keterampilan", 14, 85);
         
-        const tableBody = mockDetailMapel.map((m, i) => [
+        const tableBody = currentDetails.mapelList.map((m, i) => [
             i + 1, m.mapel, m.nilai, m.predikat
         ]);
         
@@ -150,9 +215,9 @@ const GenerateRaporWali = ({ user }) => {
         autoTable(doc, {
             startY: finalY + 20,
             body: [
-                ['Sakit', `${mockDetailAbsensi.sakit} hari`],
-                ['Izin', `${mockDetailAbsensi.izin} hari`],
-                ['Tanpa Keterangan', `${mockDetailAbsensi.alpa} hari`]
+                ['Sakit', `${currentDetails.absensi.sakit} hari`],
+                ['Izin', `${currentDetails.absensi.izin} hari`],
+                ['Tanpa Keterangan', `${currentDetails.absensi.alpa} hari`]
             ],
             theme: 'grid',
             columnStyles: {
@@ -169,11 +234,11 @@ const GenerateRaporWali = ({ user }) => {
         
         doc.setFont("times", "italic");
         doc.rect(120, finalY + 18, 76, 25);
-        const splitCatatan = doc.splitTextToSize(`"${selectedStudent.note}"`, 72);
+        const splitCatatan = doc.splitTextToSize(`"${currentDetails.catatan}"`, 72);
         doc.text(splitCatatan, 122, finalY + 24);
         
         // Save
-        doc.save(`rapor_ganjil_2024_${selectedStudent.id}.pdf`);
+        doc.save(`rapor_${activeSemester?.tipe}_${selectedStudent.id}.pdf`);
     } catch (err) {
         console.error(err);
         alert("Gagal membuat PDF: " + err.message);
@@ -182,15 +247,20 @@ const GenerateRaporWali = ({ user }) => {
     }
   };
 
+  const getStudentStatusRapor = (sId) => {
+    const r = raporData.find(x => x.siswa_id === sId);
+    return r?.is_published ? "Terbit" : "Belum Terbit";
+  };
+
   return (
     <div className="p-6 md:p-8 space-y-6 animate-fadeIn bg-[#F4F6FA] min-h-screen relative">
       {/* Detail Modal Overlay */}
-      {activeDetailModal && (
+      {activeDetailModal && selectedStudent && currentDetails && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fadeIn">
           <div className="bg-white rounded-2xl w-full max-w-[650px] shadow-xl flex flex-col overflow-hidden animate-slideUp">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-[#1F3A5F] text-white">
               <h3 className="text-[16px] font-bold">
-                {activeDetailModal === 'mapel' ? `Detail Nilai Mapel - ${selectedStudent.name}` : activeDetailModal === 'absensi' ? `Detail Absensi - ${selectedStudent.name}` : `Catatan Wali Kelas - ${selectedStudent.name}`}
+                {activeDetailModal === 'mapel' ? `Detail Nilai Mapel - ${selectedStudent.nama_lengkap}` : activeDetailModal === 'absensi' ? `Detail Absensi - ${selectedStudent.nama_lengkap}` : `Catatan Wali Kelas - ${selectedStudent.nama_lengkap}`}
               </h3>
               <button onClick={() => setActiveDetailModal(null)} className="text-white/70 hover:text-white transition-colors">
                 <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -202,7 +272,7 @@ const GenerateRaporWali = ({ user }) => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between bg-blue-50/50 p-3 rounded-lg border border-blue-100">
                     <span className="text-[13px] text-blue-800 font-semibold">Total Mapel Terinput:</span>
-                    <span className="text-[14px] font-bold text-blue-700">{selectedStudent.mapel} / 12 Mapel</span>
+                    <span className="text-[14px] font-bold text-blue-700">{currentDetails.mapelCount} Mapel</span>
                   </div>
                   <p className="text-[11px] text-gray-500 font-medium italic">Klik pada baris mata pelajaran untuk melihat rincian nilai harian.</p>
                   <table className="w-full border-collapse">
@@ -218,7 +288,9 @@ const GenerateRaporWali = ({ user }) => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {mockDetailMapel.map((m, i) => (
+                      {currentDetails.mapelList.length === 0 ? (
+                        <tr><td colSpan="7" className="py-4 text-center text-[12px] text-gray-500">Belum ada nilai yang diinput.</td></tr>
+                      ) : currentDetails.mapelList.map((m, i) => (
                         <React.Fragment key={i}>
                           <tr onClick={() => setExpandedMapel(expandedMapel === i ? null : i)} className="hover:bg-gray-50/50 cursor-pointer transition-colors group">
                             <td className="py-3 px-3 text-[12px] font-bold text-gray-700 group-hover:text-[#1A3D63] flex items-center gap-2">
@@ -263,10 +335,10 @@ const GenerateRaporWali = ({ user }) => {
                    <div className="flex items-center justify-center">
                      <div className="w-32 h-32 relative flex items-center justify-center rounded-full border-8 border-green-500/20">
                        <svg className="absolute inset-0 w-full h-full transform -rotate-90">
-                         <circle cx="60" cy="60" r="56" fill="transparent" stroke="#22c55e" strokeWidth="8" strokeDasharray="351.85" strokeDashoffset={351.85 - (351.85 * mockDetailAbsensi.hadir) / 100} />
+                         <circle cx="60" cy="60" r="56" fill="transparent" stroke="#22c55e" strokeWidth="8" strokeDasharray="351.85" strokeDashoffset={351.85 - (351.85 * currentDetails.absensi.persenHadir) / 100} />
                        </svg>
                        <div className="text-center">
-                         <span className="text-[24px] font-black text-green-600">{mockDetailAbsensi.hadir}%</span>
+                         <span className="text-[24px] font-black text-green-600">{currentDetails.absensi.persenHadir}%</span>
                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Kehadiran</p>
                        </div>
                      </div>
@@ -274,19 +346,19 @@ const GenerateRaporWali = ({ user }) => {
                    <div className="grid grid-cols-4 gap-3 text-center">
                      <div className="bg-green-50 rounded-xl p-3 border border-green-100">
                        <p className="text-[11px] font-bold text-gray-500 mb-1">Hadir</p>
-                       <p className="text-[16px] font-black text-green-700">{mockDetailAbsensi.hadir}</p>
+                       <p className="text-[16px] font-black text-green-700">{currentDetails.absensi.hadir}</p>
                      </div>
                      <div className="bg-amber-50 rounded-xl p-3 border border-amber-100">
                        <p className="text-[11px] font-bold text-gray-500 mb-1">Izin</p>
-                       <p className="text-[16px] font-black text-amber-700">{mockDetailAbsensi.izin}</p>
+                       <p className="text-[16px] font-black text-amber-700">{currentDetails.absensi.izin}</p>
                      </div>
                      <div className="bg-blue-50 rounded-xl p-3 border border-blue-100">
                        <p className="text-[11px] font-bold text-gray-500 mb-1">Sakit</p>
-                       <p className="text-[16px] font-black text-blue-700">{mockDetailAbsensi.sakit}</p>
+                       <p className="text-[16px] font-black text-blue-700">{currentDetails.absensi.sakit}</p>
                      </div>
                      <div className="bg-red-50 rounded-xl p-3 border border-red-100">
                        <p className="text-[11px] font-bold text-gray-500 mb-1">Alpa</p>
-                       <p className="text-[16px] font-black text-red-700">{mockDetailAbsensi.alpa}</p>
+                       <p className="text-[16px] font-black text-red-700">{currentDetails.absensi.alpa}</p>
                      </div>
                    </div>
                 </div>
@@ -295,8 +367,8 @@ const GenerateRaporWali = ({ user }) => {
                   <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                   </div>
-                  {selectedStudent.note ? (
-                    <p className="text-[15px] text-gray-800 font-semibold italic leading-relaxed">"{selectedStudent.note}"</p>
+                  {currentDetails.catatan ? (
+                    <p className="text-[15px] text-gray-800 font-semibold italic leading-relaxed">"{currentDetails.catatan}"</p>
                   ) : (
                     <p className="text-[14px] text-gray-400 font-medium">Siswa ini belum diberikan catatan oleh Wali Kelas.</p>
                   )}
@@ -325,53 +397,57 @@ const GenerateRaporWali = ({ user }) => {
           <div className="p-4 border-b border-gray-100 flex items-center justify-between gap-3 bg-gray-50/50 rounded-t-2xl">
             <h2 className="text-[15px] font-bold text-gray-800">Daftar Siswa</h2>
             <select
-              value={activeClass}
+              value={selectedClassId}
               onChange={(e) => {
-                setSelectedClass(e.target.value);
+                setSelectedClassId(e.target.value);
                 setSelectedStudent(null);
                 setShowPreview(false);
               }}
               className="bg-white border border-gray-200 text-gray-700 text-[13px] font-bold rounded-lg focus:ring-[#1A3D63] focus:border-[#1A3D63] block p-2 outline-none cursor-pointer"
             >
-              {classList.map(cls => (
-                <option key={cls} value={cls}>{cls}</option>
+              {classes.map(cls => (
+                <option key={cls.id} value={cls.id}>{cls.nama_kelas}</option>
               ))}
             </select>
           </div>
           <div className="overflow-y-auto flex-1 p-3 space-y-2">
-            {students.map(s => (
-              <button 
-                key={s.id}
-                onClick={() => { setSelectedStudent(s); setShowPreview(false); }}
-                className={`w-full text-left p-3.5 rounded-xl transition-colors border flex items-center justify-between ${selectedStudent?.id === s.id ? 'bg-[#1A3D63] text-white shadow-md' : 'bg-white hover:bg-gray-50 border-gray-100'}`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full ${selectedStudent?.id === s.id ? 'bg-white/20' : s.avatarBg} text-white flex items-center justify-center font-bold text-sm`}>
-                    {s.name[0]}
+            {studentsData.map(s => {
+              const statusRapor = getStudentStatusRapor(s.id);
+              const avatarBg = ["bg-blue-500", "bg-emerald-500", "bg-amber-500", "bg-rose-500", "bg-purple-500", "bg-indigo-500"][s.id.charCodeAt(0) % 6] || "bg-[#1A3D63]";
+              return (
+                <button 
+                  key={s.id}
+                  onClick={() => { setSelectedStudent(s); setShowPreview(false); }}
+                  className={`w-full text-left p-3.5 rounded-xl transition-colors border flex items-center justify-between ${selectedStudent?.id === s.id ? 'bg-[#1A3D63] text-white shadow-md' : 'bg-white hover:bg-gray-50 border-gray-100'}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full ${selectedStudent?.id === s.id ? 'bg-white/20' : avatarBg} text-white flex items-center justify-center font-bold text-sm`}>
+                      {s.nama_lengkap[0]}
+                    </div>
+                    <div>
+                      <h3 className={`text-[13px] font-bold ${selectedStudent?.id === s.id ? 'text-white' : 'text-gray-800'}`}>{s.nama_lengkap}</h3>
+                      <p className={`text-[11px] ${selectedStudent?.id === s.id ? 'text-blue-200' : 'text-gray-400'}`}>NIS: {s.nis || "-"}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className={`text-[13px] font-bold ${selectedStudent?.id === s.id ? 'text-white' : 'text-gray-800'}`}>{s.name}</h3>
-                    <p className={`text-[11px] ${selectedStudent?.id === s.id ? 'text-blue-200' : 'text-gray-400'}`}>NIS: {s.nis || "-"}</p>
-                  </div>
-                </div>
-                <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold ${s.statusRapor === "Terbit" ? (selectedStudent?.id === s.id ? 'bg-green-500 text-white' : 'bg-green-50 text-green-600') : (selectedStudent?.id === s.id ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-500')}`}>
-                  {s.statusRapor}
-                </span>
-              </button>
-            ))}
+                  <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold ${statusRapor === "Terbit" ? (selectedStudent?.id === s.id ? 'bg-green-500 text-white' : 'bg-green-50 text-green-600') : (selectedStudent?.id === s.id ? 'bg-white/10 text-white' : 'bg-gray-100 text-gray-500')}`}>
+                    {statusRapor}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Right Side: Action Area */}
         <div className="lg:col-span-7 flex flex-col h-[600px]">
-          {selectedStudent ? (
+          {selectedStudent && currentDetails ? (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex-1 flex flex-col overflow-hidden animate-fadeIn">
               <div className="p-6 border-b border-gray-100 flex items-center justify-between">
                 <div>
                   <h2 className="text-[18px] font-bold text-[#1F3A5F]">Detail Pemeriksaan Rapor</h2>
-                  <p className="text-[13px] text-gray-500 mt-1">{selectedStudent.name}</p>
+                  <p className="text-[13px] text-gray-500 mt-1">{selectedStudent.nama_lengkap}</p>
                 </div>
-                {selectedStudent.statusRapor === "Terbit" && (
+                {currentDetails.statusRapor === "Terbit" && (
                   <span className="px-3 py-1.5 bg-green-50 text-green-700 border border-green-200 rounded-lg text-[12px] font-bold flex items-center gap-1.5">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                     Telah Terbit
@@ -390,11 +466,11 @@ const GenerateRaporWali = ({ user }) => {
                           Nilai Mapel
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
                         </span>
-                        <span className={`text-[11px] font-bold ${selectedStudent.mapel === 12 ? 'text-green-600' : 'text-red-500'}`}>
-                          {selectedStudent.mapel}/12
+                        <span className={`text-[11px] font-bold ${currentDetails.mapelCount > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                          {currentDetails.mapelCount} Mapel
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-1.5"><div className={`h-1.5 rounded-full ${selectedStudent.mapel === 12 ? 'bg-green-500' : 'bg-red-500'}`} style={{width: `${(selectedStudent.mapel/12)*100}%`}}></div></div>
+                      <div className="w-full bg-gray-200 rounded-full h-1.5"><div className={`h-1.5 rounded-full ${currentDetails.mapelCount > 0 ? 'bg-green-500' : 'bg-red-500'}`} style={{width: `${Math.min((currentDetails.mapelCount/12)*100, 100)}%`}}></div></div>
                     </button>
                     
                     <button onClick={() => setActiveDetailModal('absensi')} className="p-4 bg-gray-50 border border-gray-100 rounded-xl hover:bg-gray-100 hover:border-gray-300 transition-all text-left group">
@@ -403,9 +479,9 @@ const GenerateRaporWali = ({ user }) => {
                           Absensi
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
                         </span>
-                        <span className="text-[11px] font-bold text-green-600">{selectedStudent.hadir}%</span>
+                        <span className="text-[11px] font-bold text-green-600">{currentDetails.absensi.persenHadir}%</span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-1.5"><div className="bg-green-500 h-1.5 rounded-full" style={{width: `${selectedStudent.hadir}%`}}></div></div>
+                      <div className="w-full bg-gray-200 rounded-full h-1.5"><div className="bg-green-500 h-1.5 rounded-full" style={{width: `${currentDetails.absensi.persenHadir}%`}}></div></div>
                     </button>
 
                     <button onClick={() => setActiveDetailModal('catatan')} className="p-4 bg-gray-50 border border-gray-100 rounded-xl hover:bg-gray-100 hover:border-gray-300 transition-all text-left group">
@@ -414,16 +490,16 @@ const GenerateRaporWali = ({ user }) => {
                           Catatan Wali
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
                         </span>
-                        <span className={`text-[11px] font-bold ${selectedStudent.note ? 'text-green-600' : 'text-red-500'}`}>
-                          {selectedStudent.note ? "Sudah Diisi" : "Belum Diisi"}
+                        <span className={`text-[11px] font-bold ${currentDetails.catatan ? 'text-green-600' : 'text-red-500'}`}>
+                          {currentDetails.catatan ? "Sudah Diisi" : "Belum Diisi"}
                         </span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-1.5"><div className={`h-1.5 rounded-full ${selectedStudent.note ? 'bg-green-500' : 'bg-red-500'}`} style={{width: selectedStudent.note ? '100%' : '0%'}}></div></div>
+                      <div className="w-full bg-gray-200 rounded-full h-1.5"><div className={`h-1.5 rounded-full ${currentDetails.catatan ? 'bg-green-500' : 'bg-red-500'}`} style={{width: currentDetails.catatan ? '100%' : '0%'}}></div></div>
                     </button>
                   </div>
                 </div>
 
-                {(!selectedStudent.note || selectedStudent.mapel < 12) && (
+                {(!currentDetails.catatan || currentDetails.mapelCount === 0) && (
                   <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl text-[13px] font-bold flex gap-2 items-start">
                     <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" className="mt-0.5 flex-shrink-0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                     Data belum lengkap! Harap hubungi Guru Mapel terkait atau isi catatan wali kelas terlebih dahulu sebelum dapat menerbitkan rapor.
@@ -437,14 +513,14 @@ const GenerateRaporWali = ({ user }) => {
                     </div>
                     <div className="text-center mb-6 border-b-2 border-gray-800 pb-4">
                       <h3 className="text-[18px] font-bold text-gray-900 uppercase tracking-widest">Laporan Hasil Belajar</h3>
-                      <p className="text-gray-600 mt-1">Semester Ganjil Tahun Ajaran 2024/2025</p>
+                      <p className="text-gray-600 mt-1">Semester {activeSemester?.tipe} Tahun Ajaran {activeSemester?.tahun_ajaran}</p>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4 mb-6 text-gray-800 text-[12px]">
                       <div>
                         <table className="w-full">
                           <tbody>
-                            <tr><td className="w-24 pb-1">Nama Siswa</td><td className="w-4 pb-1">:</td><td className="font-bold pb-1 uppercase">{selectedStudent.name}</td></tr>
+                            <tr><td className="w-24 pb-1">Nama Siswa</td><td className="w-4 pb-1">:</td><td className="font-bold pb-1 uppercase">{selectedStudent.nama_lengkap}</td></tr>
                             <tr><td className="pb-1">NISN / NIS</td><td className="pb-1">:</td><td className="pb-1">{selectedStudent.nisn || "-"} / {selectedStudent.nis || "-"}</td></tr>
                           </tbody>
                         </table>
@@ -452,7 +528,7 @@ const GenerateRaporWali = ({ user }) => {
                       <div>
                         <table className="w-full">
                           <tbody>
-                            <tr><td className="w-24 pb-1">Kelas</td><td className="w-4 pb-1">:</td><td className="pb-1">{activeClass}</td></tr>
+                            <tr><td className="w-24 pb-1">Kelas</td><td className="w-4 pb-1">:</td><td className="pb-1">{classes.find(c => c.id === selectedClassId)?.nama_kelas}</td></tr>
                             <tr><td className="pb-1">Fase</td><td className="pb-1">:</td><td className="pb-1">D (SMP)</td></tr>
                           </tbody>
                         </table>
@@ -462,7 +538,7 @@ const GenerateRaporWali = ({ user }) => {
                     <div className="mb-5">
                       <h4 className="font-bold text-gray-800 border-b border-gray-400 pb-1 mb-2">A. Sikap</h4>
                       <div className="p-2 text-[12px] leading-relaxed text-gray-700 bg-gray-50 border border-gray-100">
-                         <strong>Deskripsi:</strong> {selectedStudent.name} menunjukkan sikap spiritual dan sosial yang {selectedStudent.hadir >= 90 ? 'sangat baik' : 'baik'} dalam mengikuti pembelajaran, menjunjung tinggi nilai gotong royong, dan berinteraksi secara sopan di lingkungan sekolah.
+                         <strong>Deskripsi:</strong> {selectedStudent.nama_lengkap} menunjukkan sikap spiritual dan sosial yang {currentDetails.absensi.persenHadir >= 90 ? 'sangat baik' : 'baik'} dalam mengikuti pembelajaran, menjunjung tinggi nilai gotong royong, dan berinteraksi secara sopan di lingkungan sekolah.
                       </div>
                     </div>
 
@@ -478,7 +554,7 @@ const GenerateRaporWali = ({ user }) => {
                           </tr>
                         </thead>
                         <tbody>
-                          {mockDetailMapel.map((m, i) => (
+                          {currentDetails.mapelList.map((m, i) => (
                             <tr key={i} className="hover:bg-gray-50">
                               <td className="border border-gray-300 py-1.5 px-2 text-center text-gray-500">{i+1}</td>
                               <td className="border border-gray-300 py-1.5 px-2 font-medium">{m.mapel}</td>
@@ -486,6 +562,9 @@ const GenerateRaporWali = ({ user }) => {
                               <td className="border border-gray-300 py-1.5 px-2 text-center">{m.predikat}</td>
                             </tr>
                           ))}
+                          {currentDetails.mapelList.length === 0 && (
+                            <tr><td colSpan="4" className="border border-gray-300 py-2 text-center text-gray-500">Belum ada nilai.</td></tr>
+                          )}
                         </tbody>
                       </table>
                     </div>
@@ -495,16 +574,16 @@ const GenerateRaporWali = ({ user }) => {
                         <h4 className="font-bold text-gray-800 border-b border-gray-400 pb-1 mb-2">C. Ketidakhadiran</h4>
                         <table className="w-full border-collapse border border-gray-300 text-[12px]">
                           <tbody>
-                            <tr><td className="border border-gray-300 py-1.5 px-3 w-32 bg-gray-50">Sakit</td><td className="border border-gray-300 py-1.5 px-2 text-center">{mockDetailAbsensi.sakit} hari</td></tr>
-                            <tr><td className="border border-gray-300 py-1.5 px-3 bg-gray-50">Izin</td><td className="border border-gray-300 py-1.5 px-2 text-center">{mockDetailAbsensi.izin} hari</td></tr>
-                            <tr><td className="border border-gray-300 py-1.5 px-3 bg-gray-50">Tanpa Keterangan</td><td className="border border-gray-300 py-1.5 px-2 text-center">{mockDetailAbsensi.alpa} hari</td></tr>
+                            <tr><td className="border border-gray-300 py-1.5 px-3 w-32 bg-gray-50">Sakit</td><td className="border border-gray-300 py-1.5 px-2 text-center">{currentDetails.absensi.sakit} hari</td></tr>
+                            <tr><td className="border border-gray-300 py-1.5 px-3 bg-gray-50">Izin</td><td className="border border-gray-300 py-1.5 px-2 text-center">{currentDetails.absensi.izin} hari</td></tr>
+                            <tr><td className="border border-gray-300 py-1.5 px-3 bg-gray-50">Tanpa Keterangan</td><td className="border border-gray-300 py-1.5 px-2 text-center">{currentDetails.absensi.alpa} hari</td></tr>
                           </tbody>
                         </table>
                       </div>
                       <div>
                         <h4 className="font-bold text-gray-800 border-b border-gray-400 pb-1 mb-2">D. Catatan Wali Kelas</h4>
                         <div className="border border-gray-300 bg-gray-50 p-3 text-[12px] min-h-[90px] italic leading-relaxed text-gray-700">
-                          "{selectedStudent.note}"
+                          "{currentDetails.catatan}"
                         </div>
                       </div>
                     </div>
@@ -516,15 +595,15 @@ const GenerateRaporWali = ({ user }) => {
                 {!showPreview ? (
                   <button 
                     onClick={() => setShowPreview(true)}
-                    disabled={!selectedStudent.note || selectedStudent.mapel < 12}
-                    className={`px-6 py-2.5 rounded-xl text-[13px] font-bold transition-all ${selectedStudent.note && selectedStudent.mapel === 12 ? 'bg-[#1A3D63] text-white hover:bg-[#15304f]' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+                    disabled={!currentDetails.catatan || currentDetails.mapelCount === 0}
+                    className={`px-6 py-2.5 rounded-xl text-[13px] font-bold transition-all ${currentDetails.catatan && currentDetails.mapelCount > 0 ? 'bg-[#1A3D63] text-white hover:bg-[#15304f]' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
                   >
                     Generate Rapor
                   </button>
                 ) : (
                   <>
                     <button onClick={() => setShowPreview(false)} className="px-6 py-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl text-[13px] font-bold hover:bg-gray-50 transition-all">Batal</button>
-                    {selectedStudent.statusRapor !== "Terbit" && (
+                    {currentDetails.statusRapor !== "Terbit" && (
                        <button 
                         onClick={handlePublish}
                         disabled={publishing}
@@ -535,7 +614,7 @@ const GenerateRaporWali = ({ user }) => {
                              <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
                              Menyimpan...
                           </>
-                        ) : "Simpan & Terbitkan"}
+                        ) : "Simpan & Terbitkan Kelas"}
                       </button>
                     )}
                     <button 

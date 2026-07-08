@@ -60,15 +60,17 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
     const timeObj = timeSlots.find(t => t.label === selectedSlot);
     const [jamMulai, jamSelesai] = timeObj ? timeObj.time.split(" - ") : ["", ""];
 
+    const hariMap = { "Senin": 1, "Selasa": 2, "Rabu": 3, "Kamis": 4, "Jumat": 5, "Sabtu": 6, "Minggu": 7 };
+
     try {
       await api.post('/jadwal-pelajaran', {
-        kelas_id: formData.class,
-        mata_pelajaran_id: formData.subject,
-        guru_id: formData.teacher,
-        semester_id: activeSemester?.id,
-        hari: selectedDay,
-        jam_mulai: jamMulai,
-        jam_selesai: jamSelesai
+        kelasId: formData.class,
+        mapelId: formData.subject,
+        guruId: formData.teacher,
+        semesterId: activeSemester?.id,
+        hari: hariMap[selectedDay],
+        jamMulai: jamMulai,
+        jamSelesai: jamSelesai
       });
       handleAdd();
     } catch (err) {

@@ -1,55 +1,63 @@
 import React, { useState } from "react";
 
-
-
 function autoStatus(s) {
   if (s.nilai >= 70 && s.kehadiran >= 80 && s.mapel <= 2) return "Naik Kelas";
   return "Tidak Naik";
 }
 
-const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) => {
-  const isSelesai = mode === "selesai" || classData?.status === "Selesai";
+const GradePromotionDetail = ({ setView, classData, activeTahunAjaran, onSave }) => {
+  const isSelesai = classData?.status === "Selesai";
   
   const [students, setStudents] = useState([]);
+  const [classesList, setClassesList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [processed, setProcessed] = useState(false);
 
   React.useEffect(() => {
     const fetchStudentsAndState = async () => {
       setLoading(true);
       try {
-        const key = `grade_promotion_students_${classData?.kode || "default"}`;
-        const savedStr = localStorage.getItem(key);
-        const savedState = savedStr ? JSON.parse(savedStr) : null;
-
         const { default: api } = await import('../../api/axios');
-        const resSiswa = await api.get('/siswa');
-        const allSiswa = resSiswa.data?.data || [];
-        const classSiswa = allSiswa.filter(s => s.kelas_id === classData?.kode);
-
-        // If no students in DB for this class, fallback to dynamic mock data
-        let baseStudents = [];
-        const count = classSiswa.length > 0 ? classSiswa.length : (classData?.total || 36);
+        const [siswaRes, kenaikanRes, kelasRes] = await Promise.all([
+          api.get('/siswa?limit=1000'),
+          activeTahunAjaran ? api.get(`/kenaikan-kelas?tahun_ajaran_id=${activeTahunAjaran.id}`) : { data: { data: [] } },
+          api.get('/kelas')
+        ]);
         
-        for (let i = 0; i < count; i++) {
+        const allSiswa = siswaRes.data?.data || [];
+        const kenaikanData = kenaikanRes.data?.data || [];
+        const dbClasses = kelasRes.data?.data || [];
+        setClassesList(dbClasses);
+
+        const classSiswa = allSiswa.filter(s => s.kelas_id === classData?.kode);
+        
+        let baseStudents = [];
+        
+        for (let i = 0; i < classSiswa.length; i++) {
           const actual = classSiswa[i];
-          const nama = actual ? actual.nama_lengkap : `Siswa ${classData?.kelas || "Kelas VII"} ${i + 1}`;
-          const nis = actual ? actual.nis : `20231${i.toString().padStart(2, '0')}`;
+          const nama = actual.nama_lengkap;
+          const nis = actual.nis;
           const init = nama.charAt(0).toUpperCase();
           const color = ["bg-blue-500", "bg-green-500", "bg-purple-500", "bg-orange-500", "bg-teal-500", "bg-pink-500"][i % 6];
           
-          let status = isSelesai ? "Naik Kelas" : "Belum Ditentukan";
+          let status = "Belum Ditentukan";
+          const kData = kenaikanData.find(kd => kd.siswa_id === actual.id);
           
-          if (savedState) {
-            const savedStudent = savedState.find(s => s.nis === nis);
-            if (savedStudent) status = savedStudent.status;
+          if (kData) {
+             if (kData.status === 'Naik') status = "Naik Kelas";
+             if (kData.status === 'Tinggal') status = "Tidak Naik";
           }
-
+          
           baseStudents.push({
+            id: actual.id,
             no: i + 1,
             nis,
             nama,
             init,
             color,
+            // Mocking these values for now since we'd need complex calculation for actual nilai & kehadiran
             nilai: 75 + (i % 20),
             kehadiran: 85 + (i % 15),
             mapel: i % 3,
@@ -64,18 +72,16 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
       }
     };
     if (classData) fetchStudentsAndState();
-  }, [classData, isSelesai]);
+  }, [classData, activeTahunAjaran]);
 
   const [activeTab, setActiveTab] = useState("Semua");
   const [search, setSearch] = useState("");
-  const [processing, setProcessing] = useState(false);
-  const [processed, setProcessed] = useState(false);
 
   const tabs = ["Semua","Naik Kelas","Tidak Naik","Belum Ditentukan"];
   const naik = students.filter(s => s.status === "Naik Kelas").length;
   const tidakNaik = students.filter(s => s.status === "Tidak Naik").length;
   const belum = students.filter(s => s.status === "Belum Ditentukan").length;
-  const pct = Math.round(((naik + tidakNaik) / students.length) * 100);
+  const pct = students.length > 0 ? Math.round(((naik + tidakNaik) / students.length) * 100) : 0;
 
   const filtered = students.filter(s => {
     const tabOk = activeTab === "Semua" || s.status === activeTab;
@@ -102,34 +108,49 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
   };
 
   const handleSaveDecision = async () => {
-    const key = `grade_promotion_students_${classData?.kode || "default"}`;
-    localStorage.setItem(key, JSON.stringify(students));
-    
+    if (!activeTahunAjaran) return alert("Tahun Ajaran aktif tidak ditemukan!");
+    setSaving(true);
     try {
       const { default: api } = await import('../../api/axios');
-      const res = await api.get('/system/frontend-state');
-      const currentState = res.data?.data || {};
-      await api.put('/system/frontend-state', {
-        ...currentState,
-        [key]: students
+      
+      // Calculate target class for 'Naik Kelas'
+      // Example logic: VII -> VIII, VIII -> IX.
+      // If IX -> Lulus, but since this is "Kenaikan Kelas" not "Kelulusan", we just find target
+      let targetClassId = null;
+      const currentClassName = classData.kelas;
+      let nextClassLevel = null;
+      if (currentClassName.includes('VII') && !currentClassName.includes('VIII')) {
+         nextClassLevel = currentClassName.replace('VII', 'VIII');
+      } else if (currentClassName.includes('VIII')) {
+         nextClassLevel = currentClassName.replace('VIII', 'IX');
+      }
+      
+      if (nextClassLevel) {
+          const matchedClass = classesList.find(c => c.nama_kelas === nextClassLevel);
+          if (matchedClass) targetClassId = matchedClass.id;
+      }
+
+      const payload = students.map(s => ({
+        siswaId: s.id,
+        kelasAsalId: classData.kode,
+        kelasTujuanId: s.status === "Naik Kelas" ? targetClassId : classData.kode, // if tidak naik, stays in same class
+        status: s.status === "Naik Kelas" ? "Naik" : s.status === "Tidak Naik" ? "Tinggal" : "Belum",
+        keterangan: s.status === "Belum Ditentukan" ? "Menunggu verifikasi wali kelas" : ""
+      }));
+      
+      await api.post('/kenaikan-kelas/bulk', {
+        tahunAjaranId: activeTahunAjaran.id,
+        data: payload
       });
+
+      if (onSave) {
+        onSave();
+      }
     } catch (err) {
       console.error("Gagal menyimpan data siswa ke database", err);
-    }
-    
-    const totalCount = students.length;
-    const naikCount = students.filter(s => s.status === "Naik Kelas").length;
-    const tidakNaikCount = students.filter(s => s.status === "Tidak Naik").length;
-    const belumCount = students.filter(s => s.status === "Belum Ditentukan").length;
-    const status = belumCount === 0 ? "Selesai" : "Dalam Proses";
-    
-    if (onSave) {
-      onSave(classData.kode, {
-        naik: naikCount,
-        tidakNaik: tidakNaikCount,
-        belum: belumCount,
-        status: status
-      });
+      alert("Gagal menyimpan data.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -149,23 +170,26 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
           </button>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[24px] font-bold text-[#1e293b]">{classData?.kelas || (isSelesai ? "Kelas VIII A" : "Kelas VII A")}</h1>
-              <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600">{classData?.kode || (isSelesai ? "VIII-A" : "VII-A")}</span>
-              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border ${(isSelesai || processed || classData?.status === "Selesai") ? "bg-green-50 text-green-600 border-green-100" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
-                {(isSelesai || processed || classData?.status === "Selesai") ? "Selesai" : "Belum Diproses"}
+              <h1 className="text-[24px] font-bold text-[#1e293b]">{classData?.kelas || "Kelas"}</h1>
+              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border ${belum === 0 && students.length > 0 ? "bg-green-50 text-green-600 border-green-100" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
+                {belum === 0 && students.length > 0 ? "Selesai" : "Belum Diproses"}
               </span>
             </div>
-            <p className="text-[13px] text-gray-500 mt-1">Ganjil 2023/2024 · Wali Kelas: {classData?.wali || (isSelesai ? "Ibu Sari Dewi, S.Pd" : "Ibu Dewi Anggraini, S.Pd")}</p>
+            <p className="text-[13px] text-gray-500 mt-1">{activeTahunAjaran?.tahun_ajaran || "Tahun Ajaran"} · Wali Kelas: {classData?.wali || "-"}</p>
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <button className="flex items-center gap-2 px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-[13px] font-bold text-gray-700 hover:bg-gray-50 shadow-sm">
-            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Ekspor Data
+          <button onClick={handleProses} disabled={processing || processed || students.length === 0} className="flex items-center gap-2 px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-[13px] font-bold text-gray-700 hover:bg-gray-50 shadow-sm disabled:opacity-50">
+            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Auto Proses
           </button>
 
-          <button onClick={handleSaveDecision} className="flex items-center gap-2 px-3.5 py-2.5 bg-[#2A4365] hover:bg-[#1A365D] text-white rounded-xl text-[13px] font-bold shadow-sm">
-            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          <button onClick={handleSaveDecision} disabled={saving} className="flex items-center gap-2 px-3.5 py-2.5 bg-[#2A4365] hover:bg-[#1A365D] text-white rounded-xl text-[13px] font-bold shadow-sm disabled:opacity-50">
+            {saving ? (
+              <svg className="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+            ) : (
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            )}
             Simpan Keputusan
           </button>
         </div>
@@ -294,7 +318,7 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <h3 className="text-[14px] font-bold text-gray-700 mb-4">Informasi Kelas</h3>
             <div className="space-y-3">
-              {[["Total Siswa", students.length],["Semester","Ganjil 2023/2024"]].map(([l,v],i)=>(
+              {[["Total Siswa", students.length],["Semester", activeTahunAjaran?.tahun_ajaran || "Aktif"]].map(([l,v],i)=>(
                 <div key={i} className="flex items-center justify-between">
                   <span className="text-[13px] text-gray-400">{l}</span>
                   <span className="text-[13px] font-semibold text-gray-700">{v}</span>
@@ -323,7 +347,3 @@ const GradePromotionDetail = ({ setView, classData, mode = "process", onSave }) 
 };
 
 export default GradePromotionDetail;
-
-
-
-

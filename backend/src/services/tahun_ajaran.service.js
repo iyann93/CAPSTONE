@@ -6,8 +6,8 @@ const { paginate } = require('../utils/queryBuilder');
 const TahunAjaranService = {
   getAll: async (query) => {
     const { page, limit, offset } = paginate(query);
-    const { search, sort, is_active: isActive } = query;
-    const { rows, total } = await TahunAjaranRepository.findAll({ limit, offset, search, sort, isActive });
+    const { search, sort, is_aktif } = query;
+    const { rows, total } = await TahunAjaranRepository.findAll({ limit, offset, search, sort, is_aktif });
     return { data: rows, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   },
 
@@ -46,7 +46,7 @@ const TahunAjaranService = {
   delete: async (id) => {
     const existing = await TahunAjaranRepository.findById(id);
     if (!existing) { const e = new Error('Tahun ajaran tidak ditemukan'); e.statusCode = 404; throw e; }
-    if (existing.is_active) { const e = new Error('Tidak dapat menghapus tahun ajaran yang sedang aktif'); e.statusCode = 400; throw e; }
+    if (existing.is_aktif) { const e = new Error('Tidak dapat menghapus tahun ajaran yang sedang aktif'); e.statusCode = 400; throw e; }
     const deleted = await TahunAjaranRepository.delete(id);
     if (!deleted) { const e = new Error('Tahun ajaran tidak ditemukan'); e.statusCode = 404; throw e; }
     return deleted;

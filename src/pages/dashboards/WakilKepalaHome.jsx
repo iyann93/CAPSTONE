@@ -166,6 +166,13 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
       } catch (e) {
         console.error("Error loading global finance:", e);
       }
+
+      try {
+        const op = await getOperasional();
+        setCurrentPengeluaranData(Array.isArray(op) ? op : []);
+      } catch (e) {
+        console.error("Error loading getOperasional:", e);
+      }
     };
     loadData();
   }, []);

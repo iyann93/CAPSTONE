@@ -17,8 +17,12 @@ const Schedules = () => {
   const fetchSchedules = () => {
     setLoading(true);
     setApiError(null);
+    const HARI_MAP = { 1: "Senin", 2: "Selasa", 3: "Rabu", 4: "Kamis", 5: "Jumat", 6: "Sabtu", 7: "Minggu" };
     api.get('/jadwal-pelajaran?limit=100')
-      .then(res => setSchedules(res.data.data || []))
+      .then(res => {
+        const data = res.data.data || [];
+        setSchedules(data.map(j => ({ ...j, hari: HARI_MAP[j.hari] || j.hari })));
+      })
       .catch(err => {
         console.error(err);
         setApiError(err.message || "Gagal mengambil data");

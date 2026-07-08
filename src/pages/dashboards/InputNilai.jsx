@@ -104,7 +104,8 @@ const InputNilai = ({ user }) => {
         if (!cls) return;
 
         const semId = dbSemesters.length > 0 ? dbSemesters[0].id : "00000002-0000-0000-0000-000000000001";
-        const mapelId = dbMapels.length > 0 ? dbMapels[0].id : "7034fc60-28e5-4cb8-9de6-0b32b7934d42";
+        const mapelId = dbMapels.find(m => m.nama === selectedMapel)?.id || dbMapels[0]?.id;
+        if (!mapelId) return;
 
         const res = await api.get(`/nilai/kelas/${cls.id}?semester_id=${semId}&mata_pelajaran_id=${mapelId}`);
         const existingData = res.data?.data || [];
@@ -136,7 +137,7 @@ const InputNilai = ({ user }) => {
     };
 
     fetchExistingNilai();
-  }, [selectedClass, dbClasses, dbMapels, dbSemesters, loading]);
+  }, [selectedClass, selectedMapel, dbClasses, dbMapels, dbSemesters, loading]);
 
   const handleGradeChange = (studentId, field, value) => {
     const sanitizedVal = value.replace(/[^0-9]/g, "");
@@ -191,7 +192,8 @@ const InputNilai = ({ user }) => {
       if (!cls) throw new Error("Data kelas tidak ditemukan");
 
       const semId = dbSemesters.length > 0 ? dbSemesters[0].id : "00000002-0000-0000-0000-000000000001";
-      const mapelId = dbMapels.length > 0 ? dbMapels[0].id : "7034fc60-28e5-4cb8-9de6-0b32b7934d42";
+      const mapelId = dbMapels.find(m => m.nama === selectedMapel)?.id;
+      if (!mapelId) throw new Error("Mata pelajaran belum dipilih");
 
       const studentsToSave = currentStudents.filter(s => s.harian !== "" || s.uts !== "" || s.uas !== "");
       
@@ -294,6 +296,29 @@ const InputNilai = ({ user }) => {
                 ))
               ) : (
                 <option value="">Tidak ada kelas</option>
+              )}
+            </select>
+            <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </div>
+          </div>
+          
+          <div className="relative w-full sm:w-[240px]">
+            <select
+              value={selectedMapel}
+              onChange={(e) => setSelectedMapel(e.target.value)}
+              className="w-full bg-white border border-gray-200 rounded-2xl px-5 py-3.5 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 appearance-none shadow-sm transition-all"
+            >
+              {mapels.length > 0 ? (
+                mapels.map((mpl) => (
+                  <option key={mpl} value={mpl}>
+                    {mpl}
+                  </option>
+                ))
+              ) : (
+                <option value="">Tidak ada mapel</option>
               )}
             </select>
             <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">

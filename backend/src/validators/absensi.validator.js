@@ -8,7 +8,7 @@ const createAbsensiValidator = [
     if (!Array.isArray(value)) value = [value]; // normalize
     for (const item of value) {
       if (!item.siswaId) throw new Error('siswaId wajib diisi pada setiap item');
-      if (!item.jadwalId) throw new Error('jadwalId wajib diisi pada setiap item');
+      if (!item.jadwalId && !item.kelasId) throw new Error('jadwalId atau kelasId wajib diisi pada setiap item');
       if (!item.tanggal) throw new Error('tanggal wajib diisi pada setiap item');
       if (!['Hadir', 'Izin', 'Sakit', 'Alpha'].includes(item.status)) {
         throw new Error('Status harus Hadir, Izin, Sakit, atau Alpha');

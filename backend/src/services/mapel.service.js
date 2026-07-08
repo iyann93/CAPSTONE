@@ -6,8 +6,8 @@ const { paginate } = require('../utils/queryBuilder');
 const MapelService = {
   getAll: async (query) => {
     const { page, limit, offset } = paginate(query);
-    const { search, sort, kelompok, tingkat } = query;
-    const { rows, total } = await MapelRepository.findAll({ limit, offset, search, sort, kelompok, tingkat });
+    const { search, sort, kelompok, tingkat, kurikulum_id } = query;
+    const { rows, total } = await MapelRepository.findAll({ limit, offset, search, sort, kelompok, tingkat, kurikulum_id });
     return { data: rows, meta: { page, limit, total, totalPages: Math.ceil(total / limit) } };
   },
 
@@ -17,19 +17,19 @@ const MapelService = {
     return data;
   },
 
-  create: async ({ kode, nama, kelompok, kkm, jumlahJam, tingkat, guruPengampuId }) => {
+  create: async ({ kode, nama, kelompok, kkm, jumlahJam, tingkat, guruPengampuId, kurikulum_id }) => {
     const existing = await MapelRepository.findByKode(kode);
     if (existing) { const e = new Error('Kode mata pelajaran sudah digunakan'); e.statusCode = 409; throw e; }
-    return MapelRepository.create({ kode, nama, kelompok, kkm, jumlahJam, tingkat, guruPengampuId });
+    return MapelRepository.create({ kode, nama, kelompok, kkm, jumlahJam, tingkat, guruPengampuId, kurikulum_id });
   },
 
-  update: async (id, { kode, nama, kelompok, kkm, jumlahJam, tingkat, guruPengampuId }) => {
+  update: async (id, { kode, nama, kelompok, kkm, jumlahJam, tingkat, guruPengampuId, kurikulum_id }) => {
     await MapelService.getById(id);
     if (kode) {
       const dup = await MapelRepository.findByKode(kode, id);
       if (dup) { const e = new Error('Kode mata pelajaran sudah digunakan'); e.statusCode = 409; throw e; }
     }
-    return MapelRepository.update(id, { kode, nama, kelompok, kkm, jumlahJam, tingkat, guruPengampuId });
+    return MapelRepository.update(id, { kode, nama, kelompok, kkm, jumlahJam, tingkat, guruPengampuId, kurikulum_id });
   },
 
   delete: async (id) => {

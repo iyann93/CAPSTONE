@@ -5,48 +5,72 @@ import StudentAttendanceRecap from "./StudentAttendanceRecap";
 
 
 const StudentAttendance = () => {
-  const [classes, setClasses] = useState(() => {
-    const saved = localStorage.getItem('attendance_classes');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [classes, setClasses] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
 
   React.useEffect(() => {
-    // Sinkronisasi otomatis dengan Data Siswa riil dari API
     const syncWithRealData = async () => {
       try {
         const { default: api } = await import('../../api/axios');
-        const kelasRes = await api.get('/kelas');
+        const [kelasRes, absensiRes] = await Promise.all([
+          api.get('/kelas'),
+          api.get(`/absensi?tanggal=${selectedDate}&limit=10000`)
+        ]);
+        
         const dbClasses = kelasRes.data?.data || [];
+        const absensiList = absensiRes.data?.data || [];
         
         if (dbClasses.length === 0) return;
 
-        setClasses(prevClasses => {
-          const newClasses = dbClasses.map((cls, idx) => {
-            const existing = prevClasses.find(c => c.name === cls.nama_kelas);
-            
-            const nameUpper = cls.nama_kelas?.toUpperCase() || "";
-            const isVII = nameUpper.includes("VII") && !nameUpper.includes("VIII");
-            const isVIII = nameUpper.includes("VIII");
-            const tingkat = isVII ? "Kelas VII" : isVIII ? "Kelas VIII" : "Kelas IX";
-
-            if (existing) {
-              return { ...existing, students: cls.kapasitas || 0, tingkat, wali: cls.wali_kelas || "Belum Ditentukan" };
+        // Group absensi by kelasId
+        const absensiByKelas = {};
+        absensiList.forEach(a => {
+          if (a.kelas_id) {
+            if (!absensiByKelas[a.kelas_id]) {
+              absensiByKelas[a.kelas_id] = { hadir: 0, sakit: 0, izin: 0, alpha: 0 };
             }
+            if (a.status === 'Hadir') absensiByKelas[a.kelas_id].hadir++;
+            if (a.status === 'Sakit') absensiByKelas[a.kelas_id].sakit++;
+            if (a.status === 'Izin') absensiByKelas[a.kelas_id].izin++;
+            if (a.status === 'Alpha') absensiByKelas[a.kelas_id].alpha++;
+          }
+        });
+
+        const newClasses = dbClasses.map((cls, idx) => {
+          const nameUpper = cls.nama_kelas?.toUpperCase() || "";
+          const isVII = nameUpper.includes("VII") && !nameUpper.includes("VIII");
+          const isVIII = nameUpper.includes("VIII");
+          const tingkat = isVII ? "Kelas VII" : isVIII ? "Kelas VIII" : "Kelas IX";
+          
+          const agg = absensiByKelas[cls.id];
+          if (agg) {
+            const total = agg.hadir + agg.sakit + agg.izin + agg.alpha;
+            const pct = total > 0 ? Math.round((agg.hadir / total) * 100) : 0;
             return {
-              id: cls.id || Date.now() + idx,
+              id: cls.id,
               name: cls.nama_kelas,
               students: cls.kapasitas || 0,
               tingkat: tingkat,
               wali: cls.wali_kelas || "Belum Ditentukan",
-              hadir: null, sakit: null, izin: null, alpha: null, pct: null, waktu: null, admin: null,
-              status: "Belum Input"
+              hadir: agg.hadir, sakit: agg.sakit, izin: agg.izin, alpha: agg.alpha, pct, 
+              waktu: "12:00", admin: "Sistem",
+              status: "Selesai"
             };
-          });
-          
-          localStorage.setItem('attendance_classes', JSON.stringify(newClasses));
-          return newClasses;
+          }
+
+          return {
+            id: cls.id,
+            name: cls.nama_kelas,
+            students: cls.kapasitas || 0,
+            tingkat: tingkat,
+            wali: cls.wali_kelas || "Belum Ditentukan",
+            hadir: null, sakit: null, izin: null, alpha: null, pct: null, waktu: null, admin: null,
+            status: "Belum Input"
+          };
         });
+        
+        setClasses(newClasses);
 
       } catch (err) {
         console.error("Gagal sinkronisasi data kelas dari API:", err);
@@ -54,30 +78,12 @@ const StudentAttendance = () => {
     };
 
     syncWithRealData();
-  }, []);
+  }, [selectedDate]);
 
   const handleSaveAttendance = (classId, attendanceResults) => {
-    const now = new Date();
-    const formatTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
-    const updated = classes.map(c => {
-      if (c.id === classId) {
-        return {
-          ...c,
-          hadir: attendanceResults.hadir,
-          sakit: attendanceResults.sakit,
-          izin: attendanceResults.izin,
-          alpha: attendanceResults.alpha,
-          pct: attendanceResults.pct,
-          waktu: formatTime,
-          admin: "Siti Rahayu",
-          status: "Selesai"
-        };
-      }
-      return c;
-    });
-    setClasses(updated);
-    localStorage.setItem('attendance_classes', JSON.stringify(updated));
+    // Triggers re-render and re-fetch through useEffect
     setSelectedClass(null);
+    setClasses(prev => prev.map(c => c.id === classId ? { ...c, status: "Selesai", ...attendanceResults } : c));
   };
 
   const totalClasses = classes.length;
@@ -100,7 +106,7 @@ const StudentAttendance = () => {
   }
 
   if (selectedClass) {
-    return <StudentAttendanceInput classData={selectedClass} onBack={() => setSelectedClass(null)} onSave={(results) => handleSaveAttendance(selectedClass.id, results)} />;
+    return <StudentAttendanceInput classData={selectedClass} selectedDate={selectedDate} onBack={() => setSelectedClass(null)} onSave={(results) => handleSaveAttendance(selectedClass.id, results)} />;
   }
 
   return (
@@ -115,7 +121,7 @@ const StudentAttendance = () => {
         </div>
         <div className="flex items-center gap-3">
           <div className="relative">
-            <input type="date" defaultValue="2023-11-20" className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-[14px] font-medium shadow-sm outline-none focus:border-[#1A3D63]" />
+            <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-[14px] font-medium shadow-sm outline-none focus:border-[#1A3D63]" />
           </div>
           <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-[14px] font-bold hover:bg-gray-50 shadow-sm transition-colors">
             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
@@ -129,7 +135,7 @@ const StudentAttendance = () => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A3D63" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            <h3 className="text-[15px] font-bold text-[#1e293b]">Progress Input Absensi — Senin, 20 November 2023</h3>
+            <h3 className="text-[15px] font-bold text-[#1e293b]">Progress Input Absensi — {selectedDate}</h3>
           </div>
           <div className="flex items-center gap-4 text-[13px] font-medium">
             <span className="flex items-center gap-1.5 text-emerald-600"><div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>Sudah: {inputtedClasses} kelas</span>

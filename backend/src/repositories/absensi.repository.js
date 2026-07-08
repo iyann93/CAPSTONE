@@ -14,9 +14,9 @@ const AbsensiRepository = {
     wb.addExact(status, 'a.status');
     wb.addExact(tanggal, 'a.tanggal');
     
-    // To filter by kelasId, we need to join jadwal_pelajaran
+    // To filter by kelasId, we need to join jadwal_pelajaran or use absensi.kelas_id directly
     if (kelasId) {
-      wb.addExact(kelasId, 'jp.kelas_id');
+      wb.addRaw('AND (jp.kelas_id = ? OR a.kelas_id = ?)', [kelasId, kelasId]);
     }
     
     const { where, values, nextIdx } = wb.build();
@@ -78,11 +78,18 @@ const AbsensiRepository = {
       const results = [];
       
       for (const item of absensiDataArray) {
-        const { siswaId, jadwalId, tanggal, status, keterangan } = item;
+        const { siswaId, jadwalId, kelasId, tanggal, status, keterangan } = item;
         
-        // Cek apakah sudah ada absensi untuk siswa + jadwal + tanggal tsb
-        const checkSql = `SELECT id FROM academic.absensi WHERE siswa_id = $1 AND jadwal_id = $2 AND tanggal = $3`;
-        const checkRes = await client.query(checkSql, [siswaId, jadwalId, tanggal]);
+        let checkSql, checkRes;
+        if (jadwalId) {
+          checkSql = `SELECT id FROM academic.absensi WHERE siswa_id = $1 AND jadwal_id = $2 AND tanggal = $3`;
+          checkRes = await client.query(checkSql, [siswaId, jadwalId, tanggal]);
+        } else if (kelasId) {
+          checkSql = `SELECT id FROM academic.absensi WHERE siswa_id = $1 AND kelas_id = $2 AND tanggal = $3 AND jadwal_id IS NULL`;
+          checkRes = await client.query(checkSql, [siswaId, kelasId, tanggal]);
+        } else {
+          throw new Error('jadwalId atau kelasId harus diisi');
+        }
         
         if (checkRes.rows.length > 0) {
           // Update
@@ -97,10 +104,10 @@ const AbsensiRepository = {
         } else {
           // Insert
           const inSql = `
-            INSERT INTO academic.absensi (siswa_id, jadwal_id, tanggal, status, keterangan, dicatat_oleh, created_at)
-            VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING *
+            INSERT INTO academic.absensi (siswa_id, jadwal_id, kelas_id, tanggal, status, keterangan, dicatat_oleh, created_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) RETURNING *
           `;
-          const inRes = await client.query(inSql, [siswaId, jadwalId, tanggal, status, keterangan, dicatatOleh]);
+          const inRes = await client.query(inSql, [siswaId, jadwalId || null, kelasId || null, tanggal, status, keterangan, dicatatOleh]);
           results.push(inRes.rows[0]);
         }
       }
@@ -139,7 +146,7 @@ const AbsensiRepository = {
     const values = [bulan, tahun];
     let kelasFilter = '';
     if (kelasId) {
-      kelasFilter = `AND jp.kelas_id = $3`;
+      kelasFilter = 'true';
       values.push(kelasId);
     }
     
@@ -151,9 +158,9 @@ const AbsensiRepository = {
              SUM(CASE WHEN a.status = 'Alpha' THEN 1 ELSE 0 END) AS total_alpha
       FROM academic.absensi a
       INNER JOIN academic.siswa s ON a.siswa_id = s.id
-      INNER JOIN academic.jadwal_pelajaran jp ON a.jadwal_id = jp.id
+      LEFT JOIN academic.jadwal_pelajaran jp ON a.jadwal_id = jp.id
       WHERE EXTRACT(MONTH FROM a.tanggal) = $1 AND EXTRACT(YEAR FROM a.tanggal) = $2
-      ${kelasFilter}
+      ${kelasFilter ? `AND (jp.kelas_id = $3 OR a.kelas_id = $3)` : ''}
       GROUP BY s.id, s.nama_lengkap, s.nis
       ORDER BY s.nama_lengkap ASC
     `;
@@ -165,7 +172,7 @@ const AbsensiRepository = {
     const values = [semesterId];
     let kelasFilter = '';
     if (kelasId) {
-      kelasFilter = `AND jp.kelas_id = $2`;
+      kelasFilter = 'true';
       values.push(kelasId);
     }
 
@@ -177,9 +184,9 @@ const AbsensiRepository = {
              SUM(CASE WHEN a.status = 'Alpha' THEN 1 ELSE 0 END) AS total_alpha
       FROM academic.absensi a
       INNER JOIN academic.siswa s ON a.siswa_id = s.id
-      INNER JOIN academic.jadwal_pelajaran jp ON a.jadwal_id = jp.id
-      WHERE jp.semester_id = $1
-      ${kelasFilter}
+      LEFT JOIN academic.jadwal_pelajaran jp ON a.jadwal_id = jp.id
+      WHERE (jp.semester_id = $1 OR a.tanggal IS NOT NULL)
+      ${kelasFilter ? `AND (jp.kelas_id = $2 OR a.kelas_id = $2)` : ''}
       GROUP BY s.id, s.nama_lengkap, s.nis
       ORDER BY s.nama_lengkap ASC
     `;
