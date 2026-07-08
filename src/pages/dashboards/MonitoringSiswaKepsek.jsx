@@ -65,30 +65,87 @@ const MonitoringSiswaKepsek = () => {
     fetchData();
   }, []);
 
-  const filteredData = useMemo(() => {
-    if (!filter.kelas || !filter.semester) return []; // Jangan tampilkan sebelum kelas & semester dipilih
-    
-    const selectedSemObj = semesters.find(s => s.id === filter.semester || s.nama_semester === filter.semester);
-    const semName = selectedSemObj ? (selectedSemObj.nama_semester || selectedSemObj.nama || filter.semester) : filter.semester;
-    const semModifier = String(semName).includes("Genap") ? 3 : 0;
+  const [nilaiSiswa, setNilaiSiswa] = useState({});
+  const [absensiSiswa, setAbsensiSiswa] = useState({});
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  
+  const [selectedMapelData, setSelectedMapelData] = useState([]);
+  const [loadingMapel, setLoadingMapel] = useState(false);
 
+  useEffect(() => {
+    const fetchClassDetail = async () => {
+      if (!filter.kelas || !filter.semester) return;
+      try {
+        setLoadingDetail(true);
+        const [resNilai, resAbsensi] = await Promise.all([
+          api.get(`/nilai/kelas/${filter.kelas}?semester_id=${filter.semester}`).catch(() => ({ data: { data: [] } })),
+          api.get(`/absensi/kelas/${filter.kelas}?semester_id=${filter.semester}`).catch(() => ({ data: { data: [] } }))
+        ]);
+        
+        const nilaiData = resNilai.data?.data || [];
+        const nMap = {};
+        nilaiData.forEach(n => {
+           if (!nMap[n.siswa_id]) nMap[n.siswa_id] = { total: 0, count: 0 };
+           const akhir = parseFloat(n.nilai_akhir);
+           if (!isNaN(akhir)) {
+             nMap[n.siswa_id].total += akhir;
+             nMap[n.siswa_id].count += 1;
+           }
+        });
+        setNilaiSiswa(nMap);
+
+        const absensiData = resAbsensi.data?.data || [];
+        const aMap = {};
+        absensiData.forEach(a => {
+           if (!aMap[a.siswa_id]) aMap[a.siswa_id] = { hadir: 0, total: 0 };
+           aMap[a.siswa_id].total += 1;
+           if (a.status === 'Hadir') aMap[a.siswa_id].hadir += 1;
+        });
+        setAbsensiSiswa(aMap);
+
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingDetail(false);
+      }
+    };
+    fetchClassDetail();
+  }, [filter.kelas, filter.semester]);
+
+  const filteredData = useMemo(() => {
+    if (!filter.kelas || !filter.semester) return [];
+    
     return data
       .filter(s => String(s.kelasId) === String(filter.kelas) || String(s.kelas) === String(filter.kelas))
       .filter(s => s.nama.toLowerCase().includes(filter.search.toLowerCase()))
       .map(s => {
-        const rata = (78 + (s.index % 15)) + semModifier;
-        let status = "Baik";
-        if (rata >= 90) status = "Sangat Baik";
-        else if (rata < 75) status = "Perlu Perhatian";
+        const nData = nilaiSiswa[s.id];
+        const aData = absensiSiswa[s.id];
+
+        let rataRata = "-";
+        let status = "Belum Ada Nilai";
+        
+        if (nData && nData.count > 0) {
+           const rata = nData.total / nData.count;
+           rataRata = rata.toFixed(1);
+           if (rata >= 90) status = "Sangat Baik";
+           else if (rata >= 75) status = "Baik";
+           else status = "Perlu Perhatian";
+        }
+
+        let kehadiran = "-";
+        if (aData && aData.total > 0) {
+           kehadiran = ((aData.hadir / aData.total) * 100).toFixed(0) + "%";
+        }
 
         return {
           ...s,
-          rataRata: rata.toFixed(1),
-          kehadiran: (90 + (s.index % 10)) + "%",
-          status: status
+          rataRata,
+          kehadiran,
+          status
         };
       });
-  }, [data, filter, semesters]);
+  }, [data, filter, nilaiSiswa, absensiSiswa]);
 
   const getCatatanWali = (nisn) => {
     try {
@@ -107,6 +164,23 @@ const MonitoringSiswaKepsek = () => {
   };
 
   const [showDetailModal, setShowDetailModal] = useState(false);
+
+  useEffect(() => {
+    const fetchSiswaMapel = async () => {
+      if (showDetailModal && selectedSiswa) {
+        setLoadingMapel(true);
+        try {
+          const res = await api.get(`/nilai/siswa/${selectedSiswa.id}?semester_id=${filter.semester}`);
+          setSelectedMapelData(res.data?.data || []);
+        } catch (err) {
+          setSelectedMapelData([]);
+        } finally {
+          setLoadingMapel(false);
+        }
+      }
+    };
+    fetchSiswaMapel();
+  }, [showDetailModal, selectedSiswa, filter.semester]);
 
   return (
     <div className="p-4 md:p-8 space-y-6 animate-fadeIn min-h-full relative">
@@ -140,36 +214,42 @@ const MonitoringSiswaKepsek = () => {
 
               <div>
                 <h4 className="text-[14px] font-bold text-gray-700 mb-3">Distribusi Nilai Mata Pelajaran</h4>
-                <table className="w-full text-left border-collapse border border-gray-100 rounded-lg overflow-hidden">
-                  <thead className="bg-gray-50">
-                    <tr className="text-[12px] font-bold text-gray-500">
-                      <th className="p-3 border-b border-gray-100">Mata Pelajaran</th>
-                      <th className="p-3 border-b border-gray-100 text-center">KKM</th>
-                      <th className="p-3 border-b border-gray-100 text-center">Nilai Akhir</th>
-                      <th className="p-3 border-b border-gray-100 text-center">Predikat</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-[13px] text-gray-700 divide-y divide-gray-50">
-                    {['Pendidikan Agama', 'Pendidikan Pancasila', 'Bahasa Indonesia', 'Matematika', 'Ilmu Pengetahuan Alam', 'Bahasa Inggris'].map((mapel, i) => {
-                      const nilai = Math.floor(parseFloat(selectedSiswa.rataRata)) + (i % 3 === 0 ? 2 : i % 2 === 0 ? -1 : 1);
-                      let predikat = "B";
-                      if (nilai >= 90) predikat = "A";
-                      else if (nilai < 75) predikat = "C";
-                      return (
-                        <tr key={i} className="hover:bg-gray-50/50">
-                          <td className="p-3 font-semibold">{mapel}</td>
-                          <td className="p-3 text-center text-gray-500">75</td>
-                          <td className="p-3 text-center font-bold text-[#1A3D63]">{nilai}</td>
-                          <td className="p-3 text-center">
-                            <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${predikat === 'A' ? 'bg-green-100 text-green-700' : predikat === 'B' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
-                              {predikat}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                {loadingMapel ? (
+                  <div className="text-center py-6 text-gray-500 text-[13px]">Memuat data nilai...</div>
+                ) : selectedMapelData.length === 0 ? (
+                  <div className="text-center py-6 text-gray-500 text-[13px]">Belum ada data nilai mata pelajaran untuk siswa ini.</div>
+                ) : (
+                  <table className="w-full text-left border-collapse border border-gray-100 rounded-lg overflow-hidden">
+                    <thead className="bg-gray-50">
+                      <tr className="text-[12px] font-bold text-gray-500">
+                        <th className="p-3 border-b border-gray-100">Mata Pelajaran</th>
+                        <th className="p-3 border-b border-gray-100 text-center">KKM</th>
+                        <th className="p-3 border-b border-gray-100 text-center">Nilai Akhir</th>
+                        <th className="p-3 border-b border-gray-100 text-center">Predikat</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-[13px] text-gray-700 divide-y divide-gray-50">
+                      {selectedMapelData.map((item, i) => {
+                        const nilai = parseFloat(item.nilai_akhir) || 0;
+                        let predikat = "B";
+                        if (nilai >= 90) predikat = "A";
+                        else if (nilai < 75) predikat = "C";
+                        return (
+                          <tr key={i} className="hover:bg-gray-50/50">
+                            <td className="p-3 font-semibold">{item.nama_mapel}</td>
+                            <td className="p-3 text-center text-gray-500">75</td>
+                            <td className="p-3 text-center font-bold text-[#1A3D63]">{nilai}</td>
+                            <td className="p-3 text-center">
+                              <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${predikat === 'A' ? 'bg-green-100 text-green-700' : predikat === 'B' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
+                                {predikat}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
               </div>
 
               <div className="grid grid-cols-1 gap-4">

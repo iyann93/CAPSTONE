@@ -247,7 +247,17 @@ const InputNilai = ({ user }) => {
   };
 
   if (loading) {
-    return <div className="p-8">Memuat data dari database...</div>;
+    return (
+      <div className="p-6 md:p-8 flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-3 text-gray-500">
+          <svg className="animate-spin h-8 w-8 text-[#1A3D63]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span className="text-sm font-bold animate-pulse">Memuat data dari database...</span>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -442,8 +452,14 @@ const InputNilai = ({ user }) => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-sm font-bold text-gray-400">
-                    Tidak ada siswa ditemukan
+                  <td colSpan={7} className="py-12">
+                    <div className="flex flex-col items-center justify-center text-gray-400">
+                      <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-3">
+                        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                      </div>
+                      <p className="text-[14px] font-bold">Tidak ada siswa ditemukan</p>
+                      <p className="text-[12px] font-medium mt-1">Pastikan kelas ini memiliki siswa atau ubah filter pencarian Anda.</p>
+                    </div>
                   </td>
                 </tr>
               )}

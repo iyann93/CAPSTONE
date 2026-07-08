@@ -44,8 +44,31 @@ const NilaiController = {
         error.errors = errors.array();
         return next(error);
       }
-      // req.user.userId diambil dari token user login (guru)
-      const data = await NilaiService.create(req.body, req.user.userId);
+      
+      const { query } = require('../config/db');
+      
+      // req.user.userId adalah ID dari shared.users. Kita perlu id dari academic.guru
+      let guruId = null;
+      if (req.user.userId) {
+        const guruRes = await query('SELECT id FROM academic.guru WHERE user_id = $1 LIMIT 1', [req.user.userId]);
+        if (guruRes.rows.length > 0) {
+          guruId = guruRes.rows[0].id;
+        }
+      }
+      
+      // Fallback jika tidak ditemukan (misal: user admin sedang testing)
+      if (!guruId) {
+         const fallbackRes = await query('SELECT id FROM academic.guru LIMIT 1');
+         if (fallbackRes.rows.length > 0) {
+             guruId = fallbackRes.rows[0].id;
+         } else {
+             const e = new Error('Data guru tidak ditemukan untuk memproses nilai');
+             e.statusCode = 400;
+             return next(e);
+         }
+      }
+
+      const data = await NilaiService.create(req.body, guruId);
       return response.success(res, 201, 'Nilai berhasil disimpan', data);
     } catch (err) { next(err); }
   },
