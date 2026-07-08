@@ -103,7 +103,7 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
           const [operasionalRes, beasiswaRes, pembayaranRes, danaBeasiswaRes] = await Promise.all([
             getOperasional().catch(() => ({ data: [] })),
             getBeasiswa().catch(() => ({ data: [] })),
-            getPembayaran().catch(() => ({ data: [] })),
+            getPembayaran({ limit: 10000 }).catch(() => ({ data: [] })),
             getDanaBeasiswa().catch(() => ({ data: [] }))
           ]);
           const operasional = Array.isArray(operasionalRes.data || operasionalRes) ? (operasionalRes.data || operasionalRes) : [];
@@ -115,7 +115,7 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
           const totalOperasionalMasuk = operasional.filter(d => d.tipe === 'pemasukan').reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
           const totalBeasiswa = danaBeasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
           const totalSppTahunan = pembayaran.reduce((acc, curr) => {
-            const amount = Number(String(curr.amount || curr.jumlah_bayar || curr.nominal_dibayar || curr.nominal || "0").replace(/[^0-9]/g, '')) || 0;
+            const amount = Number(curr.jumlah_bayar || 0);
             return acc + amount;
           }, 0);
 
