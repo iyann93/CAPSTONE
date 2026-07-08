@@ -232,6 +232,32 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
   const [paidSlips, setPaidSlips] = useState([]);
   const [globalFinance, setGlobalFinance] = useState({ totalPemasukan: 0, totalPengeluaran: 0 });
   const [totalEmployees, setTotalEmployees] = useState(0);
+
+  // Role Permissions
+  const [rolePermissions, setRolePermissions] = useState(null);
+  useEffect(() => {
+    const fetchPerms = () => {
+      import('../../api/system').then(({ getRolePermissions }) => {
+        getRolePermissions().then(data => {
+          if (data && Object.keys(data).length > 0) {
+            setRolePermissions(data);
+            localStorage.setItem('rolePermissions', JSON.stringify(data));
+          } else {
+            const saved = localStorage.getItem('rolePermissions');
+            if (saved) setRolePermissions(JSON.parse(saved));
+          }
+        }).catch(() => {
+          setTimeout(fetchPerms, 2000);
+        });
+      });
+    };
+    fetchPerms();
+  }, []);
+
+  const bendaharaPerms = rolePermissions?.["bendahara"] || {};
+  const canViewTagihan = bendaharaPerms["Tagihan SPP"]?.lihat !== false;
+  const canViewPengaturan = bendaharaPerms["Pengaturan SPP"]?.lihat !== false;
+  const canViewGaji = bendaharaPerms["Riwayat Terima Gaji"]?.lihat !== false;
   
   // Laporan States
   const [laporanType, setLaporanType] = useState("Laporan Pembayaran SPP (Pemasukan)");
@@ -3470,7 +3496,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
             <form onSubmit={handleGenerateBilling} className="space-y-4">
               <div>
-                <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase">Sasaran Kelas</label>
+                <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase uppercase tracking-wide">Sasaran Kelas</label>
                 <select
                   value={billClass}
                   onChange={(e) => setBillClass(e.target.value)}
