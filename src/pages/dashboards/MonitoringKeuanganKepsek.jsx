@@ -40,7 +40,7 @@ const getPayrollSummary = async () => {
       persentase,
       realisasi,
       jumlahPegawai: realizedSlips.length,
-      totalPegawai: employeeList.length
+      totalPegawai: currentMonthSlips.length || 23
     };
   } catch (err) {
     console.error("Gagal load realisasi gaji:", err);
