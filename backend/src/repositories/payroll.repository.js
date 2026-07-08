@@ -467,8 +467,8 @@ const PayrollRepository = {
   },
 
   // ── RIWAYAT GAJI per user ──────────────────────────────────────────────────
-  findRiwayatByUser: async (userId) => {
-    const sql = `
+  findRiwayatByUser: async (userId, status) => {
+    let sql = `
       SELECT
         s.id, s.bulan, s.tahun, s.gaji_pokok,
         s.total_tunjangan, s.total_potongan, s.gaji_bersih,
@@ -477,9 +477,14 @@ const PayrollRepository = {
       FROM finance.slip_gaji s
       LEFT JOIN finance.transfer_gaji t ON t.slip_gaji_id = s.id
       WHERE s.user_id = $1
-      ORDER BY s.tahun DESC, s.bulan DESC
     `;
-    const res = await query(sql, [userId]);
+    const params = [userId];
+    if (status) {
+      sql += ` AND s.status = $2`;
+      params.push(status);
+    }
+    sql += ` ORDER BY s.tahun DESC, s.bulan DESC`;
+    const res = await query(sql, params);
     return res.rows;
   },
 

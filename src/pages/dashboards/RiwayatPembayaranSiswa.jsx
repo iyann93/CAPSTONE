@@ -184,7 +184,14 @@ const RiwayatPembayaranSiswa = ({ user, onNavigate }) => {
                 <div className="pt-3 pb-2">
                   <p className="text-[13px] text-gray-500 mb-2 font-bold">Bukti Pembayaran</p>
                   <div className="border border-gray-100 rounded-xl overflow-hidden shadow-sm relative group cursor-pointer" onClick={() => setShowPreviewModal(true)}>
-                    <img src={detail.bukti} alt="Bukti Pembayaran" className="w-full h-auto object-cover max-h-40" />
+                    {(detail.bukti.toLowerCase().includes('.pdf') || detail.bukti.startsWith('data:application/pdf')) ? (
+                      <div className="flex flex-col items-center justify-center p-6 bg-gray-50 h-32">
+                        <svg width="40" height="40" fill="none" stroke="#ef4444" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+                        <span className="text-xs font-bold text-gray-500 mt-2">Dokumen PDF</span>
+                      </div>
+                    ) : (
+                      <img src={detail.bukti} alt="Bukti Pembayaran" className="w-full h-auto object-cover max-h-40" />
+                    )}
                     <div className="absolute inset-0 bg-black/30 hidden group-hover:flex items-center justify-center transition-all">
                       <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" /></svg>
                     </div>
@@ -227,7 +234,17 @@ const RiwayatPembayaranSiswa = ({ user, onNavigate }) => {
               </button>
             </div>
             <div className="flex-1 overflow-auto bg-gray-50 flex items-center justify-center p-4">
-              <img src={detail.bukti} alt="Bukti Pembayaran Full" className="max-w-full max-h-full object-contain rounded-lg shadow-sm" />
+              {(detail.bukti.toLowerCase().includes('.pdf') || detail.bukti.startsWith('data:application/pdf')) ? (
+                <object data={detail.bukti} type="application/pdf" className="w-full h-[70vh] rounded-lg shadow-sm">
+                  <div className="flex flex-col items-center justify-center h-full text-center p-4">
+                    <svg width="48" height="48" fill="none" stroke="#ef4444" strokeWidth="2" viewBox="0 0 24 24" className="mb-4"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+                    <p className="text-gray-500 text-sm font-medium">Browser Anda mungkin tidak mendukung pratinjau langsung PDF.</p>
+                    <a href={detail.bukti} target="_blank" rel="noreferrer" className="mt-4 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-bold text-sm hover:bg-blue-100 transition-colors">Unduh / Buka PDF di Tab Baru</a>
+                  </div>
+                </object>
+              ) : (
+                <img src={detail.bukti} alt="Bukti Pembayaran Full" className="max-w-full max-h-full object-contain rounded-lg shadow-sm" />
+              )}
             </div>
           </div>
         </div>,

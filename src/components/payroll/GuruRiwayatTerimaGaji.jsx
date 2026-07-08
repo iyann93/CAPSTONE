@@ -7,7 +7,6 @@ const GuruRiwayatTerimaGaji = ({ user }) => {
   
   // Filter states
   const [tahun, setTahun] = useState('');
-  const [status, setStatus] = useState('');
   
   // Pagination
   const [page, setPage] = useState(1);
@@ -20,7 +19,7 @@ const GuruRiwayatTerimaGaji = ({ user }) => {
 
   useEffect(() => {
     fetchSlips();
-  }, [page, tahun, status]);
+  }, [page, tahun]);
 
   const fetchSlips = async () => {
     try {
@@ -29,7 +28,7 @@ const GuruRiwayatTerimaGaji = ({ user }) => {
         page,
         limit: 10,
         tahun: tahun || undefined,
-        status: status || undefined,
+        status: 'dibayar', // Enforce 'dibayar'
         user_id: user?.id
       });
       setSlips(res.data || []);
@@ -99,11 +98,6 @@ const GuruRiwayatTerimaGaji = ({ user }) => {
             <option value="">Semua Tahun</option>
             <option value="2026">2026</option>
             <option value="2025">2025</option>
-          </select>
-          <select value={status} onChange={(e) => setStatus(e.target.value)} className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#1A3D63] bg-white">
-            <option value="">Semua Status</option>
-            <option value="draft">Draft</option>
-            <option value="dibayar">Dibayar</option>
           </select>
         </div>
 

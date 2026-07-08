@@ -25,7 +25,7 @@ const SPPDonutChart = ({ lunas = 0, belumLunas = 0 }) => {
               outerRadius={85}
               startAngle={90}
               endAngle={-270}
-              paddingAngle={3}
+              paddingAngle={1}
               dataKey="value"
               stroke="none"
             >
