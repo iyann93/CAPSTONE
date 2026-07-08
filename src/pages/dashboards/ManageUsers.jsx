@@ -35,6 +35,7 @@ const ManageUsers = ({ onViewChange }) => {
     nama: '',
     email: '',
     password: '',
+    confirmPassword: '',
     roleId: '',
     siswaId: '',
     isActive: true
@@ -103,6 +104,15 @@ const ManageUsers = ({ onViewChange }) => {
   const handleSaveUser = async () => {
     if (!formData.nama || !formData.email || (!selectedUser && !formData.password)) {
       return triggerToast('Harap isi semua field wajib', 'error');
+    }
+
+    if (formData.password) {
+      if (formData.password.length < 8) {
+        return triggerToast('Password minimal 8 karakter', 'error');
+      }
+      if (formData.password !== formData.confirmPassword) {
+        return triggerToast('Password dan Konfirmasi Password tidak cocok', 'error');
+      }
     }
     
     try {
@@ -365,7 +375,9 @@ const ManageUsers = ({ onViewChange }) => {
                   <div className="relative">
                     <input
                       type={showConfirmPassword ? "text" : "password"}
-                      defaultValue="12345678"
+                      placeholder="Masukkan ulang password"
+                      value={formData.confirmPassword || ""}
+                      onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
                       className="w-full px-4 py-3 bg-white border border-gray-200 focus:border-[#1A3D63] rounded-xl text-sm font-semibold text-gray-800 outline-none transition-all pr-10 focus:ring-1 focus:ring-[#1A3D63]"
                     />
                     <button 

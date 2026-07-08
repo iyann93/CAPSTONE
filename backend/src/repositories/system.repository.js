@@ -54,7 +54,7 @@ const SystemRepository = {
   getPendingUsers: async () => {
     // is_active = false
     const sql = `
-      SELECT u.id, u.nama, u.email, u.created_at, u.is_active,
+      SELECT u.id, u.nama, u.email, u.created_at, u.is_active, u.last_login_at as "lastLogin",
              STRING_AGG(r.nama_role, ', ') as roles
       FROM shared.users u
       LEFT JOIN shared.user_roles ur ON u.id = ur.user_id

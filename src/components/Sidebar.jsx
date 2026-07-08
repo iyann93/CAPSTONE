@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 const BarChartIcon = () => <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
   <path d="M18 20V10M12 20V4M6 20v-6" />
 </svg>;
@@ -262,7 +262,56 @@ const menuSections = [
   }
 ];
 const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) => {
-  const filteredSections = menuSections.filter((section) => section.roles.includes(role));
+  const [rolePermissions, setRolePermissions] = useState(null);
+
+  const loadPermissions = () => {
+    // Try local storage first for instant render
+    const perms = localStorage.getItem('rolePermissions');
+    if (perms) {
+      setRolePermissions(JSON.parse(perms));
+    }
+
+    // Then update from server for cross-device sync, with retry for dev server restarts
+    const fetchPerms = () => {
+      import('../api/system').then(({ getRolePermissions }) => {
+        getRolePermissions().then(data => {
+          if (data && Object.keys(data).length > 0) {
+            setRolePermissions(data);
+            localStorage.setItem('rolePermissions', JSON.stringify(data));
+          }
+        }).catch(() => {
+          // Dev server might be restarting due to JSON file change, retry in 2 seconds
+          setTimeout(fetchPerms, 2000);
+        });
+      });
+    };
+    fetchPerms();
+  };
+
+  useEffect(() => {
+    loadPermissions();
+    // Listen for custom event so it updates without refresh when admin saves
+    window.addEventListener('permissionsUpdated', loadPermissions);
+    return () => window.removeEventListener('permissionsUpdated', loadPermissions);
+  }, []);
+
+  const filteredSections = menuSections.map(section => {
+    if (!section.roles.includes(role)) return null;
+
+    const roleId = role.toLowerCase().replace(/\s+/g, '');
+    const userPerms = rolePermissions?.[roleId];
+
+    const items = section.items.filter(item => {
+      // Allow if no permission defined or if 'lihat' is not explicitly false
+      if (userPerms && userPerms[item.label]) {
+        return userPerms[item.label].lihat !== false;
+      }
+      return true;
+    });
+
+    if (items.length === 0) return null;
+    return { ...section, items };
+  }).filter(Boolean);
 
   useEffect(() => {
     if (!collapsed && window.innerWidth < 1024) {

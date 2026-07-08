@@ -570,6 +570,20 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
                 <img src={selectedPreviewFile.preview || URL.createObjectURL(selectedPreviewFile)} alt="Preview Bukti" className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-sm" />
               ) : selectedPreviewFile && typeof selectedPreviewFile === 'string' && (selectedPreviewFile.match(/\.(jpg|jpeg|png|gif)$/i) || selectedPreviewFile.startsWith('data:image')) ? (
                 <img src={selectedPreviewFile} alt="Preview Bukti" className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-sm" />
+              ) : selectedPreviewFile && typeof selectedPreviewFile !== 'string' && selectedPreviewFile.type?.includes('pdf') ? (
+                <object data={selectedPreviewFile.preview || URL.createObjectURL(selectedPreviewFile)} type="application/pdf" className="w-full h-[70vh] rounded-lg shadow-sm">
+                  <div className="flex flex-col items-center justify-center h-full text-center p-4">
+                    <p className="text-gray-500 text-sm font-medium">Browser Anda mungkin tidak mendukung pratinjau langsung PDF.</p>
+                    <a href={selectedPreviewFile.preview || URL.createObjectURL(selectedPreviewFile)} target="_blank" rel="noreferrer" className="mt-4 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-bold text-sm hover:bg-blue-100 transition-colors">Unduh / Buka PDF di Tab Baru</a>
+                  </div>
+                </object>
+              ) : selectedPreviewFile && typeof selectedPreviewFile === 'string' && (selectedPreviewFile.toLowerCase().includes('.pdf') || selectedPreviewFile.startsWith('data:application/pdf')) ? (
+                <object data={selectedPreviewFile} type="application/pdf" className="w-full h-[70vh] rounded-lg shadow-sm">
+                  <div className="flex flex-col items-center justify-center h-full text-center p-4">
+                    <p className="text-gray-500 text-sm font-medium">Browser Anda mungkin tidak mendukung pratinjau langsung PDF.</p>
+                    <a href={selectedPreviewFile} target="_blank" rel="noreferrer" className="mt-4 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-bold text-sm hover:bg-blue-100 transition-colors">Unduh / Buka PDF di Tab Baru</a>
+                  </div>
+                </object>
               ) : (
                 <>
                   <div className="w-24 h-24 mb-4 text-gray-300">

@@ -117,39 +117,36 @@ const RiwayatSlipTab = ({ triggerToast }) => {
   const executeApprove = async () => {
     if (!selectedSlipId) return;
     const slipId = selectedSlipId;
-    
-    // Optimistic UI Update
-    setSlips(prev => {
-      const updated = prev.map(s => s.id === slipId ? { ...s, status: 'dibayar' } : s);
-      return updated.sort((a, b) => {
-        if (a.tahun !== b.tahun) return b.tahun - a.tahun;
-        if (a.bulan !== b.bulan) return b.bulan - a.bulan;
-        const score = s => s.status === 'dibayar' ? 1 : (s.status === 'disetujui' ? 2 : 3);
-        return score(a) - score(b);
-      });
-    });
     setShowConfirmModal(false);
     setSelectedSlipId(null);
-    triggerToast("Slip gaji berhasil dibayar!");
+    triggerToast("Memproses pembayaran gaji...");
 
     try {
       // 1. Approve (draft -> disetujui)
       await approveSlip(slipId);
       
-      // 2. Langsung Transfer (disetujui -> dibayar)
-      const payload = {
-        slipGajiId: slipId,
-        noReferensi: `TRX-${Date.now()}`,
-        rekeningId: null
-      };
-      await transferSlip(payload);
-
+      // 2. Transfer (disetujui -> dibayar)
+      try {
+        const payload = {
+          slipGajiId: slipId,
+          noReferensi: `TRX-${Date.now()}`,
+          rekeningId: null
+        };
+        await transferSlip(payload);
+        triggerToast("Gaji berhasil dibayar! Pengeluaran otomatis tercatat.", "success");
+      } catch (transferError) {
+        // Jika transfer gagal (misal dana tidak cukup), otomatis batalkan approve kembali ke draft
+        await revertSlip(slipId);
+        throw transferError;
+      }
+      
       // Sync with server data
       fetchSlips(true);
     } catch (error) {
       console.error(error);
-      triggerToast(`Gagal memproses gaji: ${error.response?.data?.message || error.message}`, "error");
-      // Revert optimistic update on failure
+      const msg = error.response?.data?.message || error.message;
+      triggerToast(`Gagal: ${msg}`, "error");
+      // Sync actual status from server
       fetchSlips(true);
     }
   };

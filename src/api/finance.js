@@ -132,8 +132,10 @@ export const getDanaBeasiswa = () =>
 export const createDanaBeasiswa = (payload) =>
   api.post('/finance/dana-beasiswa', payload).then((r) => r.data.data);
 
-export const deleteDanaBeasiswa = (id) =>
-  api.delete(`/finance/dana-beasiswa/${id}`).then((r) => r.data.data);
+export const deleteDanaBeasiswa = async (id) => {
+  const response = await api.delete(`/finance/dana-beasiswa/${id}`);
+  return response.data;
+};
 
 // ── OPERASIONAL TRANSACTIONS ───────────────────────────────────────────────
 

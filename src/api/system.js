@@ -10,6 +10,12 @@ export const getAuditLogs = (params = {}) =>
 export const getRoles = () =>
   api.get('/system/roles').then(r => r.data.data);
 
+export const getRolePermissions = () =>
+  api.get('/system/role-permissions').then(r => r.data.data);
+
+export const updateRolePermissions = (data) =>
+  api.put('/system/role-permissions', data).then(r => r.data);
+
 // === AKTIVASI AKUN ===
 /** Ambil semua user nonaktif / pending */
 export const getPendingUsers = () =>
