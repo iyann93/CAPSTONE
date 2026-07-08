@@ -182,28 +182,12 @@ export const getGlobalFinanceSummary = async () => {
 
     // 5. Penyaluran Beasiswa (Pengeluaran)
     let beasiswaDataList = Array.isArray(beasiswaData?.data || beasiswaData) ? (beasiswaData.data || beasiswaData) : [];
-    if (beasiswaDataList.length === 0) {
-      try {
-        const raw = localStorage.getItem('capstone_program_beasiswa');
-        if (raw) beasiswaDataList = JSON.parse(raw);
-      } catch (e) {}
-    }
     
     beasiswaDataList.forEach(p => {
-      if (p.status === 'Aktif') {
-        const amountStr = String(p.amount || "0").replace(/[^0-9]/g, '');
-        const amountNum = parseInt(amountStr, 10) || 0;
-        
-        const activePenerima = (p.penerima || []).filter(r => !r.status || String(r.status).toLowerCase() === 'aktif');
-        const disalurkan = activePenerima.reduce((s, r) => {
-          const rNominal = r.nominal ? Number(r.nominal) : amountNum;
-          return s + (rNominal || 0);
-        }, 0);
-        
-        outTotal += disalurkan;
-        if (isCurrentMonthAndYear(p.tanggalPenyaluran || p.updatedAt || p.createdAt || (p.penerima && p.penerima[0]?.tanggal_mulai))) {
-          outMonth += disalurkan;
-        }
+      const nom = Number(p.nominal) || 0;
+      outTotal += nom;
+      if (isCurrentMonthAndYear(p.tanggal_mulai || p.updatedAt || p.createdAt)) {
+        outMonth += nom;
       }
     });
   } catch (err) {
