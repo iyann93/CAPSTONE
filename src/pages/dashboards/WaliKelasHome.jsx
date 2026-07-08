@@ -8,7 +8,7 @@ const WaliKelasHome = ({ user, onNavigate }) => {
     jumlahSiswa: 32,
   };
 
-
+  const today = new Date().toLocaleDateString("id-ID", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
 
   return (
     <div className="p-6 md:p-8 space-y-6 animate-fadeIn">
@@ -24,7 +24,7 @@ const WaliKelasHome = ({ user, onNavigate }) => {
           <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
             <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
           </svg>
-          Senin, 23 Juni 2026
+          {today}
         </div>
       </div>
 
@@ -77,7 +77,7 @@ const WaliKelasHome = ({ user, onNavigate }) => {
           <p className="text-[11px] text-gray-400 mt-1">Total siswa di kelas</p>
         </div>
 
-        {/* Quick Action / Information Area */}
+        {/* Quick Action */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col justify-center items-center text-center">
           <div className="w-16 h-16 bg-blue-50 text-[#1A3D63] rounded-full flex items-center justify-center mb-4">
             <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -88,12 +88,69 @@ const WaliKelasHome = ({ user, onNavigate }) => {
           <p className="text-[13px] text-gray-500 mb-6 max-w-sm">
             Lihat daftar siswa, performa akademik, dan kelola data detail setiap siswa di kelas Anda.
           </p>
-          <button 
+          <button
             onClick={() => onNavigate("Data Siswa Kelas")}
-            className="px-6 py-2.5 bg-[#1A3D63] hover:bg-[#122A44] text-white text-[13px] font-bold rounded-xl transition-colors"
+            className="px-6 py-2.5 bg-[#1A3D63] hover:bg-[#122A44] text-white text-[13px] font-bold rounded-xl transition-colors border-none cursor-pointer"
           >
             Lihat Data Siswa
           </button>
+        </div>
+      </div>
+
+      {/* Slip Gaji Notification Card */}
+      <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl p-5 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-4">
+            {/* Icon */}
+            <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
+              <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#059669" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-0.5">
+                <h3 className="text-[15px] font-bold text-gray-800">Slip Gaji Tersedia</h3>
+                <span className="px-2 py-0.5 bg-emerald-500 text-white text-[10px] font-bold rounded-full">Baru</span>
+              </div>
+              <p className="text-[13px] text-gray-500">
+                Slip gaji bulan <span className="font-semibold text-emerald-700">Juli 2026</span> telah diterbitkan oleh Bendahara. Silakan cek dan unduh slip gaji Anda.
+              </p>
+              <div className="flex flex-wrap items-center gap-4 mt-2">
+                <span className="flex items-center gap-1 text-[11px] text-gray-400">
+                  <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+                  </svg>
+                  Diterbitkan: Juli 2026
+                </span>
+                <span className="flex items-center gap-1 text-[11px] text-emerald-600 font-semibold">
+                  <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  Status: Sudah Ditransfer
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="flex sm:flex-col items-start sm:items-end gap-2 shrink-0">
+            <button
+              onClick={() => onNavigate("Slip Gaji")}
+              className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-[12px] font-bold rounded-xl transition-colors border-none cursor-pointer whitespace-nowrap"
+            >
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+              Lihat Slip Gaji
+            </button>
+            <button
+              onClick={() => onNavigate("Riwayat Terima Gaji")}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-emerald-200 hover:bg-emerald-50 text-emerald-700 text-[12px] font-bold rounded-xl transition-colors cursor-pointer whitespace-nowrap"
+            >
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Riwayat Gaji
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -101,7 +158,3 @@ const WaliKelasHome = ({ user, onNavigate }) => {
 };
 
 export default WaliKelasHome;
-
-
-
-

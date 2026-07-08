@@ -2714,7 +2714,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                         </div>
 
                         {/* Details Grid */}
-                        <div className="p-6 grid grid-cols-2 gap-y-6 gap-x-4 border-b border-gray-100">
+                        <div className="p-6 grid grid-cols-2 gap-y-4 gap-x-4 border-b border-gray-100 items-start">
                           <div>
                             <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Nominal Bantuan</div>
                             <div className="text-sm font-bold text-gray-800">{activeProgram.amount}</div>
@@ -2749,9 +2749,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                             <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Dana Tersalurkan</div>
                             <div className="text-sm font-bold text-emerald-600">{formatRupiah(disalurkan)}</div>
                           </div>
-                          <div className="col-span-2 pt-2 border-t border-gray-50">
+                          <div>
                             <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Sisa Total Dana Beasiswa</div>
-                            <div className="text-base font-bold text-gray-800">{formatRupiah(sisaDana)}</div>
+                            <div className="text-sm font-bold text-gray-800">{formatRupiah(sisaDana)}</div>
                           </div>
                         </div>
 
@@ -2775,8 +2775,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                           </div>
                         </div>
                       </div>
-                      );
-                    })()}
+                        );
+                      })()}
 
                       {/* Right Column: Table */}
                       <div className="xl:col-span-2 flex flex-col gap-4">

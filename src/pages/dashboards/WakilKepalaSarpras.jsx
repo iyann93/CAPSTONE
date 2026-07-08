@@ -125,9 +125,9 @@ const WakilKepalaSarpras = () => {
   };
 
   // Data Anggaran dari Total Pemasukan Bendahara
-  const TOTAL_ANGGARAN = pemasukanData.filter(d => d.kategori === 'Dana BOS').reduce((acc, curr) => acc + curr.nominal, 0);
-  const REALISASI = pengeluaranData.reduce((acc, curr) => acc + curr.nominal, 0);
-  const SISA_ANGGARAN = TOTAL_ANGGARAN - REALISASI;
+  const TOTAL_ANGGARAN = pemasukanData.filter(d => d.kategori === 'Dana BOS').reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+  const REALISASI = pengeluaranData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+  const SISA_ANGGARAN = Math.max(0, TOTAL_ANGGARAN - REALISASI);
   
   const chartData = [
     { name: "Realisasi", value: REALISASI, color: "#1F3A5F" },
@@ -185,7 +185,7 @@ const WakilKepalaSarpras = () => {
               <p className="text-[32px] font-black text-[#1F3A5F] tracking-tight">{formatRupiah(TOTAL_ANGGARAN)}</p>
               <p className="text-[12px] text-gray-500 mt-1">Tahun Ajaran 2025/2026</p>
             </div>
-            <div className="bg-white rounded-[16px] p-6 shadow-sm border border-gray-50 border-l-4 border-l-red-500">
+            <div className="bg-white rounded-[16px] p-6 shadow-sm border border-gray-50 border-l-4 border-l-[#1F3A5F]">
               <h3 className="text-[12px] font-bold text-gray-400 uppercase tracking-wider mb-2">Realisasi Penggunaan</h3>
               <p className="text-[32px] font-black text-[#1F3A5F] tracking-tight">{formatRupiah(REALISASI)}</p>
               <p className="text-[12px] text-gray-500 mt-1">{TOTAL_ANGGARAN > 0 ? ((REALISASI / TOTAL_ANGGARAN) * 100).toFixed(1) : 0}% dari anggaran</p>
@@ -209,7 +209,7 @@ const WakilKepalaSarpras = () => {
                       cy="50%"
                       innerRadius={60}
                       outerRadius={90}
-                      paddingAngle={5}
+                      paddingAngle={0}
                       dataKey="value"
                       stroke="none"
                     >

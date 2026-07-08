@@ -8,7 +8,16 @@ const OperasionalRepository = {
       SELECT * FROM finance.operasional_transactions
       ORDER BY id DESC
     `);
-    return res.rows;
+    return res.rows.map(row => ({
+      ...row,
+      bukti: (() => {
+        try {
+          if (!row.bukti) return [];
+          if (Array.isArray(row.bukti)) return row.bukti;
+          return JSON.parse(row.bukti);
+        } catch (_) { return []; }
+      })()
+    }));
   },
 
   create: async (data) => {
