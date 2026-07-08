@@ -4960,18 +4960,17 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
       {/* Hidden PDF Report Template */}
       <div style={{ position: 'absolute', top: 0, left: 0, zIndex: -100, opacity: 0.01, pointerEvents: 'none' }}>
-        <div id="pdf-report-template" className="bg-white p-10" style={{ width: '800px', minHeight: '1122px', color: 'black', fontFamily: 'serif' }}>
+        <div id="pdf-report-template" className="bg-white p-10 flex flex-col" style={{ width: '794px', height: '1123px', color: 'black', fontFamily: 'serif' }}>
           {/* Header */}
-          <div className="flex items-center border-b-4 border-black pb-4 mb-6">
-            <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mr-6">
-              <span className="text-[10px] font-bold text-gray-500">LOGO</span>
+          <div className="flex items-center gap-6 border-b-4 border-black pb-4 mb-6 text-black">
+            <div className="w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0">
+              <img src="/Logo MBS Prambanan.png" alt="Logo MBS Prambanan" className="w-full h-full object-contain" />
             </div>
-            <div className="text-center flex-1">
-              <h1 className="text-2xl font-bold uppercase tracking-widest">Muhammadiyah Boarding School (MBS) Prambanan</h1>
-              <p className="text-sm mt-1">Jl. Raya Piyungan - Prambanan Km 4.5, Sleman, DI Yogyakarta</p>
-              <p className="text-sm">Telp: (0274) 123456 | Email: info@mbsprambanan.sch.id</p>
+            <div className="text-left flex-1">
+              <h1 className="text-xl sm:text-2xl font-bold uppercase tracking-widest text-gray-900">Muhammadiyah Boarding School (MBS) Prambanan</h1>
+              <p className="text-xs sm:text-sm mt-1 text-gray-800">Jl. Raya Piyungan - Prambanan Km 4.5, Sleman, DI Yogyakarta</p>
+              <p className="text-xs sm:text-sm text-gray-800">Telp: (0274) 123456 | Email: info@mbsprambanan.sch.id</p>
             </div>
-            <div className="w-24 h-24 invisible"></div>
           </div>
           
           {/* Title */}
@@ -5073,12 +5072,12 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
           </table>
           
           {/* Signature */}
-          <div className="flex justify-end mt-16 text-sm">
-            <div className="text-center">
-              <p>Sleman, {new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
-              <p className="font-bold mt-1">Bendahara Sekolah</p>
-              <br/><br/><br/><br/>
-              <p className="font-bold underline">{user?.name || "Siti Aminah"}</p>
+          {/* Signature */}
+          <div className="flex justify-end mt-4 text-sm pb-12">
+            <div className="text-left w-48">
+              <p className="mb-1">Sleman, {new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+              <p className="font-bold mb-24">Bendahara Sekolah</p>
+              <p className="font-bold underline">{user?.fullName || "Siti Aminah"}</p>
               <p>NIP. {user?.nip || "19800101 200501 2 001"}</p>
             </div>
           </div>
