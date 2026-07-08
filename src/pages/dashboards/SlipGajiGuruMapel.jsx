@@ -1,10 +1,13 @@
-﻿import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
+import axios from "axios";
 
 const SlipGajiGuruMapel = ({ user, onNavigate, defaultData }) => {
   const [selectedPeriode, setSelectedPeriode] = useState(defaultData?.periode || "Mei 2026");
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [realData, setRealData] = useState(null);
   const slipRef = useRef(null);
 
   const riwayatMap = {
@@ -17,38 +20,59 @@ const SlipGajiGuruMapel = ({ user, onNavigate, defaultData }) => {
 
   const periodeOptions = Object.keys(riwayatMap);
 
-  const salaryData = {
-    periode: selectedPeriode,
-    tanggalTransfer: defaultData?.tglBayar || riwayatMap[selectedPeriode] || "-",
-    namaPegawai: user?.fullName || "Dra Sri Wahyuni",
-    nip: user?.nip || "196503151990032004",
-    jabatan: "Guru Mata Pelajaran",
-    golongan: "III/b",
+  useEffect(() => {
+    const fetchDetail = async () => {
+      try {
+        if (!defaultData?.slipId) {
+          setIsLoadingData(false);
+          return;
+        }
+        setIsLoadingData(true);
+        const token = localStorage.getItem("token");
+        const res = await axios.get(`http://localhost:5000/api/v1/payroll/${defaultData.slipId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setRealData(res.data.data);
+      } catch (err) {
+        console.error("Gagal ambil detail slip:", err);
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+    fetchDetail();
+  }, [defaultData?.slipId]);
+
+  const salaryData = realData ? {
+    periode: defaultData?.periode || selectedPeriode,
+    tanggalTransfer: realData.transfer?.tanggal_transfer ? new Date(realData.transfer.tanggal_transfer).toLocaleDateString('id-ID', {day: '2-digit', month:'short', year:'numeric'}) : "-",
+    namaPegawai: realData.user_nama || user?.fullName,
+    nip: user?.nip || "-",
+    jabatan: "Guru Mata Pelajaran", // from user or hardcode for now
+    golongan: "-",
     unitKerja: "SMP MBS PRAMBANAN",
-    rekening: "BRI — 00987 6543 2100",
-
-    // Pendapatan
-    gajiPokok: 3500000,
-    tunjangan: [
-      { nama: "Tunjangan Jabatan", nominal: 400000 },
-      { nama: "Tunjangan Kehadiran", nominal: 350000 },
-      { nama: "Tunjangan Transport", nominal: 250000 },
-    ],
-
-    // Potongan
-    potongan: [
-      { nama: "BPJS Kesehatan", nominal: 87500 },
-      { nama: "BPJS Ketenagakerjaan", nominal: 52500 },
-      { nama: "PPh 21", nominal: 154500 },
-      { nama: "Koperasi", nominal: 100000 },
-    ],
+    rekening: realData.transfer?.no_rekening ? `${realData.transfer.nama_bank || ''} - ${realData.transfer.no_rekening}` : "-",
+    gajiPokok: Number(realData.gaji_pokok) || 0,
+    tunjangan: realData.tunjangan ? realData.tunjangan.map(t => ({ nama: t.komponen_nama, nominal: Number(t.nominal) })) : [],
+    potongan: realData.potongan ? realData.potongan.map(p => ({ nama: p.komponen_nama, nominal: Number(p.nominal) })) : []
+  } : {
+    periode: selectedPeriode,
+    tanggalTransfer: defaultData?.tglBayar || "-",
+    namaPegawai: user?.fullName || "Guru Mapel",
+    nip: user?.nip || "-",
+    jabatan: "Guru Mata Pelajaran",
+    golongan: "-",
+    unitKerja: "SMP MBS PRAMBANAN",
+    rekening: "-",
+    gajiPokok: 0,
+    tunjangan: [],
+    potongan: [],
   };
 
   const totalTunjangan = salaryData.tunjangan.reduce((sum, item) => sum + item.nominal, 0);
   const totalPotongan = salaryData.potongan.reduce((sum, item) => sum + item.nominal, 0);
   const gajiBersih = salaryData.gajiPokok + totalTunjangan - totalPotongan;
 
-  const fmt = (n) => "Rp " + n.toLocaleString("id-ID").replace(/,/g, ".");
+  const fmt = (n) => "Rp " + Number(n).toLocaleString("id-ID").replace(/,/g, ".");
 
   useEffect(() => {
     if (defaultData?.autoDownload && slipRef.current && !isDownloading) {
@@ -117,7 +141,11 @@ const SlipGajiGuruMapel = ({ user, onNavigate, defaultData }) => {
         </div>
       </div>
 
-      {/* Filter Row */}
+      {isLoadingData ? (
+        <div className="py-8 text-center text-sm text-gray-500">Memuat data slip gaji...</div>
+      ) : (
+        <>
+          {/* Filter Row */}
       <div className="flex items-center gap-3 mt-2">
         <span className="bg-[#E8F5E9] text-[#2E7D32] px-3 py-1.5 rounded-md text-[12px] font-bold tracking-wide">
           Sudah Transfer
@@ -243,6 +271,8 @@ const SlipGajiGuruMapel = ({ user, onNavigate, defaultData }) => {
           </button>
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 };

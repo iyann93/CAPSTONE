@@ -25,7 +25,7 @@ const PayrollController = {
   // GET /payroll/riwayat/:userId  — Riwayat gaji per user
   getRiwayat: async (req, res, next) => {
     try {
-      const data = await PayrollService.getRiwayat(req.params.userId);
+      const data = await PayrollService.getRiwayat(req.params.userId, req.query.status);
       return response.success(res, 200, 'Riwayat gaji berhasil diambil', data);
     } catch (err) { next(err); }
   },

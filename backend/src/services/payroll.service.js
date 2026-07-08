@@ -80,8 +80,8 @@ const PayrollService = {
   },
 
   // ── RIWAYAT per User ─────────────────────────────────────────────────────────
-  getRiwayat: async (userId) => {
-    return PayrollRepository.findRiwayatByUser(userId);
+  getRiwayat: async (userId, status) => {
+    return PayrollRepository.findRiwayatByUser(userId, status);
   },
 
   // ── KOMPONEN GAJI (Pengaturan) ───────────────────────────────────────────────
