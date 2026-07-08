@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import SPPDonutChart from "../../components/SPPDonutChart";
-import { getBeasiswaSummary, getGlobalFinanceSummary, getSppYearlySummary } from "../../utils/financeHelpers";
-import { getTagihan, getPembayaran, getOperasional, getBeasiswa, getBendaharaDashboard } from "../../api/finance";
+import { getBeasiswaSummary, getSppYearlySummary } from "../../utils/financeHelpers";
+import { getTagihan, getPembayaran, getOperasional, getBeasiswa, getDanaBeasiswa } from "../../api/finance";
 import { getAllSlips, getEmployees } from "../../api/payroll";
 import {
   PieChart,
@@ -85,22 +85,11 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [summary, sppSummary, beasiswaSummaryData, payrollSummaryData] = await Promise.all([
-          getGlobalFinanceSummary(),
+        const [sppSummary, beasiswaSummaryData, payrollSummaryData] = await Promise.all([
           getSppYearlySummary(selectedYear),
           getBeasiswaSummary(),
           getPayrollSummary()
         ]);
-        // Try to fetch the Bendahara precomputed dashboard totals for exact match
-        const bendaharaSummary = await getBendaharaDashboard().catch(() => null);
-
-        // Sync global finance summary; prefer Bendahara dashboard totals when available
-        setData(prev => ({
-          ...prev,
-          pemasukan: summary.totalPemasukan,
-          pengeluaran: (bendaharaSummary && typeof bendaharaSummary.totalPengeluaran === 'number') ? bendaharaSummary.totalPengeluaran : summary.totalPengeluaran,
-          saldo: (bendaharaSummary && typeof bendaharaSummary.totalPengeluaran === 'number') ? (summary.totalPemasukan - bendaharaSummary.totalPengeluaran) : summary.saldoKeuangan
-        }));
 
         // Show yearly summary immediately for faster display, then override with per-month data
         let finalSpp = sppSummary || {};
@@ -111,14 +100,24 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
 
         // Also compute Total Pengeluaran the same way Bendahara does: operasional pengeluaran + penyaluran beasiswa
         try {
-          const [operasionalRes, beasiswaRes] = await Promise.all([
+          const [operasionalRes, beasiswaRes, pembayaranRes, danaBeasiswaRes] = await Promise.all([
             getOperasional().catch(() => ({ data: [] })),
-            getBeasiswa().catch(() => ({ data: [] }))
+            getBeasiswa().catch(() => ({ data: [] })),
+            getPembayaran().catch(() => ({ data: [] })),
+            getDanaBeasiswa().catch(() => ({ data: [] }))
           ]);
           const operasional = Array.isArray(operasionalRes.data || operasionalRes) ? (operasionalRes.data || operasionalRes) : [];
           const beasiswaListRaw = Array.isArray(beasiswaRes.data || beasiswaRes) ? (beasiswaRes.data || beasiswaRes) : [];
+          const pembayaran = Array.isArray(pembayaranRes.data || pembayaranRes) ? (pembayaranRes.data || pembayaranRes) : [];
+          const danaBeasiswaList = Array.isArray(danaBeasiswaRes.data || danaBeasiswaRes) ? (danaBeasiswaRes.data || danaBeasiswaRes) : [];
 
           const totalOperasionalSaja = operasional.filter(d => d.tipe === 'pengeluaran').reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+          const totalOperasionalMasuk = operasional.filter(d => d.tipe === 'pemasukan').reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+          const totalBeasiswa = danaBeasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+          const totalSppTahunan = pembayaran.reduce((acc, curr) => {
+            const amount = Number(String(curr.amount || curr.jumlah_bayar || curr.nominal_dibayar || curr.nominal || "0").replace(/[^0-9]/g, '')) || 0;
+            return acc + amount;
+          }, 0);
 
           // Merge backend beasiswa data with any saved programs in localStorage similar to BendaharaDashboard
           let backendList = beasiswaListRaw || [];
@@ -186,11 +185,15 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
             }
           });
 
-          const totalPengeluaranSynced = totalOperasionalSaja + totalPenyaluranBeasiswa;
-          // Prefer Bendahara's summary if it exists and differs — keep dashboards synchronized.
-          const useSummary = summary && typeof summary.totalPengeluaran === 'number' && Number(summary.totalPengeluaran) !== Number(totalPengeluaranSynced);
-          const finalPengeluaran = useSummary ? Number(summary.totalPengeluaran) : totalPengeluaranSynced;
-          setData(prev => ({ ...prev, pengeluaran: finalPengeluaran, saldo: (prev.pemasukan || 0) - finalPengeluaran }));
+          const totalPengeluaranTahunan = totalOperasionalSaja + totalPenyaluranBeasiswa;
+          const totalPemasukanTahunan = totalSppTahunan + totalOperasionalMasuk + totalBeasiswa;
+
+          setData(prev => ({
+            ...prev,
+            pemasukan: totalPemasukanTahunan,
+            pengeluaran: totalPengeluaranTahunan,
+            saldo: totalPemasukanTahunan - totalPengeluaranTahunan
+          }));
         } catch (e) {
           // ignore - keep existing summary if this fails
           console.error('Gagal sinkronisasi total pengeluaran:', e);
@@ -313,6 +316,12 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
     { name: "Sisa", value: Math.max(0, 100 - beasiswaSummary.persentase), color: "#e5e7eb" }
   ];
 
+  const sppProgressPercent = sppLoaded
+    ? (Number(sppData.countLunas || 0) + Number(sppData.countBelum || 0) > 0
+        ? Math.round((Number(sppData.countLunas || 0) / (Number(sppData.countLunas || 0) + Number(sppData.countBelum || 0))) * 100)
+        : 0)
+    : 0;
+
   return (
     <div className="flex flex-col gap-6 animate-fadeIn font-sans p-4 md:p-8 min-h-full">
       {/* Header Area */}
@@ -345,56 +354,16 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
       {/* Ringkasan Keuangan Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col justify-center">
-          <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Total Pemasukan</div>
+          <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Total Pemasukan Tahunan</div>
           <div className="text-[24px] font-black text-gray-800">{formatCurrency(data.pemasukan)}</div>
         </div>
         <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col justify-center">
-          <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Total Pengeluaran</div>
+          <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Total Pengeluaran Tahunan</div>
           <div className="text-[24px] font-black text-gray-800">{formatCurrency(data.pengeluaran)}</div>
         </div>
         <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col justify-center">
           <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Saldo Keuangan</div>
           <div className="text-[24px] font-black text-gray-800">{formatCurrency(data.saldo)}</div>
-        </div>
-      </div>
-
-      {/* Penagihan SPP */}
-      <div className="grid grid-cols-1 gap-6">
-        <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col">
-          <h3 className="text-[16px] font-bold text-gray-800 mb-6">Penagihan SPP</h3>
-          <div className="mb-6">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-[12px] font-medium text-gray-500">Realisasi {selectedYear}</span>
-              <span className="text-[12px] font-black text-gray-800">{sppLoaded ? `${sppData.persentase}%` : '…'}</span>
-            </div>
-            <div className="w-full bg-blue-50 rounded-full h-3">
-              <div className="bg-[#1e3a8a] h-3 rounded-full" style={{ width: `${sppLoaded ? sppData.persentase : 0}%`, transition: 'width 0.5s ease-out' }}></div>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-y-6 gap-x-4 mt-auto">
-            <div>
-              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total Tagihan</div>
-              <div className="text-[14px] font-black text-gray-800">{sppLoaded ? formatCurrency(sppData.totalTagihan) : '…'}</div>
-            </div>
-            <div>
-              <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Terbayar</div>
-              <div className="text-[14px] font-black text-[#1e3a8a]">{sppLoaded ? formatCurrency(sppData.terbayar) : '…'}</div>
-            </div>
-            
-              <div>
-                {sppLoaded && Number(sppData.countVerifikasi) === 0 ? (
-                  <>
-                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Siswa Lunas</div>
-                    <div className="text-[14px] font-black text-gray-800">{`${sppData.countLunas} Siswa`}</div>
-                  </>
-                ) : (
-                  <>
-                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Status Verifikasi</div>
-                    <div className="text-[14px] font-black text-gray-800">{sppLoaded ? `${sppData.countVerifikasi} Siswa` : '…'}</div>
-                  </>
-                )}
-              </div>
-          </div>
         </div>
       </div>
 
@@ -483,14 +452,9 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
         </div>
         
         <div className="w-full lg:w-2/3 border-t lg:border-t-0 lg:border-l border-gray-100 pt-6 lg:pt-0 lg:pl-8">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h3 className="text-[16px] font-bold text-gray-800">Ringkasan Penagihan SPP</h3>
-              <p className="text-[12px] text-gray-500 mt-1">Data ringkasan {selectedYear} (bulan berjalan)</p>
-            </div>
-            <div className="px-3 py-1 bg-blue-50 text-[#1e3a8a] rounded-lg text-[11px] font-bold uppercase tracking-wider">
-              Total Tagihan: {sppLoaded ? formatCurrency(sppData.totalTagihan) : '…'}
-            </div>
+          <div className="mb-6">
+            <h3 className="text-[16px] font-bold text-gray-800">Ringkasan Penagihan SPP</h3>
+            <p className="text-[12px] text-gray-500 mt-1">Data ringkasan {selectedYear} (bulan berjalan)</p>
           </div>
 
           <div className="space-y-4">
@@ -502,10 +466,6 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
               <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
                 <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Terbayar</div>
                   <div className="text-[14px] font-black text-[#1e3a8a]">{sppLoaded ? formatCurrency(sppData.terbayar) : '…'}</div>
-              </div>
-              <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
-                <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Persentase Realisasi</div>
-                <div className="text-[14px] font-black text-gray-800">{sppLoaded ? `${sppData.persentase}%` : '…'}</div>
               </div>
             </div>
 

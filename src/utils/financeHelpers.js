@@ -36,23 +36,83 @@ export const getBeasiswaSummary = async () => {
       ? (danaBeasiswaResponse.data || danaBeasiswaResponse)
       : [];
 
-    const activeRecipients = beasiswaList.filter((item) => {
-      const status = String(item?.status || "").trim().toLowerCase();
-      return status === "aktif" || status === "active" || status === "";
+    let backendList = beasiswaList || [];
+    let savedPrograms = [];
+    try {
+      const raw = localStorage.getItem('capstone_program_beasiswa');
+      if (raw) savedPrograms = JSON.parse(raw);
+    } catch (e) {
+      savedPrograms = [];
+    }
+
+    const grouped = {};
+    backendList.forEach((b) => {
+      if (!grouped[b.nama_beasiswa]) grouped[b.nama_beasiswa] = { penerima: [] };
+      grouped[b.nama_beasiswa].penerima.push({
+        id: b.id,
+        siswa_id: b.siswa_id,
+        siswa_nama: b.siswa_nama || b.nama_siswa,
+        nis: b.nis,
+        nama_kelas: b.nama_kelas || b.kelas || '-',
+        nama_beasiswa: b.nama_beasiswa,
+        nominal: b.nominal,
+        periode: b.periode,
+        status: b.status,
+        tanggal_mulai: b.tanggal_mulai,
+        tanggal_selesai: b.tanggal_selesai
+      });
+    });
+
+    const dedupMap = new Map();
+    (savedPrograms || []).forEach((p) => {
+      const key = (p.title || '').trim().toLowerCase();
+      if (!dedupMap.has(key)) dedupMap.set(key, { ...p, penerima: [] });
+    });
+
+    const mergedPrograms = Array.from(dedupMap.values()).map((prog) => {
+      const key = (prog.title || '').trim().toLowerCase();
+      const matchedGroupKey = Object.keys(grouped).find((k) => k.trim().toLowerCase() === key);
+      return {
+        ...prog,
+        title: matchedGroupKey || prog.title,
+        penerima: matchedGroupKey ? grouped[matchedGroupKey].penerima : (prog.penerima || [])
+      };
+    });
+
+    Object.keys(grouped).forEach((k) => {
+      const key = k.trim().toLowerCase();
+      if (!dedupMap.has(key)) {
+        mergedPrograms.push({ title: k, penerima: grouped[k].penerima, status: 'Aktif', amount: '0' });
+      }
+    });
+
+    let totalPenerimaAktif = 0;
+    let tersalurkan = 0;
+
+    mergedPrograms.forEach((p) => {
+      if (p.status === 'Aktif') {
+        const amountStr = String(p.amount || p.nominal || '0').replace(/[^0-9]/g, '');
+        const amountNum = parseInt(amountStr, 10) || 0;
+        const activePenerima = (p.penerima || []).filter((r) => !r.status || String(r.status).toLowerCase() === 'aktif');
+        totalPenerimaAktif += activePenerima.length;
+        tersalurkan += activePenerima.reduce((sum, r) => {
+          const rNominal = r.nominal ? Number(r.nominal) : amountNum;
+          return sum + (rNominal || 0);
+        }, 0);
+      }
     });
 
     const totalDanaMasuk = danaBeasiswaList.reduce((sum, item) => sum + (Number(item?.nominal) || 0), 0);
-    const tersalurkan = activeRecipients.reduce((sum, item) => sum + (Number(item?.nominal) || 0), 0);
     const persentase = totalDanaMasuk > 0 ? Math.round((tersalurkan / totalDanaMasuk) * 100) : 0;
 
     return {
-      penerimaAktif: activeRecipients.length,
+      penerimaAktif: totalPenerimaAktif,
       totalDanaMasuk,
       tersalurkan,
       persentase: Math.max(0, Math.min(100, persentase))
     };
   } catch (err) {
-    console.error("Error aggregating beasiswa summary:", err);
+    console.error('Error aggregating beasiswa summary:', err);
     return {
       penerimaAktif: 0,
       totalDanaMasuk: 0,
