@@ -397,7 +397,6 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
             onClick={() => { setFormItems([emptyItem()]); setIsDirty(false); setShowAddModal(true); }}
             className="flex items-center gap-2 justify-center bg-[#1A3D63] hover:bg-[#122A44] text-white border-none rounded-xl px-5 py-2.5 text-xs font-bold cursor-pointer transition-all active:scale-95 shadow-sm w-full sm:w-auto"
           >
-            <IconPlus />
             {activeTab === "pemasukan" ? "Tambah Pemasukan" : "Tambah Pengeluaran"}
           </button>
         </div>
@@ -704,19 +703,15 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
         </div>
       )}
 
-      {/* Modal Tambah Pengeluaran / Pemasukan - Multi-item */}
+      {/* Modal Tambah Pengeluaran / Pemasukan */}
       {showAddModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
             {/* Header Modal */}
-            <div className="p-5 border-b border-gray-100 flex items-center justify-between shrink-0">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-bold text-gray-800">{activeTab === "pemasukan" ? "Tambah Pemasukan" : "Tambah Pengeluaran"}</h2>
-                <p className="text-[11px] text-gray-500 mt-1">
-                  {activeTab === "pemasukan"
-                    ? `Catat ${formItems.length > 1 ? `${formItems.length} transaksi` : 'transaksi'} pemasukan dana sekolah.`
-                    : `Catat ${formItems.length > 1 ? `${formItems.length} transaksi` : 'transaksi'} pengeluaran operasional sekolah.`}
-                </p>
+                <p className="text-[11px] text-gray-500 mt-1">{activeTab === "pemasukan" ? "Catat transaksi pemasukan dana sekolah." : "Catat transaksi pengeluaran operasional sekolah."}</p>
               </div>
               <button
                 onClick={handleCancel}
@@ -727,29 +722,8 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
             </div>
 
             {/* Body Modal */}
-            <div className="p-5 overflow-y-auto custom-scrollbar flex-1 space-y-5">
-              {formItems.map((item, itemIndex) => (
-                <div
-                  key={item.id}
-                  className="border border-gray-200 rounded-2xl p-4 relative bg-gray-50/40"
-                  style={{ borderLeft: '4px solid #1A3D63' }}
-                >
-                  {/* Item Header */}
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs font-bold text-[#1A3D63] bg-blue-50 px-3 py-1 rounded-full">
-                      {activeTab === "pemasukan" ? "Pemasukan" : "Pengeluaran"} #{itemIndex + 1}
-                    </span>
-                    {formItems.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveItem(item.id)}
-                        className="text-red-400 hover:text-red-600 bg-red-50 hover:bg-red-100 border border-red-100 rounded-xl p-1.5 cursor-pointer transition-colors"
-                        title="Hapus item ini"
-                      >
-                        <IconX />
-                      </button>
-                    )}
-                  </div>
+            {formItems.slice(0, 1).map((item) => (
+            <div key={item.id} className="p-5 overflow-y-auto custom-scrollbar flex-1 space-y-4">
 
                   <div className="space-y-4">
                     {/* Row 1: Tanggal + Kategori */}
@@ -951,50 +925,32 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
                       ></textarea>
                     </div>
                   </div>
-                </div>
-              ))}
-
-              {/* Tombol Tambah Item */}
-              <button
-                type="button"
-                onClick={handleAddItem}
-                className="w-full py-3 border-2 border-dashed border-[#1A3D63]/30 rounded-2xl text-xs font-bold text-[#1A3D63] hover:bg-blue-50 hover:border-[#1A3D63]/60 transition-all cursor-pointer flex items-center justify-center gap-2"
-              >
-                <IconPlus />
-                Tambah {activeTab === "pemasukan" ? "Pemasukan" : "Pengeluaran"} Lainnya
-              </button>
             </div>
+            ))}
 
             {/* Footer Modal */}
-            <div className="p-4 border-t border-gray-100 flex items-center justify-between gap-3 bg-gray-50/50 shrink-0">
-              <span className="text-[11px] text-gray-500 font-medium">
-                {formItems.length} item {activeTab === "pemasukan" ? "pemasukan" : "pengeluaran"} akan disimpan
-              </span>
-              <div className="flex gap-3">
-                <button
-                  onClick={handleCancel}
-                  disabled={isSaving}
-                  className="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-xl text-xs font-bold hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  Batal
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="px-5 py-2 bg-[#1A3D63] text-white rounded-xl text-xs font-bold hover:bg-[#122A44] transition-colors shadow-sm cursor-pointer border-none disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {isSaving ? (
-                    <>
-                      <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      Menyimpan...
-                    </>
-                  ) : (
-                    formItems.length > 1
-                      ? `Simpan ${formItems.length} ${activeTab === "pemasukan" ? "Pemasukan" : "Pengeluaran"}`
-                      : (activeTab === "pemasukan" ? "Simpan Pemasukan" : "Simpan Pengeluaran")
-                  )}
-                </button>
-              </div>
+            <div className="p-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50">
+              <button
+                onClick={handleCancel}
+                disabled={isSaving}
+                className="px-4 py-2 bg-white border border-gray-200 text-gray-600 rounded-xl text-xs font-bold hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="px-5 py-2 bg-[#1A3D63] text-white rounded-xl text-xs font-bold hover:bg-[#122A44] transition-colors shadow-sm cursor-pointer border-none disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isSaving ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Menyimpan...
+                  </>
+                ) : (
+                  activeTab === "pemasukan" ? "Simpan Pemasukan" : "Simpan Pengeluaran"
+                )}
+              </button>
             </div>
           </div>
         </div>
@@ -1076,7 +1032,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
                 </div>
               </div>
 
-              {selectedDetailItem.kategori !== 'Beasiswa' && (
+              {selectedDetailItem.kategori !== 'Beasiswa' && selectedDetailItem.kategori !== 'SPP' && selectedDetailItem._type !== 'spp' && (
                 <div>
                   <div className="text-[10px] font-bold text-gray-400 uppercase mb-2">Bukti Transaksi</div>
                   {selectedDetailItem.bukti && selectedDetailItem.bukti.length > 0 ? (
