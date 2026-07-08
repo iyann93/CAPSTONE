@@ -46,8 +46,8 @@ const GradePromotionDetail = ({ setView, classData, activeTahunAjaran, onSave })
           const kData = kenaikanData.find(kd => kd.siswa_id === actual.id);
           
           if (kData) {
-             if (kData.status === 'Naik') status = "Naik Kelas";
-             if (kData.status === 'Tinggal') status = "Tidak Naik";
+             if (kData.status === 'naik') status = "Naik Kelas";
+             if (kData.status === 'tinggal') status = "Tidak Naik";
           }
           
           baseStudents.push({
@@ -130,13 +130,21 @@ const GradePromotionDetail = ({ setView, classData, activeTahunAjaran, onSave })
           if (matchedClass) targetClassId = matchedClass.id;
       }
 
-      const payload = students.map(s => ({
-        siswaId: s.id,
-        kelasAsalId: classData.kode,
-        kelasTujuanId: s.status === "Naik Kelas" ? targetClassId : classData.kode, // if tidak naik, stays in same class
-        status: s.status === "Naik Kelas" ? "Naik" : s.status === "Tidak Naik" ? "Tinggal" : "Belum",
-        keterangan: s.status === "Belum Ditentukan" ? "Menunggu verifikasi wali kelas" : ""
-      }));
+      const payload = students
+        .filter(s => s.status !== "Belum Ditentukan")
+        .map(s => ({
+          siswaId: s.id,
+          kelasAsalId: classData.kode,
+          kelasTujuanId: s.status === "Naik Kelas" ? targetClassId : classData.kode, // if tidak naik, stays in same class
+          status: s.status === "Naik Kelas" ? "naik" : "tinggal",
+          keterangan: ""
+        }));
+      
+      if (payload.length === 0) {
+        alert("Belum ada keputusan kenaikan kelas yang dibuat.");
+        setSaving(false);
+        return;
+      }
       
       await api.post('/kenaikan-kelas/bulk', {
         tahunAjaranId: activeTahunAjaran.id,

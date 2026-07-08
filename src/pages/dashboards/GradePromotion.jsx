@@ -72,8 +72,8 @@ const GradePromotion = () => {
         classStudents.forEach(s => {
           const k = kenaikanData.find(kd => kd.siswa_id === s.id);
           if (k) {
-            if (k.status === 'Naik') naik++;
-            if (k.status === 'Tinggal') tidakNaik++;
+            if (k.status === 'naik') naik++;
+            if (k.status === 'tinggal') tidakNaik++;
           }
         });
         

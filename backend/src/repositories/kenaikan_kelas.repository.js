@@ -51,9 +51,9 @@ const KenaikanKelasRepository = {
           results.push(ins.rows[0]);
         }
 
-        // Kalau status 'Naik' dan kelasTujuanId ada, update siswa.kelas_id
+        // Kalau status 'naik' dan kelasTujuanId ada, update siswa.kelas_id
         // Asumsi ini dilakukan saat "Proses" selesai
-        if (status === 'Naik' && kelasTujuanId) {
+        if (status === 'naik' && kelasTujuanId) {
           await client.query('UPDATE academic.siswa SET kelas_id = $1 WHERE id = $2', [kelasTujuanId, siswaId]);
         }
       }
