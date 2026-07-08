@@ -103,7 +103,7 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
           const [operasionalRes, beasiswaRes, pembayaranRes, danaBeasiswaRes] = await Promise.all([
             getOperasional().catch(() => ({ data: [] })),
             getBeasiswa().catch(() => ({ data: [] })),
-            getPembayaran().catch(() => ({ data: [] })),
+            getPembayaran({ limit: 10000 }).catch(() => ({ data: [] })),
             getDanaBeasiswa().catch(() => ({ data: [] }))
           ]);
           const operasional = Array.isArray(operasionalRes.data || operasionalRes) ? (operasionalRes.data || operasionalRes) : [];
@@ -111,81 +111,19 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
           const pembayaran = Array.isArray(pembayaranRes.data || pembayaranRes) ? (pembayaranRes.data || pembayaranRes) : [];
           const danaBeasiswaList = Array.isArray(danaBeasiswaRes.data || danaBeasiswaRes) ? (danaBeasiswaRes.data || danaBeasiswaRes) : [];
 
-          const totalOperasionalSaja = operasional.filter(d => d.tipe === 'pengeluaran').reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+          const totalSemuaOperasional = operasional.filter(d => d.tipe === 'pengeluaran').reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+          const totalOperasionalSaja = operasional.filter(d => d.tipe === 'pengeluaran' && d.kategori !== 'Gaji Pegawai').reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
           const totalOperasionalMasuk = operasional.filter(d => d.tipe === 'pemasukan').reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
           const totalBeasiswa = danaBeasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
           const totalSppTahunan = pembayaran.reduce((acc, curr) => {
-            const amount = Number(String(curr.amount || curr.jumlah_bayar || curr.nominal_dibayar || curr.nominal || "0").replace(/[^0-9]/g, '')) || 0;
+            const amount = Number(curr.jumlah_bayar || 0);
             return acc + amount;
           }, 0);
 
-          // Merge backend beasiswa data with any saved programs in localStorage similar to BendaharaDashboard
           let backendList = beasiswaListRaw || [];
-          let savedPrograms = [];
-          try {
-            const raw = localStorage.getItem('capstone_program_beasiswa');
-            if (raw) savedPrograms = JSON.parse(raw);
-          } catch (e) { savedPrograms = []; }
+          const totalPenyaluranBeasiswa = backendList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
 
-          // Group backend penerima by nama_beasiswa
-          const grouped = {};
-          backendList.forEach(b => {
-            if (!grouped[b.nama_beasiswa]) grouped[b.nama_beasiswa] = { penerima: [] };
-            grouped[b.nama_beasiswa].penerima.push({
-              id: b.id,
-              siswa_id: b.siswa_id,
-              siswa_nama: b.siswa_nama || b.nama_siswa,
-              nis: b.nis,
-              nama_kelas: b.nama_kelas || b.kelas || "-",
-              nama_beasiswa: b.nama_beasiswa,
-              nominal: b.nominal,
-              periode: b.periode,
-              status: b.status,
-              tanggal_mulai: b.tanggal_mulai,
-              tanggal_selesai: b.tanggal_selesai
-            });
-          });
-
-          // Start from saved programs metadata and merge penerima from backend
-          const dedupMap = new Map();
-          (savedPrograms || []).forEach(p => {
-            const key = (p.title || "").trim().toLowerCase();
-            if (!dedupMap.has(key)) dedupMap.set(key, { ...p, penerima: [] });
-          });
-
-          const mergedPrograms = Array.from(dedupMap.values()).map(prog => {
-            const key = (prog.title || "").trim().toLowerCase();
-            const matchedGroupKey = Object.keys(grouped).find(k => k.trim().toLowerCase() === key);
-            return {
-              ...prog,
-              title: matchedGroupKey || prog.title,
-              penerima: matchedGroupKey ? grouped[matchedGroupKey].penerima : (prog.penerima || [])
-            };
-          });
-
-          // Also include any backend programs that weren't in savedPrograms
-          Object.keys(grouped).forEach(k => {
-            const key = k.trim().toLowerCase();
-            if (!dedupMap.has(key)) {
-              mergedPrograms.push({ title: k, penerima: grouped[k].penerima, status: 'Aktif', amount: '0' });
-            }
-          });
-
-          let totalPenyaluranBeasiswa = 0;
-          mergedPrograms.forEach(p => {
-            if (p.status === 'Aktif') {
-              const amountStr = String(p.amount || p.nominal || "0").replace(/[^0-9]/g, '');
-              const amountNum = parseInt(amountStr, 10) || 0;
-              const activePenerima = (p.penerima || []).filter(r => !r.status || String(r.status).toLowerCase() === 'aktif');
-              const disalurkan = activePenerima.reduce((s, r) => {
-                const rNominal = r.nominal ? Number(r.nominal) : amountNum;
-                return s + (rNominal || 0);
-              }, 0);
-              totalPenyaluranBeasiswa += disalurkan;
-            }
-          });
-
-          const totalPengeluaranTahunan = totalOperasionalSaja + totalPenyaluranBeasiswa;
+          const totalPengeluaranTahunan = totalSemuaOperasional + totalPenyaluranBeasiswa;
           const totalPemasukanTahunan = totalSppTahunan + totalOperasionalMasuk + totalBeasiswa;
 
           setData(prev => ({
@@ -362,7 +300,7 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
           <div className="text-[24px] font-black text-gray-800">{formatCurrency(data.pengeluaran)}</div>
         </div>
         <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col justify-center">
-          <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Saldo Keuangan</div>
+          <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Sisa Saldo Keuangan</div>
           <div className="text-[24px] font-black text-gray-800">{formatCurrency(data.saldo)}</div>
         </div>
       </div>

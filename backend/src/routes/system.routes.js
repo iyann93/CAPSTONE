@@ -8,6 +8,13 @@ const authorize = require('../middleware/authorize');
 // GET /api/v1/system/audit-logs
 router.get('/audit-logs', verifyToken, authorize('system.read'), SystemController.getAuditLogs);
 
+// Backup Routes
+const BackupController = require('../controllers/backup.controller');
+router.get('/backups', verifyToken, authorize('system.manage'), BackupController.getBackups);
+router.post('/backups', verifyToken, authorize('system.manage'), BackupController.createBackup);
+router.delete('/backups/:filename', verifyToken, authorize('system.manage'), BackupController.deleteBackup);
+router.get('/stats', verifyToken, authorize('system.read'), BackupController.getStats);
+
 router.get('/frontend-state', verifyToken, async (req, res, next) => {
   try {
     const pool = require('../config/db');

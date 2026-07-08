@@ -26,4 +26,17 @@ export default defineConfig({
       ignored: ['**/backend/**']
     }
   },
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'react/jsx-runtime',
+      'axios',
+      'jspdf',
+      'jspdf-autotable',
+    ],
+  },
+  esbuild: {
+    target: 'esnext',
+  },
 })

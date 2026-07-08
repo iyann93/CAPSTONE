@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import GuruHome from "./GuruHome";
 import GuruRiwayatTerimaGaji from "../../components/payroll/GuruRiwayatTerimaGaji";
 import JadwalGuruMapel from "./JadwalGuruMapel";
@@ -70,7 +70,7 @@ const GuruDashboard = ({ user, activeMenu, onViewChange }) => {
       return <InputNilai user={user} />;
 
     case "Absensi Siswa":
-      return <AbsensiSiswa user={user} onSaveAttendance={handleSaveAttendance} />;
+      return <AbsensiSiswa user={user} onSaveAttendance={handleSaveAttendance} attendanceSessions={attendanceSessions} />;
 
     case "Rekap Absensi Siswa":
       return <RekapAbsensiSiswa user={user} attendanceSessions={attendanceSessions} />;

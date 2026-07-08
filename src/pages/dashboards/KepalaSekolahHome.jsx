@@ -99,8 +99,6 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
   };
 
   const formatShortRupiah = (value) => {
-    if (value >= 1000000000) return `Rp ${(value / 1000000000).toFixed(2)} M`;
-    if (value >= 1000000) return `Rp ${(value / 1000000).toFixed(0)} Jt`;
     return formatRupiah(value);
   };
 
@@ -195,6 +193,16 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
                 </div>
                 <div className="w-full bg-gray-50 rounded-full h-2.5 overflow-hidden border border-gray-100">
                   <div className="bg-[#e11d48] h-full rounded-full" style={{ width: financialData.totalPemasukan > 0 ? `${Math.min((financialData.totalPengeluaran / financialData.totalPemasukan) * 100, 100)}%` : '0%' }}></div>
+                </div>
+              </div>
+              
+              <div>
+                <div className="flex justify-between text-[13px] font-medium text-gray-500 mb-2">
+                  <span>Sisa Saldo Keuangan</span>
+                  <span className="text-gray-800 font-black">{formatShortRupiah(financialData.totalPemasukan - financialData.totalPengeluaran)}</span>
+                </div>
+                <div className="w-full bg-gray-50 rounded-full h-2.5 overflow-hidden border border-gray-100">
+                  <div className="bg-[#10b981] h-full rounded-full" style={{ width: financialData.totalPemasukan > 0 ? `${Math.max(0, ((financialData.totalPemasukan - financialData.totalPengeluaran) / financialData.totalPemasukan) * 100)}%` : '0%' }}></div>
                 </div>
               </div>
             </div>

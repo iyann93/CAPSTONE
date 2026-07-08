@@ -178,7 +178,6 @@ const menuSections = [
   {
     section: "LAINNYA",
     items: [
-      { label: "Laporan Integrasi", icon: <FileChartIcon /> },
       { label: "Pengaturan Sistem", icon: <SettingsIcon /> }
     ],
     roles: ["Super Admin"]
@@ -223,7 +222,6 @@ const menuSections = [
       { label: "Jadwal Mengajar", icon: <CalendarIcon /> },
       { label: "Input Nilai", icon: <BookIcon /> },
       { label: "Absensi Siswa", icon: <UsersIcon /> },
-      { label: "Rekap Absensi Siswa", icon: <BarChartIcon /> }
     ],
     roles: ["Guru", "Guru Mapel"]
   },

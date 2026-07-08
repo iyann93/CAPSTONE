@@ -1,7 +1,10 @@
 import React, { useState, useMemo, useEffect } from "react";
 import ReactDOM from "react-dom";
+import RekapAbsensiSiswa from "./RekapAbsensiSiswa";
+import api from '../../api/axios';
 
-const AbsensiSiswa = ({ user, onSaveAttendance }) => {
+const AbsensiSiswa = ({ user, onSaveAttendance, attendanceSessions }) => {
+  const [activeTab, setActiveTab] = useState("Input");
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -17,7 +20,7 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const { default: api } = await import('../../api/axios');
+        
         const [kelasRes, siswaRes] = await Promise.all([
           api.get('/kelas'),
           api.get('/siswa')
@@ -74,7 +77,7 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
 
     const fetchExistingAbsensi = async () => {
       try {
-        const { default: api } = await import('../../api/axios');
+        
         const cls = dbClasses.find(c => c.nama_kelas === selectedClass);
         if (!cls) return;
 
@@ -146,7 +149,7 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
 
   const handleSave = async () => {
     try {
-      const { default: api } = await import('../../api/axios');
+      
       
       const cls = dbClasses.find(c => c.nama_kelas === selectedClass);
       if (!cls) throw new Error("Kelas tidak ditemukan");
@@ -189,7 +192,17 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
   };
 
   if (loading) {
-    return <div className="p-8">Memuat data dari database...</div>;
+    return (
+    <div className="p-6 md:p-8 space-y-4 animate-pulse">
+      <div className="h-8 bg-gray-200 rounded-xl w-48"></div>
+      <div className="h-4 bg-gray-100 rounded w-72"></div>
+      <div className="bg-white rounded-3xl p-6 space-y-3 border border-gray-100">
+        <div className="h-4 bg-gray-100 rounded w-full"></div>
+        <div className="h-4 bg-gray-100 rounded w-3/4"></div>
+        <div className="h-4 bg-gray-100 rounded w-5/6"></div>
+      </div>
+    </div>
+    );
   }
 
   return (
@@ -213,7 +226,36 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
         </p>
       </div>
 
-      <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+      <div className="flex border-b border-gray-200">
+        <button
+          onClick={() => setActiveTab("Input")}
+          className={`py-3 px-6 font-bold text-sm transition-colors border-b-2 ${
+            activeTab === "Input"
+              ? "border-[#1A3D63] text-[#1A3D63]"
+              : "border-transparent text-gray-400 hover:text-gray-600"
+          }`}
+        >
+          Input Absensi
+        </button>
+        <button
+          onClick={() => setActiveTab("Rekap")}
+          className={`py-3 px-6 font-bold text-sm transition-colors border-b-2 ${
+            activeTab === "Rekap"
+              ? "border-[#1A3D63] text-[#1A3D63]"
+              : "border-transparent text-gray-400 hover:text-gray-600"
+          }`}
+        >
+          Rekap Absensi
+        </button>
+      </div>
+
+      {activeTab === "Rekap" ? (
+        <div className="pt-2">
+          <RekapAbsensiSiswa user={user} attendanceSessions={attendanceSessions} isEmbedded={true} />
+        </div>
+      ) : (
+        <>
+          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
         <div className="flex items-center gap-3 text-gray-800">
           <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-bold text-xs">
             1
@@ -432,6 +474,8 @@ const AbsensiSiswa = ({ user, onSaveAttendance }) => {
           Simpan Absensi
         </button>
       </div>
+        </>
+      )}
     </div>
   );
 };

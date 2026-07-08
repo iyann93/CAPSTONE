@@ -588,7 +588,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
   const loadPembayaran = useCallback(async () => {
     try {
-      const rows = await getPembayaran();
+      const rows = await getPembayaran({ limit: 10000 });
       if (Array.isArray(rows)) {
         const mapped = rows.map(p => {
           const d = p.tanggal_bayar ? new Date(p.tanggal_bayar) : new Date();
@@ -606,6 +606,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
             name: p.siswa_nama || '-',
             kelas: p.nama_kelas ? p.nama_kelas.replace('Kelas ', '') : '-',
             amount: `Rp ${Number(p.jumlah_bayar || 0).toLocaleString('id-ID')}`,
+            jumlah_bayar: Number(p.jumlah_bayar || 0),
             method: p.metode || 'Transfer Bank',
             period: `${bulanName} ${p.tahun || ''}`.trim(),
             month: bulanName,

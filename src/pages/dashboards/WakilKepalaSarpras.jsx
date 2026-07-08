@@ -522,62 +522,22 @@ const WakilKepalaSarpras = ({ user }) => {
 
       {/* Modal Preview Laporan — dirender via Portal ke document.body */}
       {showLaporanModal && ReactDOM.createPortal(
-        <div
-          style={{
-            position: 'fixed',
-            top: 0, left: 0, right: 0, bottom: 0,
-            zIndex: 99999,
-            display: 'flex',
-            background: 'rgba(0,0,0,0.6)',
-            backdropFilter: 'blur(4px)',
-          }}
-        >
-          <div
-            style={{
-              background: '#fff',
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden',
-            }}
-          >
-            {/* Sticky Header — tidak terpotong */}
-            <div
-              style={{
-                flexShrink: 0,
-                borderBottom: '1px solid #F3F4F6',
-                background: '#F9FAFB',
-                padding: '12px 16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: '12px',
-                flexWrap: 'wrap'
-              }}
-            >
-              <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#1F3A5F', margin: 0 }}>Pratinjau Laporan Penggunaan Anggaran</h3>
-              <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 sm:p-6 lg:p-8 animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-full flex flex-col overflow-hidden">
+            {/* Action Bar */}
+            <div className="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50 flex-shrink-0">
+              <h3 className="text-base sm:text-lg font-bold text-[#1F3A5F] m-0">Pratinjau Laporan Penggunaan Anggaran</h3>
+              <div className="flex gap-2 sm:gap-3">
                 <button
                   onClick={handleCetakLaporan}
                   disabled={isGeneratingPdf}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '6px',
-                    padding: '8px 16px', backgroundColor: isGeneratingPdf ? '#d97706' : '#F59E0B',
-                    color: '#fff', borderRadius: '10px', fontSize: '12px', fontWeight: 700,
-                    border: 'none', cursor: isGeneratingPdf ? 'not-allowed' : 'pointer',
-                    opacity: isGeneratingPdf ? 0.6 : 1, whiteSpace: 'nowrap'
-                  }}
+                  className={`flex items-center gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white transition-all ${isGeneratingPdf ? 'bg-amber-600 opacity-60 cursor-not-allowed' : 'bg-amber-500 hover:bg-amber-600 shadow-md'}`}
                 >
                   <DownloadIcon /> {isGeneratingPdf ? 'Memproses...' : 'Unduh PDF'}
                 </button>
                 <button
                   onClick={() => setShowLaporanModal(false)}
-                  style={{
-                    padding: '8px 16px', backgroundColor: '#E5E7EB',
-                    color: '#374151', borderRadius: '10px', fontSize: '12px', fontWeight: 700,
-                    border: 'none', cursor: 'pointer', whiteSpace: 'nowrap'
-                  }}
+                  className="px-3 sm:px-5 py-2 sm:py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-sm"
                 >
                   Tutup
                 </button>
@@ -585,26 +545,14 @@ const WakilKepalaSarpras = ({ user }) => {
             </div>
 
             {/* Scrollable Preview Area */}
-            <div
-              style={{
-                flex: 1,
-                minHeight: 0,
-                overflow: 'auto',
-                background: '#F3F4F6',
-                padding: '24px 16px',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'flex-start'
-              }}
-            >
+            <div className="flex-1 overflow-auto bg-gray-200 p-4 sm:p-8 flex justify-center items-start custom-scrollbar">
               <div
-                className="bg-white font-sans"
+                className="bg-white font-sans shadow-md border border-gray-300"
                 style={{
-                  width: '794px',
-                  minWidth: '794px',
-                  padding: '48px',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                  border: '1px solid #E5E7EB'
+                  width: '100%',
+                  maxWidth: '794px',
+                  minWidth: '320px',
+                  padding: '5%',
                 }}
               >
                 {/* Header MBS */}
