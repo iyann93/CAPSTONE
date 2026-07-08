@@ -108,13 +108,6 @@ const NilaiRepository = {
         bobot_uas = bobotRes.rows[0].bobot_uas;
       }
       
-      // Hitung Nilai Akhir
-      const nilaiAkhir = (
-        (nilaiHarian * bobot_harian / 100) +
-        (nilaiUts * bobot_uts / 100) +
-        (nilaiUas * bobot_uas / 100)
-      );
-
       const sql = `
         INSERT INTO academic.nilai (
           siswa_id, mata_pelajaran_id, semester_id, guru_id,
@@ -162,12 +155,6 @@ const NilaiRepository = {
         bobot_uas = bobotRes.rows[0].bobot_uas;
       }
       
-      const nilaiAkhir = (
-        (nilaiHarian * bobot_harian / 100) +
-        (nilaiUts * bobot_uts / 100) +
-        (nilaiUas * bobot_uas / 100)
-      );
-
       const sql = `
         UPDATE academic.nilai
         SET nilai_harian = $1,

@@ -16,7 +16,7 @@ const AbsensiRepository = {
     
     // To filter by kelasId, we need to join jadwal_pelajaran or use absensi.kelas_id directly
     if (kelasId) {
-      wb.addRaw('AND (jp.kelas_id = ? OR a.kelas_id = ?)', [kelasId, kelasId]);
+      wb.addExactOr(kelasId, ['jp.kelas_id', 'a.kelas_id']);
     }
     
     const { where, values, nextIdx } = wb.build();

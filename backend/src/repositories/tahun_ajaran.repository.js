@@ -3,7 +3,7 @@
 const { query } = require('../config/db');
 const { whereBuilder, buildOrderBy } = require('../utils/queryBuilder');
 
-const SORT_MAP = { nama: 'ta.nama', tanggal_mulai: 'ta.tanggal_mulai', created_at: 'ta.created_at' };
+const SORT_MAP = { nama: 'ta.nama', tanggal_mulai: 'ta.tanggal_mulai' };
 
 const TahunAjaranRepository = {
   findAll: async ({ limit, offset, search, sort, is_aktif }) => {
@@ -14,7 +14,7 @@ const TahunAjaranRepository = {
     const orderBy = buildOrderBy(sort, SORT_MAP, 'ta.tanggal_mulai DESC');
 
     const sql = `
-      SELECT ta.id, ta.nama, ta.tanggal_mulai, ta.tanggal_selesai, ta.is_aktif, ta.created_at
+      SELECT ta.id, ta.nama, ta.tanggal_mulai, ta.tanggal_selesai, ta.is_aktif
       FROM academic.tahun_ajaran ta
       ${where}
       ${orderBy}

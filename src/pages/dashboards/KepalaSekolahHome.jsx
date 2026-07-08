@@ -53,6 +53,13 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
     totalPengeluaran: 0
   });
 
+  const [stats, setStats] = useState({
+    total_siswa: "...",
+    total_guru: "...",
+    total_kelas: "...",
+    calon_lulusan: "..."
+  });
+
   useEffect(() => {
     const fetchFinance = async () => {
       try {
@@ -62,7 +69,24 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
         console.error("Gagal mengambil data global finance:", err);
       }
     };
+    
+    const fetchStats = async () => {
+      try {
+        const { default: api } = await import('../../api/axios');
+        const res = await api.get('/dashboard/kepsek/stats');
+        setStats(res.data?.data || {
+          total_siswa: 0,
+          total_guru: 0,
+          total_kelas: 0,
+          calon_lulusan: 0
+        });
+      } catch (err) {
+        console.error("Gagal mengambil data statistik kepsek:", err);
+      }
+    };
+    
     fetchFinance();
+    fetchStats();
   }, []);
 
   const formatRupiah = (value) => {
@@ -98,10 +122,10 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="animate-fadeIn cursor-pointer" onClick={() => onNavigate("Persetujuan Kurikulum")} style={{ animationDelay: "0ms" }}>
           <StatCard
-            title="Pengajuan Kurikulum"
-            value="3"
-            subtitle="Menunggu persetujuan"
-            icon={<BookOpenIcon />}
+            title="Total Guru"
+            value={stats.total_guru.toLocaleString('id-ID')}
+            subtitle="Tenaga Pendidik Aktif"
+            icon={<UsersIcon />}
             iconBg="#fff3cd"
             iconColor="#856404"
           />
@@ -109,8 +133,8 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
         <div className="animate-fadeIn cursor-pointer" onClick={() => onNavigate("Validasi Kelulusan")} style={{ animationDelay: "80ms" }}>
           <StatCard
             title="Calon Lulusan"
-            value="120"
-            subtitle="Siswa perlu divalidasi"
+            value={stats.calon_lulusan.toLocaleString('id-ID')}
+            subtitle="Siswa Kelas IX"
             icon={<GraduationIcon />}
             iconBg="#e0effe"
             iconColor="#1B3B5F"
@@ -119,19 +143,19 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
         <div className="animate-fadeIn cursor-pointer" onClick={() => onNavigate("Monitoring Siswa")} style={{ animationDelay: "160ms" }}>
           <StatCard
             title="Total Siswa"
-            value="1,248"
+            value={stats.total_siswa.toLocaleString('id-ID')}
             subtitle="Siswa Aktif"
             icon={<UsersIcon />}
             iconBg="#e0f2fe"
             iconColor="#0ea5e9"
           />
         </div>
-        <div className="animate-fadeIn cursor-pointer" onClick={() => onNavigate("Monitoring Keuangan")} style={{ animationDelay: "240ms" }}>
+        <div className="animate-fadeIn cursor-pointer" onClick={() => onNavigate("Data Kelas")} style={{ animationDelay: "240ms" }}>
           <StatCard
-            title="Saldo Keuangan"
-            value={formatShortRupiah(financialData.totalPemasukan - financialData.totalPengeluaran)}
-            subtitle="Total Arus Kas Aktif"
-            icon={<WalletIcon />}
+            title="Total Kelas"
+            value={stats.total_kelas.toLocaleString('id-ID')}
+            subtitle="Kelas Aktif"
+            icon={<BookOpenIcon />}
             iconBg="#ecfdf5"
             iconColor="#10b981"
           />
@@ -184,44 +208,6 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
           </button>
         </div>
 
-        {/* Agenda & Perhatian Khusus */}
-        <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col justify-between animate-fadeIn" style={{ animationDelay: "400ms" }}>
-          <div>
-            <div className="mb-6">
-              <h3 className="text-[16px] font-bold text-gray-800">Perlu Ditindaklanjuti</h3>
-              <p className="text-[12px] text-gray-500 mt-0.5">Tugas persetujuan dan validasi yang tertunda</p>
-            </div>
-            
-            <div className="space-y-3">
-              <div className="flex items-start gap-4 p-4 rounded-2xl bg-amber-50/50 border border-amber-50 hover:bg-amber-50 transition-colors">
-                <div className="w-10 h-10 rounded-xl bg-white text-amber-600 flex items-center justify-center flex-shrink-0 shadow-sm border border-amber-100">
-                  <BookOpenIcon />
-                </div>
-                <div className="pt-0.5">
-                  <h4 className="text-[13px] font-bold text-gray-800">3 Pengajuan Kurikulum</h4>
-                  <p className="text-[11px] text-gray-500 mt-1 leading-relaxed">Rencana pembelajaran semester ganjil dari Wakil Kepala Sekolah menunggu persetujuan Kepala Sekolah.</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-4 p-4 rounded-2xl bg-blue-50/50 border border-blue-50 hover:bg-blue-50 transition-colors">
-                <div className="w-10 h-10 rounded-xl bg-white text-blue-600 flex items-center justify-center flex-shrink-0 shadow-sm border border-blue-100">
-                  <GraduationIcon />
-                </div>
-                <div className="pt-0.5">
-                  <h4 className="text-[13px] font-bold text-gray-800">120 Calon Lulusan</h4>
-                  <p className="text-[11px] text-gray-500 mt-1 leading-relaxed">Verifikasi dokumen kelulusan siswa tingkat akhir (Kelas IX) tahun ajaran 2024/2025.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <button 
-            onClick={() => onNavigate("Persetujuan Kurikulum")}
-            className="mt-8 w-full py-3 rounded-xl bg-[#1A3D63] text-[12px] font-bold text-white hover:bg-[#122c4a] transition-all cursor-pointer shadow-md tracking-wider uppercase"
-          >
-            Tindak Lanjuti Sekarang
-          </button>
-        </div>
       </div>
     </div>
   );

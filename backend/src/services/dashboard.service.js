@@ -75,6 +75,9 @@ const DashboardService = {
   getNilaiSiswa: async (siswaId) => DashboardRepository.getNilaiSiswa(siswaId),
   getAbsensiSiswa: async (siswaId) => DashboardRepository.getAbsensiSiswa(siswaId),
   getTagihanSiswa: async (siswaId) => DashboardRepository.getTagihanSppSiswa(siswaId),
+
+  // ── KEPSEK ────────────────────────────────────────────────────────────────
+  getKepsekStats: async () => DashboardRepository.getKepsekStats(),
 };
 
 module.exports = DashboardService;

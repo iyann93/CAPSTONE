@@ -37,10 +37,28 @@ const Semester = () => {
         status: s.is_aktif ? 'Aktif' : 'Selesai'
       }));
       setSemesters(mapped);
-      setTahunAjarans(resTahunAjarans.data.data || []);
+      const fetchedTahunAjarans = resTahunAjarans.data.data || [];
+      
+      // Fallback if empty from DB
+      if (fetchedTahunAjarans.length === 0) {
+        fetchedTahunAjarans.push({ id: '00000001-0000-0000-0000-000000000001', nama: '2025/2026' });
+      }
+      
+      setTahunAjarans(fetchedTahunAjarans);
+      
+      // Auto-select 2025/2026 if available
+      const targetTA = fetchedTahunAjarans.find(t => t.nama === '2025/2026');
+      if (targetTA && !addForm.yearId) {
+        setAddForm(prev => ({ ...prev, yearId: targetTA.id }));
+      }
     } catch (err) {
       console.error(err);
       setError('Gagal memuat data.');
+      // Force fallback if API fails completely
+      setTahunAjarans([{ id: '00000001-0000-0000-0000-000000000001', nama: '2025/2026' }]);
+      if (!addForm.yearId) {
+        setAddForm(prev => ({ ...prev, yearId: '00000001-0000-0000-0000-000000000001' }));
+      }
     } finally {
       setLoading(false);
     }
@@ -53,13 +71,13 @@ const Semester = () => {
   const [addForm, setAddForm] = useState({
     yearId: "",
     type: "Ganjil",
-    start: "2024-07-15",
-    end: "2024-12-20",
+    start: "2025-07-15",
+    end: "2025-12-20",
     status: "Draft",
-    uts: "2024-10-14",
-    uas: "2024-12-09",
-    rapor: "2024-12-21",
-    deadline: "2024-12-16",
+    uts: "2025-10-14",
+    uas: "2025-12-09",
+    rapor: "2025-12-21",
+    deadline: "2025-12-16",
     hariEfektif: 140
   });
 
@@ -246,7 +264,7 @@ const Semester = () => {
                   </div>
                   <div className="hidden md:block w-px h-3 bg-gray-300 mx-1"></div>
                   <div className="text-[12px] text-gray-500">
-                    15 Jul 2024 — 20 Des 2024
+                    15 Jul 2025 — 20 Des 2025
                   </div>
                   <div className="hidden md:block w-px h-3 bg-gray-300 mx-1"></div>
                   <div className="flex items-center gap-1.5 text-[12px] font-bold text-[#16A34A]">
@@ -370,7 +388,7 @@ const Semester = () => {
                 <p className="text-[12px] text-gray-500 mb-5 leading-relaxed">Salin pengaturan jadwal penilaian dari semester sebelumnya sebagai acuan.</p>
                 <div className="relative mb-5">
                   <select className="w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-3 text-[13px] font-bold text-[#1e293b] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20">
-                    <option>Ganjil 2023/2024</option>
+                    <option>Ganjil 2024/2025</option>
                   </select>
                   <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
@@ -391,11 +409,11 @@ const Semester = () => {
               <div className="p-6 space-y-4.5">
                 <div className="flex justify-between items-center text-[12px]">
                   <span className="text-gray-500">Semester</span>
-                  <span className="font-bold text-[#1e293b]">Ganjil 2024/2025</span>
+                  <span className="font-bold text-[#1e293b]">Ganjil 2025/2026</span>
                 </div>
                 <div className="flex justify-between items-center text-[12px]">
                   <span className="text-gray-500">Periode</span>
-                  <span className="font-bold text-[#1e293b]">15 Jul — 20 Des 2024</span>
+                  <span className="font-bold text-[#1e293b]">15 Jul — 20 Des 2025</span>
                 </div>
                 <div className="flex justify-between items-center text-[12px]">
                   <span className="text-gray-500">Durasi</span>
@@ -667,7 +685,7 @@ const Semester = () => {
           {/* Pagination */}
           <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
             <div className="text-[13px] text-gray-500">
-              Menampilkan 6 dari 6 semester
+              Menampilkan {semesters.length} dari {semesters.length} semester
             </div>
             <div className="flex items-center gap-1">
               <button className="px-3 py-1.5 text-[13px] font-semibold text-gray-400 cursor-not-allowed">

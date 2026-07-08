@@ -28,7 +28,8 @@ const KelasRepository = {
     const sql = `
       SELECT k.id, k.kode_kelas, k.nama_kelas, k.tingkat, k.kapasitas,
              ta.nama AS tahun_ajaran, j.nama AS nama_jurusan, j.kode AS kode_jurusan, 
-             k.jurusan_id, k.wali_kelas_id, g.nama_lengkap AS wali_kelas_nama
+             k.jurusan_id, k.wali_kelas_id, g.nama_lengkap AS wali_kelas_nama,
+             (SELECT COUNT(*) FROM academic.siswa s WHERE s.kelas_id = k.id) AS jumlah_siswa
       FROM academic.kelas k
       LEFT JOIN academic.jurusan j ON k.jurusan_id = j.id
       LEFT JOIN academic.tahun_ajaran ta ON k.tahun_ajaran_id = ta.id

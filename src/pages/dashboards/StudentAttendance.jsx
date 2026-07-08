@@ -50,7 +50,7 @@ const StudentAttendance = () => {
             return {
               id: cls.id,
               name: cls.nama_kelas,
-              students: cls.kapasitas || 0,
+              students: parseInt(cls.jumlah_siswa, 10) || cls.kapasitas || 0,
               tingkat: tingkat,
               wali: cls.wali_kelas || "Belum Ditentukan",
               hadir: agg.hadir, sakit: agg.sakit, izin: agg.izin, alpha: agg.alpha, pct, 
@@ -62,7 +62,7 @@ const StudentAttendance = () => {
           return {
             id: cls.id,
             name: cls.nama_kelas,
-            students: cls.kapasitas || 0,
+            students: parseInt(cls.jumlah_siswa, 10) || cls.kapasitas || 0,
             tingkat: tingkat,
             wali: cls.wali_kelas || "Belum Ditentukan",
             hadir: null, sakit: null, izin: null, alpha: null, pct: null, waktu: null, admin: null,

@@ -86,11 +86,12 @@ const SemesterRepository = {
   },
 
   create: async ({ nama, tahunAjaranId, tanggalMulai, tanggalSelesai }) => {
+    const nomor = nama.toLowerCase().includes('ganjil') ? 1 : 2;
     const sql = `
-      INSERT INTO academic.semester (nama, tahun_ajaran_id, tanggal_mulai, tanggal_selesai, is_aktif)
-      VALUES ($1, $2, $3, $4, false) RETURNING *
+      INSERT INTO academic.semester (nama, tahun_ajaran_id, nomor, tanggal_mulai, tanggal_selesai, is_aktif)
+      VALUES ($1, $2, $3, $4, $5, false) RETURNING *
     `;
-    const result = await query(sql, [nama, tahunAjaranId, tanggalMulai, tanggalSelesai]);
+    const result = await query(sql, [nama, tahunAjaranId, nomor, tanggalMulai, tanggalSelesai]);
     return result.rows[0];
   },
 

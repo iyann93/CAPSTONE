@@ -24,16 +24,14 @@ const StudentAttendanceInput = ({ classData, selectedDate, onBack, onSave }) => 
       try {
         const { default: api } = await import('../../api/axios');
         const [res, absensiRes] = await Promise.all([
-          api.get('/siswa?limit=1000'),
+          api.get(`/siswa?kelas_id=${classData.id}&limit=1000`),
           api.get(`/absensi?tanggal=${selectedDate}&kelas_id=${classData.id}&limit=1000`)
         ]);
-        const allStudents = res.data?.data || [];
+        const classStudents = res.data?.data || [];
         const existingAbsensi = absensiRes.data?.data || [];
         
-        const classStudents = allStudents.filter(s => s.nama_kelas === classData.name);
-        
         if (classStudents.length === 0) {
-          setStudents(initialStudents);
+          setStudents([]);
           return;
         }
 
@@ -41,9 +39,9 @@ const StudentAttendanceInput = ({ classData, selectedDate, onBack, onSave }) => 
           const existing = existingAbsensi.find(a => a.siswa_id === s.id);
           return {
             id: s.id,
-            name: s.nama_lengkap,
-            nis: s.nis,
-            initials: s.nama_lengkap.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase(),
+            name: s.nama_lengkap || "Tanpa Nama",
+            nis: s.nis || "-",
+            initials: (s.nama_lengkap || "S").split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase(),
             color: ["bg-[#3B82F6]", "bg-[#10B981]", "bg-[#F59E0B]", "bg-[#EF4444]", "bg-[#8B5CF6]", "bg-[#EC4899]"][idx % 6],
             gender: s.jenis_kelamin === "Perempuan" ? "P" : "L",
             status: existing ? existing.status : "Hadir", // default Hadir jika belum ada
@@ -53,11 +51,11 @@ const StudentAttendanceInput = ({ classData, selectedDate, onBack, onSave }) => 
         setStudents(mapped);
       } catch (err) {
         console.error("Gagal memuat siswa:", err);
-        setStudents(initialStudents);
+        setStudents([]);
       }
     };
     fetchStudents();
-  }, [classData.name]);
+  }, [classData.id, selectedDate]);
   const [filterStatus, setFilterStatus] = useState("Semua");
 
   const handleSave = async () => {

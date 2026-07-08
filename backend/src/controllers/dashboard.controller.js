@@ -50,6 +50,14 @@ const DashboardController = {
       });
     } catch (err) { next(err); }
   },
+
+  // GET /dashboard/kepsek/stats
+  kepsekStats: async (req, res, next) => {
+    try {
+      const data = await DashboardService.getKepsekStats();
+      return response.success(res, 200, 'Statistik Kepala Sekolah berhasil diambil', data);
+    } catch (err) { next(err); }
+  },
 };
 
 module.exports = DashboardController;

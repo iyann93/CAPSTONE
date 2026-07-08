@@ -51,12 +51,21 @@ const whereBuilder = (startIdx = 1) => {
       idx++; // same param for all cols in this group
     },
 
-    /**
-     * Add an exact equality condition
-     */
     addExact(value, column) {
       if (value === undefined || value === null || value === '') return;
       conditions.push(`${column} = $${idx}`);
+      values.push(value);
+      idx++;
+    },
+
+    /**
+     * Add an exact equality condition across multiple columns (OR'd together)
+     * e.g. addExactOr(123, ['t.id', 't.parent_id']) -> (t.id = $idx OR t.parent_id = $idx)
+     */
+    addExactOr(value, columns) {
+      if (value === undefined || value === null || value === '') return;
+      const clause = columns.map(col => `${col} = $${idx}`).join(' OR ');
+      conditions.push(`(${clause})`);
       values.push(value);
       idx++;
     },
