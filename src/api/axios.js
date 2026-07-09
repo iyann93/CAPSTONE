@@ -45,8 +45,9 @@ api.interceptors.response.use(
 
       try {
         // Coba refresh token
+        const refreshUrl = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/v1/auth/refresh` : '/api/v1/auth/refresh';
         const refreshResponse = await axios.post(
-          '/api/v1/auth/refresh',
+          refreshUrl,
           {},
           { withCredentials: true }
         );
