@@ -3,8 +3,9 @@ import { getAnnouncements } from "../../utils/announcementStore";
 import api from "../../api/axios";
 
 const GuruHome = ({ user, onNavigate }) => {
+  const userName = user?.fullName || user?.nama || user?.nama_lengkap || user?.name || user?.email || "";
   const [guruData, setGuruData] = useState({
-    nama: user?.fullName || "Memuat...",
+    nama: userName || "Memuat...",
     mapel: "-",
     tahunAjaran: "2025/2026",
     jumlahKelas: 0,
@@ -27,7 +28,7 @@ const GuruHome = ({ user, onNavigate }) => {
       try {
         setLoading(true);
         // 1. Ambil data guru spesifik
-        const resGuru = await api.get(`/guru?search=${encodeURIComponent(user?.email || "")}`);
+        const resGuru = await api.get(`/guru?search=${encodeURIComponent(userName)}`);
         const dataGuru = resGuru.data?.data?.[0]; // ambil yg pertama cocok
         
         let fetchedMapel = "-";
@@ -46,7 +47,7 @@ const GuruHome = ({ user, onNavigate }) => {
           rawJadwal = rawJadwal.filter(j => j.guru_id === fetchedId);
         } else {
           // fallback cari by name jika tidak ada guru_id
-          rawJadwal = rawJadwal.filter(j => j.guru_nama?.toLowerCase().includes(user?.fullName?.toLowerCase()));
+          rawJadwal = rawJadwal.filter(j => j.guru_nama?.toLowerCase().includes(userName?.toLowerCase()));
         }
 
         // Mapping hari 1-7 ke nama hari 
@@ -85,7 +86,7 @@ const GuruHome = ({ user, onNavigate }) => {
 
         setGuruData(prev => ({
           ...prev,
-          nama: dataGuru?.nama || user?.fullName || "-",
+          nama: dataGuru?.nama_lengkap || dataGuru?.nama || userName || "-",
           mapel: fetchedMapel,
           jumlahKelas: uniqueKelas,
           jumlahSiswa: uniqueKelas * 32, // Estimasi 32 siswa per kelas
@@ -101,7 +102,7 @@ const GuruHome = ({ user, onNavigate }) => {
       }
     };
 
-    if (user?.email || user?.fullName) {
+    if (userName) {
       fetchData();
     }
   }, [user]);

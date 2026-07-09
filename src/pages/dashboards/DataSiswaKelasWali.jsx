@@ -22,9 +22,13 @@ const DataSiswaKelasWali = ({ user }) => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [resSiswa, resKelas] = await Promise.all([
-          api.get('/siswa').catch(() => ({ data: { data: [] } })),
-          api.get('/kelas').catch(() => ({ data: { data: [] } }))
+        const taRes = await api.get('/tahun-ajaran/active').catch(() => ({ data: { data: null } }));
+        const activeTA = taRes.data?.data;
+
+        const [resSiswa, resKelas, resKenaikan] = await Promise.all([
+          api.get('/siswa?limit=1000').catch(() => ({ data: { data: [] } })),
+          api.get('/kelas').catch(() => ({ data: { data: [] } })),
+          activeTA ? api.get(`/kenaikan-kelas?tahun_ajaran_id=${activeTA.id}`).catch(() => ({ data: { data: [] } })) : { data: { data: [] } }
         ]);
 
         const dbClasses = resKelas.data?.data || [];
@@ -33,24 +37,42 @@ const DataSiswaKelasWali = ({ user }) => {
           setSelectedClass(dbClasses[0].id);
         }
 
+        const kenaikanData = resKenaikan.data?.data || [];
         const dbSiswa = resSiswa.data?.data || [];
-        const mappedStudents = dbSiswa.map((s, idx) => ({
-          id: s.id,
-          nisn: s.nisn || (s.nis + "000"),
-          name: s.nama_lengkap,
-          gender: s.jenis_kelamin === "Laki-laki" ? "Laki-laki" : "Perempuan",
-          kelasId: s.kelas_id,
-          kelasName: s.nama_kelas,
-          avgGrade: 78 + (idx % 15),
-          status: "Aktif",
-          avatarBg: ["bg-blue-500", "bg-pink-500", "bg-amber-600", "bg-red-500", "bg-purple-600"][idx % 5],
-          performance: [
-            { name: "T1", val: 75 + (idx % 10) }, 
-            { name: "UTS", val: 78 + (idx % 12) }, 
-            { name: "T2", val: 82 + (idx % 15) }, 
-            { name: "UAS", val: 85 + (idx % 10) }
-          ]
-        }));
+        const mappedStudents = dbSiswa.map((s, idx) => {
+          let actualClassId = s.kelas_id;
+          let actualClassName = s.nama_kelas;
+
+          // Jika siswa sudah diproses kenaikan kelas tahun ini,
+          // kita gunakan kelas_asal_id agar ia tetap muncul di kelas lamanya
+          const kData = kenaikanData.find(kd => kd.siswa_id === s.id);
+          if (kData) {
+            actualClassId = kData.kelas_asal_id;
+            const cAsal = dbClasses.find(c => c.id === kData.kelas_asal_id);
+            if (cAsal) actualClassName = cAsal.nama_kelas;
+          }
+
+          return {
+            id: s.id,
+            nis: s.nis,
+            nisn: s.nisn || (s.nis + "000"),
+            name: s.nama_lengkap,
+            gender: s.jenis_kelamin === "L" ? "Laki-laki" : s.jenis_kelamin === "P" ? "Perempuan" : s.jenis_kelamin,
+            tempatLahir: s.tempat_lahir || "-",
+            tanggalLahir: s.tanggal_lahir ? new Date(s.tanggal_lahir).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" }) : "-",
+            kelasId: actualClassId,
+            kelasName: actualClassName,
+            avgGrade: 78 + (idx % 15),
+            status: s.status === "aktif" ? "Aktif" : "Tidak Aktif",
+            avatarBg: ["bg-blue-500", "bg-pink-500", "bg-amber-600", "bg-red-500", "bg-purple-600"][idx % 5],
+            performance: [
+              { name: "T1", val: 75 + (idx % 10) }, 
+              { name: "UTS", val: 78 + (idx % 12) }, 
+              { name: "T2", val: 82 + (idx % 15) }, 
+              { name: "UAS", val: 85 + (idx % 10) }
+            ]
+          };
+        });
         setStudents(mappedStudents);
 
       } catch (e) {
@@ -85,7 +107,7 @@ const DataSiswaKelasWali = ({ user }) => {
           >
             {classes.length > 0 ? (
               classes.map(c => (
-                <option key={c.id} value={c.id}>Kelas {c.nama_kelas}</option>
+                <option key={c.id} value={c.id}>{c.nama_kelas?.startsWith('Kelas') ? c.nama_kelas : `Kelas ${c.nama_kelas}`}</option>
               ))
             ) : (
               <option value="">Memuat Kelas...</option>
@@ -124,7 +146,7 @@ const DataSiswaKelasWali = ({ user }) => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="text-[14px] font-bold text-gray-800 truncate">{s.name}</h3>
-                      <p className="text-[12px] text-gray-500 mt-0.5">NIS: {s.nisn}</p>
+                      <p className="text-[12px] text-gray-500 mt-0.5">NIS: {s.nis}</p>
                     </div>
                     <div className="text-right flex-shrink-0">
                       <p className="text-[11px] text-gray-400 font-semibold mb-0.5">Rata-rata</p>
@@ -157,8 +179,16 @@ const DataSiswaKelasWali = ({ user }) => {
                   <h4 className="text-[12px] font-bold text-gray-400 uppercase tracking-wider mb-3">Informasi Detail</h4>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center pb-2 border-b border-gray-50">
-                      <span className="text-[13px] text-gray-500">Nomor Induk Siswa Nasional</span>
+                      <span className="text-[13px] text-gray-500">Nomor Induk Siswa (NIS)</span>
+                      <span className="text-[13px] font-bold text-gray-800">{selectedStudent.nis}</span>
+                    </div>
+                    <div className="flex justify-between items-center pb-2 border-b border-gray-50">
+                      <span className="text-[13px] text-gray-500">NIS Nasional (NISN)</span>
                       <span className="text-[13px] font-bold text-gray-800">{selectedStudent.nisn}</span>
+                    </div>
+                    <div className="flex justify-between items-center pb-2 border-b border-gray-50">
+                      <span className="text-[13px] text-gray-500">Tempat, Tanggal Lahir</span>
+                      <span className="text-[13px] font-bold text-gray-800">{selectedStudent.tempatLahir}, {selectedStudent.tanggalLahir}</span>
                     </div>
                     <div className="flex justify-between items-center pb-2 border-b border-gray-50">
                       <span className="text-[13px] text-gray-500">Jenis Kelamin</span>

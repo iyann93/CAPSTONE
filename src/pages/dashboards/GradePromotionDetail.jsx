@@ -31,7 +31,15 @@ const GradePromotionDetail = ({ setView, classData, activeTahunAjaran, onSave })
         const dbClasses = kelasRes.data?.data || [];
         setClassesList(dbClasses);
 
-        const classSiswa = allSiswa.filter(s => s.kelas_id === classData?.kode);
+        const classSiswa = allSiswa.filter(s => {
+          const kDataForStudent = kenaikanData.find(kd => kd.siswa_id === s.id);
+          if (kDataForStudent) {
+            // Jika sudah diproses tahun ajaran ini, tampilkan jika kelas asalnya adalah kelas ini
+            return kDataForStudent.kelas_asal_id === classData?.kode;
+          }
+          // Jika belum diproses, tampilkan berdasarkan kelas_id saat ini
+          return s.kelas_id === classData?.kode;
+        });
         
         let baseStudents = [];
         
@@ -187,9 +195,23 @@ const GradePromotionDetail = ({ setView, classData, activeTahunAjaran, onSave })
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <button onClick={handleProses} disabled={processing || processed || students.length === 0} className="flex items-center gap-2 px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-[13px] font-bold text-gray-700 hover:bg-gray-50 shadow-sm disabled:opacity-50">
-            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-            Auto Proses
+          <button 
+            onClick={handleProses} 
+            disabled={processing || processed || students.length === 0} 
+            className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-[13px] font-bold shadow-sm transition-all ${
+              processed 
+                ? "bg-emerald-50 text-emerald-600 border border-emerald-200 cursor-default" 
+                : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            }`}
+          >
+            {processed ? (
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+            ) : processing ? (
+              <svg className="animate-spin w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+            ) : (
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            )}
+            {processed ? "Selesai Diproses" : processing ? "Memproses..." : "Auto Proses"}
           </button>
 
           <button onClick={handleSaveDecision} disabled={saving} className="flex items-center gap-2 px-3.5 py-2.5 bg-[#2A4365] hover:bg-[#1A365D] text-white rounded-xl text-[13px] font-bold shadow-sm disabled:opacity-50">

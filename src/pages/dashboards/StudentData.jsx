@@ -284,6 +284,7 @@ const StudentData = ({ initialView = "list" }) => {
                   <tr className="bg-gray-50 border-b border-gray-100">
                     <th className="py-3.5 px-5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">No</th>
                     <th className="py-3.5 px-5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">NIS</th>
+                    <th className="py-3.5 px-5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">NISN</th>
                     <th className="py-3.5 px-5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Nama Lengkap</th>
                     <th className="py-3.5 px-5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Tempat Lahir</th>
                     <th className="py-3.5 px-5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Tanggal Lahir</th>
@@ -296,7 +297,7 @@ const StudentData = ({ initialView = "list" }) => {
                 <tbody className="divide-y divide-gray-50">
                   {filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="py-16 text-center text-gray-400 text-[14px]">
+                      <td colSpan={10} className="py-16 text-center text-gray-400 text-[14px]">
                         Tidak ada data siswa ditemukan.
                       </td>
                     </tr>
@@ -310,6 +311,13 @@ const StudentData = ({ initialView = "list" }) => {
                         <td className="py-3.5 px-5">
                           <span className="font-mono text-[13px] font-bold text-[#1A3D63] bg-[#1A3D63]/8 px-2 py-0.5 rounded-md">
                             {s.nis}
+                          </span>
+                        </td>
+
+                        {/* NISN */}
+                        <td className="py-3.5 px-5">
+                          <span className="font-mono text-[13px] font-bold text-gray-700 bg-gray-100 px-2 py-0.5 rounded-md">
+                            {s.nisn || "-"}
                           </span>
                         </td>
 

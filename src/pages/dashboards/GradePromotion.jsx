@@ -62,7 +62,13 @@ const GradePromotion = () => {
         const isVIII = nameUpper.includes("VIII");
         const tingkat = isVII ? "Kelas VII" : isVIII ? "Kelas VIII" : "Kelas IX";
         
-        const classStudents = allSiswa.filter(s => s.kelas_id === c.id);
+        const classStudents = allSiswa.filter(s => {
+          const kDataForStudent = kenaikanData.find(kd => kd.siswa_id === s.id);
+          if (kDataForStudent) {
+            return kDataForStudent.kelas_asal_id === c.id;
+          }
+          return s.kelas_id === c.id;
+        });
         const actualCount = classStudents.length;
         const finalTotal = actualCount > 0 ? actualCount : (c.kapasitas || 0);
         
