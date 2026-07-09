@@ -8,7 +8,7 @@ const loginValidator = [
 ];
 
 const changePasswordValidator = [
-  body('currentPassword').notEmpty().withMessage('Password lama tidak boleh kosong'),
+  body('currentPassword').optional().notEmpty().withMessage('Password lama tidak boleh kosong'),
   body('newPassword').isLength({ min: 6 }).withMessage('Password baru minimal 6 karakter'),
 ];
 

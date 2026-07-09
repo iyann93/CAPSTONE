@@ -3,8 +3,10 @@ import api from "./api/axios";
 import Sidebar from "./components/Sidebar";
 import TopBar from "./components/TopBar";
 import Login from "./pages/Login";
+import Maintenance from "./pages/Maintenance";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import ForceChangePassword from "./pages/ForceChangePassword";
 import SuperAdminDashboard from "./pages/dashboards/SuperAdminDashboard";
 import PlaceholderDashboard from "./pages/dashboards/PlaceholderDashboard";
 import BendaharaDashboard from "./pages/dashboards/BendaharaDashboard";
@@ -254,6 +256,7 @@ const App = () => {
     }
   };
   if (!user) {
+    if (authView === "maintenance") return <Maintenance />;
     if (authView === "forgot") {
       return <ForgotPassword
         onBack={() => setAuthView("login")}
@@ -276,8 +279,21 @@ const App = () => {
     return <Login
       onLogin={handleLogin}
       onForgotPassword={() => setAuthView("forgot")}
+      setAuthView={setAuthView}
     />;
   }
+
+  if (user.mustChangePassword) {
+    return <ForceChangePassword 
+      onSuccess={() => {
+        const updatedUser = { ...user, mustChangePassword: false };
+        setUser(updatedUser);
+        localStorage.setItem("siakad_user", JSON.stringify(updatedUser));
+      }} 
+      onLogout={handleLogout} 
+    />;
+  }
+
   return <div className="flex flex-col min-h-screen bg-[#F4F6FA] font-sans h-screen overflow-hidden">
     <div className={`transition-opacity duration-300 ${isModalOpen ? 'pointer-events-none' : ''}`}>
       <TopBar

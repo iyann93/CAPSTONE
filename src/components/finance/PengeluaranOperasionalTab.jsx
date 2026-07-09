@@ -294,8 +294,6 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
     .reduce((acc, curr) => acc + (Number(String(curr.amount).replace(/[^0-9]/g, '')) || 0), 0);
   const totalSppTahunan = sppPayments.reduce((acc, curr) => acc + (Number(String(curr.amount).replace(/[^0-9]/g, '')) || 0), 0);
 
-  const dataForTotals = activeTab === 'pengeluaran' ? currentData.filter(item => item.kategori !== 'Gaji Pegawai') : currentData;
-
   const totalBulanIni = currentData
     .filter(item => isCurrentMonthAndYear(item.tanggal))
     .reduce((acc, curr) => acc + Number(curr.nominal), 0) + 
@@ -304,7 +302,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
     (activeTab === "pemasukan" ? totalBulanIniSpp : 0);
     
   const totalKeseluruhan = currentData.reduce((acc, curr) => acc + Number(curr.nominal), 0) + currentBeasiswa.reduce((acc, curr) => acc + Number(curr.nominal), 0) + (activeTab === "pemasukan" ? totalSppTahunan : 0);
-  const totalOperasionalSaja = dataForTotals.reduce((acc, curr) => acc + Number(curr.nominal), 0);
+  const totalOperasionalSaja = currentData.reduce((acc, curr) => acc + Number(curr.nominal), 0);
 
   const card1Title = activeTab === "pemasukan" ? "Pemasukan Bulan Ini" : "Total Pengeluaran Tahunan";
   const card1Value = activeTab === "pemasukan" ? totalBulanIni : totalKeseluruhan;
@@ -443,7 +441,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
               : 'bg-gradient-to-br from-emerald-500 to-green-600'
           }`}>
             <div className="relative z-10">
-              <div className="text-xs font-bold text-white/80 uppercase tracking-wider mb-2">Sisa Saldo Keuangan</div>
+              <div className="text-xs font-bold text-white/80 uppercase tracking-wider mb-2">Sisa Dana</div>
               <div className="text-2xl font-black text-white">Rp {sisaDanaGaji.toLocaleString('id-ID')}</div>
               <div className="text-[10px] font-semibold text-white/70 mt-2">
                 {sisaDanaGaji <= 0

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import EmployeeDetail from "./EmployeeDetail";
 import api from "../../api/axios";
 const SearchIcon = () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-gray-400">
@@ -51,6 +52,12 @@ const EmployeeData = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [toastMsg, setToastMsg] = useState(null);
+
+  const showToast = (msg, type = "success") => {
+    setToastMsg({ msg, type });
+    setTimeout(() => setToastMsg(null), 3000);
+  };
 
   // Form states
   const [form, setForm] = useState({
@@ -138,12 +145,13 @@ const EmployeeData = () => {
       });
       await fetchEmployees();
       setIsAdding(false);
+      showToast("Berhasil menambahkan data pegawai", "success");
     } catch (err) {
       let errorMsg = err.response?.data?.message || err.message;
       if (err.response?.data?.errors) {
-        errorMsg += "\\n" + err.response.data.errors.map(e => e.msg).join("\\n");
+        errorMsg += "\n" + err.response.data.errors.map(e => e.msg).join("\n");
       }
-      alert("Gagal menambahkan data: " + errorMsg);
+      showToast("Gagal menambahkan data: " + errorMsg, "error");
     }
   };
 
@@ -162,12 +170,13 @@ const EmployeeData = () => {
       });
       await fetchEmployees();
       setIsEditing(false);
+      showToast("Berhasil memperbarui data pegawai", "success");
     } catch (err) {
       let errorMsg = err.response?.data?.message || err.message;
       if (err.response?.data?.errors) {
-        errorMsg += "\\n" + err.response.data.errors.map(e => e.msg).join("\\n");
+        errorMsg += "\n" + err.response.data.errors.map(e => e.msg).join("\n");
       }
-      alert("Gagal memperbarui data: " + errorMsg);
+      showToast("Gagal memperbarui data: " + errorMsg, "error");
     }
   };
 
@@ -176,8 +185,9 @@ const EmployeeData = () => {
       try {
         await api.delete(`/guru/${id}`);
         await fetchEmployees();
+        showToast("Berhasil menghapus data pegawai", "success");
       } catch (err) {
-        alert("Gagal menghapus data: " + (err.response?.data?.message || err.message));
+        showToast("Gagal menghapus data: " + (err.response?.data?.message || err.message), "error");
       }
     }
   };
@@ -644,6 +654,20 @@ const EmployeeData = () => {
           </table>
         </div>
       </div>
+      {/* Toast Notification */}
+      {toastMsg && createPortal(
+        <div className={`fixed top-6 right-6 z-[9999] px-6 py-4 rounded-2xl text-white text-sm font-bold shadow-2xl flex items-center gap-3 animate-slideDown ${
+          toastMsg.type === 'error' ? 'bg-red-500' : 'bg-emerald-500'
+        }`}>
+          {toastMsg.type === 'error' ? (
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          ) : (
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          )}
+          {toastMsg.msg}
+        </div>,
+        document.body
+      )}
     </div>;
 };
 var EmployeeData_default = EmployeeData;

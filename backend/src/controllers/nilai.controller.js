@@ -49,8 +49,8 @@ const NilaiController = {
       
       // req.user.userId adalah ID dari shared.users. Kita perlu id dari academic.guru
       let guruId = null;
-      if (req.user.userId) {
-        const guruRes = await query('SELECT id FROM academic.guru WHERE user_id = $1 LIMIT 1', [req.user.userId]);
+      if (req.user.userId || req.user.email) {
+        const guruRes = await query('SELECT id FROM academic.guru WHERE user_id = $1 OR email_pribadi = $2 LIMIT 1', [req.user.userId || null, req.user.email || null]);
         if (guruRes.rows.length > 0) {
           guruId = guruRes.rows[0].id;
         }

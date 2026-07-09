@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import ReactDOM from "react-dom";
+import ReactDOM, { createPortal } from "react-dom";
 import RekapAbsensiSiswa from "./RekapAbsensiSiswa";
 import api from '../../api/axios';
 
@@ -8,12 +8,16 @@ const AbsensiSiswa = ({ user, onSaveAttendance, attendanceSessions }) => {
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [notification, setNotification] = useState(null);
-  
   const [classes, setClasses] = useState([]);
   const [dbClasses, setDbClasses] = useState([]);
   const [studentsData, setStudentsData] = useState({});
   const [loading, setLoading] = useState(true);
+  const [toastMsg, setToastMsg] = useState(null);
+
+  const showToast = (msg, type = "success") => {
+    setToastMsg({ msg, type });
+    setTimeout(() => setToastMsg(null), 3000);
+  };
 
   // Fetch classes and students from backend
   useEffect(() => {
@@ -160,8 +164,7 @@ const AbsensiSiswa = ({ user, onSaveAttendance, attendanceSessions }) => {
       const jadwal = allJadwal.find(j => j.kelas_id === cls.id) || allJadwal[0];
       
       if (!jadwal) {
-        setNotification("Gagal: Tidak ada jadwal pelajaran yang tersedia.");
-        setTimeout(() => setNotification(null), 4000);
+        showToast("Gagal: Tidak ada jadwal pelajaran yang tersedia.", "error");
         return;
       }
       
@@ -182,13 +185,12 @@ const AbsensiSiswa = ({ user, onSaveAttendance, attendanceSessions }) => {
           students: currentStudents
         });
       }
-      setNotification(`Absensi kelas ${selectedClass} berhasil disimpan ke database!`);
+      showToast(`Absensi kelas ${selectedClass} berhasil disimpan ke database!`, "success");
     } catch (error) {
       console.error("Error saving attendance:", error);
       const errorMsg = error.response?.data?.message || error.message || "Unknown error";
-      setNotification(`Gagal: ${errorMsg}`);
+      showToast(`Gagal: ${errorMsg}`, "error");
     }
-    setTimeout(() => setNotification(null), 4000);
   };
 
   if (loading) {
@@ -207,14 +209,17 @@ const AbsensiSiswa = ({ user, onSaveAttendance, attendanceSessions }) => {
 
   return (
     <div className="p-6 md:p-8 space-y-6 animate-fadeIn bg-[#F8FAFC] min-h-screen relative">
-      {notification && ReactDOM.createPortal(
-        <div style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 9999 }} className="flex items-center gap-3 bg-slate-900 text-white px-5 py-4 rounded-2xl shadow-xl animate-slideIn">
-          <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          </div>
-          <span className="text-xs font-black tracking-tight">{notification}</span>
+      {/* Toast Notification */}
+      {toastMsg && createPortal(
+        <div className={`fixed top-6 right-6 z-[9999] px-6 py-4 rounded-2xl text-white text-sm font-bold shadow-2xl flex items-center gap-3 animate-slideDown ${
+          toastMsg.type === 'error' ? 'bg-red-500' : 'bg-emerald-500'
+        }`}>
+          {toastMsg.type === 'error' ? (
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          ) : (
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          )}
+          {toastMsg.msg}
         </div>,
         document.body
       )}

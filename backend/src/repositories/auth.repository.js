@@ -9,7 +9,8 @@ const AuthRepository = {
   findUserByEmail: async (identifier) => {
     const sql = `
       SELECT u.id, u.nama, u.email, u.password_hash, u.no_telepon, u.alamat_lengkap,
-             u.is_active, u.last_login_at, u.created_at,
+             u.is_active, u.must_change_password, u.last_login_at, u.created_at,
+             u.failed_attempts, u.locked_until,
              (SELECT r.nama_role FROM shared.user_roles ur JOIN shared.roles r ON ur.role_id = r.id WHERE ur.user_id = u.id LIMIT 1) AS role,
              (SELECT g.jabatan_tugas FROM academic.guru g WHERE g.user_id = u.id LIMIT 1) AS jabatan_tugas,
              (SELECT json_build_object(
@@ -44,7 +45,7 @@ const AuthRepository = {
   findUserById: async (id) => {
     const sql = `
       SELECT u.id, u.nama, u.email, u.no_telepon, u.alamat_lengkap,
-             u.is_active, u.last_login_at, u.created_at,
+             u.is_active, u.must_change_password, u.last_login_at, u.created_at,
              (SELECT r.nama_role FROM shared.user_roles ur JOIN shared.roles r ON ur.role_id = r.id WHERE ur.user_id = u.id LIMIT 1) AS role,
              (SELECT g.jabatan_tugas FROM academic.guru g WHERE g.user_id = u.id LIMIT 1) AS jabatan_tugas,
              (SELECT json_build_object(
@@ -77,6 +78,31 @@ const AuthRepository = {
       SET last_login_at = NOW()
       WHERE id = $1
     `;
+    return query(sql, [userId]);
+  },
+
+  /**
+   * Increment failed attempts
+   */
+  incrementFailedAttempts: async (userId) => {
+    const sql = `UPDATE shared.users SET failed_attempts = failed_attempts + 1 WHERE id = $1 RETURNING failed_attempts`;
+    const result = await query(sql, [userId]);
+    return result.rows[0]?.failed_attempts || 0;
+  },
+
+  /**
+   * Lock account until a specific time
+   */
+  lockAccount: async (userId, lockUntilDate) => {
+    const sql = `UPDATE shared.users SET locked_until = $1 WHERE id = $2`;
+    return query(sql, [lockUntilDate, userId]);
+  },
+
+  /**
+   * Reset failed attempts and lock
+   */
+  resetFailedAttempts: async (userId) => {
+    const sql = `UPDATE shared.users SET failed_attempts = 0, locked_until = NULL WHERE id = $1`;
     return query(sql, [userId]);
   },
 

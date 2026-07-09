@@ -59,5 +59,15 @@ export const createSystemBackup = () =>
 export const deleteSystemBackup = (filename) =>
   api.delete(`/system/backups/${filename}`).then(r => r.data);
 
+export const downloadSystemBackup = (filename) => {
+  return api.get(`/system/backups/download/${filename}`, { responseType: 'blob' }).then(r => r.data);
+};
+
 export const getSystemStats = () =>
   api.get('/system/stats').then(r => r.data.data);
+
+export const getBackupSettings = () =>
+  api.get('/system/backup-settings').then(r => r.data.data);
+
+export const updateBackupSettings = (data) =>
+  api.put('/system/backup-settings', data).then(r => r.data);

@@ -33,6 +33,7 @@ const kelulusanRoutes      = require('./routes/kelulusan.routes');
 const catatanSiswaRoutes   = require('./routes/catatan_siswa.routes');
 const kenaikanKelasRoutes  = require('./routes/kenaikan_kelas.routes');
 const kurikulumRoutes      = require('./routes/kurikulum.routes');
+const exportRoutes         = require('./routes/export.routes');
 
 const app = express();
 
@@ -91,6 +92,7 @@ app.use(`${API}/kelulusan`,        kelulusanRoutes);
 app.use(`${API}/catatan-siswa`,    catatanSiswaRoutes);
 app.use(`${API}/kenaikan-kelas`,   kenaikanKelasRoutes);
 app.use(`${API}/kurikulum`,        kurikulumRoutes);
+app.use(`${API}/export`,           exportRoutes);
 
 // ─── 404 Handler ─────────────────────────────────────────────────────────────
 app.use((req, res, next) => {

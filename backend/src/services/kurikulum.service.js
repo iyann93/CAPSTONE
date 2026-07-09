@@ -36,15 +36,20 @@ const KurikulumService = {
   },
 
   create: async (payload) => {
-    // Validate uniqueness of kode_kurikulum
     const existing = await KurikulumRepository.findByKode(payload.kode_kurikulum);
-    if (existing) throw new ApiError(409, 'Kode kurikulum sudah digunakan');
+    if (existing) {
+      const e = new Error('Kode kurikulum sudah digunakan');
+      e.statusCode = 409;
+      throw e;
+    }
 
     // Validate uniqueness of 'Aktif' status per tahun_ajaran_id
     if (payload.status === 'Aktif') {
       const activeCurriculums = await KurikulumRepository.findByStatusAndTahunAjaran('Aktif', payload.tahun_ajaran_id);
       if (activeCurriculums.length > 0) {
-        throw new ApiError(400, 'Tahun Ajaran ini sudah memiliki Kurikulum berstatus Aktif. Silakan nonaktifkan yang lama terlebih dahulu.');
+        const e = new Error('Tahun Ajaran ini sudah memiliki Kurikulum berstatus Aktif. Silakan nonaktifkan yang lama terlebih dahulu.');
+        e.statusCode = 400;
+        throw e;
       }
     }
     const data = await KurikulumRepository.create(payload);
@@ -57,7 +62,11 @@ const KurikulumService = {
 
     if (payload.kode_kurikulum) {
       const dup = await KurikulumRepository.findByKode(payload.kode_kurikulum, id);
-      if (dup) throw new ApiError(409, 'Kode kurikulum sudah digunakan');
+      if (dup) {
+        const e = new Error('Kode kurikulum sudah digunakan');
+        e.statusCode = 409;
+        throw e;
+      }
     }
 
     const newStatus = payload.status !== undefined ? payload.status : existing.status;
@@ -68,7 +77,9 @@ const KurikulumService = {
       const activeCurriculums = await KurikulumRepository.findByStatusAndTahunAjaran('Aktif', newTahunAjaran);
       const otherActive = activeCurriculums.filter(c => c.id !== id);
       if (otherActive.length > 0) {
-        throw new ApiError(400, 'Tahun Ajaran ini sudah memiliki Kurikulum berstatus Aktif. Silakan nonaktifkan yang lama terlebih dahulu.');
+        const e = new Error('Tahun Ajaran ini sudah memiliki Kurikulum berstatus Aktif. Silakan nonaktifkan yang lama terlebih dahulu.');
+        e.statusCode = 400;
+        throw e;
       }
     }
 

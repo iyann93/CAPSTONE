@@ -73,10 +73,10 @@ const MonitoringSiswaKepsek = () => {
   const [loadingMapel, setLoadingMapel] = useState(false);
 
   useEffect(() => {
-    const fetchClassDetail = async (isPolling = false) => {
+    const fetchClassDetail = async () => {
       if (!filter.kelas || !filter.semester) return;
       try {
-        if (!isPolling) setLoadingDetail(true);
+        setLoadingDetail(true);
         const [resNilai, resAbsensi] = await Promise.all([
           api.get(`/nilai/kelas/${filter.kelas}?semester_id=${filter.semester}`).catch(() => ({ data: { data: [] } })),
           api.get(`/absensi?kelas_id=${filter.kelas}&semester_id=${filter.semester}&limit=2000`).catch(() => ({ data: { data: [] } }))
@@ -106,18 +106,11 @@ const MonitoringSiswaKepsek = () => {
       } catch (err) {
         console.error(err);
       } finally {
-        if (!isPolling) setLoadingDetail(false);
+        setLoadingDetail(false);
       }
     };
     
     fetchClassDetail();
-    
-    // Real-time polling
-    const intervalId = setInterval(() => {
-      fetchClassDetail(true);
-    }, 5000);
-    
-    return () => clearInterval(intervalId);
   }, [filter.kelas, filter.semester]);
 
   const filteredData = useMemo(() => {

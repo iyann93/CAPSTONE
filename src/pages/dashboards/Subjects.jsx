@@ -162,6 +162,7 @@ const MapelModal = ({ data, onClose, onSave }) => {
 
 // ─── Komponen Utama ───────────────────────────────────────────────────────────
 const Subjects = () => {
+  const [perms, setPerms] = useState({ buat: true, ubah: true, hapus: true });
   const [subjects, setSubjects]       = useState([]);
   const [loading, setLoading]         = useState(true);
   const [searchTerm, setSearchTerm]   = useState("");
@@ -170,10 +171,7 @@ const Subjects = () => {
   const [modal, setModal]             = useState(null); // null | { data }
   const [toast, setToast]             = useState(null);
 
-  const showToast = (msg, type = "success") => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
-  };
+  const showToast = window.showToast;
 
   const handleExport = () => {
     if (filtered.length === 0) {
@@ -213,7 +211,25 @@ const Subjects = () => {
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchMapel(); }, []);
+  useEffect(() => {
+    try {
+      const userStr = localStorage.getItem('siakad_user');
+      const currentUser = userStr ? JSON.parse(userStr) : null;
+      const roleId = currentUser?.role?.toLowerCase().replace(/\s+/g, '');
+      if (roleId && roleId !== 'superadmin') {
+        const rolePerms = JSON.parse(localStorage.getItem('rolePermissions') || '{}');
+        const userPerms = rolePerms[roleId]?.['Mata Pelajaran'];
+        if (userPerms) {
+          setPerms({
+            buat: userPerms.buat === true,
+            ubah: userPerms.ubah === true,
+            hapus: userPerms.hapus === true
+          });
+        }
+      }
+    } catch(e) {}
+    fetchMapel(); 
+  }, []);
 
   const handleDelete = async (id, nama) => {
     if (!window.confirm(`Hapus mata pelajaran "${nama}"?`)) return;
@@ -274,13 +290,15 @@ const Subjects = () => {
             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             Ekspor Daftar
           </button>
-          <button
-            onClick={() => setModal({ data: null })}
-            className="flex items-center gap-2 bg-[#1A3D63] hover:bg-[#122A44] text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-md transition-all"
-          >
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Tambah Mata Pelajaran
-          </button>
+          {perms.buat && (
+            <button
+              onClick={() => setModal({ data: null })}
+              className="flex items-center gap-2 bg-[#1A3D63] hover:bg-[#122A44] text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-md transition-all"
+            >
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Tambah Mata Pelajaran
+            </button>
+          )}
         </div>
       </div>
 
@@ -378,14 +396,18 @@ const Subjects = () => {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1 transition-opacity">
-                        <button onClick={() => setModal({ data: item })} title="Edit"
-                          className="p-1.5 text-gray-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-colors">
-                          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                        </button>
-                        <button onClick={() => handleDelete(item.id, item.nama)} title="Hapus"
-                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                        </button>
+                        {perms.ubah && (
+                          <button onClick={() => setModal({ data: item })} title="Edit"
+                            className="p-1.5 text-gray-400 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-colors">
+                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                          </button>
+                        )}
+                        {perms.hapus && (
+                          <button onClick={() => handleDelete(item.id, item.nama)} title="Hapus"
+                            className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

@@ -602,5 +602,2325 @@
       "ubah": false,
       "hapus": false
     }
+  },
+  "9e0695cb-c1e0-48b4-b041-277778bf6085": {
+    "Dashboard": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Laporan Akademik": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Monitoring Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Monitoring Keuangan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Perkembangan Akademik": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Unduh Rapor": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Mata Pelajaran": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": true
+    },
+    "Semester": {
+      "lihat": true,
+      "buat": false,
+      "ubah": false,
+      "hapus": true
+    },
+    "Data Kelas": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Jadwal Pelajaran": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Kelola Kurikulum": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Persetujuan Kurikulum": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Kelas & Penjadwalan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Kenaikan Kelas": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Data Kelulusan": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Validasi Kelulusan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Siswa": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Data Orang Tua": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Data Siswa Kelas": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Absensi Siswa": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Rekap Absensi Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Catatan Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "E-Rapor & Input Nilai": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Input Nilai": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Rapor Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Guru": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Jadwal Mengajar": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengumuman Sekolah": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Sarana & Prasarana": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Tagihan SPP": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengaturan SPP": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Riwayat Pembayaran": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Beasiswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pemasukan dan Pengeluaran": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Cetak Laporan Keuangan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Komponen Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Template Gaji Jabatan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengaturan Gaji Pegawai": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Generate Slip Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Riwayat Slip Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Rekening": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Riwayat Terima Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Mengelola Akun User": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Role & Permission": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Hak Akses Sistem": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Akses Seluruh Data": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Backup & Maintenance": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengaturan Sistem": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    }
+  },
+  "admintu": {
+    "Dashboard": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Laporan Akademik": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Monitoring Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Monitoring Keuangan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Perkembangan Akademik": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Unduh Rapor": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Mata Pelajaran": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": true
+    },
+    "Semester": {
+      "lihat": true,
+      "buat": false,
+      "ubah": false,
+      "hapus": true
+    },
+    "Data Kelas": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Jadwal Pelajaran": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Kelola Kurikulum": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Persetujuan Kurikulum": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Kelas & Penjadwalan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Kenaikan Kelas": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Data Kelulusan": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Validasi Kelulusan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Siswa": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Data Orang Tua": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Data Siswa Kelas": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Absensi Siswa": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Rekap Absensi Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Catatan Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "E-Rapor & Input Nilai": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Input Nilai": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Rapor Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Guru": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Jadwal Mengajar": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengumuman Sekolah": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Sarana & Prasarana": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Tagihan SPP": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengaturan SPP": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Riwayat Pembayaran": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Beasiswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pemasukan dan Pengeluaran": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Cetak Laporan Keuangan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Komponen Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Template Gaji Jabatan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengaturan Gaji Pegawai": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Generate Slip Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Riwayat Slip Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Rekening": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Riwayat Terima Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Mengelola Akun User": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Role & Permission": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Hak Akses Sistem": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Akses Seluruh Data": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Backup & Maintenance": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengaturan Sistem": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    }
+  },
+  "95918ff7-d83d-458f-8da9-8c5067d47f8d": {
+    "Dashboard": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Laporan Akademik": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Monitoring Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Monitoring Keuangan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Perkembangan Akademik": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Unduh Rapor": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Mata Pelajaran": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Semester": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Kelas": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Jadwal Pelajaran": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Kelola Kurikulum": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Persetujuan Kurikulum": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Kelas & Penjadwalan": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Kenaikan Kelas": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Kelulusan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Validasi Kelulusan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Orang Tua": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Siswa Kelas": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Absensi Siswa": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Rekap Absensi Siswa": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Catatan Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "E-Rapor & Input Nilai": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Input Nilai": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Rapor Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Guru": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Jadwal Mengajar": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Pengumuman Sekolah": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Sarana & Prasarana": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Tagihan SPP": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengaturan SPP": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Riwayat Pembayaran": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Beasiswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pemasukan dan Pengeluaran": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Cetak Laporan Keuangan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Komponen Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Template Gaji Jabatan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengaturan Gaji Pegawai": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Generate Slip Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Riwayat Slip Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Rekening": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Riwayat Terima Gaji": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Mengelola Akun User": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Role & Permission": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Hak Akses Sistem": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Akses Seluruh Data": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Backup & Maintenance": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengaturan Sistem": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    }
+  },
+  "gurumapel": {
+    "Dashboard": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Laporan Akademik": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Monitoring Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Monitoring Keuangan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Perkembangan Akademik": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Unduh Rapor": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Mata Pelajaran": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Semester": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Kelas": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Jadwal Pelajaran": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Kelola Kurikulum": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Persetujuan Kurikulum": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Kelas & Penjadwalan": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Kenaikan Kelas": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Kelulusan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Validasi Kelulusan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Orang Tua": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Siswa Kelas": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Absensi Siswa": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Rekap Absensi Siswa": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Catatan Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "E-Rapor & Input Nilai": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Input Nilai": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Rapor Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Guru": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Jadwal Mengajar": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Pengumuman Sekolah": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Sarana & Prasarana": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Tagihan SPP": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengaturan SPP": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Riwayat Pembayaran": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Beasiswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pemasukan dan Pengeluaran": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Cetak Laporan Keuangan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Komponen Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Template Gaji Jabatan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengaturan Gaji Pegawai": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Generate Slip Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Riwayat Slip Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Rekening": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Riwayat Terima Gaji": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Mengelola Akun User": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Role & Permission": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Hak Akses Sistem": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Akses Seluruh Data": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Backup & Maintenance": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengaturan Sistem": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    }
+  },
+  "c757884d-591c-4ea9-b6c6-3072741c1a4d": {
+    "Dashboard": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Laporan Akademik": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Monitoring Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Monitoring Keuangan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Perkembangan Akademik": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Unduh Rapor": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Mata Pelajaran": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Semester": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Kelas": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Jadwal Pelajaran": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Kelola Kurikulum": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Persetujuan Kurikulum": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Kelas & Penjadwalan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Kenaikan Kelas": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Kelulusan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Validasi Kelulusan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Orang Tua": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Siswa Kelas": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Absensi Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Rekap Absensi Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Catatan Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "E-Rapor & Input Nilai": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Input Nilai": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Rapor Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Guru": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Jadwal Mengajar": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengumuman Sekolah": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Sarana & Prasarana": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Tagihan SPP": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengaturan SPP": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Riwayat Pembayaran": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Beasiswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pemasukan dan Pengeluaran": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Cetak Laporan Keuangan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Komponen Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Template Gaji Jabatan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengaturan Gaji Pegawai": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Generate Slip Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Riwayat Slip Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Rekening": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Riwayat Terima Gaji": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Mengelola Akun User": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Role & Permission": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Hak Akses Sistem": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Akses Seluruh Data": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Backup & Maintenance": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengaturan Sistem": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    }
+  },
+  "wakilkepala": {
+    "Dashboard": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Laporan Akademik": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Monitoring Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Monitoring Keuangan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Perkembangan Akademik": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Unduh Rapor": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Mata Pelajaran": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Semester": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Kelas": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Jadwal Pelajaran": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Kelola Kurikulum": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Persetujuan Kurikulum": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Kelas & Penjadwalan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Kenaikan Kelas": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Kelulusan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Validasi Kelulusan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Orang Tua": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Siswa Kelas": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Absensi Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Rekap Absensi Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Catatan Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "E-Rapor & Input Nilai": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Input Nilai": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Rapor Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Guru": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Jadwal Mengajar": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengumuman Sekolah": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Sarana & Prasarana": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Tagihan SPP": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengaturan SPP": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Riwayat Pembayaran": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Beasiswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pemasukan dan Pengeluaran": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Cetak Laporan Keuangan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Komponen Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Template Gaji Jabatan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengaturan Gaji Pegawai": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Generate Slip Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Riwayat Slip Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Rekening": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Riwayat Terima Gaji": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Mengelola Akun User": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Role & Permission": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Hak Akses Sistem": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Akses Seluruh Data": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Backup & Maintenance": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengaturan Sistem": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    }
+  },
+  "cb558548-2d38-43b8-931f-6182150c2a28": {
+    "Dashboard": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Laporan Akademik": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Monitoring Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Monitoring Keuangan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Perkembangan Akademik": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Unduh Rapor": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Mata Pelajaran": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Semester": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Kelas": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Jadwal Pelajaran": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Kelola Kurikulum": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Persetujuan Kurikulum": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Kelas & Penjadwalan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Kenaikan Kelas": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Kelulusan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Validasi Kelulusan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Orang Tua": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Siswa Kelas": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Absensi Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Rekap Absensi Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Catatan Siswa": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "E-Rapor & Input Nilai": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Input Nilai": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Rapor Siswa": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Data Guru": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Jadwal Mengajar": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengumuman Sekolah": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Sarana & Prasarana": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Tagihan SPP": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengaturan SPP": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Riwayat Pembayaran": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Beasiswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pemasukan dan Pengeluaran": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Cetak Laporan Keuangan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Komponen Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Template Gaji Jabatan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengaturan Gaji Pegawai": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Generate Slip Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Riwayat Slip Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Rekening": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Riwayat Terima Gaji": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Mengelola Akun User": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Role & Permission": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Hak Akses Sistem": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Akses Seluruh Data": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Backup & Maintenance": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengaturan Sistem": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    }
+  },
+  "walikelas": {
+    "Dashboard": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Laporan Akademik": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Monitoring Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Monitoring Keuangan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Perkembangan Akademik": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Unduh Rapor": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Mata Pelajaran": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Semester": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Kelas": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Jadwal Pelajaran": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Kelola Kurikulum": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Persetujuan Kurikulum": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Kelas & Penjadwalan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Kenaikan Kelas": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Kelulusan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Validasi Kelulusan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Orang Tua": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Siswa Kelas": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Absensi Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Rekap Absensi Siswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Catatan Siswa": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "E-Rapor & Input Nilai": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Input Nilai": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Rapor Siswa": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Data Guru": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Jadwal Mengajar": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengumuman Sekolah": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Sarana & Prasarana": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Tagihan SPP": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengaturan SPP": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Riwayat Pembayaran": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Beasiswa": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pemasukan dan Pengeluaran": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Cetak Laporan Keuangan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Komponen Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Template Gaji Jabatan": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengaturan Gaji Pegawai": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Generate Slip Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Riwayat Slip Gaji": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Data Rekening": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Riwayat Terima Gaji": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
+    },
+    "Mengelola Akun User": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Role & Permission": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Hak Akses Sistem": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Akses Seluruh Data": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Backup & Maintenance": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Pengaturan Sistem": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    }
   }
 }

@@ -99,8 +99,7 @@ const menuSections = [
   {
     section: "MANAJEMEN PENGGUNA",
     items: [
-      { label: "Mengelola Akun User", icon: <UserSettingsIcon /> },
-      { label: "Aktivasi & Nonaktif", icon: <UsersIcon /> }
+      { label: "Mengelola Akun User", icon: <UserSettingsIcon /> }
     ],
     roles: ["Super Admin"]
   },
@@ -294,17 +293,32 @@ const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) =>
   }, []);
 
   const filteredSections = menuSections.map(section => {
-    if (!section.roles.includes(role)) return null;
+    const effectiveRoles = [role, user?.jabatan_tugas]
+      .filter(Boolean)
+      .map(r => r.trim().toLowerCase());
+
+    const hasRoleAccess = section.roles.some(r => 
+      effectiveRoles.includes(r.toLowerCase())
+    );
+
+    if (!hasRoleAccess) return null;
 
     const roleId = role.toLowerCase().replace(/\s+/g, '');
     const userPerms = rolePermissions?.[roleId];
 
     const items = section.items.filter(item => {
-      // Allow if no permission defined or if 'lihat' is not explicitly false
+      // Allow if explicit permission 'lihat' is true, or if no permissions loaded yet and it's super admin
+      if (roleId === 'superadmin') return true;
+      
       if (userPerms && userPerms[item.label]) {
-        return userPerms[item.label].lihat !== false;
+        return userPerms[item.label].lihat === true;
       }
-      return true;
+      
+      // If we don't have perms yet, fallback to true so the app isn't empty on first load,
+      // but once loaded it strictly follows the DB.
+      if (!rolePermissions) return true;
+      
+      return false;
     });
 
     if (items.length === 0) return null;
@@ -390,7 +404,9 @@ const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) =>
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-[13px] font-bold text-[#1A3D63] truncate leading-tight">{user?.fullName || user?.nama || user?.name || "User"}</span>
-              <span className="text-[11px] text-[#4A7FA7] font-medium leading-tight mt-0.5">{user?.role || "Pengguna"}</span>
+              <span className="text-[11px] text-[#4A7FA7] font-medium leading-tight mt-0.5 whitespace-nowrap">
+                {user?.role || "Pengguna"}{user?.jabatan_tugas && ` - ${user.jabatan_tugas}`}
+              </span>
             </div>
           </div>
         </div>

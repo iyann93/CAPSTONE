@@ -198,14 +198,14 @@ const ManageUsers = ({ onViewChange }) => {
     setFormData({
       nama: user.name || '',
       email: user.email || '',
-      password: '', // blank on edit
       roleId: roles.find(r => r.nama_role === user.role)?.id || '',
       siswaId: user.linked_siswa_id || '', // pre-fill dari relasi yang sudah ada
       isActive: user.is_active,
-      tanggal_lahir: user.tanggal_lahir || '',
+      tanggal_lahir: user.tanggal_lahir ? new Date(user.tanggal_lahir).toISOString().split('T')[0] : '',
       jenis_kelamin: user.jenis_kelamin || '',
       telepon: user.telepon || '',
-      alamat: user.alamat || ''
+      alamat: user.alamat || '',
+      mustChangePassword: user.mustChangePassword || false
     });
     setShowPassword(false);
     setShowConfirmPassword(false);
@@ -214,7 +214,7 @@ const ManageUsers = ({ onViewChange }) => {
 
   const handleAddClick = () => {
     setSelectedUser(null);
-    setFormData({ nama: '', email: '', password: '', roleId: '', siswaId: '', isActive: true, tanggal_lahir: '', jenis_kelamin: '', telepon: '', alamat: '' });
+    setFormData({ nama: '', email: '', password: '', roleId: '', siswaId: '', isActive: true, tanggal_lahir: '', jenis_kelamin: '', telepon: '', alamat: '', mustChangePassword: true });
     setShowPassword(false);
     setShowConfirmPassword(false);
     setView("add");
@@ -228,10 +228,11 @@ const ManageUsers = ({ onViewChange }) => {
     return (
       <div className="animate-fadeIn space-y-6 pb-20 max-w-4xl mx-auto">
         {/* Toast */}
-        {toast && (
-          <div className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl text-white text-sm font-bold shadow-xl ${
+        {toast && createPortal(
+          <div className={`fixed top-6 right-6 z-[9999] px-5 py-3 rounded-xl text-white text-sm font-bold shadow-xl ${
             toast.type === 'error' ? 'bg-red-500' : 'bg-emerald-500'
-          }`}>{toast.msg}</div>
+          }`}>{toast.msg}</div>,
+          document.body
         )}
 
         {/* Header */}
@@ -444,9 +445,9 @@ const ManageUsers = ({ onViewChange }) => {
                 </div>
               </div>
               <p className="text-xs text-gray-400">Minimal 8 karakter, kombinasi huruf dan angka.</p>
-              <label className="flex items-start gap-3 cursor-pointer">
-                <div className="mt-0.5 shrink-0 w-5 h-5 rounded flex items-center justify-center bg-[#1A3D63] border-2 border-[#1A3D63]">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <label className="flex items-start gap-3 cursor-pointer group" onClick={() => setFormData({...formData, mustChangePassword: !formData.mustChangePassword})}>
+                <div className={`mt-0.5 shrink-0 w-5 h-5 rounded flex items-center justify-center transition-colors border-2 ${formData.mustChangePassword ? 'bg-[#1A3D63] border-[#1A3D63]' : 'border-gray-200 bg-white group-hover:border-gray-300'}`}>
+                  {formData.mustChangePassword && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
                 </div>
                 <div>
                   <p className="text-sm font-bold text-gray-800">Wajib Ganti Password</p>
@@ -483,8 +484,9 @@ const ManageUsers = ({ onViewChange }) => {
                   <p className="text-xs text-gray-400 mt-2">Minimal 8 karakter, kombinasi huruf dan angka.</p>
                 </div>
                 
-                 <label className="flex items-start gap-3 cursor-pointer group">
-                  <div className="mt-0.5 shrink-0 w-5 h-5 rounded flex items-center justify-center transition-colors border-2 border-gray-200 bg-white group-hover:border-gray-300">
+                 <label className="flex items-start gap-3 cursor-pointer group" onClick={() => setFormData({...formData, mustChangePassword: !formData.mustChangePassword})}>
+                  <div className={`mt-0.5 shrink-0 w-5 h-5 rounded flex items-center justify-center transition-colors border-2 ${formData.mustChangePassword ? 'bg-[#1A3D63] border-[#1A3D63]' : 'border-gray-200 bg-white group-hover:border-gray-300'}`}>
+                    {formData.mustChangePassword && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
                   </div>
                   <div>
                     <p className="text-sm font-bold text-gray-800">Wajib Ganti Password</p>
@@ -539,10 +541,11 @@ const ManageUsers = ({ onViewChange }) => {
   return (
     <div className="animate-fadeIn space-y-8">
       {/* Toast */}
-      {toast && (
-        <div className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl text-white text-sm font-bold shadow-xl ${
+      {toast && createPortal(
+        <div className={`fixed top-6 right-6 z-[9999] px-5 py-3 rounded-xl text-white text-sm font-bold shadow-xl ${
           toast.type === 'error' ? 'bg-red-500' : 'bg-emerald-500'
-        }`}>{toast.msg}</div>
+        }`}>{toast.msg}</div>,
+        document.body
       )}
 
       {/* Header Area */}

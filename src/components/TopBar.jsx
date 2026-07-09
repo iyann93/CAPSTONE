@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import LogoWide from "../assets/logo-wide.png";
 
 const MenuIcon = () => <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
     <path d="M3 12h18M3 6h18M3 18h18" />
@@ -43,10 +44,7 @@ const TopBar = ({ user, onToggle, onLogout, onProfileClick }) => {
         </button>
         
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-white rounded flex items-center justify-center">
-            <span className="text-[#1A3D63] font-black text-lg leading-none">M</span>
-          </div>
-          <span className="font-bold text-lg tracking-tight hidden sm:block">MBS Prambanan</span>
+          <img src={LogoWide} alt="MBS Prambanan" className="h-10 object-contain" />
         </div>
       </div>
 

@@ -1,14 +1,35 @@
 import React, { useState, useEffect } from "react";
+<<<<<<< HEAD
 import { getAnnouncements } from "../../utils/announcementStore";
+=======
+import api from "../../api/axios";
+>>>>>>> 6e1ed0a241b981b290023c786a1081d909905717
 
 const GuruHome = ({ user, onNavigate }) => {
-  const guruData = {
-    nama: user?.fullName || "Drs. Hendra, M.Pd",
-    mapel: "Pendidikan Pancasila",
+  const [guruData, setGuruData] = useState({
+    nama: user?.fullName || "Memuat...",
+    mapel: "-",
     tahunAjaran: "2025/2026",
-    jumlahKelas: 4,
-    jumlahSiswa: 128,
-  };
+    jumlahKelas: 0,
+    jumlahSiswa: 0,
+    id: null
+  });
+  const [jadwalHariIni, setJadwalHariIni] = useState([]);
+  const [pengumuman, setPengumuman] = useState([
+    {
+      kategori: "AKADEMIK",
+      judul: "Rapat Evaluasi Semester",
+      isi: "Akan diadakan rapat evaluasi pada hari Jumat, pukul 13:00 WIB di Ruang Guru. Kehadiran sangat diharapkan.",
+      color: "blue"
+    },
+    {
+      kategori: "KEUANGAN",
+      judul: "Pencairan Gaji Mei",
+      isi: "Gaji bulan Mei 2026 telah ditransfer ke rekening masing-masing. Silakan cek menu Riwayat Terima Gaji untuk rincian.",
+      color: "emerald"
+    }
+  ]);
+  const [loading, setLoading] = useState(true);
 
   const [liveAnn, setLiveAnn] = useState([]);
 
@@ -17,6 +38,94 @@ const GuruHome = ({ user, onNavigate }) => {
   }, []);
 
   const fmt = (n) => "Rp " + n.toLocaleString("id-ID");
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        // 1. Ambil data guru spesifik
+        const resGuru = await api.get(`/guru?search=${encodeURIComponent(user?.email || "")}`);
+        const dataGuru = resGuru.data?.data?.[0]; // ambil yg pertama cocok
+        
+        let fetchedMapel = "-";
+        let fetchedId = null;
+        if (dataGuru) {
+          fetchedMapel = dataGuru.mata_pelajaran || "-";
+          fetchedId = dataGuru.id;
+        }
+
+        // 2. Ambil seluruh jadwal
+        const resJadwal = await api.get('/jadwal-pelajaran?limit=1000');
+        let rawJadwal = resJadwal.data?.data || [];
+        
+        // Filter jadwal untuk guru ini
+        if (fetchedId) {
+          rawJadwal = rawJadwal.filter(j => j.guru_id === fetchedId);
+        } else {
+          // fallback cari by name jika tidak ada guru_id
+          rawJadwal = rawJadwal.filter(j => j.guru_nama?.toLowerCase().includes(user?.fullName?.toLowerCase()));
+        }
+
+        // Mapping hari 1-7 ke nama hari 
+        const hariMap = {
+          1: "Senin", 2: "Selasa", 3: "Rabu", 4: "Kamis", 5: "Jumat", 6: "Sabtu", 7: "Minggu"
+        };
+        const currentDayIndex = new Date().getDay() || 7; // 1 = Senin, 7 = Minggu
+        const todayName = hariMap[currentDayIndex];
+
+        // Format rawJadwal
+        const mappedJadwal = rawJadwal.map(j => ({
+          time: `${(j.jam_mulai || "").substring(0, 5)} - ${(j.jam_selesai || "").substring(0, 5)}`,
+          jamMulai: j.jam_mulai,
+          kelas: j.nama_kelas,
+          subject: j.nama_mapel,
+          hari: hariMap[j.hari] || j.hari,
+          active: false
+        }));
+
+        // Filter jadwal hari ini
+        let jadwalToday = mappedJadwal.filter(j => j.hari === todayName);
+        
+        // Cek jam aktif
+        const now = new Date();
+        const currentTime = now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
+        jadwalToday = jadwalToday.map(j => {
+           if (j.jamMulai <= currentTime) {
+              // rough estimate
+              return { ...j, active: true };
+           }
+           return j;
+        }).sort((a,b) => a.jamMulai?.localeCompare(b.jamMulai));
+
+        // Hitung unik kelas & estimasi siswa (dummy 32 per kelas jika API tak sedia total siswa spesifik)
+        const uniqueKelas = new Set(mappedJadwal.map(j => j.kelas)).size;
+
+        setGuruData(prev => ({
+          ...prev,
+          nama: dataGuru?.nama || user?.fullName || "-",
+          mapel: fetchedMapel,
+          jumlahKelas: uniqueKelas,
+          jumlahSiswa: uniqueKelas * 32, // Estimasi 32 siswa per kelas
+          id: fetchedId
+        }));
+        
+        setJadwalHariIni(jadwalToday);
+
+      } catch (err) {
+        console.error("Error fetching guru data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user?.email || user?.fullName) {
+      fetchData();
+    }
+  }, [user]);
+
+  if (loading) {
+    return <div className="p-6 md:p-8 flex justify-center items-center h-full">Memuat data akademik...</div>;
+  }
 
   return (
     <div className="p-6 md:p-8 space-y-6 animate-fadeIn">
@@ -98,9 +207,9 @@ const GuruHome = ({ user, onNavigate }) => {
           },
           {
             label: "Jadwal Hari Ini",
-            val: "3",
+            val: jadwalHariIni.length.toString(),
             unit: "Kelas",
-            sub: "Mulai pukul 07:30 WIB",
+            sub: jadwalHariIni.length > 0 ? `Mulai pukul ${jadwalHariIni[0]?.time.split('-')[0]}` : "Tidak ada jadwal",
             color: "text-amber-600",
             bg: "bg-amber-50",
             icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
@@ -150,11 +259,7 @@ const GuruHome = ({ user, onNavigate }) => {
             </button>
           </div>
           <div className="space-y-4">
-            {[
-              { time: "07:30 - 09:00", kelas: "VII A", subject: "Pendidikan Pancasila", active: true },
-              { time: "09:15 - 10:45", kelas: "VII B", subject: "Pendidikan Pancasila", active: false },
-              { time: "11:00 - 12:30", kelas: "VIII A", subject: "Pendidikan Pancasila Lanjut", active: false },
-            ].map((jadwal, idx) => (
+            {jadwalHariIni.length > 0 ? jadwalHariIni.map((jadwal, idx) => (
               <div key={idx} className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${jadwal.active ? "bg-blue-50/50 border-blue-100 shadow-sm" : "bg-gray-50/50 border-gray-100 hover:bg-gray-50"}`}>
                 <div className={`font-bold px-3 py-2 rounded-lg text-sm whitespace-nowrap ${jadwal.active ? "bg-[#1A3D63] text-white" : "bg-white border border-gray-200 text-gray-600"}`}>
                   {jadwal.time}
@@ -167,12 +272,17 @@ const GuruHome = ({ user, onNavigate }) => {
                   <div className="text-xs text-gray-500 mt-1 font-medium">{jadwal.subject}</div>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="text-center p-6 text-gray-400 font-medium border border-dashed rounded-xl">
+                Tidak ada jadwal mengajar hari ini.
+              </div>
+            )}
           </div>
         </div>
 
         {/* Pengumuman Sekolah */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+<<<<<<< HEAD
           <div className="flex justify-between items-center mb-5">
             <h2 className="text-lg font-bold text-gray-800">Pengumuman Sekolah</h2>
             <button onClick={() => onNavigate && onNavigate("Pengumuman Sekolah")} className="text-[12px] font-bold text-[#1A3D63] hover:underline">Lihat Semua →</button>
@@ -198,11 +308,25 @@ const GuruHome = ({ user, onNavigate }) => {
             )) : (
               <div className="text-[13px] text-gray-400 text-center py-6">Belum ada pengumuman.</div>
             )}
+=======
+          <h2 className="text-lg font-bold text-gray-800 mb-6">Pengumuman Sekolah</h2>
+          <div className="space-y-4">
+            {pengumuman.map((p, i) => (
+              <div key={i} className={`p-4 rounded-xl bg-${p.color}-50/50 border border-${p.color}-100 relative overflow-hidden hover:bg-${p.color}-50 transition-colors`}>
+                <div className={`absolute left-0 top-0 bottom-0 w-1 bg-${p.color}-500`}></div>
+                <div className={`text-[10px] font-black px-2.5 py-1 rounded-md tracking-wide uppercase bg-${p.color}-100 text-${p.color}-600 mb-2 inline-flex items-center gap-1.5`}>
+                  {p.kategori}
+                </div>
+                <div className="font-bold text-gray-800 text-[15px] mb-2 leading-snug">{p.judul}</div>
+                <div className="text-[13px] text-gray-600 leading-relaxed">{p.isi}</div>
+              </div>
+            ))}
+>>>>>>> 6e1ed0a241b981b290023c786a1081d909905717
           </div>
         </div>
       </div>
 
-      {/* Quick Action — Riwayat Terima Gaji */}
+      {/* Quick Action - Riwayat Terima Gaji */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col md:flex-row items-center gap-6">
         <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
           <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
@@ -228,7 +352,3 @@ const GuruHome = ({ user, onNavigate }) => {
 };
 
 export default GuruHome;
-
-
-
-

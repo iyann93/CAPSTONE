@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import api from "../../api/axios";
 
 const Semester = () => {
+  const [perms, setPerms] = useState({ buat: true, ubah: true, hapus: true });
   const [view, setView] = useState("list");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSemester, setSelectedSemester] = useState(null);
@@ -12,6 +13,11 @@ const Semester = () => {
   const [tahunAjarans, setTahunAjarans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, title: '', message: '', onConfirm: null, type: 'danger' });
+
+  const showConfirm = (title, message, onConfirm, type = 'danger') => {
+    setConfirmDialog({ isOpen: true, title, message, onConfirm, type });
+  };
 
   const fetchData = async () => {
     try {
@@ -65,6 +71,22 @@ const Semester = () => {
   };
 
   React.useEffect(() => {
+    try {
+      const userStr = localStorage.getItem('siakad_user');
+      const currentUser = userStr ? JSON.parse(userStr) : null;
+      const roleId = currentUser?.role?.toLowerCase().replace(/\s+/g, '');
+      if (roleId && roleId !== 'superadmin') {
+        const rolePerms = JSON.parse(localStorage.getItem('rolePermissions') || '{}');
+        const userPerms = rolePerms[roleId]?.['Semester'];
+        if (userPerms) {
+          setPerms({
+            buat: userPerms.buat === true,
+            ubah: userPerms.ubah === true,
+            hapus: userPerms.hapus === true
+          });
+        }
+      }
+    } catch(e) {}
     fetchData();
   }, []);
 
@@ -99,35 +121,46 @@ const Semester = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus semester ini?")) {
-      try {
-        await api.delete(`/semester/${id}`);
-        fetchData();
-      } catch (err) {
-        alert(err.response?.data?.message || 'Gagal menghapus');
+  const handleDelete = (id) => {
+    showConfirm(
+      "Hapus Semester",
+      "Apakah Anda yakin ingin menghapus semester ini? Data yang dihapus tidak dapat dikembalikan.",
+      async () => {
+        try {
+          await api.delete(`/semester/${id}`);
+          fetchData();
+          window.showToast?.('Semester berhasil dihapus!', 'success');
+        } catch (err) {
+          window.showToast?.(err.response?.data?.message || 'Gagal menghapus semester', 'error');
+        }
       }
-    }
+    );
   };
 
-  const handleClose = async (id) => {
-    if (window.confirm("Apakah Anda yakin ingin menonaktifkan semester ini?")) {
-      // API currently only supports setActive, to deactivate maybe we can't do it via API directly unless we have a specific endpoint. 
-      // But we are not allowed to add new backend functionality right now. 
-      // Wait, is there a deactivate endpoint?
-      alert('Semester tidak bisa ditutup langsung dari sistem tanpa mengaktifkan semester lain.');
-    }
+  const handleClose = (id) => {
+    showConfirm(
+      "Tutup Semester",
+      "Apakah Anda yakin ingin menonaktifkan semester ini? Semester tidak bisa ditutup langsung dari sistem tanpa mengaktifkan semester lain.",
+      () => {},
+      'warning'
+    );
   };
 
-  const handleActivate = async (id) => {
-    if (window.confirm("Aktifkan semester ini? Semester yang sedang aktif akan otomatis ditutup.")) {
-      try {
-        await api.put(`/semester/${id}/active`);
-        fetchData();
-      } catch (err) {
-        alert(err.response?.data?.message || 'Gagal mengaktifkan');
-      }
-    }
+  const handleActivate = (id) => {
+    showConfirm(
+      "Aktifkan Semester",
+      "Aktifkan semester ini? Semester yang sedang aktif akan otomatis ditutup.",
+      async () => {
+        try {
+          await api.put(`/semester/${id}/active`);
+          fetchData();
+          window.showToast?.('Semester berhasil diaktifkan!', 'success');
+        } catch (err) {
+          window.showToast?.(err.response?.data?.message || 'Gagal mengaktifkan semester', 'error');
+        }
+      },
+      'info'
+    );
   };
 
 
@@ -460,13 +493,15 @@ const Semester = () => {
             <h1 className="text-[26px] font-bold text-[#1e293b] leading-tight mt-1">Manajemen Semester</h1>
             <p className="text-[14px] text-gray-500 mt-1">Kelola tahun ajaran dan semester aktif yang berlaku di sekolah.</p>
           </div>
-          <button
-            onClick={() => setView("add")}
-            className="bg-[#1A3D63] hover:bg-[#0A1931] text-white px-5 py-2.5 rounded-xl font-bold text-[13px] shadow-sm transition-all flex items-center gap-2"
-          >
-            <span className="text-lg leading-none">+</span>
-            Tambah Semester Baru
-          </button>
+          {perms.buat && (
+            <button
+              onClick={() => setView("add")}
+              className="bg-[#1A3D63] hover:bg-[#0A1931] text-white px-5 py-2.5 rounded-xl font-bold text-[13px] shadow-sm transition-all flex items-center gap-2"
+            >
+              <span className="text-lg leading-none">+</span>
+              Tambah Semester Baru
+            </button>
+          )}
         </div>
 
         {/* Top Summary Cards */}
@@ -655,23 +690,32 @@ const Semester = () => {
                         <button onClick={() => { setSelectedSemester(item); setView('detail'); }} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                         </button>
-                        <button onClick={() => { setSelectedSemester(item); setView('edit'); }} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        </button>
-                        {item.status === 'Aktif' ? (
-                          <button onClick={() => handleClose(item.id)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-orange-200 text-orange-600 hover:bg-orange-50 text-[12px] font-bold transition-colors ml-1">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                            Tutup Semester
+                        {perms.ubah && (
+                          <button onClick={() => { setSelectedSemester(item); setView('edit'); }} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                           </button>
+                        )}
+                        {item.status === 'Aktif' ? (
+                          perms.ubah && (
+                            <button onClick={() => handleClose(item.id)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-orange-200 text-orange-600 hover:bg-orange-50 text-[12px] font-bold transition-colors ml-1">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                              Tutup Semester
+                            </button>
+                          )
                         ) : (
                           <div className="flex items-center gap-1 ml-1">
-                            <button onClick={() => handleActivate(item.id)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50 text-[12px] font-bold transition-colors">
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                              Aktifkan
-                            </button>
-                            <button onClick={() => handleDelete(item.id)} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors">
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                            </button>
+                            {perms.ubah && (
+                              <button onClick={() => handleActivate(item.id)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50 text-[12px] font-bold transition-colors">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                Aktifkan
+                              </button>
+                            )}
+                            {perms.hapus && (
+                              <button onClick={() => handleDelete(item.id)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 text-[12px] font-bold transition-colors">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                                Hapus
+                              </button>
+                            )}
                           </div>
                         )}
                       </div>
@@ -705,6 +749,7 @@ const Semester = () => {
   }
 
   if (view === "edit") {
+    if (!perms.ubah) return null;
     return <SemesterEdit setView={setView} initialData={selectedSemester} tahunAjarans={tahunAjarans} onSave={async (updatedData) => {
       try {
         await api.put(`/semester/${updatedData.id}`, {
@@ -722,7 +767,7 @@ const Semester = () => {
   }
 
   if (view === "detail") {
-    return <SemesterDetail setView={setView} semester={selectedSemester} />;
+    return <SemesterDetail setView={setView} semester={selectedSemester} perms={perms} />;
   }
 
   return null;
@@ -1074,7 +1119,7 @@ const SemesterEdit = ({ setView, initialData, tahunAjarans, onSave }) => {
 };
 
 // --- DETAIL VIEW COMPONENT ---
-const SemesterDetail = ({ setView, semester }) => {
+const SemesterDetail = ({ setView, semester, perms }) => {
   if (!semester) return null;
   return (
     <div className="p-6 md:p-8 animate-fadeIn space-y-6 bg-[#F4F6FA] min-h-full">
@@ -1100,13 +1145,15 @@ const SemesterDetail = ({ setView, semester }) => {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             Ekspor Laporan
           </button>
-          <button
-            onClick={() => setView("edit")}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#2A4365] hover:bg-[#1A365D] text-white rounded-xl text-[13px] font-bold transition-colors shadow-sm"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-            Edit Semester
-          </button>
+          {perms?.ubah && (
+            <button
+              onClick={() => setView("edit")}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#2A4365] hover:bg-[#1A365D] text-white rounded-xl text-[13px] font-bold transition-colors shadow-sm"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+              Edit Semester
+            </button>
+          )}
         </div>
       </div>
 
@@ -1469,6 +1516,44 @@ const SemesterDetail = ({ setView, semester }) => {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {confirmDialog.isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" onClick={() => setConfirmDialog({...confirmDialog, isOpen: false})} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-zoomIn">
+            <div className="p-6 text-center space-y-4">
+              <div className={`w-16 h-16 rounded-full mx-auto flex items-center justify-center ${confirmDialog.type === 'danger' ? 'bg-red-50 text-red-500' : confirmDialog.type === 'warning' ? 'bg-orange-50 text-orange-500' : 'bg-blue-50 text-blue-500'}`}>
+                {confirmDialog.type === 'danger' ? (
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                ) : confirmDialog.type === 'warning' ? (
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                ) : (
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                )}
+              </div>
+              <div>
+                <h3 className="text-[18px] font-bold text-gray-900">{confirmDialog.title}</h3>
+                <p className="text-[13px] text-gray-500 mt-2">{confirmDialog.message}</p>
+              </div>
+            </div>
+            <div className="p-4 bg-gray-50 flex gap-3">
+              <button onClick={() => setConfirmDialog({...confirmDialog, isOpen: false})} className="flex-1 px-4 py-2.5 rounded-xl text-[13px] font-bold text-gray-600 bg-white border border-gray-200 hover:bg-gray-100 transition-colors">
+                Batal
+              </button>
+              <button 
+                onClick={() => {
+                  if (confirmDialog.onConfirm) confirmDialog.onConfirm();
+                  setConfirmDialog({...confirmDialog, isOpen: false});
+                }} 
+                className={`flex-1 px-4 py-2.5 rounded-xl text-[13px] font-bold text-white transition-colors shadow-sm ${confirmDialog.type === 'danger' ? 'bg-red-500 hover:bg-red-600' : confirmDialog.type === 'warning' ? 'bg-orange-500 hover:bg-orange-600' : 'bg-[#1A3D63] hover:bg-[#0f2942]'}`}
+              >
+                Ya, Lanjutkan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

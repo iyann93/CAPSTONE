@@ -46,10 +46,7 @@ const ParentData = ({ readOnly = false }) => {
   const [kelasList, setKelasList] = useState([]);
   const [selectedKelas, setSelectedKelas] = useState("");
 
-  const showToast = (msg, type = "success") => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
-  };
+  const showToast = window.showToast;
 
   // ── Fetch all orang tua ──
   const fetchParents = async () => {

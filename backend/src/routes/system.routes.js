@@ -13,7 +13,38 @@ const BackupController = require('../controllers/backup.controller');
 router.get('/backups', verifyToken, authorize('system.manage'), BackupController.getBackups);
 router.post('/backups', verifyToken, authorize('system.manage'), BackupController.createBackup);
 router.delete('/backups/:filename', verifyToken, authorize('system.manage'), BackupController.deleteBackup);
+router.get('/backups/download/:filename', verifyToken, authorize('system.manage'), BackupController.downloadBackup);
 router.get('/stats', verifyToken, authorize('system.read'), BackupController.getStats);
+
+// Backup Auto Settings
+router.get('/backup-settings', verifyToken, authorize('system.manage'), BackupController.getSettings);
+router.put('/backup-settings', verifyToken, authorize('system.manage'), BackupController.updateSettings);
+
+// System Settings
+router.get('/settings', async (req, res, next) => {
+  try {
+    const { pool } = require('../config/db');
+    const result = await pool.query('SELECT key, value FROM shared.system_settings');
+    const settings = {};
+    result.rows.forEach(r => settings[r.key] = r.value);
+    res.json({ success: true, data: settings });
+  } catch (err) { next(err); }
+});
+
+router.put('/settings', verifyToken, authorize('system.manage'), async (req, res, next) => {
+  try {
+    const { pool } = require('../config/db');
+    const settings = req.body;
+    for (const [key, value] of Object.entries(settings)) {
+      await pool.query(
+        `INSERT INTO shared.system_settings (key, value) VALUES ($1, $2)
+         ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
+        [key, JSON.stringify(value)]
+      );
+    }
+    res.json({ success: true });
+  } catch (err) { next(err); }
+});
 
 router.get('/frontend-state', verifyToken, async (req, res, next) => {
   try {

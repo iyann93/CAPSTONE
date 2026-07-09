@@ -22,6 +22,15 @@ const TabIcon = ({ type }) => {
 
 const SystemSettings = () => {
   const [activeTab, setActiveTab] = useState("Profil Sekolah");
+  const [semesters, setSemesters] = useState([]);
+  
+  useEffect(() => {
+    import('../../api/academic').then(({ getSemesters }) => {
+      getSemesters().then(data => {
+        setSemesters(data);
+      }).catch(console.error);
+    });
+  }, []);
   
   const [settings, setSettings] = useState(() => {
     try {
@@ -51,6 +60,23 @@ const SystemSettings = () => {
           onChange={(e) => handleChange(label, e.target.value)}
           className="w-full bg-white border border-gray-100 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 shadow-sm focus:outline-none focus:border-primary-500/30 transition-all"
         />
+      </div>
+    </div>
+  );
+
+  const renderSelectRow = (label, options, defaultValue) => (
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center py-2">
+      <label className="md:col-span-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">{label}</label>
+      <div className="md:col-span-9 relative">
+        <select
+          value={settings[label] !== undefined ? settings[label] : defaultValue}
+          onChange={(e) => handleChange(label, e.target.value)}
+          className="w-full bg-white border border-gray-100 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 shadow-sm focus:outline-none focus:border-primary-500/30 transition-all appearance-none cursor-pointer"
+        >
+          <option value="">-- Pilih --</option>
+          {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+        </select>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"><polyline points="6 9 12 15 18 9" /></svg>
       </div>
     </div>
   );
@@ -166,7 +192,21 @@ const SystemSettings = () => {
               <h3 className="text-lg font-bold">Pengaturan Akademik Dasar</h3>
             </div>
             <div className="space-y-2">
-              {renderInputRow("TAHUN AJARAN AKTIF", "2024/2025 - Ganjil")}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center py-2">
+                <label className="md:col-span-3 text-[10px] font-black text-gray-400 uppercase tracking-widest">TAHUN AJARAN AKTIF</label>
+                <div className="md:col-span-9">
+                  {semesters.length > 0 ? (
+                    <div className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-bold text-emerald-600 shadow-sm flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                      {semesters.filter(s => s.is_active).map(s => `${s.tahun_ajaran} - ${s.jenis_semester === 'ganjil' ? 'Ganjil' : 'Genap'}`).join('') || 'Belum ada semester aktif (Diatur oleh Admin TU)'}
+                    </div>
+                  ) : (
+                    <div className="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm font-medium text-gray-400 shadow-sm">
+                      Memuat data dari Admin TU...
+                    </div>
+                  )}
+                </div>
+              </div>
               {renderInputRow("KURIKULUM", "Kurikulum Merdeka")}
               {renderInputRow("STANDAR KELULUSAN (KKM)", "75")}
               {renderInputRow("JAM MASUK SEKOLAH", "07:00 WIB")}

@@ -1,5 +1,6 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import api from "../api/axios";
+import LogoWide from "../assets/logo-wide.png";
 const EyeIcon = ({ show }) => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-gray-400 hover:text-gray-600 transition-colors">
     {show ? <>
         <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
@@ -30,7 +31,7 @@ const NewsCard = ({ category, categoryColor, title, description, time }) => <div
       {description}
     </p>
   </div>;
-const Login = ({ onLogin, onForgotPassword }) => {
+const Login = ({ onLogin, onForgotPassword, setAuthView }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -56,6 +57,8 @@ const Login = ({ onLogin, onForgotPassword }) => {
     } catch (err) {
       if (!err.response) {
         setError("Tidak dapat terhubung ke server. Pastikan backend Node.js sedang berjalan!");
+      } else if (err.response?.data?.message === 'MAINTENANCE' || err.response?.status === 503) {
+        if (setAuthView) setAuthView("maintenance");
       } else {
         setError(err.response?.data?.message || "Username atau password salah!");
       }
@@ -73,11 +76,8 @@ const Login = ({ onLogin, onForgotPassword }) => {
         {
     /* Header Logo */
   }
-        <div className="flex items-center gap-4">
-          <div className="w-9 h-9 bg-[#1A3D63] rounded-md flex items-center justify-center shadow-sm">
-            <span className="text-white font-black text-xl leading-none">S</span>
-          </div>
-          <span className="text-gray-900 font-bold text-[13px] tracking-wide">MBS PRAMBANAN</span>
+        <div className="flex items-center gap-3">
+          <img src={LogoWide} alt="MBS Prambanan" className="h-16 object-contain" />
         </div>
 
         {

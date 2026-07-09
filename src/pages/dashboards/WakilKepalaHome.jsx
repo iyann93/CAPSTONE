@@ -55,28 +55,18 @@ const detectConflicts = (jadwal) => {
   for (let i = 0; i < jadwal.length; i++) {
     for (let j = i + 1; j < jadwal.length; j++) {
       const a = jadwal[i], b = jadwal[j];
-      if (a.hari === b.hari && a.jam === b.jam) {
-        if (a.guru === b.guru) conflicts.push({ guru: a.guru, mapel: a.mapel, kelas: `${a.kelas} & ${b.kelas}`, waktu: `${a.hari}, ${a.jam}`, ruang: a.ruang });
-        else if (a.ruang === b.ruang) conflicts.push({ guru: `${a.guru} & ${b.guru}`, mapel: a.mapel, kelas: `${a.kelas} & ${b.kelas}`, waktu: `${a.hari}, ${a.jam}`, ruang: a.ruang });
-        else if (a.kelas === b.kelas) conflicts.push({ guru: `${a.guru} & ${b.guru}`, mapel: a.mapel, kelas: a.kelas, waktu: `${a.hari}, ${a.jam}`, ruang: `${a.ruang} & ${b.ruang}` });
+      if (a.hari === b.hari && a.jam_mulai === b.jam_mulai) {
+        if (a.guru_id === b.guru_id) conflicts.push({ type: "guru", guru: a.guru_nama, mapel: a.nama_mapel, kelas: `${a.nama_kelas} & ${b.nama_kelas}`, waktu: `${a.hari}, ${a.jam_mulai}` });
+        else if (a.kelas_id === b.kelas_id) conflicts.push({ type: "kelas", guru: `${a.guru_nama} & ${b.guru_nama}`, mapel: a.nama_mapel, kelas: a.nama_kelas, waktu: `${a.hari}, ${a.jam_mulai}` });
       }
     }
   }
   return conflicts;
 };
 
-// --- Dummy Data (Akademik) ---
-const recentCurriculum = [
-  { mapel: "Matematika", kelas: "IX-A", tingkat: "SMP", status: "Aktif" },
-  { mapel: "IPA Terpadu", kelas: "VIII-A", tingkat: "SMP", status: "Aktif" },
-  { mapel: "IPS Terpadu", kelas: "VII-B", tingkat: "SMP", status: "Revisi" },
-  { mapel: "Bahasa Inggris", kelas: "VII-A", tingkat: "SMP", status: "Aktif" },
-];
+// Fetch kurikulum from backend instead of dummy data
 
-const conflicts = [
-  { guru: "Bpk. Hendra", mapel: "IPA", kelas: "VIII-A & VIII-B", waktu: "Senin, 08:00", ruang: "Lab IPA" },
-  { guru: "Ibu Sari", mapel: "B. Indonesia", kelas: "VII-A & VII-B", waktu: "Rabu, 10:00", ruang: "R. 12" },
-];
+// Fetch kurikulum from backend instead of dummy data
 
 // --- Dummy Data (Keuangan) ---
 const chartData = [
@@ -118,11 +108,16 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
   const [selectedDetailItem, setSelectedDetailItem] = useState(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [selectedPreviewFile, setSelectedPreviewFile] = useState(null);
+<<<<<<< HEAD
   const [liveAnn, setLiveAnn] = useState([]);
 
   useEffect(() => {
     setLiveAnn(getAnnouncements().slice(0, 3));
   }, []);
+=======
+  const [recentCurriculumList, setRecentCurriculumList] = useState([]);
+  const [jadwalList, setJadwalList] = useState([]);
+>>>>>>> 6e1ed0a241b981b290023c786a1081d909905717
 
   const formatRupiah = (value) => {
     return new Intl.NumberFormat("id-ID", {
@@ -141,6 +136,27 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
     };
 
     const loadData = async () => {
+      try {
+        const resKurikulum = await getBeasiswa().then(() => {}).catch(() => {}); // ignore dummy
+      } catch(e) {}
+      
+      try {
+        const { default: api } = await import('../../api/axios');
+        const [resKurikulum, resJadwal] = await Promise.all([
+          api.get('/kurikulum?limit=5'),
+          api.get('/jadwal-pelajaran?limit=1000')
+        ]);
+        if (resKurikulum.data?.data) {
+          setRecentCurriculumList(resKurikulum.data.data);
+        }
+        if (resJadwal.data?.data) {
+          const INVERSE_HARI_MAP = { 1: "Senin", 2: "Selasa", 3: "Rabu", 4: "Kamis", 5: "Jumat", 6: "Sabtu", 7: "Minggu" };
+          const jadwalData = resJadwal.data.data.map(j => ({ ...j, hari: INVERSE_HARI_MAP[j.hari] || j.hari }));
+          setJadwalList(jadwalData);
+        }
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      }
       try {
         const programs = await getBeasiswa();
         setProgramList(Array.isArray(programs) ? programs : []);
@@ -198,17 +214,13 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
     return `${day} ${month} ${year}`;
   };
 
-  // Load jadwal from localStorage or use initial
-  const storedJadwal = localStorage.getItem("wakil_jadwal");
-  const jadwal = storedJadwal ? JSON.parse(storedJadwal) : initJadwal;
-  
   // Detect real conflicts
-  const currentConflicts = detectConflicts(jadwal);
+  const currentConflicts = detectConflicts(jadwalList);
   
   // Dynamic stats
   const stats = [
-    { label: "Mata Pelajaran Aktif", val: 12, sub: "Kurikulum berjalan", color: "text-blue-200", icon: <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> },
-    { label: "Jadwal Aktif", val: jadwal.length, sub: "Total jadwal di sistem", color: "text-green-200", icon: <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> },
+    { label: "Mata Pelajaran Aktif", val: recentCurriculumList.filter(c => c.status === "Aktif").length, sub: "Kurikulum berjalan", color: "text-blue-200", icon: <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="1.8"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> },
+    { label: "Jadwal Aktif", val: jadwalList.length, sub: "Total jadwal di sistem", color: "text-green-200", icon: <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg> },
     { label: "Konflik Jadwal", val: currentConflicts.length, sub: currentConflicts.length > 0 ? "Perlu diselesaikan" : "Aman", color: currentConflicts.length > 0 ? "text-amber-200" : "text-green-200", icon: <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="1.8"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> },
   ];
 
@@ -284,7 +296,7 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
                         </div>
                         <div>
                           <p className="text-[13px] font-bold text-gray-800">{c.guru} — {c.mapel}</p>
-                          <p className="text-[12px] text-gray-500 mt-0.5">Kelas: {c.kelas} | Ruang: {c.ruang}</p>
+                          <p className="text-[12px] text-gray-500 mt-0.5">Kelas: {c.kelas}</p>
                           <p className="text-[12px] text-amber-600 font-semibold mt-0.5">{c.waktu}</p>
                         </div>
                       </div>
@@ -307,24 +319,30 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
                 <table className="w-full text-left min-w-[500px]">
                   <thead className="border-b border-gray-50">
                     <tr>
-                      {["MATA PELAJARAN", "KELAS", "TINGKAT", "STATUS"].map(h => (
+                      {["KODE", "NAMA KURIKULUM", "TAHUN AJARAN", "STATUS"].map(h => (
                         <th key={h} className="px-5 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {recentCurriculum.map((r, i) => (
-                      <tr key={i} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-5 py-3 text-[13px] font-semibold text-gray-800 whitespace-nowrap">{r.mapel}</td>
-                        <td className="px-5 py-3 text-[13px] text-gray-600 whitespace-nowrap">{r.kelas}</td>
-                        <td className="px-5 py-3 text-[13px] text-gray-500 whitespace-nowrap">{r.tingkat}</td>
-                        <td className="px-5 py-3 whitespace-nowrap">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${r.status === "Aktif" ? "bg-green-50 text-green-600 border border-green-100" : "bg-amber-50 text-amber-600 border border-amber-100"}`}>
-                            {r.status}
-                          </span>
-                        </td>
+                    {recentCurriculumList.length === 0 ? (
+                      <tr>
+                        <td colSpan="4" className="px-5 py-8 text-center text-[13px] font-semibold text-gray-400">Belum ada data kurikulum.</td>
                       </tr>
-                    ))}
+                    ) : (
+                      recentCurriculumList.map((r, i) => (
+                        <tr key={i} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="px-5 py-3 text-[13px] font-semibold text-gray-800 whitespace-nowrap">{r.kode_kurikulum}</td>
+                          <td className="px-5 py-3 text-[13px] text-gray-600 whitespace-nowrap">{r.nama_kurikulum}</td>
+                          <td className="px-5 py-3 text-[13px] text-gray-500 whitespace-nowrap">{r.tahun_ajaran_nama || "-"}</td>
+                          <td className="px-5 py-3 whitespace-nowrap">
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${r.status === "Aktif" ? "bg-green-50 text-green-600 border border-green-100" : r.status === "Draft" ? "bg-gray-100 text-gray-600 border border-gray-200" : "bg-amber-50 text-amber-600 border border-amber-100"}`}>
+                              {r.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>

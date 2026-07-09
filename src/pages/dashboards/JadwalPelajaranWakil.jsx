@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api/axios";
 
-// Map frontend string to backend integer
-const HARI_MAP = { "Senin": 1, "Selasa": 2, "Rabu": 3, "Kamis": 4, "Jumat": 5, "Sabtu": 6, "Minggu": 7 };
-const HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
+const HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 const JAM = ["07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00"];
 
 const emptyForm = { mapelId: "", guruId: "", kelasId: "", hari: "Senin", jamMulai: "07:00", jamSelesai: "08:00", semesterId: "" };
@@ -58,12 +56,7 @@ const JadwalPelajaranWakil = () => {
       setSemesterList(resSemester.data.data || []);
       
       const jadwalDataRaw = resJadwal.data.data || [];
-      const INVERSE_HARI_MAP = { 1: "Senin", 2: "Selasa", 3: "Rabu", 4: "Kamis", 5: "Jumat", 6: "Sabtu", 7: "Minggu" };
-      const jadwalData = jadwalDataRaw.map(j => ({
-        ...j,
-        hari: INVERSE_HARI_MAP[j.hari] || j.hari
-      }));
-      setJadwal(jadwalData);
+      setJadwal(jadwalDataRaw);
     } catch (err) {
       console.error("Gagal memuat master data:", err);
     }
@@ -72,7 +65,7 @@ const JadwalPelajaranWakil = () => {
   const conflicts = detectConflicts(jadwal);
   const conflictIds = new Set(conflicts.flatMap(c => c.ids));
 
-  const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
+  const showToast = window.showToast;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -82,7 +75,7 @@ const JadwalPelajaranWakil = () => {
         guruId: form.guruId,
         kelasId: form.kelasId,
         semesterId: form.semesterId,
-        hari: HARI_MAP[form.hari],
+        hari: form.hari,
         jamMulai: form.jamMulai,
         jamSelesai: form.jamSelesai
       };
