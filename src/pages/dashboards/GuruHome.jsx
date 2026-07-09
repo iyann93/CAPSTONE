@@ -133,7 +133,7 @@ const GuruHome = ({ user, onNavigate }) => {
       {/* Banner Panjang — Informasi Guru */}
       <div className="bg-gradient-to-r from-[#1A3D63] to-[#2A5F8F] rounded-2xl p-6 text-white shadow-lg">
         <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center border-2 border-white/30">
               <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
@@ -147,7 +147,7 @@ const GuruHome = ({ user, onNavigate }) => {
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-right">
+          <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-right">
             <div>
               <p className="text-blue-200 text-[11px]">Mata Pelajaran</p>
               <p className="text-[14px] font-bold">{guruData.mapel}</p>
@@ -169,7 +169,7 @@ const GuruHome = ({ user, onNavigate }) => {
       </div>
 
       {/* Stat Cards — Putih */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           {
             label: "Gaji Bulan Ini",
@@ -209,7 +209,7 @@ const GuruHome = ({ user, onNavigate }) => {
           },
         ].map((card, i) => (
           <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <div className="flex items-start justify-between mb-3">
+            <div className="flex flex-wrap items-start justify-between mb-3">
               <div className={`w-10 h-10 rounded-xl ${card.bg} flex items-center justify-center`}>
                 <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" className={card.color}>
                   <path strokeLinecap="round" strokeLinejoin="round" d={card.icon}/>
@@ -227,10 +227,10 @@ const GuruHome = ({ user, onNavigate }) => {
       </div>
 
       {/* Informasi Akademik: Jadwal & Pengumuman */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-5">
         {/* Jadwal Mengajar */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-wrap justify-between items-center mb-6">
             <h2 className="text-lg font-bold text-gray-800">Jadwal Mengajar Hari Ini</h2>
             <button 
               onClick={() => onNavigate && onNavigate("Jadwal Seluruhnya")} 
@@ -266,7 +266,7 @@ const GuruHome = ({ user, onNavigate }) => {
 
         {/* Pengumuman Sekolah */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <div className="flex justify-between items-center mb-5">
+          <div className="flex flex-wrap justify-between items-center mb-5">
             <h2 className="text-lg font-bold text-gray-800">Pengumuman Sekolah</h2>
             <button onClick={() => onNavigate && onNavigate("Pengumuman Sekolah")} className="text-[12px] font-bold text-[#1A3D63] hover:underline">Lihat Semua →</button>
           </div>

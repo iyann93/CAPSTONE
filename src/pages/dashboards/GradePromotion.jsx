@@ -181,13 +181,13 @@ const GradePromotion = () => {
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
             Progress Kenaikan Kelas — {activeTahunAjaran?.tahun_ajaran || "Tahun Ajaran Aktif"}
           </div>
-          <div className="flex items-center gap-4 text-[13px]">
+          <div className="flex flex-wrap items-center gap-4 text-[13px]">
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block" /> Selesai: {selesai} kelas</span>
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" /> Proses: {proses} kelas</span>
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-gray-300 inline-block" /> Belum: {belumProses} kelas</span>
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
             <div className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all" style={{ width: `${progressPct}%` }} />
           </div>
@@ -197,7 +197,7 @@ const GradePromotion = () => {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
+      <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
         {[
           { label: "Total Siswa", value: totalSiswa, subText: "Seluruh kelas" },
           { label: "Naik Kelas", value: totalNaik, subText: `${totalSiswa > 0 ? Math.round((totalNaik/totalSiswa)*100) : 0}% dari total` },
@@ -288,7 +288,7 @@ const GradePromotion = () => {
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+        <div className="flex flex-wrap items-center justify-between px-6 py-4 border-t border-gray-100">
           <p className="text-[13px] text-gray-500">Menampilkan {(page - 1) * perPage + 1}-{Math.min(page * perPage, filtered.length)} dari {filtered.length} kelas</p>
           <div className="flex items-center gap-1">
             <button
@@ -341,7 +341,7 @@ const GradePromotion = () => {
                 { label: "Nilai per mata pelajaran minimum", value: "≥ 60", color: "bg-purple-50 text-purple-600 border border-purple-100" },
                 { label: "Maks. mapel nilai di bawah KKM", value: "≤ 2 mapel", color: "bg-amber-50 text-amber-600 border border-amber-100" },
               ].map((item, i) => (
-                <div key={i} className="flex items-center justify-between py-3.5 border-b border-gray-50 last:border-0">
+                <div key={i} className="flex flex-wrap items-center justify-between py-3.5 border-b border-gray-50 last:border-0">
                   <div className="flex items-center gap-2.5">
                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#94a3b8" strokeWidth="2" className="flex-shrink-0">
                       <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>

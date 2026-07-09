@@ -43,7 +43,7 @@ const WaliKelasHome = ({ user, onNavigate }) => {
       {/* Class Overview Card */}
       <div className="bg-gradient-to-r from-[#1A3D63] to-[#2A5F8F] rounded-2xl p-6 text-white shadow-lg">
         <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-white text-[20px] font-bold border-2 border-white/30">
               <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
@@ -57,7 +57,7 @@ const WaliKelasHome = ({ user, onNavigate }) => {
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-right">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-right">
             <div>
               <p className="text-blue-200 text-[11px]">Total Siswa</p>
               <p className="text-[14px] font-bold">{classData.jumlahSiswa} Orang</p>
@@ -71,10 +71,10 @@ const WaliKelasHome = ({ user, onNavigate }) => {
       </div>
 
       {/* Content Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-3 gap-5">
         {/* Stat Card */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col justify-center">
-          <div className="flex items-start justify-between mb-3">
+          <div className="flex flex-wrap items-start justify-between mb-3">
             <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
               <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" className="text-blue-600">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/>
@@ -203,7 +203,7 @@ const WaliKelasHome = ({ user, onNavigate }) => {
       {/* Pengumuman Sekolah Terbaru */}
       {liveAnn.length > 0 && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-wrap items-center justify-between mb-4">
             <h3 className="text-[15px] font-bold text-gray-800">Pengumuman Sekolah Terbaru</h3>
             <button onClick={() => onNavigate && onNavigate("Pengumuman Sekolah")} className="text-[12px] font-bold text-[#1A3D63] hover:underline">Lihat Semua →</button>
           </div>

@@ -86,7 +86,7 @@ const SystemSettings = () => {
       /* ── Page Header ── */
     }
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between w-full">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center text-primary-600 shadow-sm flex-shrink-0">
             <SettingsIcon />
           </div>
@@ -110,7 +110,7 @@ const SystemSettings = () => {
     {
       /* ── Top Stats Cards ── */
     }
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {[
         { label: "Versi Sistem", value: "v2.4.1", color: "bg-white text-gray-800" },
         { label: "Status Server", value: "Online", color: "bg-[#F0FDF4] text-green-600 border-green-100" },

@@ -41,7 +41,7 @@ const ExportLogsModal = ({ onClose }) => {
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
       <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" ></div>
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-slideUp">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+        <div className="flex flex-wrap items-center justify-between p-6 border-b border-gray-100">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-500">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -60,7 +60,7 @@ const ExportLogsModal = ({ onClose }) => {
           {/* Rentang Waktu */}
           <div>
             <label className="block text-[14px] font-bold text-gray-700 mb-3.5">Rentang Waktu</label>
-            <div className="grid grid-cols-2 gap-3.5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               {["Hari Ini", "7 Hari Terakhir", "30 Hari Terakhir", "Kustom"].map((r) => (
                 <button 
                   key={r}
@@ -154,7 +154,7 @@ const MassActivationModal = ({ onClose }) => {
       {/* Modal Container */}
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-slideUp">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+        <div className="flex flex-wrap items-center justify-between p-6 border-b border-gray-100">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -184,21 +184,21 @@ const MassActivationModal = ({ onClose }) => {
               Ringkasan Role
             </div>
             <div className="space-y-3">
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex flex-wrap items-center justify-between text-sm">
                 <div className="flex items-center gap-2 text-gray-700">
                   <span className="w-2 h-2 rounded-full bg-[#1E293B]"></span>
                   <span>Siswa</span>
                 </div>
                 <span className="font-bold text-gray-800">18 Akun</span>
               </div>
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex flex-wrap items-center justify-between text-sm">
                 <div className="flex items-center gap-2 text-gray-700">
                   <span className="w-2 h-2 rounded-full bg-[#10B981]"></span>
                   <span>Orang Tua</span>
                 </div>
                 <span className="font-bold text-gray-800">4 Akun</span>
               </div>
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex flex-wrap items-center justify-between text-sm">
                 <div className="flex items-center gap-2 text-gray-700">
                   <span className="w-2 h-2 rounded-full bg-[#F59E0B]"></span>
                   <span>Guru Mapel</span>
@@ -236,7 +236,7 @@ const MassActivationModal = ({ onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-100 flex items-center justify-end gap-4 bg-gray-50/50">
+        <div className="p-6 border-t border-gray-100 flex flex-wrap items-center justify-end gap-4 bg-gray-50/50">
           <button 
             onClick={onClose} 
             className="text-sm font-bold text-gray-400 hover:text-gray-600 transition-colors mr-2"
@@ -273,7 +273,7 @@ const ReactivateAccountModal = ({ user, onClose }) => {
       {/* Modal Container */}
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-slideUp">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+        <div className="flex flex-wrap items-center justify-between p-6 border-b border-gray-100">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -298,7 +298,7 @@ const ReactivateAccountModal = ({ user, onClose }) => {
           </p>
 
           {/* User Info Card */}
-          <div className="border border-gray-100 rounded-2xl p-5 bg-white flex items-center gap-4">
+          <div className="border border-gray-100 rounded-2xl p-5 bg-white flex flex-wrap items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-650 font-bold text-base flex-shrink-0">
               {user.initials}
             </div>
@@ -366,7 +366,7 @@ const ReactivateAccountModal = ({ user, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-100 flex items-center justify-end gap-4 bg-gray-50/50">
+        <div className="p-6 border-t border-gray-100 flex flex-wrap items-center justify-end gap-4 bg-gray-50/50">
           <button 
             onClick={onClose} 
             className="text-sm font-bold text-gray-400 hover:text-gray-600 transition-colors mr-2"
@@ -486,7 +486,7 @@ const ActivationModule = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-3 gap-6">
         {/* Menunggu Persetujuan / Nonaktif */}
         <div 
           className={`bg-white rounded-2xl p-5 border flex items-center gap-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer select-none border-orange-200 ring-1 ring-orange-50/50`}
@@ -501,7 +501,7 @@ const ActivationModule = () => {
         </div>
 
         {/* Aktivasi Bulan Ini */}
-        <div className="bg-white rounded-2xl p-5 border border-gray-100/80 flex items-center gap-4 shadow-sm hover:shadow-md transition-all duration-300">
+        <div className="bg-white rounded-2xl p-5 border border-gray-100/80 flex flex-wrap items-center gap-4 shadow-sm hover:shadow-md transition-all duration-300">
           <div className="w-14 h-14 rounded-full bg-[#ECFDF5] flex items-center justify-center text-emerald-500 flex-shrink-0">
              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><polyline points="16 11 18 13 22 9" /></svg>
           </div>
@@ -514,7 +514,7 @@ const ActivationModule = () => {
         {/* Refresh */}
         <div 
           onClick={loadUsers}
-          className="bg-white rounded-2xl p-5 border border-gray-100/80 flex items-center gap-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
+          className="bg-white rounded-2xl p-5 border border-gray-100/80 flex flex-wrap items-center gap-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
         >
           <div className="w-14 h-14 rounded-full bg-[#EFF6FF] flex items-center justify-center text-blue-500 flex-shrink-0">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" /></svg>
@@ -693,7 +693,7 @@ const GlobalResetModal = ({ onClose }) => {
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={onClose}></div>
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-slideUp">
-        <div className="flex items-center justify-between px-6 pt-6 pb-2">
+        <div className="flex flex-wrap items-center justify-between px-6 pt-6 pb-2">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-orange-50 flex items-center justify-center text-orange-500">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3m-3-3l2.5-2.5"/></svg>
@@ -716,7 +716,7 @@ const GlobalResetModal = ({ onClose }) => {
               />
               <div className="space-y-2 mt-4 max-h-48 overflow-y-auto">
                 {searchTerm.length > 1 && filteredUsers.map(u => (
-                  <div key={u.id} onClick={() => { setSelectedUser(u); setStep(2); }} className="flex items-center justify-between p-3 border border-gray-100 rounded-xl cursor-pointer hover:border-[#1A3D63] hover:bg-blue-50/20 transition-colors">
+                  <div key={u.id} onClick={() => { setSelectedUser(u); setStep(2); }} className="flex flex-wrap items-center justify-between p-3 border border-gray-100 rounded-xl cursor-pointer hover:border-[#1A3D63] hover:bg-blue-50/20 transition-colors">
                     <div>
                       <div className="text-sm font-bold text-gray-800">{u.nama}</div>
                       <div className="text-xs text-gray-500">{u.email || u.username} &bull; {u.role}</div>
@@ -733,7 +733,7 @@ const GlobalResetModal = ({ onClose }) => {
 
           {step === 2 && selectedUser && (
             <div className="space-y-5">
-              <div className="flex items-center gap-4 p-3.5 bg-[#F8FAFC]/50 rounded-2xl border border-gray-100/80">
+              <div className="flex flex-wrap items-center gap-4 p-3.5 bg-[#F8FAFC]/50 rounded-2xl border border-gray-100/80">
                 <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">
                   {selectedUser.nama ? selectedUser.nama.substring(0,1).toUpperCase() : "?"}
                 </div>
@@ -771,7 +771,7 @@ const GlobalResetModal = ({ onClose }) => {
           )}
         </div>
 
-        <div className="px-6 pb-6 pt-2 flex justify-end items-center gap-4">
+        <div className="px-6 pb-6 pt-2 flex flex-wrap justify-end items-center gap-4">
           <button onClick={onClose} className="text-[13px] font-bold text-gray-500 hover:text-gray-800 transition-colors">Batal</button>
           {step === 2 && (
             <button onClick={handleReset} disabled={isLoading || (resetMethod === "manual" && newPassword.length < 6)} className="px-5 py-2.5 bg-[#1A3D63] text-white text-[13px] font-bold rounded-xl shadow-md hover:bg-[#122A44] disabled:opacity-50 transition-all">
@@ -1001,10 +1001,10 @@ const RolePermissionModule = () => {
       </div>
 
       {/* Main content grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-3 gap-6 items-start">
         {/* Left column: Daftar Role */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4 flex flex-col">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between">
             <h3 className="text-base font-bold text-gray-800">Daftar Role</h3>
             <span className="bg-gray-100 text-gray-500 text-xs font-semibold px-2 py-0.5 rounded-full">
               {roleList.length}
@@ -1029,7 +1029,7 @@ const RolePermissionModule = () => {
           <div className="space-y-1 max-h-[500px] overflow-y-auto pr-1">
             {/* New Role placeholder item */}
             {isCreating && (
-              <div className="w-full flex items-center justify-between p-4 rounded-xl bg-[#F1F5F9] select-none">
+              <div className="w-full flex flex-wrap items-center justify-between p-4 rounded-xl bg-[#F1F5F9] select-none">
                 <div className="flex flex-col">
                   <span className="text-[14px] font-bold text-gray-800 leading-tight">
                     {newRoleName.trim() ? newRoleName : "Role Baru..."}
@@ -1323,7 +1323,7 @@ const RolePermissionModule = () => {
                         <div className="text-sm font-bold text-gray-800 group-hover:text-[#1A3D63] transition-colors">{u.name || u.user}</div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">{u.email || "-"}</td>
-                      <td className="px-6 py-4 flex items-center justify-between">
+                      <td className="px-6 py-4 flex flex-wrap items-center justify-between">
                         <span className={`px-2.5 py-1 rounded-md text-xs font-bold ${u.is_active ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"}`}>
                           {u.is_active ? "Aktif" : "Nonaktif"}
                         </span>
@@ -1553,7 +1553,7 @@ const SuperAdminOverview = ({ onExportClick, onViewChange }) => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <StatCard icon={<IconUsers />} label="Total User" value={stats.totalUsers.toLocaleString()} color="text-blue-600" iconBg="bg-blue-50" onClick={() => onViewChange?.("Mengelola Akun User")} />
         <StatCard icon={<IconGraduation />} label="Siswa Aktif" value={stats.activeStudents.toLocaleString()} color="text-indigo-600" iconBg="bg-indigo-50" onClick={() => onViewChange?.("Data Siswa")} />
         <StatCard icon={<IconBriefcase />} label="Guru & Staf" value={stats.staffCount.toLocaleString()} color="text-emerald-600" iconBg="bg-emerald-50" onClick={() => onViewChange?.("Data Guru & Karyawan")} />
@@ -1563,10 +1563,10 @@ const SuperAdminOverview = ({ onExportClick, onViewChange }) => {
       </div>
 
       {/* Tables Row */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-1 md:grid-cols-2 gap-6">
         {/* RBAC Changes Table */}
         <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
-          <div className="px-6 py-5 border-b border-gray-50 flex items-center justify-between">
+          <div className="px-6 py-5 border-b border-gray-50 flex flex-wrap items-center justify-between">
             <div className="flex items-center gap-3">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -1604,7 +1604,7 @@ const SuperAdminOverview = ({ onExportClick, onViewChange }) => {
 
         {/* System Logs */}
         <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
-          <div className="px-6 py-5 border-b border-gray-50 flex items-center justify-between">
+          <div className="px-6 py-5 border-b border-gray-50 flex flex-wrap items-center justify-between">
             <div className="flex items-center gap-1.5">
               <span className="font-mono text-gray-400 font-bold text-base">&gt;_</span>
               <h3 className="font-bold text-gray-800">Activity Log</h3>
@@ -1622,7 +1622,7 @@ const SuperAdminOverview = ({ onExportClick, onViewChange }) => {
                 {filteredSystemLogs.map((log, i) => (
                   <tr key={i} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4 text-[13px] text-gray-400 font-medium">{log.time}</td>
-                    <td className="px-6 py-4 text-[13px] text-gray-700 leading-relaxed min-w-[300px]">{log.message}</td>
+                    <td className="px-6 py-4 text-[13px] text-gray-700 leading-relaxed min-w-full max-w-[300px]">{log.message}</td>
                   </tr>
                 ))}
                 {filteredSystemLogs.length === 0 && (
@@ -1781,7 +1781,7 @@ const HakAksesSistemModule = () => {
           <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-slideUp">
             {/* Modal Header */}
-            <div className="flex items-start justify-between p-6 pb-4">
+            <div className="flex flex-wrap items-start justify-between p-6 pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-500">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -1873,7 +1873,7 @@ const HakAksesSistemModule = () => {
       </div>
 
       {/* Two-column layout */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+      <div className="grid grid-cols-1 xl:grid-cols-1 md:grid-cols-2 gap-6 items-start">
 
         {/* === LEFT COLUMN === */}
         <div className="flex flex-col gap-6">
@@ -1889,7 +1889,7 @@ const HakAksesSistemModule = () => {
             <div className="p-5 space-y-3">
               {/* Mode Normal */}
               <div className={`rounded-xl border-2 p-4 transition-all ${!isMaintenance ? "border-[#1A3D63]/20 bg-[#F0F4FF]" : "border-gray-100 bg-white"}` }>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between">
                   <div>
                     <div className="text-sm font-bold text-gray-800">Mode Normal Aktif</div>
                     <div className="text-xs text-gray-500 mt-0.5 leading-relaxed">Sistem berjalan normal. Seluruh pengguna dapat login dan mengakses sistem sesuai dengan role masing-masing.</div>
@@ -1900,7 +1900,7 @@ const HakAksesSistemModule = () => {
 
               {/* Mode Maintenance */}
               <div className={`rounded-xl border-2 p-4 transition-all ${isMaintenance ? "border-orange-200 bg-orange-50" : "border-gray-100 bg-white"}` }>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
@@ -1925,7 +1925,7 @@ const HakAksesSistemModule = () => {
             <div className="p-5 space-y-5">
 
               {/* 2FA */}
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <div className="text-sm font-bold text-gray-800">Wajibkan Autentikasi Dua Faktor (2FA)</div>
                   <div className="text-xs text-gray-500 mt-0.5 leading-relaxed">Haruskan seluruh System Role (Super Admin, Kepsek, Admin TU) menggunakan 2FA saat login.</div>
@@ -1936,7 +1936,7 @@ const HakAksesSistemModule = () => {
               <div className="border-t border-gray-100" />
 
               {/* Blokir Akun */}
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <div className="text-sm font-bold text-gray-800">Blokir Akun Setelah Gagal Login</div>
                   <div className="text-xs text-gray-500 mt-0.5 leading-relaxed">Akun akan diblokir sementara jika salah memasukkan password sebanyak 5 kali berturut-turut.</div>
@@ -1947,7 +1947,7 @@ const HakAksesSistemModule = () => {
               <div className="border-t border-gray-100" />
 
               {/* Multi-device */}
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <div className="text-sm font-bold text-gray-800">Izinkan Sesi Ganda (Multi-device)</div>
                   <div className="text-xs text-gray-500 mt-0.5 leading-relaxed">Izinkan pengguna login dari beberapa perangkat yang berbeda secara bersamaan.</div>
@@ -1958,7 +1958,7 @@ const HakAksesSistemModule = () => {
               <div className="border-t border-gray-100" />
 
               {/* Session Timeout */}
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <div className="text-sm font-bold text-gray-800">Batas Waktu Sesi (Timeout)</div>
                   <div className="text-xs text-gray-500 mt-0.5 leading-relaxed">Pengguna akan otomatis logout jika tidak ada aktivitas selama periode ini.</div>
@@ -1999,7 +1999,7 @@ const HakAksesSistemModule = () => {
 
               <div className="space-y-3">
                 {/* Google */}
-                <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50">
+                <div className="flex flex-wrap items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-white shadow-sm border border-gray-100 flex items-center justify-center text-sm font-bold text-red-500">G</div>
                     <div>
@@ -2013,7 +2013,7 @@ const HakAksesSistemModule = () => {
                 </div>
 
                 {/* Microsoft */}
-                <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50">
+                <div className="flex flex-wrap items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-white shadow-sm border border-gray-100 flex items-center justify-center text-sm font-bold text-blue-600">M</div>
                     <div>
@@ -2510,7 +2510,7 @@ const AksesSeluruhDataModule = () => {
           <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl flex flex-col" style={{maxHeight: '88vh'}}>
             {/* Modal Header - always visible */}
-            <div className="flex-shrink-0 flex items-start justify-between p-6 border-b border-gray-100">
+            <div className="flex-shrink-0 flex flex-wrap items-start justify-between p-6 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-[#1A3D63]">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
@@ -2542,7 +2542,7 @@ const AksesSeluruhDataModule = () => {
                     </div>
                     <input type="radio" name="exportScope" checked={exportScope === "full"} onChange={() => setExportScope("full")} className="hidden" />
                     <div className="flex-1">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-wrap items-center justify-between">
                         <span className="text-sm font-bold text-gray-800">Seluruh Sistem (Full Database Backup)</span>
                         <span className="text-xs bg-gray-100 text-gray-500 px-2.5 py-0.5 rounded-full font-semibold">46 Tabel</span>
                       </div>
@@ -2560,7 +2560,7 @@ const AksesSeluruhDataModule = () => {
                     </div>
                     <input type="radio" name="exportScope" checked={exportScope === "module"} onChange={() => setExportScope("module")} className="hidden" />
                     <div className="flex-1">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-wrap items-center justify-between">
                         <span className="text-sm font-bold text-gray-800">Hanya Modul {selectedModule}</span>
                         <span className="text-xs bg-gray-100 text-gray-500 px-2.5 py-0.5 rounded-full font-semibold">
                           {modules.find(m => m.name === selectedModule)?.count} Tabel
@@ -2575,7 +2575,7 @@ const AksesSeluruhDataModule = () => {
               {/* Format File Output */}
               <div>
                 <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3.5">Format File Output</label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {[
                     { id: "zip", title: "ZIP Archive", desc: "Berisi file CSV terpisah",
                       iconClass: "bg-blue-50 text-[#1A3D63]",
@@ -2672,7 +2672,7 @@ const AksesSeluruhDataModule = () => {
             </div>
 
             {/* Modal Footer - always visible */}
-            <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/50">
+            <div className="flex-shrink-0 flex flex-wrap items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/50">
               <div className="flex items-center gap-2">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E2A500" strokeWidth="2.2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><circle cx="12" cy="16" r="0.5" fill="#E2A500" /></svg>
                 <span className="text-xs font-semibold text-gray-500">Proses ini mungkin memakan waktu 1-3 menit.</span>
@@ -2704,7 +2704,7 @@ const AksesSeluruhDataModule = () => {
           <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm animate-fadeIn" />
           <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-4xl flex flex-col overflow-hidden animate-scaleUp" style={{ maxHeight: '88vh' }}>
             {/* Modal Header */}
-            <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-100 bg-white">
+            <div className="flex-shrink-0 flex flex-wrap items-center justify-between p-6 border-b border-gray-100 bg-white">
               <div className="flex items-center gap-3.5">
                 <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-[#1A3D63]">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
@@ -2736,7 +2736,7 @@ const AksesSeluruhDataModule = () => {
             </div>
 
             {/* Filter Bar */}
-            <div className="flex-shrink-0 px-6 py-3 border-b border-gray-100 flex items-center justify-between bg-white">
+            <div className="flex-shrink-0 px-6 py-3 border-b border-gray-100 flex flex-wrap items-center justify-between bg-white">
               <div className="flex items-center gap-3">
                 <div className="relative w-64">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="absolute inset-y-0 left-3 my-auto text-gray-400"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
@@ -2804,7 +2804,7 @@ const AksesSeluruhDataModule = () => {
             </div>
 
             {/* Footer */}
-            <div className="flex-shrink-0 px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-white">
+            <div className="flex-shrink-0 px-6 py-4 border-t border-gray-100 flex flex-wrap items-center justify-between bg-white">
               <span className="text-xs text-gray-400 font-medium">Data diekstrak pada: Hari ini, 15:42 WIB</span>
               <button 
                 onClick={() => {
@@ -2828,7 +2828,7 @@ const AksesSeluruhDataModule = () => {
           <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+            <div className="flex flex-wrap items-center justify-between px-6 py-5 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -2851,7 +2851,7 @@ const AksesSeluruhDataModule = () => {
             {/* Body */}
             <div className="px-6 py-5 space-y-5">
               {/* Data Sumber */}
-              <div className="bg-gray-50 rounded-xl p-4 flex items-center justify-between">
+              <div className="bg-gray-50 rounded-xl p-4 flex flex-wrap items-center justify-between">
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">DATA SUMBER</p>
                   <p className="text-sm font-bold text-gray-800">Data Siswa Aktif</p>
@@ -2926,7 +2926,7 @@ const AksesSeluruhDataModule = () => {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+            <div className="px-6 py-4 border-t border-gray-100 flex flex-wrap items-center justify-between">
               <div className="flex items-center gap-2 text-gray-400">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="20 6 9 17 4 12" /></svg>
                 <span className="text-xs font-semibold">File siap diunduh.</span>
@@ -2953,7 +2953,7 @@ const AksesSeluruhDataModule = () => {
           <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+            <div className="flex flex-wrap items-center justify-between px-6 py-5 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -2975,7 +2975,7 @@ const AksesSeluruhDataModule = () => {
             {/* Body */}
             <div className="px-6 py-5 space-y-5">
               {/* Data Sumber */}
-              <div className="bg-gray-50 rounded-xl p-4 flex items-center justify-between">
+              <div className="bg-gray-50 rounded-xl p-4 flex flex-wrap items-center justify-between">
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">DATA SUMBER</p>
                   <p className="text-sm font-bold text-gray-800">Tabel {pdfTarget.name}</p>
@@ -2984,7 +2984,7 @@ const AksesSeluruhDataModule = () => {
               </div>
 
               {/* Ukuran Kertas + Orientasi */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-bold text-gray-700 mb-2">Ukuran Kertas</p>
                   <div className="relative">
@@ -3044,7 +3044,7 @@ const AksesSeluruhDataModule = () => {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+            <div className="px-6 py-4 border-t border-gray-100 flex flex-wrap items-center justify-between">
               <div className="flex items-center gap-2 text-gray-400">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><circle cx="12" cy="16" r="0.5" fill="currentColor" /></svg>
                 <span className="text-xs font-semibold">Proses ekspor mungkin memakan waktu beberapa detik.</span>
@@ -3071,7 +3071,7 @@ const AksesSeluruhDataModule = () => {
           <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+            <div className="flex flex-wrap items-center justify-between px-6 py-5 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -3093,7 +3093,7 @@ const AksesSeluruhDataModule = () => {
             {/* Body */}
             <div className="px-6 py-5 space-y-5">
               {/* Data Sumber */}
-              <div className="bg-gray-50 rounded-xl p-4 flex items-center justify-between">
+              <div className="bg-gray-50 rounded-xl p-4 flex flex-wrap items-center justify-between">
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">DATA SUMBER</p>
                   <p className="text-sm font-bold text-gray-800">Data Siswa Aktif</p>
@@ -3102,7 +3102,7 @@ const AksesSeluruhDataModule = () => {
               </div>
 
               {/* Delimiter + Enkoding */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-bold text-gray-700 mb-2">Delimiter (Pemisah)</p>
                   <div className="relative">
@@ -3162,7 +3162,7 @@ const AksesSeluruhDataModule = () => {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+            <div className="px-6 py-4 border-t border-gray-100 flex flex-wrap items-center justify-between">
               <div className="flex items-center gap-2 text-gray-400">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="20 6 9 17 4 12" /></svg>
                 <span className="text-xs font-semibold">File siap diunduh.</span>
@@ -3309,7 +3309,7 @@ const BackupMaintenanceModule = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-start gap-4">
           <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center flex-shrink-0">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="12" x2="2" y2="12" /><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" /><line x1="6" y1="16" x2="6.01" y2="16" /><line x1="10" y1="16" x2="14" y2="16" /></svg>
@@ -3422,7 +3422,7 @@ const BackupMaintenanceModule = () => {
 
         <div className="lg:col-span-4 space-y-6">
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-wrap items-center justify-between mb-4">
               <h3 className="text-base font-bold text-gray-800">Pengaturan Backup Otomatis</h3>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" className="sr-only peer" checked={settings.isActive} onChange={(e) => handleSaveSettings({ ...settings, isActive: e.target.checked })} disabled={isSavingSettings} />
@@ -3557,7 +3557,7 @@ const LogAktivitasModule = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((s, i) => (
           <div key={i} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all">
             <div className={`inline-flex items-center justify-center w-10 h-10 rounded-xl mb-3 ${s.bg}`}>
@@ -3666,7 +3666,7 @@ const LogAktivitasModule = () => {
         </div>
 
         {/* Footer Pagination */}
-        <div className="px-8 py-5 border-t border-gray-50 flex items-center justify-between bg-gray-50/30">
+        <div className="px-8 py-5 border-t border-gray-50 flex flex-wrap items-center justify-between bg-gray-50/30">
           <span className="text-xs font-black text-gray-400 uppercase tracking-tight">Menampilkan {filteredLogs.length} dari {logs.length} log</span>
           <button
             onClick={loadLogs}

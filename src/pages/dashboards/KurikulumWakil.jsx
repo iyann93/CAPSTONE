@@ -218,14 +218,14 @@ const KurikulumWakil = () => {
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fadeIn">
           <div className="bg-white rounded-2xl w-full max-w-[560px] shadow-2xl">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div className="px-6 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between">
               <h3 className="text-[17px] font-bold text-[#1e293b]">{editId ? "Edit Kurikulum" : "Tambah Kurikulum Baru"}</h3>
               <button onClick={() => { setShowForm(false); setErrors({}); }} className="text-gray-400 hover:text-gray-600">
                 <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="col-span-2 md:col-span-1">
                   <label className="block text-[12px] font-bold text-gray-600 mb-1.5">Kode Kurikulum *</label>
                   <input value={form.kodeKurikulum} onChange={e => setForm({ ...form, kodeKurikulum: e.target.value })} placeholder="cth: KUR-MERDEKA" className={`w-full px-3.5 py-2.5 rounded-xl border text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100 ${errors.kodeKurikulum ? "border-red-300 bg-red-50" : "border-gray-200"}`}/>

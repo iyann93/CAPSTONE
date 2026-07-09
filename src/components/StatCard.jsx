@@ -1,5 +1,5 @@
 const StatCard = ({ title, value, subtitle, icon, iconBg }) => {
-  return <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow duration-200">
+  return <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex flex-wrap items-center gap-4 hover:shadow-md transition-shadow duration-200">
       <div
     className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
     style={{ background: iconBg }}

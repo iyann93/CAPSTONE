@@ -51,7 +51,7 @@ const BeasiswaSiswa = ({ user }) => {
         <p className="text-[14px] text-gray-500 mt-1">{studentName} · {studentClass.toLowerCase().includes('kelas') ? studentClass : `Kelas ${studentClass}`} · Rincian program beasiswa yang sedang berjalan</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left: Program List */}
         <div className="lg:col-span-1 space-y-3">
           <h3 className="text-[15px] font-bold text-gray-800 mb-2">Rincian Program Beasiswa yang diterima</h3>
@@ -76,7 +76,7 @@ const BeasiswaSiswa = ({ user }) => {
                   }`}
                 >
                   <div className="flex flex-col gap-1">
-                    <div className="flex justify-between items-start">
+                    <div className="flex flex-wrap justify-between items-start">
                       <h3 className={`text-[15px] font-bold ${isSelected ? "text-[#1A3D63]" : "text-gray-800"} truncate pr-2`}>{item.nama_beasiswa}</h3>
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold flex-shrink-0 ${
                         item.status === "aktif" ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-500"
@@ -101,7 +101,7 @@ const BeasiswaSiswa = ({ user }) => {
           ) : selectedProgram ? (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 lg:p-8 animate-fadeIn h-full">
               {/* Header Title */}
-              <div className="flex items-start justify-between mb-2">
+              <div className="flex flex-wrap items-start justify-between mb-2">
                 <h2 className="text-[26px] font-bold text-gray-800 capitalize leading-tight">{selectedProgram.nama_beasiswa}</h2>
                 <span className={`px-3 py-1 rounded text-[11px] font-bold uppercase tracking-wider flex-shrink-0 ${
                   selectedProgram.status === "aktif" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
@@ -114,7 +114,7 @@ const BeasiswaSiswa = ({ user }) => {
               </p>
 
               {/* Grid Info */}
-              <div className="grid grid-cols-2 gap-y-8 gap-x-4 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-4 mb-8">
                 <div>
                   <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Nominal Bantuan</p>
                   <p className="text-[16px] font-bold text-gray-800">{formatCurrency(selectedProgram.nominal)}</p>

@@ -169,7 +169,7 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
 
       <div className="flex gap-5">
         <div className="flex-1 min-w-0 space-y-4">
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
             {[
               {label:"Total Siswa",val:students.length,icon:"M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm14 14v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75",color:"text-blue-500 bg-blue-50"},
               {label:"Lulus",val:lulus,icon:"M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0",color:"text-green-500 bg-green-50"},
@@ -195,12 +195,12 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
               </div>
               <p className="text-[14px] font-bold text-gray-700">Kriteria Kelulusan</p>
             </div>
-            <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
               {[
                 ["Nilai Sekolah (Rapor)","≥ 70"],["Nilai Ujian Sekolah","≥ 55"],
                 ["Nilai Akhir","≥ 65"],["Maks. Mapel Tidak Lulus","0 mapel"],
               ].map(([k,v],i)=>(
-                <div key={i} className="flex items-center justify-between">
+                <div key={i} className="flex flex-wrap items-center justify-between">
                   <span className="text-[13px] text-gray-500">{k}</span>
                   <span className="text-[13px] font-bold text-gray-700">{v}</span>
                 </div>
@@ -209,7 +209,7 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
           </div>
 
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-5 pt-4 pb-3 border-b border-gray-100 flex items-center justify-between gap-3">
+            <div className="px-5 pt-4 pb-3 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
               <div className="flex gap-1.5">
                 {["Semua","Lulus","Tidak Lulus","Pending"].map(t=>(
                   <button key={t} onClick={()=>setTab(t)} className={`px-4 py-1.5 rounded-full text-[13px] font-bold transition-colors ${tab===t?"bg-[#3B82F6] text-white":"bg-gray-50 text-gray-500 hover:bg-gray-100"}`}>{t}</button>
@@ -316,9 +316,9 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
               </div>
             </div>
             <div className="space-y-2 mt-2">
-              <div className="flex justify-between text-[13px]"><span className="text-gray-500">Nilai Tertinggi</span><span className="font-bold text-gray-800">{nilaiMax}</span></div>
-              <div className="flex justify-between text-[13px]"><span className="text-gray-500">Nilai Rata-rata</span><span className="font-bold text-gray-800">{nilaiAvg}</span></div>
-              <div className="flex justify-between text-[13px]"><span className="text-gray-500">Siswa Berprestasi</span><span className="font-bold text-gray-800">{berprestasi.length} siswa</span></div>
+              <div className="flex flex-wrap justify-between text-[13px]"><span className="text-gray-500">Nilai Tertinggi</span><span className="font-bold text-gray-800">{nilaiMax}</span></div>
+              <div className="flex flex-wrap justify-between text-[13px]"><span className="text-gray-500">Nilai Rata-rata</span><span className="font-bold text-gray-800">{nilaiAvg}</span></div>
+              <div className="flex flex-wrap justify-between text-[13px]"><span className="text-gray-500">Siswa Berprestasi</span><span className="font-bold text-gray-800">{berprestasi.length} siswa</span></div>
             </div>
           </div>
 
@@ -333,7 +333,7 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
               {label:"65-74 (Cukup)",count:students.filter(s=>s.nilaiAkhir>=65&&s.nilaiAkhir<75).length,color:"bg-amber-400"},
               {label:"< 65 (Tidak Lulus)",count:students.filter(s=>s.nilaiAkhir<65).length,color:"bg-red-500"},
             ].map((d,i)=>(
-              <div key={i} className="flex items-center justify-between mb-2.5">
+              <div key={i} className="flex flex-wrap items-center justify-between mb-2.5">
                 <div className="flex items-center gap-2">
                   <div className={`w-2.5 h-2.5 rounded-full ${d.color}`}/>
                   <span className="text-[12px] text-gray-500">{d.label}</span>
@@ -370,7 +370,7 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
             {[
               ["Kelas", clsName],["Tahun Ajaran","2023/2024"],["Tgl Pengumuman","3 Mei 2024"],
             ].map(([k,v],i)=>(
-              <div key={i} className="flex justify-between items-center py-1.5 border-b border-gray-50 last:border-0">
+              <div key={i} className="flex flex-wrap justify-between items-center py-1.5 border-b border-gray-50 last:border-0">
                 <span className="text-[12px] text-gray-500">{k}</span>
                 <span className="text-[12px] font-semibold text-gray-700">{v}</span>
               </div>
@@ -382,7 +382,7 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
       {printStudent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fadeIn">
           <div className="bg-white rounded-2xl w-full max-w-[600px] shadow-2xl scale-in flex flex-col">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div className="px-6 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between">
               <h3 className="text-[18px] font-bold text-[#1e293b]">Pratinjau Surat Keterangan Lulus</h3>
               <button onClick={() => setPrintStudent(null)} className="text-gray-400 hover:text-gray-600">
                 <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -391,7 +391,7 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
 
             <div className="p-6 overflow-y-auto max-h-[80vh] bg-white">
               <div className="border border-gray-200 rounded-[8px] bg-white p-8 pb-10 shadow-sm antialiased text-[#334155]" style={{ fontFamily: "'Tinos', Georgia, serif" }}>
-                <div className="flex items-center justify-center gap-4 mb-4">
+                <div className="flex flex-wrap items-center justify-center gap-4 mb-4">
                   <div className="w-[46px] h-[46px] rounded-full bg-[#1A365D] flex items-center justify-center text-white flex-shrink-0">
                     <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
                   </div>

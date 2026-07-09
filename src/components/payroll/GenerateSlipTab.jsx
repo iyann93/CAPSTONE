@@ -144,10 +144,10 @@ const GenerateSlipTab = ({ triggerToast, onGeneratingChange, cancelRef }) => {
         <p className="text-sm text-gray-500">Buat slip gaji untuk seluruh pegawai berdasarkan template dan pengaturan override yang telah dikonfigurasi.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-8">
         {/* Form Pengaturan */}
         <div className="space-y-6 bg-gray-50/50 p-6 rounded-xl border border-gray-100">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-gray-600 mb-1.5">Bulan</label>
               <select
@@ -212,7 +212,7 @@ const GenerateSlipTab = ({ triggerToast, onGeneratingChange, cancelRef }) => {
 
         {/* Console / Log Viewer */}
         <div className="flex flex-col border border-gray-200 rounded-xl overflow-hidden h-[400px]">
-          <div className="bg-gray-800 p-3 flex justify-between items-center border-b border-gray-700">
+          <div className="bg-gray-800 p-3 flex flex-wrap justify-between items-center border-b border-gray-700">
             <span className="text-xs font-bold text-gray-300 font-mono">Proses Logs</span>
             {progress > 0 && <span className="text-xs font-bold text-blue-400 font-mono">{progress}%</span>}
           </div>

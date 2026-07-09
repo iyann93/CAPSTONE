@@ -18,7 +18,7 @@ const data = [
 ];
 const AcademicChart = () => {
   return <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex-1">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-wrap items-center justify-between mb-4">
         <h2 className="font-semibold text-gray-700 text-sm">
           Persentase Ketuntasan Nilai Siswa (Akademik)
         </h2>

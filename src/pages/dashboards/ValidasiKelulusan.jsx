@@ -163,7 +163,7 @@ const ValidasiKelulusan = () => {
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn">
           <div className="bg-white rounded-2xl w-full max-w-[520px] shadow-2xl flex flex-col overflow-hidden">
             
-            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between bg-white">
+            <div className="px-6 py-5 border-b border-gray-100 flex flex-wrap items-center justify-between bg-white">
               <div>
                 <h3 className="text-[18px] font-bold text-[#1e293b]">Pemeriksaan Data Siswa</h3>
                 <p className="text-[12px] text-gray-400 mt-0.5">Verifikasi kelayakan kelulusan siswa</p>
@@ -180,7 +180,7 @@ const ValidasiKelulusan = () => {
             </div>
 
             <div className="p-6 space-y-4">
-              <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+              <div className="flex flex-wrap items-center gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
                 <div className={`w-14 h-14 ${getInitialColor(selected.nama)} text-white rounded-2xl flex items-center justify-center font-bold text-xl shadow-sm shrink-0`}>
                   {selected.nama.charAt(0)}
                 </div>
@@ -199,7 +199,7 @@ const ValidasiKelulusan = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="border border-gray-100 p-4 rounded-xl bg-white shadow-sm">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="p-1.5 bg-blue-50 rounded-lg">

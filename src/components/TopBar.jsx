@@ -32,9 +32,9 @@ const TopBar = ({ user, onToggle, onLogout, onProfileClick }) => {
   };
 
   return (
-    <header className="bg-[#1A3D63] text-white h-16 flex items-center justify-between px-6 sticky top-0 z-40 shadow-md">
+    <header className="bg-[#1A3D63] text-white h-16 flex flex-wrap items-center justify-between px-6 sticky top-0 z-40 shadow-md">
       {/* Left: Logo & Toggle */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-4">
         <button
           onClick={onToggle}
           className="p-2 hover:bg-white/10 rounded-lg transition-colors"

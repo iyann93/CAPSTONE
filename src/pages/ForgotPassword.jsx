@@ -41,7 +41,7 @@ const ForgotPassword = ({ onBack, onSendInstructions }) => {
         {
     /* Header Logo */
   }
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <img src={LogoWide} alt="MBS Prambanan" className="h-16 object-contain" />
         </div>
 
@@ -88,7 +88,7 @@ const ForgotPassword = ({ onBack, onSendInstructions }) => {
   }
         <div className="w-full mx-auto">
           <div className="border-t border-gray-300 w-full mb-6" />
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between">
             <span className="text-gray-400 text-[12px]">Ingat kata sandi lama Anda?</span>
             <button
     onClick={onBack}
@@ -111,12 +111,12 @@ const ForgotPassword = ({ onBack, onSendInstructions }) => {
         <img
     src="/bg-blur.png"
     alt=""
-    className="absolute top-[5%] right-[-10%] w-[600px] lg:w-[800px] opacity-[0.85] pointer-events-none mix-blend-screen"
+    className="absolute top-[5%] right-[-10%] w-full max-w-[600px] lg:w-full max-w-[800px] opacity-[0.85] pointer-events-none mix-blend-screen"
   />
         <img
     src="/Overlay-Blur.png"
     alt=""
-    className="absolute bottom-[10%] left-[-10%] w-[500px] lg:w-[700px] opacity-[0.65] pointer-events-none mix-blend-screen"
+    className="absolute bottom-[10%] left-[-10%] w-full max-w-[500px] lg:w-full max-w-[700px] opacity-[0.65] pointer-events-none mix-blend-screen"
   />
         
         <div className="relative z-10 max-w-[550px]">

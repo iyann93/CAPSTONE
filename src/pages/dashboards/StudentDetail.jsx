@@ -33,7 +33,7 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
             <span className="font-bold text-[#1e293b]">{student.name}</span>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <button 
               onClick={onBack}
               className="w-10 h-10 flex items-center justify-center bg-white border border-gray-200 rounded-full text-gray-500 hover:bg-gray-50 hover:text-[#1e293b] shadow-sm transition-colors flex-shrink-0"
@@ -86,7 +86,7 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
                 <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[12px] font-bold">{student.gender === 'L' ? 'Laki-laki' : 'Perempuan'}</span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6 mt-2">
                 <div className="flex gap-3">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2" className="mt-1"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                   <div>
@@ -134,7 +134,7 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
           </div>
 
           {/* KPI Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-5 flex flex-col items-center justify-center">
               <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 mb-3">
                 <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
@@ -167,7 +167,7 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
 
           {/* Nilai Mata Pelajaran */}
           <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <div className="px-6 py-5 border-b border-gray-100 flex flex-wrap items-center justify-between">
               <div className="flex items-center gap-2">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                 <h3 className="text-[16px] font-bold text-[#1e293b]">Nilai Mata Pelajaran</h3>
@@ -229,7 +229,7 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
 
           {/* Rekap Absensi */}
           <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <div className="px-6 py-5 border-b border-gray-100 flex flex-wrap items-center justify-between">
               <div className="flex items-center gap-2">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                 <h3 className="text-[16px] font-bold text-[#1e293b]">Rekap Absensi</h3>
@@ -296,24 +296,24 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
           <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-6">
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-4">Informasi Akademik</h3>
             <div className="space-y-3">
-              <div className="flex justify-between text-[13px]">
+              <div className="flex flex-wrap justify-between text-[13px]">
                 <span className="text-gray-500">NIS</span>
                 <span className="font-bold text-[#1e293b]">{student.nis}</span>
               </div>
-              <div className="flex justify-between text-[13px]">
+              <div className="flex flex-wrap justify-between text-[13px]">
                 <span className="text-gray-500">NISN</span>
                 <span className="font-bold text-[#1e293b]">{student.nisn}</span>
               </div>
-              <div className="flex justify-between text-[13px]">
+              <div className="flex flex-wrap justify-between text-[13px]">
                 <span className="text-gray-500">Kelas</span>
                 <span className="font-bold text-[#1e293b]">{student.kelas}</span>
               </div>
-              <div className="flex justify-between text-[13px]">
+              <div className="flex flex-wrap justify-between text-[13px]">
                 <span className="text-gray-500">Tingkat</span>
                 <span className="font-bold text-[#1e293b]">{student.tingkat}</span>
               </div>
 
-              <div className="flex justify-between text-[13px]">
+              <div className="flex flex-wrap justify-between text-[13px]">
                 <span className="text-gray-500">Tahun Masuk</span>
                 <span className="font-bold text-[#1e293b]">2023</span>
               </div>
@@ -348,19 +348,19 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
           <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-6">
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-4">Ringkasan Nilai</h3>
             <div className="space-y-3">
-              <div className="flex justify-between text-[13px]">
+              <div className="flex flex-wrap justify-between text-[13px]">
                 <span className="text-gray-500">Nilai Tertinggi</span>
                 <span className="font-bold text-emerald-500">90</span>
               </div>
-              <div className="flex justify-between text-[13px]">
+              <div className="flex flex-wrap justify-between text-[13px]">
                 <span className="text-gray-500">Nilai Terendah</span>
                 <span className="font-bold text-red-500">81</span>
               </div>
-              <div className="flex justify-between text-[13px]">
+              <div className="flex flex-wrap justify-between text-[13px]">
                 <span className="text-gray-500">Nilai Rata-rata</span>
                 <span className="font-bold text-blue-500">87.5</span>
               </div>
-              <div className="flex justify-between text-[13px]">
+              <div className="flex flex-wrap justify-between text-[13px]">
                 <span className="text-gray-500">Ranking Kelas</span>
                 <span className="font-bold text-purple-600">#3</span>
               </div>
@@ -383,11 +383,11 @@ const StudentDetail = ({ student, onBack, onEdit }) => {
           <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-6">
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-4">Informasi Data</h3>
             <div className="space-y-3">
-              <div className="flex justify-between text-[13px]">
+              <div className="flex flex-wrap justify-between text-[13px]">
                 <span className="text-gray-500">Terdaftar</span>
                 <span className="text-[#1e293b]">12 Jul 2023</span>
               </div>
-              <div className="flex justify-between text-[13px]">
+              <div className="flex flex-wrap justify-between text-[13px]">
                 <span className="text-gray-500">Status</span>
                 <span className="font-bold text-emerald-500">Aktif</span>
               </div>

@@ -16,7 +16,7 @@ const BellIcon = () => <svg width="20" height="20" fill="none" stroke="currentCo
     <path d="M13.73 21a2 2 0 0 1-3.46 0" />
   </svg>;
 const NewsCard = ({ category, categoryColor, title, description, time, onClick }) => <div onClick={onClick} className="bg-[#2A4B6D] border border-[#37587E] rounded-[20px] p-6 mb-4 relative overflow-hidden group hover:bg-[#2E5175] transition-all duration-300 cursor-pointer">
-    <div className="flex justify-between items-center mb-4">
+    <div className="flex flex-wrap justify-between items-center mb-4">
       <span className={`${categoryColor} text-[10px] font-black px-2.5 py-1 rounded-md tracking-wide uppercase`}>
         {category}
       </span>
@@ -153,7 +153,7 @@ const Login = ({ onLogin, onForgotPassword, setAuthView }) => {
   }
         <div className="w-full mx-auto">
           <div className="border-t border-gray-300 w-full mb-6" />
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between">
             <span className="text-gray-400 text-[13px]">Lupa password?</span>
             <button
     onClick={onForgotPassword}
@@ -176,12 +176,12 @@ const Login = ({ onLogin, onForgotPassword, setAuthView }) => {
         <img
     src="/bg-blur.png"
     alt=""
-    className="absolute top-[5%] right-[-10%] w-[600px] lg:w-[800px] opacity-[0.85] pointer-events-none mix-blend-screen"
+    className="absolute top-[5%] right-[-10%] w-full max-w-[600px] lg:w-full max-w-[800px] opacity-[0.85] pointer-events-none mix-blend-screen"
   />
         <img
     src="/Overlay-Blur.png"
     alt=""
-    className="absolute bottom-[10%] left-[-10%] w-[500px] lg:w-[700px] opacity-[0.65] pointer-events-none mix-blend-screen"
+    className="absolute bottom-[10%] left-[-10%] w-full max-w-[500px] lg:w-full max-w-[700px] opacity-[0.65] pointer-events-none mix-blend-screen"
   />
         
         {
@@ -207,8 +207,8 @@ const Login = ({ onLogin, onForgotPassword, setAuthView }) => {
     /* News Section */
   }
         <div className="relative z-10 w-full max-w-[650px]">
-          <div className="flex items-center justify-between mb-8 px-2">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-between mb-8 px-2">
+            <div className="flex flex-wrap items-center gap-4">
               <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white border border-white/20">
                 <BellIcon />
               </div>
@@ -249,7 +249,7 @@ const Login = ({ onLogin, onForgotPassword, setAuthView }) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={() => setSelectedNews(null)} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-zoomIn flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-gray-100 flex justify-between items-start sticky top-0 bg-white z-10">
+            <div className="p-6 border-b border-gray-100 flex flex-wrap justify-between items-start sticky top-0 bg-white z-10">
               <div className="flex gap-2 mb-2">
                 <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-bold ${
                   selectedNews.importance === "Penting" ? "bg-red-50 text-red-600 border border-red-100" : "bg-blue-50 text-blue-600 border border-blue-100"
@@ -266,7 +266,7 @@ const Login = ({ onLogin, onForgotPassword, setAuthView }) => {
             </div>
             <div className="p-6 overflow-y-auto">
               <h2 className="text-[20px] font-bold text-gray-800 leading-snug mb-3">{selectedNews.title}</h2>
-              <div className="flex items-center gap-4 text-[12px] text-gray-400 mb-6">
+              <div className="flex flex-wrap items-center gap-4 text-[12px] text-gray-400 mb-6">
                 <span className="flex items-center gap-1.5">
                   <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                   {selectedNews.date}
@@ -283,7 +283,7 @@ const Login = ({ onLogin, onForgotPassword, setAuthView }) => {
               {selectedNews.attachment && (
                 <div className="mt-6 p-4 bg-blue-50/50 border border-blue-100 rounded-xl">
                   <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Lampiran Dokumen</p>
-                  <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-100">
+                  <div className="flex flex-wrap items-center justify-between bg-white p-3 rounded-lg border border-gray-100">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
                         <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#1A3D63" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>

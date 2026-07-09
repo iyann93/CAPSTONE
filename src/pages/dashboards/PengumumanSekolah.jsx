@@ -183,7 +183,7 @@ const PengumumanSekolah = ({ user, onNavigate }) => {
       </div>
 
       {/* Main Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left Side: List of Announcements */}
         <div className="lg:col-span-2 space-y-4">
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col md:flex-row items-center justify-between gap-3">
@@ -280,7 +280,7 @@ const PengumumanSekolah = ({ user, onNavigate }) => {
                 </div>
                 <h3 className="text-[15.5px] font-bold text-gray-800 hover:text-[#1A3D63] transition-colors">{ann.title}</h3>
                 <p className="text-[13px] text-gray-500 line-clamp-2 mt-2 leading-relaxed">{ann.desc}</p>
-                <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-50">
+                <div className="flex flex-wrap items-center justify-between mt-4 pt-3 border-t border-gray-50">
                   <span className="text-[11.5px] text-gray-400">Oleh: {ann.author}</span>
                   {!ann.isTagihan && (
                     <span className="text-[12px] font-bold text-[#1A3D63] hover:underline flex items-center gap-1 cursor-pointer">
@@ -304,7 +304,7 @@ const PengumumanSekolah = ({ user, onNavigate }) => {
           {/* Form Tambah Pengumuman (Admin TU) */}
           {showForm && isAdminTU ? (
             <div className="bg-white rounded-2xl border border-[#1A3D63] shadow-sm p-6 space-y-4 animate-fadeIn">
-              <div className="flex justify-between items-center pb-2 border-b border-gray-100">
+              <div className="flex flex-wrap justify-between items-center pb-2 border-b border-gray-100">
                 <h3 className="text-[14px] font-bold text-[#1A3D63]">{form.id ? "Edit Pengumuman" : "Tambah Pengumuman Baru"}</h3>
                 <button onClick={() => { setShowForm(false); setFormError(""); setForm(EMPTY_FORM); }} className="text-gray-400 hover:text-gray-600">
                   <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -323,7 +323,7 @@ const PengumumanSekolah = ({ user, onNavigate }) => {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Kategori</label>
                     <select
@@ -415,7 +415,7 @@ const PengumumanSekolah = ({ user, onNavigate }) => {
             </div>
           ) : selectedAnnouncement ? (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4 sticky top-6 animate-fadeIn">
-              <div className="flex justify-between items-center pb-2 border-b border-gray-50">
+              <div className="flex flex-wrap justify-between items-center pb-2 border-b border-gray-50">
                 <h3 className="text-[14px] font-bold text-gray-700">Detail Pengumuman</h3>
                 <button
                   onClick={() => setSelectedAnnouncement(null)}
@@ -444,7 +444,7 @@ const PengumumanSekolah = ({ user, onNavigate }) => {
                 <p className="text-[13.5px] text-gray-600 leading-relaxed pt-2 whitespace-pre-line">{selectedAnnouncement.desc}</p>
                 
                 {selectedAnnouncement.attachment && (
-                  <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-between">
+                  <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-xl flex flex-wrap items-center justify-between">
                     <div className="flex items-center gap-2">
                       <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#1A3D63" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
                       <span className="text-[12px] font-bold text-[#1A3D63]">{selectedAnnouncement.attachment}</span>

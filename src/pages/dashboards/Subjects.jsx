@@ -74,7 +74,7 @@ const MapelModal = ({ data, onClose, onSave }) => {
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-gray-900/50 p-4 overflow-y-auto">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-lg relative my-8">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white rounded-t-xl z-10">
+        <div className="px-6 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between sticky top-0 bg-white rounded-t-xl z-10">
           <h2 className="text-lg font-bold text-gray-800">
             {data?.id ? "Edit Mata Pelajaran" : "Tambah Mata Pelajaran"}
           </h2>
@@ -86,7 +86,7 @@ const MapelModal = ({ data, onClose, onSave }) => {
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {error && <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">{error}</div>}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">Kode <span className="text-red-500">*</span></label>
               <input value={form.kode} onChange={e => setForm({...form, kode: e.target.value})} placeholder="cth: MTK" maxLength={20} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" required />
@@ -121,7 +121,7 @@ const MapelModal = ({ data, onClose, onSave }) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">KKM</label>
               <input type="number" min={0} max={100} value={form.kkm} onChange={e => setForm({...form, kkm: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
@@ -303,7 +303,7 @@ const Subjects = () => {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: "Total Mapel",   value: subjects.length, sub: `${filtered.length} ditampilkan` },
           { label: "Kelompok Wajib", value: subjects.filter(s => s.kelompok === "Wajib").length },

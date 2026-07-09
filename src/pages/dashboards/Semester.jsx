@@ -210,7 +210,7 @@ const Semester = () => {
                 <h2 className="text-[15px] font-bold text-[#1e293b]">Identitas Semester</h2>
               </div>
               <div className="p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-[12px] font-bold text-gray-500 mb-2">Tahun Ajaran <span className="text-red-500">*</span></label>
                     <div className="relative">
@@ -274,7 +274,7 @@ const Semester = () => {
                 <h2 className="text-[15px] font-bold text-[#1e293b]">Periode Semester</h2>
               </div>
               <div className="p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-[12px] font-bold text-gray-500 mb-2">Tanggal Mulai <span className="text-red-500">*</span></label>
                     <div className="relative">
@@ -306,7 +306,7 @@ const Semester = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-[12px] font-bold text-gray-500 mb-2">Hari Efektif Belajar</label>
                     <div className="relative">
@@ -347,7 +347,7 @@ const Semester = () => {
                 <h2 className="text-[15px] font-bold text-[#1e293b]">Jadwal Penilaian & Ujian</h2>
               </div>
               <div className="p-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-[12px] font-bold text-gray-500 mb-2">Ujian Tengah Semester (UTS)</label>
                     <div className="relative">
@@ -440,23 +440,23 @@ const Semester = () => {
                 <h2 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Ringkasan</h2>
               </div>
               <div className="p-6 space-y-4.5">
-                <div className="flex justify-between items-center text-[12px]">
+                <div className="flex flex-wrap justify-between items-center text-[12px]">
                   <span className="text-gray-500">Semester</span>
                   <span className="font-bold text-[#1e293b]">Ganjil 2025/2026</span>
                 </div>
-                <div className="flex justify-between items-center text-[12px]">
+                <div className="flex flex-wrap justify-between items-center text-[12px]">
                   <span className="text-gray-500">Periode</span>
                   <span className="font-bold text-[#1e293b]">15 Jul — 20 Des 2025</span>
                 </div>
-                <div className="flex justify-between items-center text-[12px]">
+                <div className="flex flex-wrap justify-between items-center text-[12px]">
                   <span className="text-gray-500">Durasi</span>
                   <span className="font-bold text-[#1e293b]">159 hari</span>
                 </div>
-                <div className="flex justify-between items-center text-[12px]">
+                <div className="flex flex-wrap justify-between items-center text-[12px]">
                   <span className="text-gray-500">Minggu efektif</span>
                   <span className="font-bold text-[#1e293b]">20 minggu</span>
                 </div>
-                <div className="flex justify-between items-center text-[12px]">
+                <div className="flex flex-wrap justify-between items-center text-[12px]">
                   <span className="text-gray-500">Status awal</span>
                   <span className="bg-[#FFF4E5] text-[#D97706] text-[10px] font-bold px-2.5 py-1 rounded-md">Draft</span>
                 </div>
@@ -505,7 +505,7 @@ const Semester = () => {
         </div>
 
         {/* Top Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
+        <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
           {(() => {
             const aktivSemester = semesters.find(s => s.status === 'Aktif');
             const totalRiwayat = semesters.length;
@@ -586,7 +586,7 @@ const Semester = () => {
 
         {/* Progress Bar Section */}
         <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-wrap justify-between items-center mb-4">
             <div className="flex items-center gap-3">
               <div className="w-2 h-2 rounded-full bg-green-500"></div>
               <span className="font-bold text-[#1e293b] text-[15px]">Semester Aktif Saat Ini</span>
@@ -601,7 +601,7 @@ const Semester = () => {
             <div className="bg-[#1A3D63] h-3.5 rounded-full" style={{ width: '63%' }}></div>
           </div>
 
-          <div className="flex justify-between items-center text-[12px] font-medium text-gray-500">
+          <div className="flex flex-wrap justify-between items-center text-[12px] font-medium text-gray-500">
             <div>Mulai: 17 Jul 2023</div>
             <div className="font-bold text-[#1e293b]">63% Selesai (100 / 159 Hari)</div>
             <div>Selesai: 22 Des 2023</div>
@@ -727,7 +727,7 @@ const Semester = () => {
           </div>
 
           {/* Pagination */}
-          <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+          <div className="px-6 py-4 border-t border-gray-100 flex flex-wrap items-center justify-between">
             <div className="text-[13px] text-gray-500">
               Menampilkan {semesters.length} dari {semesters.length} semester
             </div>
@@ -842,7 +842,7 @@ const SemesterEdit = ({ setView, initialData, tahunAjarans, onSave }) => {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#1A3D63]"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
               <h2 className="text-[15px] font-bold text-[#1e293b]">Identitas Semester</h2>
             </div>
-            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="p-6 grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-[12px] font-bold text-gray-500 mb-2">ID Semester</label>
                 <div className="relative">
@@ -884,7 +884,7 @@ const SemesterEdit = ({ setView, initialData, tahunAjarans, onSave }) => {
               <h2 className="text-[15px] font-bold text-[#1e293b]">Periode Semester</h2>
             </div>
             <div className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-[12px] font-bold text-gray-500 mb-2">Tanggal Mulai <span className="text-red-500">*</span></label>
                   <div className="relative">
@@ -902,7 +902,7 @@ const SemesterEdit = ({ setView, initialData, tahunAjarans, onSave }) => {
 
               {/* Progress Bar inside Edit */}
               <div className="bg-gray-50 border border-gray-100 rounded-xl p-4">
-                <div className="flex justify-between items-center mb-2">
+                <div className="flex flex-wrap justify-between items-center mb-2">
                   <div className="flex items-center gap-2 text-[12px] font-medium text-gray-600">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                     Progress semester: <span className="font-bold text-[#1e293b]">100 / 159 hari</span>
@@ -912,14 +912,14 @@ const SemesterEdit = ({ setView, initialData, tahunAjarans, onSave }) => {
                 <div className="w-full bg-gray-200 rounded-full h-2 mb-2 relative overflow-hidden">
                   <div className="bg-[#1A3D63] h-2 rounded-full" style={{ width: '63%' }}></div>
                 </div>
-                <div className="flex justify-between items-center text-[11px] font-medium text-gray-400">
+                <div className="flex flex-wrap justify-between items-center text-[11px] font-medium text-gray-400">
                   <div>17 Jul 2023</div>
                   <div className="text-green-600 font-bold">Hari ini: 25 Okt 2023</div>
                   <div>22 Des 2023</div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-[12px] font-bold text-gray-500 mb-2">Hari Efektif Belajar</label>
                   <div className="relative">
@@ -957,7 +957,7 @@ const SemesterEdit = ({ setView, initialData, tahunAjarans, onSave }) => {
               <h2 className="text-[15px] font-bold text-[#1e293b]">Jadwal Penilaian & Ujian</h2>
             </div>
             <div className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-[12px] font-bold text-gray-500 mb-2">Ujian Tengah Semester (UTS)</label>
                   <div className="relative">
@@ -1046,28 +1046,28 @@ const SemesterEdit = ({ setView, initialData, tahunAjarans, onSave }) => {
               <h2 className="text-[15px] font-bold text-[#1e293b]">Statistik Semester Ini</h2>
             </div>
             <div className="p-6 space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-gray-50">
+              <div className="flex flex-wrap items-center justify-between pb-3 border-b border-gray-50">
                 <div className="flex items-center gap-2 text-[12px] text-gray-500">
                   <div className="w-6 h-6 rounded bg-gray-50 flex items-center justify-center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
                   Total Siswa Terdaftar
                 </div>
                 <div className="font-bold text-[#1e293b] text-[14px]">1,248</div>
               </div>
-              <div className="flex items-center justify-between pb-3 border-b border-gray-50">
+              <div className="flex flex-wrap items-center justify-between pb-3 border-b border-gray-50">
                 <div className="flex items-center gap-2 text-[12px] text-gray-500">
                   <div className="w-6 h-6 rounded bg-purple-50 text-purple-500 flex items-center justify-center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></div>
                   Kelas Aktif
                 </div>
                 <div className="font-bold text-[#1e293b] text-[14px]">32</div>
               </div>
-              <div className="flex items-center justify-between pb-3 border-b border-gray-50">
+              <div className="flex flex-wrap items-center justify-between pb-3 border-b border-gray-50">
                 <div className="flex items-center gap-2 text-[12px] text-gray-500">
                   <div className="w-6 h-6 rounded bg-green-50 text-green-500 flex items-center justify-center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg></div>
                   Guru Mengajar
                 </div>
                 <div className="font-bold text-[#1e293b] text-[14px]">86</div>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between">
                 <div className="flex items-center gap-2 text-[12px] text-gray-500">
                   <div className="w-6 h-6 rounded bg-orange-50 text-orange-500 flex items-center justify-center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></div>
                   Rata-rata Absensi
@@ -1083,15 +1083,15 @@ const SemesterEdit = ({ setView, initialData, tahunAjarans, onSave }) => {
               <h2 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Informasi Data</h2>
             </div>
             <div className="p-6 space-y-4">
-              <div className="flex justify-between items-center text-[12px]">
+              <div className="flex flex-wrap justify-between items-center text-[12px]">
                 <span className="text-gray-500">Dibuat</span>
                 <span className="font-bold text-[#1e293b]">17 Jul 2023</span>
               </div>
-              <div className="flex justify-between items-center text-[12px]">
+              <div className="flex flex-wrap justify-between items-center text-[12px]">
                 <span className="text-gray-500">Terakhir diperbarui</span>
                 <span className="font-bold text-[#1e293b]">14 Okt 2023</span>
               </div>
-              <div className="flex justify-between items-center text-[12px]">
+              <div className="flex flex-wrap justify-between items-center text-[12px]">
                 <span className="text-gray-500">Diperbarui oleh</span>
                 <span className="font-bold text-[#1e293b]">Siti Rahayu</span>
               </div>
@@ -1159,7 +1159,7 @@ const SemesterDetail = ({ setView, semester, perms }) => {
 
       {/* Top Full Width Progress */}
       <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-wrap justify-between items-center mb-4">
           <div className="flex items-center gap-3">
             <div className="w-2 h-2 rounded-full bg-green-500"></div>
             <span className="font-bold text-[#1e293b] text-[15px]">Progress Semester</span>
@@ -1171,7 +1171,7 @@ const SemesterDetail = ({ setView, semester, perms }) => {
         <div className="w-full bg-gray-100 rounded-full h-3.5 mb-3 relative overflow-hidden">
           <div className="bg-[#1A3D63] h-3.5 rounded-full" style={{ width: '63%' }}></div>
         </div>
-        <div className="flex justify-between items-center text-[12px] font-medium text-gray-500">
+        <div className="flex flex-wrap justify-between items-center text-[12px] font-medium text-gray-500">
           <div>Mulai: 17 Jul 2023</div>
           <div className="font-bold text-[#1e293b]">63% Selesai — 100 / 159 Hari</div>
           <div>Selesai: 22 Des 2023</div>
@@ -1179,8 +1179,8 @@ const SemesterDetail = ({ setView, semester, perms }) => {
       </div>
 
       {/* 4 Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex items-center gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex flex-wrap items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-500 shrink-0">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
           </div>
@@ -1189,7 +1189,7 @@ const SemesterDetail = ({ setView, semester, perms }) => {
             <div className="text-[20px] font-bold text-[#1e293b]">1,248</div>
           </div>
         </div>
-        <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex items-center gap-4">
+        <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex flex-wrap items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-500 shrink-0">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
           </div>
@@ -1198,7 +1198,7 @@ const SemesterDetail = ({ setView, semester, perms }) => {
             <div className="text-[20px] font-bold text-[#1e293b]">32</div>
           </div>
         </div>
-        <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex items-center gap-4">
+        <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex flex-wrap items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center text-green-500 shrink-0">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
           </div>
@@ -1207,7 +1207,7 @@ const SemesterDetail = ({ setView, semester, perms }) => {
             <div className="text-[20px] font-bold text-[#1e293b]">86</div>
           </div>
         </div>
-        <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex items-center gap-4">
+        <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm flex flex-wrap items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-500 shrink-0">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
           </div>
@@ -1228,8 +1228,8 @@ const SemesterDetail = ({ setView, semester, perms }) => {
               <h2 className="text-[15px] font-bold text-[#1e293b]">Jadwal Penilaian & Ujian</h2>
             </div>
             <div className="p-6 space-y-4">
-              <div className="flex items-center justify-between p-4 border border-gray-100 rounded-2xl bg-gray-50/50">
-                <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center justify-between p-4 border border-gray-100 rounded-2xl bg-gray-50/50">
+                <div className="flex flex-wrap items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-[#ECFDF5] text-[#059669] flex items-center justify-center shrink-0">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                   </div>
@@ -1240,8 +1240,8 @@ const SemesterDetail = ({ setView, semester, perms }) => {
                 </div>
                 <div className="bg-[#ECFDF5] text-[#059669] text-[11px] font-bold px-3 py-1.5 rounded-full">Selesai</div>
               </div>
-              <div className="flex items-center justify-between p-4 border border-gray-100 rounded-2xl">
-                <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center justify-between p-4 border border-gray-100 rounded-2xl">
+                <div className="flex flex-wrap items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-[#FFF8EB] text-[#D97706] flex items-center justify-center shrink-0">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                   </div>
@@ -1252,8 +1252,8 @@ const SemesterDetail = ({ setView, semester, perms }) => {
                 </div>
                 <div className="bg-[#FFF8EB] text-[#D97706] text-[11px] font-bold px-3 py-1.5 rounded-full">Mendatang</div>
               </div>
-              <div className="flex items-center justify-between p-4 border border-gray-100 rounded-2xl">
-                <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center justify-between p-4 border border-gray-100 rounded-2xl">
+                <div className="flex flex-wrap items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-[#FFF8EB] text-[#D97706] flex items-center justify-center shrink-0">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                   </div>
@@ -1264,8 +1264,8 @@ const SemesterDetail = ({ setView, semester, perms }) => {
                 </div>
                 <div className="bg-[#FFF8EB] text-[#D97706] text-[11px] font-bold px-3 py-1.5 rounded-full">Mendatang</div>
               </div>
-              <div className="flex items-center justify-between p-4 border border-gray-100 rounded-2xl">
-                <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center justify-between p-4 border border-gray-100 rounded-2xl">
+                <div className="flex flex-wrap items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-gray-50 text-gray-400 flex items-center justify-center shrink-0">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                   </div>
@@ -1281,7 +1281,7 @@ const SemesterDetail = ({ setView, semester, perms }) => {
 
           {/* Distribusi Siswa */}
           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <div className="px-6 py-5 border-b border-gray-100 flex flex-wrap items-center justify-between">
               <div className="flex items-center gap-3">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#1A3D63]"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
                 <h2 className="text-[15px] font-bold text-[#1e293b]">Distribusi Siswa per Tingkat</h2>
@@ -1289,7 +1289,7 @@ const SemesterDetail = ({ setView, semester, perms }) => {
               <div className="text-[12px] text-gray-500">Total: 1,248 siswa</div>
             </div>
             <div className="p-6 space-y-6">
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center gap-4">
                 <div className="w-20 text-[13px] font-bold text-[#1e293b]">Kelas VII</div>
                 <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden flex">
                   <div className="h-full bg-[#1A3D63]" style={{ width: '35%' }}></div>
@@ -1297,7 +1297,7 @@ const SemesterDetail = ({ setView, semester, perms }) => {
                 <div className="w-16 text-right text-[13px] font-bold text-[#1e293b]">432 <span className="font-normal text-gray-500">siswa</span></div>
                 <div className="w-16 text-right text-[12px] text-gray-500">11 kelas</div>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center gap-4">
                 <div className="w-20 text-[13px] font-bold text-[#1e293b]">Kelas VIII</div>
                 <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden flex">
                   <div className="h-full bg-[#8B5CF6]" style={{ width: '33%' }}></div>
@@ -1305,7 +1305,7 @@ const SemesterDetail = ({ setView, semester, perms }) => {
                 <div className="w-16 text-right text-[13px] font-bold text-[#1e293b]">418 <span className="font-normal text-gray-500">siswa</span></div>
                 <div className="w-16 text-right text-[12px] text-gray-500">11 kelas</div>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center gap-4">
                 <div className="w-20 text-[13px] font-bold text-[#1e293b]">Kelas IX</div>
                 <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden flex">
                   <div className="h-full bg-[#10B981]" style={{ width: '32%' }}></div>
@@ -1318,7 +1318,7 @@ const SemesterDetail = ({ setView, semester, perms }) => {
 
           {/* Rekapitulasi Absensi */}
           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <div className="px-6 py-5 border-b border-gray-100 flex flex-wrap items-center justify-between">
               <div className="flex items-center gap-3">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#1A3D63]"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                 <h2 className="text-[15px] font-bold text-[#1e293b]">Rekapitulasi Absensi Bulan Oktober</h2>
@@ -1387,35 +1387,35 @@ const SemesterDetail = ({ setView, semester, perms }) => {
               <h2 className="text-[15px] font-bold text-[#1e293b]">Informasi Semester</h2>
             </div>
             <div className="p-6 space-y-4">
-              <div className="flex justify-between items-center text-[13px] pb-3 border-b border-gray-50">
+              <div className="flex flex-wrap justify-between items-center text-[13px] pb-3 border-b border-gray-50">
                 <span className="text-gray-500">Tahun Ajaran</span>
                 <span className="font-bold text-[#1e293b]">{semester.year}</span>
               </div>
-              <div className="flex justify-between items-center text-[13px] pb-3 border-b border-gray-50">
+              <div className="flex flex-wrap justify-between items-center text-[13px] pb-3 border-b border-gray-50">
                 <span className="text-gray-500">Tipe</span>
                 <span className="font-bold text-[#1e293b]">{semester.type}</span>
               </div>
-              <div className="flex justify-between items-center text-[13px] pb-3 border-b border-gray-50">
+              <div className="flex flex-wrap justify-between items-center text-[13px] pb-3 border-b border-gray-50">
                 <span className="text-gray-500">Tanggal Mulai</span>
                 <span className="font-bold text-[#1e293b]">{semester.start}</span>
               </div>
-              <div className="flex justify-between items-center text-[13px] pb-3 border-b border-gray-50">
+              <div className="flex flex-wrap justify-between items-center text-[13px] pb-3 border-b border-gray-50">
                 <span className="text-gray-500">Tanggal Selesai</span>
                 <span className="font-bold text-[#1e293b]">{semester.end}</span>
               </div>
-              <div className="flex justify-between items-center text-[13px] pb-3 border-b border-gray-50">
+              <div className="flex flex-wrap justify-between items-center text-[13px] pb-3 border-b border-gray-50">
                 <span className="text-gray-500">Total Durasi</span>
                 <span className="font-bold text-[#1e293b]">159 hari</span>
               </div>
-              <div className="flex justify-between items-center text-[13px] pb-3 border-b border-gray-50">
+              <div className="flex flex-wrap justify-between items-center text-[13px] pb-3 border-b border-gray-50">
                 <span className="text-gray-500">Hari Efektif</span>
                 <span className="font-bold text-[#1e293b]">140 hari</span>
               </div>
-              <div className="flex justify-between items-center text-[13px] pb-3 border-b border-gray-50">
+              <div className="flex flex-wrap justify-between items-center text-[13px] pb-3 border-b border-gray-50">
                 <span className="text-gray-500">Minggu Efektif</span>
                 <span className="font-bold text-[#1e293b]">20 minggu</span>
               </div>
-              <div className="flex justify-between items-center text-[13px]">
+              <div className="flex flex-wrap justify-between items-center text-[13px]">
                 <span className="text-gray-500">Kurikulum</span>
                 <span className="font-bold text-[#1e293b]">Kurikulum Merdeka</span>
               </div>
@@ -1424,7 +1424,7 @@ const SemesterDetail = ({ setView, semester, perms }) => {
 
           {/* Mata Pelajaran Aktif */}
           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <div className="px-6 py-5 border-b border-gray-100 flex flex-wrap items-center justify-between">
               <div className="flex items-center gap-3">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#1A3D63]"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
                 <h2 className="text-[15px] font-bold text-[#1e293b]">Mata Pelajaran Aktif</h2>
@@ -1432,28 +1432,28 @@ const SemesterDetail = ({ setView, semester, perms }) => {
               <span className="bg-gray-100 text-[#1e293b] text-[12px] font-bold px-2.5 py-1 rounded-lg">48</span>
             </div>
             <div className="p-6 space-y-4">
-              <div className="flex items-center justify-between text-[13px]">
+              <div className="flex flex-wrap items-center justify-between text-[13px]">
                 <div className="flex items-center gap-2 text-[#1e293b] font-medium">
                   <div className="w-2 h-2 rounded-full bg-[#1A3D63]"></div>
                   Wajib
                 </div>
                 <div className="font-bold text-[#059669]">8 mapel</div>
               </div>
-              <div className="flex items-center justify-between text-[13px]">
+              <div className="flex flex-wrap items-center justify-between text-[13px]">
                 <div className="flex items-center gap-2 text-[#1e293b] font-medium">
                   <div className="w-2 h-2 rounded-full bg-[#10B981]"></div>
                   IPA
                 </div>
                 <div className="font-bold text-[#059669]">14 mapel</div>
               </div>
-              <div className="flex items-center justify-between text-[13px]">
+              <div className="flex flex-wrap items-center justify-between text-[13px]">
                 <div className="flex items-center gap-2 text-[#1e293b] font-medium">
                   <div className="w-2 h-2 rounded-full bg-[#F59E0B]"></div>
                   IPS
                 </div>
                 <div className="font-bold text-[#D97706]">14 mapel</div>
               </div>
-              <div className="flex items-center justify-between text-[13px]">
+              <div className="flex flex-wrap items-center justify-between text-[13px]">
                 <div className="flex items-center gap-2 text-[#1e293b] font-medium">
                   <div className="w-2 h-2 rounded-full bg-[#8B5CF6]"></div>
                   Lintas Minat
@@ -1470,21 +1470,21 @@ const SemesterDetail = ({ setView, semester, perms }) => {
               <h2 className="text-[15px] font-bold text-[#1e293b]">Aksi Terkait</h2>
             </div>
             <div className="p-6 space-y-3">
-              <button className="w-full flex items-center justify-between px-4 py-3 bg-[#F8FAFC] border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+              <button className="w-full flex flex-wrap items-center justify-between px-4 py-3 bg-[#F8FAFC] border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
                 <div className="flex items-center gap-3 text-[13px] font-bold text-[#1e293b]">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                   Lihat Absensi Lengkap
                 </div>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><polyline points="9 18 15 12 9 6"></polyline></svg>
               </button>
-              <button className="w-full flex items-center justify-between px-4 py-3 bg-[#ECFDF5] border border-[#A7F3D0] rounded-xl hover:bg-[#D1FAE5] transition-colors">
+              <button className="w-full flex flex-wrap items-center justify-between px-4 py-3 bg-[#ECFDF5] border border-[#A7F3D0] rounded-xl hover:bg-[#D1FAE5] transition-colors">
                 <div className="flex items-center gap-3 text-[13px] font-bold text-[#065F46]">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#059669]"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                   Generate Rapor Semester
                 </div>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-[#059669]"><polyline points="9 18 15 12 9 6"></polyline></svg>
               </button>
-              <button className="w-full flex items-center justify-between px-4 py-3 bg-[#FFF8EB] border border-[#FDE68A] rounded-xl hover:bg-[#FEF3C7] transition-colors">
+              <button className="w-full flex flex-wrap items-center justify-between px-4 py-3 bg-[#FFF8EB] border border-[#FDE68A] rounded-xl hover:bg-[#FEF3C7] transition-colors">
                 <div className="flex items-center gap-3 text-[13px] font-bold text-[#92400E]">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#D97706]"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                   Tutup Semester Ini
@@ -1500,15 +1500,15 @@ const SemesterDetail = ({ setView, semester, perms }) => {
               <h2 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Informasi Data</h2>
             </div>
             <div className="p-6 space-y-4">
-              <div className="flex justify-between items-center text-[12px]">
+              <div className="flex flex-wrap justify-between items-center text-[12px]">
                 <span className="text-gray-500">Dibuat</span>
                 <span className="font-bold text-[#1e293b]">17 Jul 2023</span>
               </div>
-              <div className="flex justify-between items-center text-[12px]">
+              <div className="flex flex-wrap justify-between items-center text-[12px]">
                 <span className="text-gray-500">Terakhir diperbarui</span>
                 <span className="font-bold text-[#1e293b]">14 Okt 2023</span>
               </div>
-              <div className="flex justify-between items-center text-[12px]">
+              <div className="flex flex-wrap justify-between items-center text-[12px]">
                 <span className="text-gray-500">Diperbarui oleh</span>
                 <span className="font-bold text-[#1e293b]">Siti Rahayu</span>
               </div>

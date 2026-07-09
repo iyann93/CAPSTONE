@@ -230,23 +230,23 @@ const GradePromotionDetail = ({ setView, classData, activeTahunAjaran, onSave })
         <div className="flex-1 space-y-4 min-w-0">
           {/* Progress */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex flex-wrap items-center justify-between mb-3">
               <p className="text-[14px] font-bold text-gray-700">Progress Proses</p>
               <span className="text-[14px] font-bold text-blue-600">{pct}%</span>
             </div>
             <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden mb-4">
               <div className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-700" style={{ width: `${pct}%` }} />
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="flex items-center justify-between bg-green-50 border border-green-100 rounded-xl px-4 py-3">
+            <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="flex flex-wrap items-center justify-between bg-green-50 border border-green-100 rounded-xl px-4 py-3">
                 <span className="text-[13px] font-semibold text-green-700">Naik Kelas</span>
                 <span className="text-[20px] font-bold text-green-600">{naik}</span>
               </div>
-              <div className="flex items-center justify-between bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between bg-red-50 border border-red-100 rounded-xl px-4 py-3">
                 <span className="text-[13px] font-semibold text-red-600">Tidak Naik</span>
                 <span className="text-[20px] font-bold text-red-500">{tidakNaik}</span>
               </div>
-              <div className="flex items-center justify-between bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
                 <span className="text-[13px] font-semibold text-amber-600">Belum Ditentukan</span>
                 <span className="text-[20px] font-bold text-amber-500">{belum}</span>
               </div>
@@ -261,9 +261,9 @@ const GradePromotionDetail = ({ setView, classData, activeTahunAjaran, onSave })
               </div>
               <h3 className="text-[14px] font-bold text-gray-700">Kriteria Kelulusan</h3>
             </div>
-            <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
               {[["Nilai Rata-rata","≥ 70"],["Kehadiran","≥ 80%"],["Nilai per Mapel","≥ 60"],["Maks. Mapel Tidak Lulus","≤ 2 mapel"]].map(([l,v],i) => (
-                <div key={i} className="flex items-center justify-between py-2 border-b border-gray-50">
+                <div key={i} className="flex flex-wrap items-center justify-between py-2 border-b border-gray-50">
                   <span className="text-[13px] text-gray-500">{l}</span>
                   <span className="text-[13px] font-bold text-gray-700">{v}</span>
                 </div>
@@ -349,7 +349,7 @@ const GradePromotionDetail = ({ setView, classData, activeTahunAjaran, onSave })
             <h3 className="text-[14px] font-bold text-gray-700 mb-4">Informasi Kelas</h3>
             <div className="space-y-3">
               {[["Total Siswa", students.length],["Semester", activeTahunAjaran?.tahun_ajaran || "Aktif"]].map(([l,v],i)=>(
-                <div key={i} className="flex items-center justify-between">
+                <div key={i} className="flex flex-wrap items-center justify-between">
                   <span className="text-[13px] text-gray-400">{l}</span>
                   <span className="text-[13px] font-semibold text-gray-700">{v}</span>
                 </div>

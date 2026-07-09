@@ -294,7 +294,7 @@ const GenerateRaporWali = ({ user }) => {
       {activeDetailModal && selectedStudent && currentDetails && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fadeIn">
           <div className="bg-white rounded-2xl w-full max-w-[650px] shadow-xl flex flex-col overflow-hidden animate-slideUp">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-[#1F3A5F] text-white">
+            <div className="px-6 py-4 border-b border-gray-100 flex flex-wrap justify-between items-center bg-[#1F3A5F] text-white">
               <h3 className="text-[16px] font-bold">{activeDetailModal === 'mapel' ? `Detail Nilai - ${selectedStudent.nama_lengkap}` : 'Detail Lainnya'}</h3>
               <button onClick={() => setActiveDetailModal(null)} className="text-white/70 hover:text-white transition-colors">
                 <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -332,7 +332,7 @@ const GenerateRaporWali = ({ user }) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-5 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col h-[600px]">
-          <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+          <div className="p-5 border-b border-gray-100 bg-gray-50/50 flex flex-wrap items-center justify-between">
             <h2 className="text-[16px] font-bold text-gray-800">Daftar Siswa</h2>
             <select value={filterOption} onChange={(e) => setFilterOption(e.target.value)} className="bg-white border border-gray-200 text-gray-600 text-[12px] font-bold rounded-lg p-1.5 outline-none cursor-pointer">
               <option>Semua Siswa</option>
@@ -364,7 +364,7 @@ const GenerateRaporWali = ({ user }) => {
         <div className="lg:col-span-7 flex flex-col h-[600px]">
           {selectedStudent && currentDetails ? (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex-1 flex flex-col overflow-hidden">
-              <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <div className="p-6 border-b border-gray-100 flex flex-wrap items-center justify-between">
                 <div>
                   <h2 className="text-[18px] font-bold text-[#1F3A5F]">Detail Rapor</h2>
                   <p className="text-[13px] text-gray-500 mt-1">{selectedStudent.nama_lengkap}</p>
@@ -374,9 +374,9 @@ const GenerateRaporWali = ({ user }) => {
                 {!showPreview && (
                   <div className="space-y-4">
                     <h3 className="text-[13px] font-bold text-gray-400 uppercase tracking-wider">Kelengkapan Data</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 gap-4">
                       <button onClick={() => setActiveDetailModal('mapel')} className="p-4 bg-gray-50 border border-gray-100 rounded-xl hover:bg-gray-100 hover:border-gray-300 transition-all text-left group">
-                        <div className="flex items-center justify-between mb-2">
+                        <div className="flex flex-wrap items-center justify-between mb-2">
                           <span className="text-[12px] font-bold text-gray-500 group-hover:text-gray-800 transition-colors flex items-center gap-1">
                             Nilai Mapel
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
@@ -389,7 +389,7 @@ const GenerateRaporWali = ({ user }) => {
                       </button>
                       
                       <button onClick={() => setActiveDetailModal('absensi')} className="p-4 bg-gray-50 border border-gray-100 rounded-xl hover:bg-gray-100 hover:border-gray-300 transition-all text-left group">
-                        <div className="flex items-center justify-between mb-2">
+                        <div className="flex flex-wrap items-center justify-between mb-2">
                           <span className="text-[12px] font-bold text-gray-500 group-hover:text-gray-800 transition-colors flex items-center gap-1">
                             Absensi
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
@@ -400,7 +400,7 @@ const GenerateRaporWali = ({ user }) => {
                       </button>
 
                       <button onClick={() => setActiveDetailModal('catatan')} className="p-4 bg-gray-50 border border-gray-100 rounded-xl hover:bg-gray-100 hover:border-gray-300 transition-all text-left group">
-                        <div className="flex items-center justify-between mb-2">
+                        <div className="flex flex-wrap items-center justify-between mb-2">
                           <span className="text-[12px] font-bold text-gray-500 group-hover:text-gray-800 transition-colors flex items-center gap-1">
                             Catatan Wali
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
@@ -433,7 +433,7 @@ const GenerateRaporWali = ({ user }) => {
                       <p className="text-gray-600 mt-1">Semester {activeSemester?.tipe} Tahun Ajaran {activeSemester?.tahun_ajaran}</p>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-4 mb-6 text-gray-800 text-[12px]">
+                    <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-4 mb-6 text-gray-800 text-[12px]">
                       <div>
                         <table className="w-full">
                           <tbody>
@@ -486,7 +486,7 @@ const GenerateRaporWali = ({ user }) => {
                       </table>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <h4 className="font-bold text-gray-800 border-b border-gray-400 pb-1 mb-2">C. Ketidakhadiran</h4>
                         <table className="w-full border-collapse border border-gray-300 text-[12px]">
@@ -508,7 +508,7 @@ const GenerateRaporWali = ({ user }) => {
                 )}
               </div>
 
-              <div className="p-6 border-t border-gray-100 flex items-center justify-between gap-3 bg-gray-50">
+              <div className="p-6 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3 bg-gray-50">
                 <div>
                   {currentDetails.statusRapor === "Terbit" && (
                     <button

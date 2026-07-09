@@ -44,7 +44,7 @@ const LaporanIntegrasi = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-4">
           <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -89,11 +89,11 @@ const LaporanIntegrasi = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-3 gap-6">
         
         {/* Left Col: Logs */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="px-6 py-5 border-b border-gray-50 flex items-center justify-between bg-white">
+          <div className="px-6 py-5 border-b border-gray-50 flex flex-wrap items-center justify-between bg-white">
             <h3 className="font-bold text-gray-800">Riwayat Sinkronisasi Terbaru</h3>
             <button 
               onClick={() => setShowAllLogs(!showAllLogs)}
@@ -186,7 +186,7 @@ const LaporanIntegrasi = () => {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <h3 className="font-bold text-gray-800 mb-6">Status Koneksi API</h3>
           <div className="space-y-5">
-            <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50/50">
+            <div className="flex flex-wrap items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50/50">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-xl font-bold text-[#1A3D63]">D</div>
                 <div>
@@ -197,7 +197,7 @@ const LaporanIntegrasi = () => {
               <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
             </div>
             
-            <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50/50">
+            <div className="flex flex-wrap items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50/50">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-xl font-bold text-green-600">E</div>
                 <div>
@@ -208,7 +208,7 @@ const LaporanIntegrasi = () => {
               <div className="w-2.5 h-2.5 rounded-full bg-amber-400"></div>
             </div>
 
-            <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50/50">
+            <div className="flex flex-wrap items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50/50">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-xl font-bold text-blue-500">B</div>
                 <div>

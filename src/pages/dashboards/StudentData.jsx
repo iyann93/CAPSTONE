@@ -204,7 +204,7 @@ const StudentData = ({ initialView = "list" }) => {
       </div>
 
       {/* ── Summary Cards ──────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: "Total Siswa",   val: students.length,  sub: "Semua data",       icon: "👥" },
           { label: "Laki-laki",     val: totalL,           sub: "Jenis kelamin L",  icon: "♂" },
@@ -410,7 +410,7 @@ const StudentData = ({ initialView = "list" }) => {
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-4 border-t border-gray-100 flex items-center justify-between text-[13px] text-gray-500">
+            <div className="px-5 py-4 border-t border-gray-100 flex flex-wrap items-center justify-between text-[13px] text-gray-500">
               <span>
                 Menampilkan <span className="font-bold text-[#1A3D63]">{filtered.length}</span> dari {students.length} siswa
               </span>

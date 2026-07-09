@@ -226,7 +226,7 @@ const EmployeeData = () => {
                 </h3>
               </div>
               <div className="p-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="col-span-1 md:col-span-2 space-y-2">
                     <label className="text-[11px] font-bold text-gray-500 ml-1">Nama Lengkap (beserta gelar)</label>
                     <input type="text" value={form.nama} onChange={e => setForm({...form, nama: e.target.value})} placeholder="Masukkan nama lengkap..." className="w-full px-4 py-3 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/5 focus:bg-white transition-all" />
@@ -293,7 +293,7 @@ const EmployeeData = () => {
                 </h3>
               </div>
               <div className="p-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold text-gray-500 ml-1">Nomor Induk Pegawai (NIP)</label>
                     <input type="text" maxLength={6} value={form.nip} onChange={e => setForm({...form, nip: e.target.value.replace(/\\D/g, '')})} placeholder="Masukkan 6 angka NIP..." className="w-full px-4 py-3 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/5 focus:bg-white transition-all" />
@@ -428,7 +428,7 @@ const EmployeeData = () => {
                 </h3>
               </div>
               <div className="p-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="col-span-1 md:col-span-2 space-y-2">
                     <label className="text-[11px] font-bold text-gray-500 ml-1">Nama Lengkap (beserta gelar)</label>
                     <input type="text" value={form.nama} onChange={e => setForm({...form, nama: e.target.value})} className="w-full px-4 py-3 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/5 focus:bg-white transition-all" />
@@ -475,7 +475,7 @@ const EmployeeData = () => {
                 </h3>
               </div>
               <div className="p-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold text-gray-500 ml-1">Nomor Induk Pegawai (NIP)</label>
                     <input type="text" maxLength={6} value={form.nip} onChange={e => setForm({...form, nip: e.target.value.replace(/\\D/g, '')})} placeholder="Masukkan 6 angka NIP..." className="w-full px-4 py-3 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/5 focus:bg-white transition-all" />
@@ -556,7 +556,7 @@ const EmployeeData = () => {
   }
   return <div className="animate-fadeIn space-y-6">
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <svg width="32" height="32" fill="currentColor" viewBox="0 0 24 24" className="text-[#1A3D63]">
             <path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z" />
           </svg>

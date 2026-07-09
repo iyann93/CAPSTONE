@@ -220,7 +220,7 @@ const Classes = () => {
           Dashboard <span className="mx-2">&rsaquo;</span> Data Kelas <span className="mx-2">&rsaquo;</span> <span className="text-[#1A3D63] font-bold">Tambah Kelas</span>
         </div>
 
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex flex-wrap items-center gap-4 mb-6">
           <button 
             onClick={() => setView("list")}
             className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors shadow-sm"
@@ -233,7 +233,7 @@ const Classes = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-3 gap-6">
           {/* Left Column (Main Form) */}
           <div className="lg:col-span-2 space-y-6">
             
@@ -241,7 +241,7 @@ const Classes = () => {
             <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-sm">
               <h3 className="text-[15px] font-bold text-[#1e293b] mb-5">Identitas Kelas</h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-5 mb-5">
 
                 <div className="md:col-span-2">
                   <label className="block text-[13px] font-bold text-gray-700 mb-2">Nama Kelas<span className="text-red-500">*</span></label>
@@ -281,7 +281,7 @@ const Classes = () => {
             <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-sm">
               <h3 className="text-[15px] font-bold text-[#1e293b] mb-5">Pengaturan Kelas</h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-5 mb-5">
                 <div>
                   <label className="block text-[13px] font-bold text-gray-700 mb-2">Ruangan<span className="text-red-500">*</span></label>
                   <input type="text" value={addForm.room} onChange={(e) => setAddForm({...addForm, room: e.target.value})} placeholder="cth. Ruang 101" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
@@ -292,7 +292,7 @@ const Classes = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-[13px] font-bold text-gray-700 mb-2">Tahun Ajaran</label>
                   <input type="text" value={addForm.year} onChange={(e) => setAddForm({...addForm, year: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
@@ -344,7 +344,7 @@ const Classes = () => {
             {/* Status Kelas */}
             <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-sm">
               <h3 className="text-[15px] font-bold text-[#1e293b] mb-4">Status Kelas</h3>
-              <div className="flex justify-between items-center">
+              <div className="flex flex-wrap justify-between items-center">
                 <div>
                   <div className="text-[14px] font-bold text-[#1e293b]">Aktif</div>
                   <div className="text-[11px] text-gray-400">Kelas dapat digunakan dalam jadwal</div>
@@ -421,7 +421,7 @@ const Classes = () => {
       </div>
 
       {/* Top Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
+      <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
             <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Kelas</div>
@@ -567,7 +567,7 @@ const Classes = () => {
         </div>
 
         {/* Pagination */}
-        <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+        <div className="px-6 py-4 border-t border-gray-100 flex flex-wrap items-center justify-between">
           <div className="text-[13px] text-gray-500">
             Menampilkan 1-10 dari 13 kelas
           </div>

@@ -132,8 +132,8 @@ const GraduationData = () => {
       </div>
 
       <div className="bg-gradient-to-r from-[#2A4365] to-[#3B82F6] rounded-2xl p-5 text-white">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center justify-between">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center">
               <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
             </div>
@@ -151,7 +151,7 @@ const GraduationData = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
+      <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
         {[
           { label: "Total Siswa IX", val: totalSiswa, sub: "Semua kelas IX" },
           { label: "Dinyatakan Lulus", val: totalLulus, sub: `${pctLulus}% tingkat kelulusan` },
@@ -169,7 +169,7 @@ const GraduationData = () => {
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex flex-wrap items-center justify-between mb-3">
           <p className="text-[14px] font-bold text-gray-700">Progress Proses Kelulusan</p>
           <span className="text-[14px] font-bold text-blue-600">{classes.length > 0 ? Math.round((selesai/classes.length)*100) : 0}% ({selesai}/{classes.length} kelas)</span>
         </div>
@@ -231,7 +231,7 @@ const GraduationData = () => {
             </tbody>
           </table>
         </div>
-        <div className="px-5 py-3.5 border-t border-gray-100 flex items-center justify-between">
+        <div className="px-5 py-3.5 border-t border-gray-100 flex flex-wrap items-center justify-between">
           <p className="text-[13px] text-gray-400">Menampilkan 1–{classes.length} dari {classes.length} kelas</p>
           <div className="flex items-center gap-1.5">
             <button className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50"><svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg></button>
@@ -244,7 +244,7 @@ const GraduationData = () => {
       {showCriteria && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fadeIn">
           <div className="bg-white rounded-[24px] w-full max-w-[420px] p-8 shadow-2xl scale-in">
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex flex-wrap items-center gap-4 mb-6">
               <div className="w-[52px] h-[52px] rounded-[18px] bg-[#F5F3FF] flex items-center justify-center text-[#8B5CF6] flex-shrink-0">
                 <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M22 10L12 5 2 10l10 5 10-5z"/><path strokeLinecap="round" strokeLinejoin="round" d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
               </div>
@@ -255,28 +255,28 @@ const GraduationData = () => {
             </div>
 
             <div className="space-y-3.5 mb-6">
-              <div className="flex items-center justify-between px-4 py-3 border border-gray-100 rounded-2xl">
+              <div className="flex flex-wrap items-center justify-between px-4 py-3 border border-gray-100 rounded-2xl">
                 <div className="flex items-center gap-3">
                   <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#9ca3af" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                   <span className="text-[14.5px] text-[#475569]">Nilai Sekolah (Rapor) minimum</span>
                 </div>
                 <span className="px-3 py-1.5 bg-[#DCFCE7] text-[#166534] text-[12px] font-bold rounded-lg">≥ 70</span>
               </div>
-              <div className="flex items-center justify-between px-4 py-3 border border-gray-100 rounded-2xl">
+              <div className="flex flex-wrap items-center justify-between px-4 py-3 border border-gray-100 rounded-2xl">
                 <div className="flex items-center gap-3">
                   <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#9ca3af" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                   <span className="text-[14.5px] text-[#475569]">Nilai Ujian Sekolah minimum</span>
                 </div>
                 <span className="px-3 py-1.5 bg-[#DBEAFE] text-[#1E40AF] text-[12px] font-bold rounded-lg">≥ 55</span>
               </div>
-              <div className="flex items-center justify-between px-4 py-3 border border-gray-100 rounded-2xl">
+              <div className="flex flex-wrap items-center justify-between px-4 py-3 border border-gray-100 rounded-2xl">
                 <div className="flex items-center gap-3">
                   <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#9ca3af" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                   <span className="text-[14.5px] text-[#475569]">Nilai Akhir minimum</span>
                 </div>
                 <span className="px-3 py-1.5 bg-[#F3E8FF] text-[#6B21A8] text-[12px] font-bold rounded-lg">≥ 65</span>
               </div>
-              <div className="flex items-center justify-between px-4 py-3 border border-gray-100 rounded-2xl">
+              <div className="flex flex-wrap items-center justify-between px-4 py-3 border border-gray-100 rounded-2xl">
                 <div className="flex items-center gap-3">
                   <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#9ca3af" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                   <span className="text-[14.5px] text-[#475569]">Maks. mapel tidak lulus</span>
@@ -307,7 +307,7 @@ const GraduationData = () => {
       {showPengumuman && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fadeIn">
           <div className="bg-white rounded-[24px] w-full max-w-[420px] p-8 shadow-2xl scale-in">
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex flex-wrap items-center gap-4 mb-6">
               <div className="w-[52px] h-[52px] rounded-[18px] bg-[#F5F3FF] flex items-center justify-center text-[#8B5CF6] flex-shrink-0">
                 <svg width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
               </div>

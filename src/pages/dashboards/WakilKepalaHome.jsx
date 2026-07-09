@@ -248,7 +248,7 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
         <h2 className="text-xl font-bold text-[#1F3A5F]">Monitoring Akademik &amp; Kurikulum</h2>
         
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {stats.map((s, i) => (
             <div key={i} className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
               <div>
@@ -260,11 +260,11 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-3 gap-5">
           {/* Konflik Jadwal - Alert */}
           <div className="lg:col-span-2 space-y-4">
             <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+              <div className="px-5 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between">
                 <div className="flex items-center gap-2">
                   {currentConflicts.length > 0 ? (
                     <>
@@ -287,7 +287,7 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
                   </div>
                 ) : (
                   currentConflicts.map((c, i) => (
-                    <div key={i} className="px-5 py-4 flex items-start justify-between gap-4 hover:bg-amber-50/30 transition-colors">
+                    <div key={i} className="px-5 py-4 flex flex-wrap items-start justify-between gap-4 hover:bg-amber-50/30 transition-colors">
                       <div className="flex items-start gap-3">
                         <div className="w-9 h-9 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5">
                           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#d97706" strokeWidth="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>
@@ -309,7 +309,7 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
 
             {/* Kurikulum terbaru */}
             <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+              <div className="px-5 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between">
                 <h3 className="text-[15px] font-bold text-gray-800">📚 Kurikulum Terbaru</h3>
                 <button onClick={() => onNavigate("Kelola Kurikulum")} className="text-[12px] font-bold text-[#1F3A5F] hover:underline bg-transparent border-none cursor-pointer">Kelola →</button>
               </div>
@@ -376,7 +376,7 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
         <h2 className="text-xl font-bold text-[#1F3A5F]">Monitoring Operasional &amp; Keuangan</h2>
 
         {/* Ringkasan Operasional Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-5">
           {[
             {
               title: "Total Pemasukan Dana BOS",
@@ -403,7 +403,7 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
           {/* Recent Expenditures */}
           <div className="space-y-6">
             <div className="bg-white rounded-[16px] shadow-sm border border-gray-50 overflow-hidden">
-              <div className="px-6 py-5 border-b border-gray-50 flex items-center justify-between">
+              <div className="px-6 py-5 border-b border-gray-50 flex flex-wrap items-center justify-between">
                 <h2 className="text-[16px] font-bold text-[#1F3A5F]">Pengeluaran Terbaru</h2>
                 <button 
                   onClick={() => {
@@ -458,7 +458,7 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
       {/* Pengumuman Sekolah Terbaru */}
       {liveAnn.length > 0 && (
         <section className="space-y-4 pt-6 border-t border-gray-200">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between">
             <h2 className="text-xl font-bold text-[#1F3A5F]">Pengumuman Sekolah Terbaru</h2>
             <button
               onClick={() => onNavigate && onNavigate("Pengumuman Sekolah")}
@@ -505,7 +505,7 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
       {selectedDetailItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
-            <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+            <div className="p-5 border-b border-gray-100 flex flex-wrap items-center justify-between bg-gray-50">
               <div>
                 <h2 className="text-lg font-bold text-gray-800">Detail Pengeluaran</h2>
                 <p className="text-[11px] text-gray-500 mt-1">Informasi lengkap transaksi arus kas.</p>
@@ -519,7 +519,7 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
             </div>
             
             <div className="p-5 space-y-4">
-              <div className="flex justify-between items-start pb-4 border-b border-gray-100">
+              <div className="flex flex-wrap justify-between items-start pb-4 border-b border-gray-100">
                 <div>
                   <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Tanggal</div>
                   <div className="text-sm font-semibold text-gray-800">{selectedDetailItem.tanggal}</div>
@@ -535,7 +535,7 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
                 <div className="text-sm font-bold text-gray-800">{selectedDetailItem.nama}</div>
               </div>
 
-              <div className="flex justify-between items-start">
+              <div className="flex flex-wrap justify-between items-start">
                 <div>
                   <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Nominal</div>
                   <div className="text-lg font-black text-emerald-600">{formatRupiah(selectedDetailItem.nominal)}</div>
@@ -606,7 +606,7 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
       {showPreviewModal && selectedPreviewFile && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+            <div className="p-4 border-b border-gray-100 flex flex-wrap items-center justify-between bg-gray-50">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
                   <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">

@@ -134,7 +134,7 @@ const LogAktivitasKepsek = ({ user, onNavigate }) => {
           </table>
         </div>
 
-        <div className="mt-6 flex justify-between items-center text-[12px] text-gray-500 font-medium">
+        <div className="mt-6 flex flex-wrap justify-between items-center text-[12px] text-gray-500 font-medium">
           <span>Menampilkan halaman {totalPages === 0 ? 0 : currentPage} dari {totalPages} ({filteredLogs.length} entri)</span>
           <div className="flex gap-2">
             {currentPage > 1 && (

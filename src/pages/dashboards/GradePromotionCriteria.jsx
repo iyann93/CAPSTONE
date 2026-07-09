@@ -185,7 +185,7 @@ const GradePromotionCriteria = ({ setView }) => {
             {/* Criteria Rows */}
             <div className="divide-y divide-gray-50">
               {group.items.map((item, i) => (
-                <div key={i} className="flex items-center justify-between px-6 py-4 gap-4">
+                <div key={i} className="flex flex-wrap items-center justify-between px-6 py-4 gap-4">
                   <div className="flex-1">
                     <p className="text-[14px] font-semibold text-gray-700">{item.label}</p>
                     {item.unit && !item.editable && (

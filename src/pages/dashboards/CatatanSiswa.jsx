@@ -329,7 +329,7 @@ const CatatanSiswa = ({ user }) => {
           {selectedStudent ? (
             <>
               <div className="bg-[#1A3D63] p-6 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 flex-shrink-0">
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white font-black text-lg border border-white/10">
                     {selectedStudent.name[0]}
                   </div>

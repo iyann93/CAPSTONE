@@ -92,7 +92,7 @@ const ScheduleEdit = ({ setView, handleEdit, handleDelete, currentSchedule }) =>
       </div>
 
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <button
             onClick={() => setView("list")}
             className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors shadow-sm shrink-0"
@@ -112,11 +112,11 @@ const ScheduleEdit = ({ setView, handleEdit, handleDelete, currentSchedule }) =>
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-sm">
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-5">Informasi Kelas &amp; Mata Pelajaran</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+            <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-5 mb-5">
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-2">Kelas<span className="text-red-500">*</span></label>
                 <div className="relative">
@@ -158,7 +158,7 @@ const ScheduleEdit = ({ setView, handleEdit, handleDelete, currentSchedule }) =>
 
           <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-sm">
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-5">Waktu &amp; Tempat Belajar</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-5">
+            <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6 mb-5">
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-3">Hari<span className="text-red-500">*</span></label>
                 <div className="flex flex-wrap gap-2">
@@ -223,7 +223,7 @@ const ScheduleEdit = ({ setView, handleEdit, handleDelete, currentSchedule }) =>
 
           <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-sm">
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-4">Status Jadwal</h3>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap justify-between items-center">
               <div>
                 <div className="text-[14px] font-bold text-[#1e293b]">Aktif</div>
                 <div className="text-[11px] text-gray-400">Jadwal aktif dan berlaku</div>

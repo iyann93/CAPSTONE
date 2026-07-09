@@ -145,7 +145,7 @@ const JadwalMengajar = ({ user }) => {
 
       {/* Legend & Date Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Keterangan:</span>
           <div className="flex items-center gap-3">
             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-xs font-bold text-[#1A3D63]">
@@ -261,7 +261,7 @@ const JadwalMengajar = ({ user }) => {
       {scheduleData.length > 0 && (
         <div className="space-y-4">
           <h3 className="text-base font-bold text-gray-800">Ringkasan Jadwal</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {scheduleData.map((card, idx) => (
               <div
                 key={idx}

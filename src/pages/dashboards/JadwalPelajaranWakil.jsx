@@ -230,7 +230,7 @@ const JadwalPelajaranWakil = () => {
 
       {viewMode === "grid" && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
-          <div className="min-w-[700px]">
+          <div className="min-w-full max-w-[700px]">
             <div className="grid grid-cols-6 border-b border-gray-100">
               <div className="px-4 py-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Jam</div>
               {HARI.map(h => (
@@ -263,14 +263,14 @@ const JadwalPelajaranWakil = () => {
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fadeIn">
           <div className="bg-white rounded-2xl w-full max-w-[560px] shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+            <div className="px-6 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between sticky top-0 bg-white z-10">
               <h3 className="text-[17px] font-bold text-[#1e293b]">{editId ? "Edit Jadwal" : "Tambah Jadwal Baru"}</h3>
               <button onClick={() => { setShowForm(false); setEditId(null); }} className="text-gray-400 hover:text-gray-600">
                 <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[12px] font-bold text-gray-600 mb-1.5">Mata Pelajaran</label>
                   <select value={form.mapelId} onChange={e => setForm({ ...form, mapelId: e.target.value })} required className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100">

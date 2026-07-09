@@ -116,7 +116,7 @@ const AkademikSiswa = ({ user }) => {
       </div>
 
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               { label: "Rata-rata Keseluruhan", val: loading ? "-" : allAvg.toFixed(1), sub: "Semua mata pelajaran", color: "text-blue-600", bg: "bg-blue-50" },
               { label: "Mapel Terbaik", val: loading ? "-" : (best?.mapel || "-"), sub: `Avg: ${best ? getAvg(best.nilai) : 0}`, color: "text-green-600", bg: "bg-green-50" },
@@ -131,7 +131,7 @@ const AkademikSiswa = ({ user }) => {
             ))}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-3 gap-5">
             {/* Nilai per Mapel Table */}
             <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
               <div className="px-5 pt-5 pb-4 border-b border-gray-100 flex items-center justify-between gap-3 flex-wrap">
@@ -248,7 +248,7 @@ const AkademikSiswa = ({ user }) => {
               {/* Detail Mapel */}
               {selectedMapel && !loading && (
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 animate-fadeIn">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex flex-wrap items-center justify-between mb-3">
                     <h3 className="text-[14px] font-bold text-gray-700 truncate w-4/5">{selectedMapel.mapel}</h3>
                     <button onClick={() => setSelectedMapel(null)} className="text-gray-400 hover:text-gray-600 shrink-0">
                       <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -257,7 +257,7 @@ const AkademikSiswa = ({ user }) => {
                   <p className="text-[12px] text-gray-400 mb-3 truncate">Guru: {selectedMapel.guru}</p>
                   <div className="space-y-2">
                     {selectedMapel.nilai.map((n, i) => (
-                      <div key={i} className="flex items-center justify-between">
+                      <div key={i} className="flex flex-wrap items-center justify-between">
                         <span className="text-[12px] text-gray-500">{barLabels[i]}</span>
                         <div className="flex items-center gap-2">
                           <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -268,7 +268,7 @@ const AkademikSiswa = ({ user }) => {
                       </div>
                     ))}
                   </div>
-                  <div className="mt-3 pt-3 border-t border-gray-50 flex justify-between">
+                  <div className="mt-3 pt-3 border-t border-gray-50 flex flex-wrap justify-between">
                     <span className="text-[12px] text-gray-500">Rata-rata</span>
                     <span className="text-[14px] font-black text-[#2A4365]">{getAvg(selectedMapel.nilai)}</span>
                   </div>

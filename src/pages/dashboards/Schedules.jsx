@@ -98,7 +98,7 @@ const Schedules = () => {
       </div>
 
       {/* Stats Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
+      <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
             <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Jadwal</div>
@@ -281,7 +281,7 @@ const Schedules = () => {
           </div>
 
           {/* Table Pagination */}
-          <div className="px-2 py-4 flex items-center justify-between border-t border-gray-50">
+          <div className="px-2 py-4 flex flex-wrap items-center justify-between border-t border-gray-50">
             <div className="text-[13px] text-gray-500">
               Menampilkan {schedules.length === 0 ? 0 : 1}-{Math.min(12, schedules.length)} dari {schedules.length} jadwal
             </div>

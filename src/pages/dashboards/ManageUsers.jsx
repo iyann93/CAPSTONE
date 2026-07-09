@@ -290,7 +290,7 @@ const ManageUsers = ({ onViewChange }) => {
                   className="w-full px-4 py-3 bg-white border border-gray-200 focus:border-[#1A3D63] rounded-xl text-sm font-semibold text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:ring-1 focus:ring-[#1A3D63]"
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Tanggal Lahir</label>
                   <input
@@ -313,7 +313,7 @@ const ManageUsers = ({ onViewChange }) => {
                   </select>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Nomor Telepon</label>
                   <input
@@ -395,7 +395,7 @@ const ManageUsers = ({ onViewChange }) => {
               </div>
               
               <div className="space-y-5">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Password Sementara</label>
                   <div className="relative">
@@ -458,7 +458,7 @@ const ManageUsers = ({ onViewChange }) => {
             </div>
           ) : (
             <div className="p-8 border-b border-gray-100">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex flex-wrap items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500">
                     <KeyIcon />
@@ -505,7 +505,7 @@ const ManageUsers = ({ onViewChange }) => {
               </div>
               <h3 className="text-base font-bold text-gray-800">Status Pengguna</h3>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-4">
               <label className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer ${formData.isActive ? "border-[#1A3D63] bg-blue-50/20" : "border-gray-200 bg-white hover:border-gray-300 transition-colors"}`}>
                 <div className={`mt-0.5 shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.isActive ? "border-[#1A3D63]" : "border-gray-300"}`}>
                   {formData.isActive && <div className="w-2 h-2 rounded-full bg-[#1A3D63]"></div>}
@@ -648,7 +648,7 @@ const ManageUsers = ({ onViewChange }) => {
                 <tr key={user.id} className="hover:bg-gray-50/50 transition-colors group">
                   <td className="px-8 py-6 text-center"><input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#1A3D63] focus:ring-[#1A3D63]/20" /></td>
                   <td className="px-4 py-6">
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-4">
                        <div className="w-11 h-11 rounded-full bg-gray-50 flex items-center justify-center text-[13px] font-bold text-gray-600">
                           {getInitials(user.name)}
                        </div>
@@ -659,7 +659,7 @@ const ManageUsers = ({ onViewChange }) => {
                     </div>
                   </td>
                   <td className="px-4 py-6">
-                    <div className="flex items-center justify-between gap-4 max-w-[200px]">
+                    <div className="flex flex-wrap items-center justify-between gap-4 max-w-[200px]">
                       <div className="flex items-center gap-3">
                         <span className="text-[10px] font-bold text-gray-400 uppercase bg-gray-100 px-2.5 py-1 rounded-md">{user.role || 'Tanpa Role'}</span>
                       </div>
@@ -704,7 +704,7 @@ const ManageUsers = ({ onViewChange }) => {
           <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-slideUp">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+            <div className="flex flex-wrap items-center justify-between px-6 py-5 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500">
                   <KeyIcon />

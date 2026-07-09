@@ -125,7 +125,7 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="animate-fadeIn cursor-pointer" onClick={() => onNavigate("Persetujuan Kurikulum")} style={{ animationDelay: "0ms" }}>
           <StatCard
             title="Total Guru"
@@ -168,12 +168,12 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
+      <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6 mt-2">
         
         {/* Ringkasan Arus Kas */}
         <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col justify-between animate-fadeIn" style={{ animationDelay: "320ms" }}>
           <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-wrap justify-between items-center mb-6">
               <div>
                 <h3 className="text-[16px] font-bold text-gray-800">Ringkasan Arus Kas</h3>
                 <p className="text-[12px] text-gray-500 mt-0.5">Total akumulasi keuangan sekolah</p>
@@ -185,7 +185,7 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
             
             <div className="space-y-5">
               <div>
-                <div className="flex justify-between text-[13px] font-medium text-gray-500 mb-2">
+                <div className="flex flex-wrap justify-between text-[13px] font-medium text-gray-500 mb-2">
                   <span>Total Pemasukan</span>
                   <span className="text-gray-800 font-black">{formatShortRupiah(financialData.totalPemasukan)}</span>
                 </div>
@@ -195,7 +195,7 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
               </div>
               
               <div>
-                <div className="flex justify-between text-[13px] font-medium text-gray-500 mb-2">
+                <div className="flex flex-wrap justify-between text-[13px] font-medium text-gray-500 mb-2">
                   <span>Total Pengeluaran</span>
                   <span className="text-gray-800 font-black">{formatShortRupiah(financialData.totalPengeluaran)}</span>
                 </div>
@@ -219,7 +219,7 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
       {/* Pengumuman Sekolah Terbaru */}
       {liveAnn.length > 0 && (
         <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm animate-fadeIn" style={{ animationDelay: "480ms" }}>
-          <div className="flex justify-between items-center mb-5">
+          <div className="flex flex-wrap justify-between items-center mb-5">
             <div>
               <h3 className="text-[16px] font-bold text-gray-800">Pengumuman Sekolah Terbaru</h3>
               <p className="text-[12px] text-gray-500 mt-0.5">Informasi resmi dari Admin TU</p>

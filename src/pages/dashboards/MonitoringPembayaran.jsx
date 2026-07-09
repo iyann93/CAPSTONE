@@ -57,7 +57,7 @@ const MonitoringPembayaran = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 gap-6">
         {[
           { label: "Siswa Lunas", val: totalLunas, sub: "dari " + filtered.length + " siswa", bg: "bg-[#1A3D63]" },
           { label: "Siswa Menunggak", val: totalTunggak, sub: "perlu perhatian", bg: "bg-[#1A3D63]" },
@@ -153,7 +153,7 @@ const MonitoringPembayaran = () => {
               >
                 <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-wrap items-center gap-4">
                 <div className="w-16 h-16 rounded-2xl bg-white/20 border-2 border-white/30 flex items-center justify-center text-white font-black text-[22px] shadow-lg">
                   {detail.nama.split(" ").map(w => w[0]).slice(0, 2).join("")}
                 </div>
@@ -178,7 +178,7 @@ const MonitoringPembayaran = () => {
                   { icon: "📆", label: "Bulan Menunggak", value: detail.bulanTunggak > 0 ? `${detail.bulanTunggak} bulan` : "—", extra: detail.bulanTunggak > 0 ? "text-red-600 font-bold" : "text-gray-400" },
                   { icon: "💰", label: "Total Tunggakan", value: detail.nominal > 0 ? fmt(detail.nominal) : "—", extra: detail.nominal > 0 ? "text-red-600 font-bold" : "text-gray-400" },
                 ].map(({ icon, label, value, extra }) => (
-                  <div key={label} className="flex items-center justify-between px-4 py-3">
+                  <div key={label} className="flex flex-wrap items-center justify-between px-4 py-3">
                     <div className="flex items-center gap-2.5">
                       <span className="text-[15px]">{icon}</span>
                       <span className="text-[13px] text-gray-500">{label}</span>

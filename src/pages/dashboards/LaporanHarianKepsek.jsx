@@ -48,7 +48,7 @@ const LaporanHarianKepsek = ({ user, onNavigate }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex flex-col justify-center">
           <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2">Pemasukan Hari Ini</div>
           <div className="text-[28px] font-black text-emerald-600">Rp 125.000.000</div>

@@ -165,7 +165,7 @@ const JadwalKelasWali = ({ user }) => {
 
       {/* Info Banner */}
       <div className="bg-gradient-to-r from-[#1A3D63] to-[#2A5F8F] p-6 rounded-3xl shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-white">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-white border-2 border-white/30">
             <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -182,7 +182,7 @@ const JadwalKelasWali = ({ user }) => {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <div className="text-right">
             <p className="text-blue-200 text-[11px] font-semibold">Estimasi Siswa (Kapasitas)</p>
             <p className="text-[16px] font-bold">{classInfo.jumlahSiswa} Orang</p>

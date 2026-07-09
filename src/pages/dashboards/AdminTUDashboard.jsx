@@ -188,7 +188,7 @@ const AdminTUDashboard = ({ user, activeMenu, onViewChange }) => {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
+      <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
         {/* Card 1: Total Siswa — dari API */}
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
@@ -238,7 +238,7 @@ const AdminTUDashboard = ({ user, activeMenu, onViewChange }) => {
       </div>
 
       {/* Middle Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Left Col (Aksi Cepat & Chart) */}
         <div className="lg:col-span-1 space-y-6">
           {/* Aksi Cepat */}
@@ -268,11 +268,11 @@ const AdminTUDashboard = ({ user, activeMenu, onViewChange }) => {
 
           {/* Absensi Minggu Ini */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-wrap items-center justify-between mb-6">
               <h3 className="font-bold text-[#1e293b]">Absensi Minggu Ini</h3>
               <button onClick={() => handleViewChange("Absensi Siswa")} className="text-sm font-semibold text-gray-500 hover:text-gray-700">Detail</button>
             </div>
-            <div className="flex items-end justify-between h-32 px-2 gap-2">
+            <div className="flex flex-wrap items-end justify-between h-32 px-2 gap-2">
               {[
                 { day: "Sen", value: 96, height: "h-[96%]" },
                 { day: "Sel", value: 93, height: "h-[93%]" },
@@ -294,7 +294,7 @@ const AdminTUDashboard = ({ user, activeMenu, onViewChange }) => {
 
         {/* Center Col (Data Siswa Terbaru) */}
         <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col">
-          <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+          <div className="p-5 border-b border-gray-100 flex flex-wrap items-center justify-between">
             <div className="flex items-center gap-2">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
               <h3 className="font-bold text-[#1e293b]">Data Siswa Terbaru</h3>
@@ -355,7 +355,7 @@ const AdminTUDashboard = ({ user, activeMenu, onViewChange }) => {
 
       {/* Pengumuman Sekolah Terbaru */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-wrap items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><path d="M3 11l18-5v12L3 14v-3z"></path><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path></svg>
             <h3 className="font-bold text-[#1e293b]">Pengumuman Sekolah Terbaru</h3>
@@ -366,7 +366,7 @@ const AdminTUDashboard = ({ user, activeMenu, onViewChange }) => {
           </button>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Item 1 */}
           <div className="border border-gray-100 rounded-xl p-4 hover:border-gray-200 transition-all">
             <div className="w-10 h-10 rounded-lg bg-[#E8EEF2] flex items-center justify-center text-[#1A3D63] mb-4">

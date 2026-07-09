@@ -391,7 +391,7 @@ const AbsensiSiswa = ({ user, onSaveAttendance, attendanceSessions }) => {
                 <th className="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-[60px]">No</th>
                 <th className="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest w-[120px]">NIS</th>
                 <th className="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest">Nama Siswa</th>
-                <th className="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center w-[380px]">Status Kehadiran</th>
+                <th className="py-4 px-4 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center w-full max-w-[380px]">Status Kehadiran</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">

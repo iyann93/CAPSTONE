@@ -146,7 +146,7 @@ const StudentEdit = ({ student, onBack, onSave, onDelete }) => {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               <h3 className="text-[15px] font-bold text-[#1e293b]">Identitas Pribadi</h3>
             </div>
-            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+            <div className="p-6 grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
               <div className="md:col-span-2 space-y-2">
                 <label className="text-[13px] font-bold text-gray-700">Nama Lengkap<span className="text-red-500">*</span></label>
                 <input type="text" value={formData.namaLengkap} onChange={(e) => setFormData({...formData, namaLengkap: e.target.value})} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-[14px] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-colors bg-white text-[#1e293b]" />
@@ -194,7 +194,7 @@ const StudentEdit = ({ student, onBack, onSave, onDelete }) => {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
               <h3 className="text-[15px] font-bold text-[#1e293b]">Kontak & Alamat</h3>
             </div>
-            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+            <div className="p-6 grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
               <div className="space-y-2">
                 <label className="text-[13px] font-bold text-gray-700">No. Telepon</label>
                 <input type="text" value={formData.telepon} onChange={(e) => setFormData({...formData, telepon: e.target.value})} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-[14px] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-colors bg-white text-[#1e293b]" />
@@ -232,7 +232,7 @@ const StudentEdit = ({ student, onBack, onSave, onDelete }) => {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
               <h3 className="text-[15px] font-bold text-[#1e293b]">Data Akademik</h3>
             </div>
-            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+            <div className="p-6 grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
               <div className="space-y-2">
                 <label className="text-[13px] font-bold text-gray-700">Kelas<span className="text-red-500">*</span></label>
                 <select 
@@ -267,7 +267,7 @@ const StudentEdit = ({ student, onBack, onSave, onDelete }) => {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               <h3 className="text-[15px] font-bold text-[#1e293b]">Data Orang Tua / Wali</h3>
             </div>
-            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+            <div className="p-6 grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
               <div className="space-y-2">
                 <label className="text-[13px] font-bold text-gray-700">Nama Ayah<span className="text-red-500">*</span></label>
                 <input type="text" value={formData.namaAyah} onChange={(e) => setFormData({...formData, namaAyah: e.target.value})} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-[14px] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-colors bg-white text-[#1e293b]" />
@@ -332,7 +332,7 @@ const StudentEdit = ({ student, onBack, onSave, onDelete }) => {
           </div>
 
           {/* Status Siswa */}
-          <div className="bg-white rounded-[16px] border border-gray-200 shadow-sm p-6 flex items-center justify-between">
+          <div className="bg-white rounded-[16px] border border-gray-200 shadow-sm p-6 flex flex-wrap items-center justify-between">
             <div>
               <p className="text-[14px] font-bold text-[#1e293b]">Status Siswa</p>
               <p className="text-[12px] text-gray-500">Aktif terdaftar</p>
@@ -353,19 +353,19 @@ const StudentEdit = ({ student, onBack, onSave, onDelete }) => {
           <div className="bg-white rounded-[16px] border border-gray-200 shadow-sm p-6">
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-4">Informasi Data</h3>
             <div className="space-y-3">
-              <div className="flex justify-between text-[13px]">
+              <div className="flex flex-wrap justify-between text-[13px]">
                 <span className="text-gray-500">Terdaftar</span>
                 <span className="font-medium text-[#1e293b]">12 Jul 2023</span>
               </div>
-              <div className="flex justify-between text-[13px]">
+              <div className="flex flex-wrap justify-between text-[13px]">
                 <span className="text-gray-500">Nilai Rata-rata</span>
                 <span className="font-bold text-blue-500">{student.nilaiRataRata}</span>
               </div>
-              <div className="flex justify-between text-[13px]">
+              <div className="flex flex-wrap justify-between text-[13px]">
                 <span className="text-gray-500">Kehadiran</span>
                 <span className="font-bold text-emerald-500">{student.kehadiran}%</span>
               </div>
-              <div className="flex justify-between text-[13px]">
+              <div className="flex flex-wrap justify-between text-[13px]">
                 <span className="text-gray-500">Ranking</span>
                 <span className="font-bold text-purple-600">#3</span>
               </div>

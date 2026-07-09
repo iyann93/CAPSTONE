@@ -196,7 +196,7 @@ const OrangTuaHome = ({ user, onNavigate }) => {
       {/* Student Card */}
       <div className="bg-gradient-to-r from-[#1A3D63] to-[#2A5F8F] rounded-2xl p-6 text-white shadow-lg">
         <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-white text-[20px] font-bold border-2 border-white/30">
               {studentData.avatar}
             </div>
@@ -209,7 +209,7 @@ const OrangTuaHome = ({ user, onNavigate }) => {
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-right">
+          <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-right">
             <div>
               <p className="text-blue-200 text-[11px]">Semester</p>
               <p className="text-[14px] font-bold">{studentData.semester}</p>
@@ -223,7 +223,7 @@ const OrangTuaHome = ({ user, onNavigate }) => {
       </div>
 
       {/* Stat Cards Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           {
             label: "Rata-rata Nilai",
@@ -272,7 +272,7 @@ const OrangTuaHome = ({ user, onNavigate }) => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-5">
         {/* Tagihan Terdekat */}
         <div className="lg:col-span-1 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-5 pt-5 pb-3 border-b border-gray-50">
@@ -281,7 +281,7 @@ const OrangTuaHome = ({ user, onNavigate }) => {
           <div className="p-5 space-y-4">
             {tagihanTerdekat ? (
               <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between mb-2">
                   <span className="text-[12px] font-bold text-amber-700">SPP {getBulanNama(tagihanTerdekat.bulan)} {tagihanTerdekat.tahun}</span>
                   <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${tagihanTerdekat.status === 'menunggu_konfirmasi' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
                     {tagihanTerdekat.status === 'menunggu_konfirmasi' ? 'Menunggu Konfirmasi' : 'Belum Lunas'}
@@ -310,7 +310,7 @@ const OrangTuaHome = ({ user, onNavigate }) => {
 
         {/* Pengumuman Terbaru */}
         <div className="lg:col-span-1 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="px-5 pt-5 pb-3 border-b border-gray-50 flex items-center justify-between">
+          <div className="px-5 pt-5 pb-3 border-b border-gray-50 flex flex-wrap items-center justify-between">
             <h3 className="text-[15px] font-bold text-gray-800">Pengumuman</h3>
             <button onClick={() => onNavigate("Pengumuman Sekolah")} className="text-[12px] text-[#2A4365] font-semibold hover:underline">Lihat Semua</button>
           </div>

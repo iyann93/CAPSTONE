@@ -27,7 +27,7 @@ const ClassEdit = ({ setView, initialData, teachers, onSave, onDelete }) => {
       </div>
 
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <button 
             onClick={() => setView("list")}
             className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors shadow-sm shrink-0"
@@ -56,13 +56,13 @@ const ClassEdit = ({ setView, initialData, teachers, onSave, onDelete }) => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           
           <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-sm">
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-5">Identitas Kelas</h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+            <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-5 mb-5">
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-2">Kode Kelas<span className="text-red-500">*</span></label>
                 <input type="text" value={editForm.code} onChange={e => setEditForm({...editForm, code: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
@@ -98,7 +98,7 @@ const ClassEdit = ({ setView, initialData, teachers, onSave, onDelete }) => {
           <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-sm">
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-5">Pengaturan Kelas</h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+            <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-5 mb-5">
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-2">Ruangan<span className="text-red-500">*</span></label>
                 <input type="text" value={editForm.room} onChange={e => setEditForm({...editForm, room: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
@@ -109,7 +109,7 @@ const ClassEdit = ({ setView, initialData, teachers, onSave, onDelete }) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-2">Tahun Ajaran</label>
                 <input type="text" value={editForm.year} onChange={e => setEditForm({...editForm, year: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
@@ -195,7 +195,7 @@ const ClassEdit = ({ setView, initialData, teachers, onSave, onDelete }) => {
 
           <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-sm">
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-4">Status Kelas</h3>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap justify-between items-center">
               <div>
                 <div className="text-[14px] font-bold text-[#1e293b]">Aktif</div>
                 <div className="text-[11px] text-gray-400">Kelas dapat digunakan dalam jadwal</div>
@@ -209,15 +209,15 @@ const ClassEdit = ({ setView, initialData, teachers, onSave, onDelete }) => {
           <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-sm">
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-4">Informasi Data</h3>
             <div className="space-y-3">
-              <div className="flex justify-between items-center">
+              <div className="flex flex-wrap justify-between items-center">
                 <span className="text-[13px] text-gray-500">Dibuat</span>
                 <span className="text-[13px] text-[#1e293b] font-medium">12 Jul 2023</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex flex-wrap justify-between items-center">
                 <span className="text-[13px] text-gray-500">Diperbarui</span>
                 <span className="text-[13px] text-[#1e293b] font-medium">5 Nov 2023</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex flex-wrap justify-between items-center">
                 <span className="text-[13px] text-gray-500">Jumlah Siswa</span>
                 <span className="text-[13px] text-[#1e293b] font-medium">{editForm.students} siswa</span>
               </div>

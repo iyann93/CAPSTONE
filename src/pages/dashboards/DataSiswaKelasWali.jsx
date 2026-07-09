@@ -119,7 +119,7 @@ const DataSiswaKelasWali = ({ user }) => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left List */}
         <div className="lg:col-span-7 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col h-[600px]">
-          <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+          <div className="p-5 border-b border-gray-100 flex flex-wrap items-center justify-between">
             <h2 className="text-[16px] font-bold text-gray-800">Daftar Siswa {selectedClassName}</h2>
             <span className="text-[12px] font-bold text-gray-400 bg-gray-50 px-3 py-1 rounded-full">{filteredStudents.length} Siswa</span>
           </div>
@@ -140,7 +140,7 @@ const DataSiswaKelasWali = ({ user }) => {
                   onClick={() => setSelectedStudent(s)}
                   className={`w-full text-left p-4 rounded-xl transition-colors border ${selectedStudent?.id === s.id ? 'bg-blue-50/50 border-blue-200 shadow-sm' : 'bg-white border-transparent hover:bg-gray-50'}`}
                 >
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-wrap items-center gap-4">
                     <div className={`w-12 h-12 rounded-full ${s.avatarBg} text-white flex items-center justify-center font-bold text-lg flex-shrink-0`}>
                       {s.name[0]}
                     </div>
@@ -178,23 +178,23 @@ const DataSiswaKelasWali = ({ user }) => {
                 <div>
                   <h4 className="text-[12px] font-bold text-gray-400 uppercase tracking-wider mb-3">Informasi Detail</h4>
                   <div className="space-y-3">
-                    <div className="flex justify-between items-center pb-2 border-b border-gray-50">
+                    <div className="flex flex-wrap justify-between items-center pb-2 border-b border-gray-50">
                       <span className="text-[13px] text-gray-500">Nomor Induk Siswa (NIS)</span>
                       <span className="text-[13px] font-bold text-gray-800">{selectedStudent.nis}</span>
                     </div>
-                    <div className="flex justify-between items-center pb-2 border-b border-gray-50">
+                    <div className="flex flex-wrap justify-between items-center pb-2 border-b border-gray-50">
                       <span className="text-[13px] text-gray-500">NIS Nasional (NISN)</span>
                       <span className="text-[13px] font-bold text-gray-800">{selectedStudent.nisn}</span>
                     </div>
-                    <div className="flex justify-between items-center pb-2 border-b border-gray-50">
+                    <div className="flex flex-wrap justify-between items-center pb-2 border-b border-gray-50">
                       <span className="text-[13px] text-gray-500">Tempat, Tanggal Lahir</span>
                       <span className="text-[13px] font-bold text-gray-800">{selectedStudent.tempatLahir}, {selectedStudent.tanggalLahir}</span>
                     </div>
-                    <div className="flex justify-between items-center pb-2 border-b border-gray-50">
+                    <div className="flex flex-wrap justify-between items-center pb-2 border-b border-gray-50">
                       <span className="text-[13px] text-gray-500">Jenis Kelamin</span>
                       <span className="text-[13px] font-bold text-gray-800">{selectedStudent.gender}</span>
                     </div>
-                    <div className="flex justify-between items-center pb-2 border-b border-gray-50">
+                    <div className="flex flex-wrap justify-between items-center pb-2 border-b border-gray-50">
                       <span className="text-[13px] text-gray-500">Kelas Saat Ini</span>
                       <span className="text-[13px] font-bold text-[#1A3D63]">{selectedClassName}</span>
                     </div>

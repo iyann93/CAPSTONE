@@ -169,7 +169,7 @@ const SlipGajiGuruMapel = ({ user, onNavigate, defaultData }) => {
 
         {/* Employee Info Grid */}
         <div className="p-8 border-b border-gray-100">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-12">
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
             <div>
               <p className="text-[11px] text-gray-400 uppercase tracking-widest font-bold mb-1">NIP</p>
               <p className="text-[14px] font-bold text-gray-800">{salaryData.nip}</p>
@@ -201,7 +201,7 @@ const SlipGajiGuruMapel = ({ user, onNavigate, defaultData }) => {
         <div className="p-8">
 
           {/* Gaji Pokok */}
-          <div className="flex justify-between items-center pb-6">
+          <div className="flex flex-wrap justify-between items-center pb-6">
             <span className="text-[14px] text-gray-600 font-medium">Gaji Pokok</span>
             <span className="text-[15px] font-bold text-gray-900">{fmt(salaryData.gajiPokok)}</span>
           </div>
@@ -211,13 +211,13 @@ const SlipGajiGuruMapel = ({ user, onNavigate, defaultData }) => {
             <h4 className="text-[11px] font-bold text-[#059669] uppercase tracking-widest mb-4">TUNJANGAN</h4>
             <div className="space-y-3">
               {salaryData.tunjangan.map((item, idx) => (
-                <div key={idx} className="flex justify-between items-center text-[13px]">
+                <div key={idx} className="flex flex-wrap justify-between items-center text-[13px]">
                   <span className="text-gray-500 font-medium">{item.nama}</span>
                   <span className="text-[#059669] font-semibold">+{fmt(item.nominal)}</span>
                 </div>
               ))}
             </div>
-            <div className="flex justify-between items-center mt-4 pt-4 border-t border-dotted border-gray-200">
+            <div className="flex flex-wrap justify-between items-center mt-4 pt-4 border-t border-dotted border-gray-200">
               <span className="text-[13px] font-bold text-gray-800">Total Tunjangan</span>
               <span className="text-[14px] font-bold text-[#059669]">+{fmt(totalTunjangan)}</span>
             </div>
@@ -228,13 +228,13 @@ const SlipGajiGuruMapel = ({ user, onNavigate, defaultData }) => {
             <h4 className="text-[11px] font-bold text-[#DC2626] uppercase tracking-widest mb-4">POTONGAN</h4>
             <div className="space-y-3">
               {salaryData.potongan.map((item, idx) => (
-                <div key={idx} className="flex justify-between items-center text-[13px]">
+                <div key={idx} className="flex flex-wrap justify-between items-center text-[13px]">
                   <span className="text-gray-500 font-medium">{item.nama}</span>
                   <span className="text-[#DC2626] font-semibold">-{fmt(item.nominal)}</span>
                 </div>
               ))}
             </div>
-            <div className="flex justify-between items-center mt-4 pt-4 border-t border-dotted border-gray-200 mb-2">
+            <div className="flex flex-wrap justify-between items-center mt-4 pt-4 border-t border-dotted border-gray-200 mb-2">
               <span className="text-[13px] font-bold text-gray-800">Total Potongan</span>
               <span className="text-[14px] font-bold text-[#DC2626]">-{fmt(totalPotongan)}</span>
             </div>
@@ -243,7 +243,7 @@ const SlipGajiGuruMapel = ({ user, onNavigate, defaultData }) => {
         </div>
 
         {/* Gaji Bersih Summary */}
-        <div className="bg-[#F0FDF4] border-t border-[#DCFCE7] p-6 flex justify-between items-center">
+        <div className="bg-[#F0FDF4] border-t border-[#DCFCE7] p-6 flex flex-wrap justify-between items-center">
           <div>
             <p className="text-[13px] font-bold text-[#166534]">Gaji Bersih Diterima</p>
             <p className="text-[11px] text-[#22C55E] mt-0.5">Gaji Pokok + Tunjangan − Potongan</p>
