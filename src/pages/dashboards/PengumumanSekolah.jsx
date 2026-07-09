@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { getTagihan } from "../../api/finance";
-import { getAnnouncements, addAnnouncement, deleteAnnouncement } from "../../utils/announcementStore";
+import { uploadAnnouncementFile } from "../../api/system";
+import { getAnnouncements, addAnnouncement, deleteAnnouncement, toggleAnnouncementStatus, editAnnouncement } from "../../utils/announcementStore";
 
 const BULAN_NAMES = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
@@ -11,7 +12,8 @@ const EMPTY_FORM = {
   category: "Akademik",
   importance: "Normal",
   desc: "",
-  attachment: ""
+  attachment: "",
+  attachmentData: ""
 };
 
 const PengumumanSekolah = ({ user, onNavigate }) => {
@@ -85,9 +87,35 @@ const PengumumanSekolah = ({ user, onNavigate }) => {
   });
 
   // Form handlers
-  const handleFormChange = (e) => {
-    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
-    setFormError("");
+  const handleFormChange = async (e) => {
+    if (e.target.type === 'file') {
+      const file = e.target.files[0];
+      if (file) {
+        if (file.type !== 'application/pdf') {
+          setFormError("File lampiran harus berformat PDF.");
+          return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          setFormError("Ukuran file maksimal 5MB.");
+          return;
+        }
+        
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+          const response = await uploadAnnouncementFile(formData);
+          setForm(prev => ({ ...prev, attachment: file.name, attachmentData: response.url }));
+          setFormError("");
+        } catch (error) {
+          setFormError("Gagal mengunggah file ke server.");
+        }
+      } else {
+        setForm(prev => ({ ...prev, attachment: "", attachmentData: "" }));
+      }
+    } else {
+      setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+      setFormError("");
+    }
   };
 
   const handleSubmit = (e) => {
@@ -95,8 +123,19 @@ const PengumumanSekolah = ({ user, onNavigate }) => {
     if (!form.title.trim()) { setFormError("Judul pengumuman wajib diisi."); return; }
     if (!form.desc.trim()) { setFormError("Isi pengumuman wajib diisi."); return; }
     const authorName = form.author.trim() || (user?.name || user?.fullName || "Admin TU");
-    const updated = addAnnouncement({ ...form, author: authorName });
+    
+    let updated;
+    if (form.id) {
+      updated = editAnnouncement(form.id, { ...form, author: authorName });
+    } else {
+      updated = addAnnouncement({ ...form, author: authorName });
+    }
+    
     setAnnouncements(updated);
+    if (form.id && selectedAnnouncement?.id === form.id) {
+      setSelectedAnnouncement(updated.find(a => a.id === form.id));
+    }
+    
     setShowForm(false);
     setForm(EMPTY_FORM);
     setFormError("");
@@ -107,6 +146,14 @@ const PengumumanSekolah = ({ user, onNavigate }) => {
     setAnnouncements(updated);
     if (selectedAnnouncement?.id === id) setSelectedAnnouncement(null);
     setDeleteConfirm(null);
+  };
+
+  const handleToggleStatus = (id) => {
+    const updated = toggleAnnouncementStatus(id);
+    setAnnouncements(updated);
+    if (selectedAnnouncement?.id === id) {
+      setSelectedAnnouncement(updated.find(a => a.id === id));
+    }
   };
 
   return (
@@ -184,19 +231,50 @@ const PengumumanSekolah = ({ user, onNavigate }) => {
                     <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-gray-100 text-gray-500">
                       {ann.category}
                     </span>
+                    {ann.isActive === false && (
+                      <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-gray-100 text-gray-500 line-through">
+                        Nonaktif
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-[12px] text-gray-400">{ann.date}</span>
                     {isAdminTU && !ann.isTagihan && (
-                      <button
-                        onClick={e => { e.stopPropagation(); setDeleteConfirm(ann); }}
-                        title="Hapus pengumuman"
-                        className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
-                      >
-                        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
-                        </svg>
-                      </button>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={e => { e.stopPropagation(); handleToggleStatus(ann.id); }}
+                          title={ann.isActive === false ? "Aktifkan pengumuman" : "Nonaktifkan pengumuman"}
+                          className={`p-1.5 rounded-lg transition-colors ${ann.isActive === false ? 'hover:bg-green-50 text-gray-400 hover:text-green-500' : 'hover:bg-amber-50 text-gray-400 hover:text-amber-500'}`}
+                        >
+                          {ann.isActive === false ? (
+                            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
+                            </svg>
+                          ) : (
+                            <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" />
+                            </svg>
+                          )}
+                        </button>
+                        <button
+                          onClick={e => { e.stopPropagation(); setForm(ann); setShowForm(true); setSelectedAnnouncement(null); }}
+                          title="Edit pengumuman"
+                          className="p-1.5 rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-500 transition-colors"
+                        >
+                          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                          </svg>
+                        </button>
+                        <button
+                          onClick={e => { e.stopPropagation(); setDeleteConfirm(ann); }}
+                          title="Hapus pengumuman"
+                          className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+                        >
+                          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                          </svg>
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -227,7 +305,7 @@ const PengumumanSekolah = ({ user, onNavigate }) => {
           {showForm && isAdminTU ? (
             <div className="bg-white rounded-2xl border border-[#1A3D63] shadow-sm p-6 space-y-4 animate-fadeIn">
               <div className="flex justify-between items-center pb-2 border-b border-gray-100">
-                <h3 className="text-[14px] font-bold text-[#1A3D63]">Tambah Pengumuman Baru</h3>
+                <h3 className="text-[14px] font-bold text-[#1A3D63]">{form.id ? "Edit Pengumuman" : "Tambah Pengumuman Baru"}</h3>
                 <button onClick={() => { setShowForm(false); setFormError(""); setForm(EMPTY_FORM); }} className="text-gray-400 hover:text-gray-600">
                   <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
@@ -296,6 +374,20 @@ const PengumumanSekolah = ({ user, onNavigate }) => {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Lampiran File (Hanya PDF, Max 5MB)</label>
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    name="attachmentFile"
+                    onChange={handleFormChange}
+                    className="w-full text-[12px] text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[12px] file:font-semibold file:bg-blue-50 file:text-[#1A3D63] hover:file:bg-blue-100"
+                  />
+                  {form.attachment && (
+                    <p className="text-[11px] text-gray-400 mt-1">File saat ini: {form.attachment}</p>
+                  )}
+                </div>
+
                  
                 {formError && (
                   <p className="text-[12px] text-red-500 font-semibold flex items-center gap-1">
@@ -351,6 +443,30 @@ const PengumumanSekolah = ({ user, onNavigate }) => {
                 </div>
                 <p className="text-[13.5px] text-gray-600 leading-relaxed pt-2 whitespace-pre-line">{selectedAnnouncement.desc}</p>
                 
+                {selectedAnnouncement.attachment && (
+                  <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#1A3D63" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                      <span className="text-[12px] font-bold text-[#1A3D63]">{selectedAnnouncement.attachment}</span>
+                    </div>
+                    {selectedAnnouncement.attachmentData ? (
+                      <a 
+                        href={selectedAnnouncement.attachmentData}
+                        download={selectedAnnouncement.attachment}
+                        className="text-[11px] font-bold bg-white text-[#1A3D63] px-3 py-1.5 rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+                      >
+                        Unduh
+                      </a>
+                    ) : (
+                      <button 
+                        onClick={() => alert(`Mengunduh file: ${selectedAnnouncement.attachment}`)}
+                        className="text-[11px] font-bold bg-white text-[#1A3D63] px-3 py-1.5 rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
+                      >
+                        Unduh
+                      </button>
+                    )}
+                  </div>
+                )}
                                 
                 {selectedAnnouncement.isTagihan && onNavigate && (
                   <div className="mt-6 pt-4 border-t border-gray-100">

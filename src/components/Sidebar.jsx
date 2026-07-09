@@ -229,7 +229,8 @@ const menuSections = [
     items: [
       { label: "Data Siswa Kelas", icon: <UsersIcon /> },
       { label: "Catatan Siswa", icon: <ChatIcon /> },
-      { label: "Rapor Siswa", icon: <FileChartIcon /> }
+      { label: "Rapor Siswa", icon: <FileChartIcon /> },
+      { label: "Peringkat Kelas", icon: <AwardIcon /> }
     ],
     roles: ["Wali Kelas"]
   },

@@ -4,6 +4,15 @@ const { query, getClient } = require('../config/db');
 
 const SystemRepository = {
   // === AUDIT LOGS ===
+  insertAuditLog: async (logData) => {
+    const { user_id, aksi, modul, detail, ip_address, device } = logData;
+    const sql = `
+      INSERT INTO shared.audit_log (user_id, aksi, modul, detail, ip_address, device, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6, NOW())
+    `;
+    await query(sql, [user_id, aksi, modul, detail, ip_address, device]);
+  },
+
   getAuditLogs: async (filters = {}) => {
     let sql = `
       SELECT a.*, u.nama as user_name, u.email as user_email

@@ -11,6 +11,7 @@ import RekapAbsensiSiswa from "./RekapAbsensiSiswa";
 import CatatanSiswa from "./CatatanSiswa";
 import DataSiswaKelasWali from "./DataSiswaKelasWali";
 import GenerateRaporWali from "./GenerateRaporWali";
+import PeringkatKelasWali from "./PeringkatKelasWali";
 import PlaceholderDashboard from "./PlaceholderDashboard";
 import Profile from "../Profile";
 
@@ -66,6 +67,9 @@ const WaliKelasDashboard = ({ user, activeMenu, onViewChange }) => {
       
     case "Rapor Siswa":
       return <GenerateRaporWali user={user} />;
+      
+    case "Peringkat Kelas":
+      return <PeringkatKelasWali user={user} />;
       
     case "Jadwal Kelas":
       return <JadwalKelasWali user={user} />;

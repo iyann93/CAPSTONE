@@ -124,9 +124,15 @@ const RaporRepository = {
       for (const row of siswaList.rows) {
         const sId = row.id;
         const { avg, kategori } = await RaporRepository._computeRataRata(client, sId, semesterId);
+        
+        // Ambil catatan wali kelas untuk siswa ini (jika ada)
+        const catSql = `SELECT isi_catatan FROM academic.catatan_siswa WHERE siswa_id = $1 AND semester_id = $2`;
+        const catRes = await client.query(catSql, [sId, semesterId]);
+        const catatanWali = catRes.rows.length > 0 ? catRes.rows[0].isi_catatan : null;
+
         // Kita tangkap error jika is_published true secara per-siswa
         try {
-          await RaporRepository._upsertRapor(client, sId, semesterId, kelasId, userId, avg, kategori, null);
+          await RaporRepository._upsertRapor(client, sId, semesterId, kelasId, userId, avg, kategori, catatanWali);
         } catch (e) {
           // Skip if already published
           if (!e.message.includes('sudah dipublish')) throw e;

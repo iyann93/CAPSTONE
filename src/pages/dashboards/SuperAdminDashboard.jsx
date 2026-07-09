@@ -7,7 +7,7 @@ import EmployeeData from "./EmployeeData";
 import SystemSettings from "./SystemSettings";
 import PlaceholderDashboard from "./PlaceholderDashboard";
 import LaporanIntegrasi from "./LaporanIntegrasi";
-import { getPendingUsers, activateUser, deactivateUser, getAuditLogs, getAllSystemUsers, getSiswaDropdown } from "../../api/system";
+import { getPendingUsers, activateUser, deactivateUser, getAuditLogs, getAllSystemUsers, getSiswaDropdown, getSystemStats } from "../../api/system";
 import api from "../../api/axios";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -673,8 +673,13 @@ const GlobalResetModal = ({ onClose }) => {
         alert("Password berhasil diperbarui!");
       } else {
         const { sendResetPasswordEmail } = await import("../../api/system");
-        await sendResetPasswordEmail(selectedUser.id);
-        alert("Link reset berhasil dikirim ke email pengguna!");
+        const res = await sendResetPasswordEmail(selectedUser.id);
+        
+        let msg = "Link reset berhasil dikirim ke email pengguna!";
+        if (res?.data?.previewUrl) {
+          msg += `\n\n(Mode Ethereal/Testing)\nKlik link berikut untuk melihat email:\n${res.data.previewUrl}`;
+        }
+        alert(msg);
       }
       onClose();
     } catch (e) {
@@ -826,7 +831,7 @@ const RolePermissionModule = () => {
     },
     {
       category: "SISWA & MANAJEMEN KELAS",
-      features: ["Data Siswa", "Data Orang Tua", "Data Siswa Kelas", "Absensi Siswa", "Rekap Absensi Siswa", "Catatan Siswa", "E-Rapor & Input Nilai", "Input Nilai", "Rapor Siswa"]
+      features: ["Data Siswa", "Data Orang Tua", "Data Siswa Kelas", "Absensi Siswa", "Rekap Absensi Siswa", "Catatan Siswa", "E-Rapor & Input Nilai", "Input Nilai", "Rapor Siswa", "Peringkat Kelas"]
     },
     {
       category: "GURU & SEKOLAH",
@@ -885,7 +890,7 @@ const RolePermissionModule = () => {
       grant(["Perkembangan Akademik", "Unduh Rapor", "Tagihan SPP", "Riwayat Pembayaran", "Beasiswa", "Pengumuman Sekolah"]);
     }
     else if (name.includes("wali kelas") || name.includes("walikelas")) {
-      grant(["Data Siswa Kelas", "Catatan Siswa", "Rapor Siswa", "Riwayat Terima Gaji"]);
+      grant(["Data Siswa Kelas", "Catatan Siswa", "Rapor Siswa", "Peringkat Kelas", "Riwayat Terima Gaji"]);
     }
     else if (name.includes("kepala sekolah") || name.includes("kepsek")) {
       grant(["Persetujuan Kurikulum", "Validasi Kelulusan", "Riwayat Terima Gaji", "Laporan Akademik", "Monitoring Siswa", "Monitoring Keuangan"]);
@@ -1355,8 +1360,13 @@ const SuperAdminOverview = ({ onExportClick, onViewChange }) => {
     totalUsers: 0,
     activeStudents: 0,
     staffCount: 0,
-    errorLogs: 0
+    errorLogs: 0,
+    systemUptime: "Loading...",
+    storagePercentage: "0%"
   });
+  
+  const [realSystemLogs, setRealSystemLogs] = useState([]);
+  const [realRbacChanges, setRealRbacChanges] = useState([]);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -1378,12 +1388,66 @@ const SuperAdminOverview = ({ onExportClick, onViewChange }) => {
           l.detail?.toLowerCase().includes("gagal") || l.detail?.toLowerCase().includes("error")
         ).length;
 
+        // Fetch system stats for uptime and storage
+        const systemStats = await getSystemStats().catch(() => null);
+        let systemUptime = "0%";
+        let storagePercentage = "0%";
+        
+        if (systemStats) {
+          // Uptime format (e.g. 10d 5h 30m)
+          const upSecs = systemStats.uptime;
+          if (upSecs) {
+            const d = Math.floor(upSecs / (3600 * 24));
+            const h = Math.floor((upSecs % (3600 * 24)) / 3600);
+            const m = Math.floor((upSecs % 3600) / 60);
+            systemUptime = d > 0 ? `${d}d ${h}h ${m}m` : `${h}h ${m}m`;
+          } else {
+            systemUptime = "99.9%";
+          }
+          
+          if (systemStats.totalSpace > 0) {
+            storagePercentage = Math.round((systemStats.usedSpace / systemStats.totalSpace) * 100) + "%";
+          }
+        }
+
         setStats({
           totalUsers: users.length,
           activeStudents,
           staffCount,
-          errorLogs: errorLogsCount
+          errorLogs: errorLogsCount,
+          systemUptime,
+          storagePercentage
         });
+        
+        // Process logs for Activity Log and RBAC
+        const formattedLogs = logs.map(l => {
+          const t = new Date(l.created_at);
+          return {
+            time: t.toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+            message: `[${(l.aksi||'').replace(/_/g, ' ')}] ${l.detail} - ${l.user_name || 'System'}`
+          };
+        }).slice(0, 7);
+        setRealSystemLogs(formattedLogs);
+        
+        // Pseudo-extract RBAC changes from logs
+        const rbacLogs = logs.filter(l => l.detail?.toLowerCase().includes("role")).slice(0, 7).map(l => {
+          const t = new Date(l.created_at);
+          return {
+            name: l.user_name || "Unknown",
+            oldRole: "-",
+            newRole: l.detail,
+            time: t.toLocaleString('id-ID', { day: '2-digit', month: 'short' })
+          };
+        });
+        
+        // Fallback dummy data if no role changes found
+        if (rbacLogs.length === 0) {
+          rbacLogs.push(
+            { name: "Sistem", oldRole: "-", newRole: "Setup Awal", time: "Baru saja" }
+          );
+        }
+        setRealRbacChanges(rbacLogs);
+
       } catch (error) {
         console.error("Failed to fetch dashboard stats", error);
       }
@@ -1391,32 +1455,12 @@ const SuperAdminOverview = ({ onExportClick, onViewChange }) => {
     fetchStats();
   }, []);
 
-  const rbacChanges = [
-    { name: "Dr. Wahyu", oldRole: "Guru", newRole: "Admin TU", time: "10:45" },
-    { name: "Siti Aminah", oldRole: "Staf", newRole: "Bendahara", time: "09:30" },
-    { name: "Ahmad Ridwan", oldRole: "Siswa", newRole: "Alumni", time: "Kemarin" },
-    { name: "Budi Santoso", oldRole: "-", newRole: "Guru", time: "Kemarin" },
-    { name: "System Admin", oldRole: "Super", newRole: "Super", time: "2 hari lalu" },
-    { name: "Kepala Sekolah", oldRole: "Guru", newRole: "Kepsek", time: "3 hari lalu" },
-    { name: "User Test", oldRole: "Siswa", newRole: "Nonaktif", time: "3 hari lalu" },
-  ];
-
-  const systemLogs = [
-    { time: "11:02:45", message: "Database backup completed successfully" },
-    { time: "10:55:12", message: "High CPU usage detected (85%) on Node-1" },
-    { time: "10:15:00", message: "User Budi_S logged in via Web" },
-    { time: "09:42:11", message: "Failed to send email notification to User_" },
-    { time: "09:30:00", message: "Cron job: Daily attendance calculation sta" },
-    { time: "08:15:22", message: "System update v2.4.1 applied" },
-    { time: "07:00:05", message: "Service [PaymentGateway] restarted" },
-  ];
-
-  const filteredRbacChanges = rbacChanges.filter(row =>
+  const filteredRbacChanges = realRbacChanges.filter(row =>
     row.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     row.newRole.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredSystemLogs = systemLogs.filter(log =>
+  const filteredSystemLogs = realSystemLogs.filter(log =>
     log.message.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -1513,8 +1557,8 @@ const SuperAdminOverview = ({ onExportClick, onViewChange }) => {
         <StatCard icon={<IconUsers />} label="Total User" value={stats.totalUsers.toLocaleString()} color="text-blue-600" iconBg="bg-blue-50" onClick={() => onViewChange?.("Mengelola Akun User")} />
         <StatCard icon={<IconGraduation />} label="Siswa Aktif" value={stats.activeStudents.toLocaleString()} color="text-indigo-600" iconBg="bg-indigo-50" onClick={() => onViewChange?.("Data Siswa")} />
         <StatCard icon={<IconBriefcase />} label="Guru & Staf" value={stats.staffCount.toLocaleString()} color="text-emerald-600" iconBg="bg-emerald-50" onClick={() => onViewChange?.("Data Guru & Karyawan")} />
-        <StatCard icon={<IconPulse />} label="Sistem Uptime" value="99.9%" color="text-teal-600" iconBg="bg-teal-50" />
-        <StatCard icon={<IconDatabase />} label="Storage" value="68%" color="text-amber-600" iconBg="bg-amber-50" onClick={() => onViewChange?.("Backup & Maintenance")} />
+        <StatCard icon={<IconPulse />} label="Sistem Uptime" value={stats.systemUptime} color="text-teal-600" iconBg="bg-teal-50" />
+        <StatCard icon={<IconDatabase />} label="Storage" value={stats.storagePercentage} color="text-amber-600" iconBg="bg-amber-50" onClick={() => onViewChange?.("Backup & Maintenance")} />
         <StatCard icon={<IconAlert />} label="Error Logs" value={stats.errorLogs.toString()} color="text-red-600" iconBg="bg-red-50" />
       </div>
 

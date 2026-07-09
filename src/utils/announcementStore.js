@@ -103,3 +103,33 @@ export function deleteAnnouncement(id) {
   saveAnnouncements(updated);
   return updated;
 }
+
+/**
+ * Ubah status aktif/nonaktif pengumuman.
+ */
+export function toggleAnnouncementStatus(id) {
+  const list = getAnnouncements();
+  const updated = list.map(a => {
+    if (a.id === id) {
+      return { ...a, isActive: a.isActive === false ? true : false };
+    }
+    return a;
+  });
+  saveAnnouncements(updated);
+  return updated;
+}
+
+/**
+ * Edit pengumuman yang sudah ada.
+ */
+export function editAnnouncement(id, updatedData) {
+  const list = getAnnouncements();
+  const updated = list.map(a => {
+    if (a.id === id) {
+      return { ...a, ...updatedData };
+    }
+    return a;
+  });
+  saveAnnouncements(updated);
+  return updated;
+}

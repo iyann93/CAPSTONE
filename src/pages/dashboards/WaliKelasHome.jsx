@@ -27,7 +27,7 @@ const WaliKelasHome = ({ user, onNavigate }) => {
       {/* Header Greeting */}
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
-          <h1 className="text-[26px] font-bold text-[#1e293b]">Selamat Datang! 👋</h1>
+          <h1 className="text-[26px] font-bold text-[#1e293b]">Selamat Datang!</h1>
           <p className="text-[14px] text-gray-500 mt-1">
             {classData.waliKelas} · Wali Kelas {classData.kelas}
           </p>

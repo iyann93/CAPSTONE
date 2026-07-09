@@ -18,7 +18,7 @@ const JadwalKelasWali = ({ user }) => {
       setError(null);
 
       // 1. Dapatkan Guru ID
-      const searchKey = user.email || user.fullName;
+      const searchKey = user?.fullName || user?.nama || user?.email || "";
       const guruRes = await api.get(`/guru?search=${encodeURIComponent(searchKey)}`);
       const guru = guruRes.data?.data?.find(g => 
         (g.email && g.email === user.email) || 

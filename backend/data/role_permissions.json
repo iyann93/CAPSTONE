@@ -299,6 +299,12 @@
       "buat": false,
       "ubah": false,
       "hapus": false
+    },
+    "Peringkat Kelas": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
     }
   },
   "bendahara": {
@@ -601,6 +607,12 @@
       "buat": false,
       "ubah": false,
       "hapus": false
+    },
+    "Peringkat Kelas": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
     }
   },
   "9e0695cb-c1e0-48b4-b041-277778bf6085": {
@@ -647,7 +659,7 @@
       "hapus": true
     },
     "Semester": {
-      "lihat": true,
+      "lihat": false,
       "buat": false,
       "ubah": false,
       "hapus": true
@@ -887,6 +899,12 @@
       "hapus": false
     },
     "Pengaturan Sistem": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Peringkat Kelas": {
       "lihat": false,
       "buat": false,
       "ubah": false,
@@ -937,7 +955,7 @@
       "hapus": true
     },
     "Semester": {
-      "lihat": true,
+      "lihat": false,
       "buat": false,
       "ubah": false,
       "hapus": true
@@ -1177,6 +1195,12 @@
       "hapus": false
     },
     "Pengaturan Sistem": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Peringkat Kelas": {
       "lihat": false,
       "buat": false,
       "ubah": false,
@@ -1471,6 +1495,12 @@
       "buat": false,
       "ubah": false,
       "hapus": false
+    },
+    "Peringkat Kelas": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
     }
   },
   "gurumapel": {
@@ -1757,6 +1787,12 @@
       "hapus": false
     },
     "Pengaturan Sistem": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Peringkat Kelas": {
       "lihat": false,
       "buat": false,
       "ubah": false,
@@ -2051,6 +2087,12 @@
       "buat": false,
       "ubah": false,
       "hapus": false
+    },
+    "Peringkat Kelas": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
     }
   },
   "wakilkepala": {
@@ -2337,6 +2379,12 @@
       "hapus": false
     },
     "Pengaturan Sistem": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Peringkat Kelas": {
       "lihat": false,
       "buat": false,
       "ubah": false,
@@ -2631,6 +2679,12 @@
       "buat": false,
       "ubah": false,
       "hapus": false
+    },
+    "Peringkat Kelas": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
+      "hapus": false
     }
   },
   "walikelas": {
@@ -2920,6 +2974,12 @@
       "lihat": false,
       "buat": false,
       "ubah": false,
+      "hapus": false
+    },
+    "Peringkat Kelas": {
+      "lihat": true,
+      "buat": true,
+      "ubah": true,
       "hapus": false
     }
   },
@@ -3211,6 +3271,12 @@
       "buat": false,
       "ubah": false,
       "hapus": false
+    },
+    "Peringkat Kelas": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
     }
   },
   "orangtua": {
@@ -3497,6 +3563,12 @@
       "hapus": false
     },
     "Pengaturan Sistem": {
+      "lihat": false,
+      "buat": false,
+      "ubah": false,
+      "hapus": false
+    },
+    "Peringkat Kelas": {
       "lihat": false,
       "buat": false,
       "ubah": false,

@@ -1,12 +1,33 @@
 'use strict';
 
 const router = require('express').Router();
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const SystemController = require('../controllers/system.controller');
 const verifyToken = require('../middleware/verifyToken');
 const authorize = require('../middleware/authorize');
 
 // GET /api/v1/system/audit-logs
 router.get('/audit-logs', verifyToken, authorize('system.read'), SystemController.getAuditLogs);
+
+// Announcements File Handling
+const announcementStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, '../../data/announcements');
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '-' + Math.round(Math.random() * 1E9) + '-' + file.originalname);
+  }
+});
+const uploadAnnouncement = multer({ storage: announcementStorage });
+
+router.post('/upload-announcement-file', verifyToken, uploadAnnouncement.single('file'), SystemController.uploadAnnouncementFile);
+router.get('/announcements/:filename', SystemController.getAnnouncementFile);
 
 // Backup Routes
 const BackupController = require('../controllers/backup.controller');
@@ -66,8 +87,7 @@ router.put('/frontend-state', verifyToken, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-const fs = require('fs');
-const path = require('path');
+
 const PERMS_FILE = path.join(__dirname, '../../data/role_permissions.json');
 
 router.get('/role-permissions', verifyToken, (req, res) => {
@@ -81,12 +101,25 @@ router.get('/role-permissions', verifyToken, (req, res) => {
   } catch (err) { res.json({ success: true, data: {} }); }
 });
 
-router.put('/role-permissions', verifyToken, (req, res) => {
+router.put('/role-permissions', verifyToken, async (req, res) => {
   try {
+    const fs = require('fs');
     if (!fs.existsSync(path.dirname(PERMS_FILE))) {
       fs.mkdirSync(path.dirname(PERMS_FILE), { recursive: true });
     }
     fs.writeFileSync(PERMS_FILE, JSON.stringify(req.body, null, 2));
+    
+    // Insert audit log
+    const SystemRepository = require('../repositories/system.repository');
+    await SystemRepository.insertAuditLog({
+      user_id: req.user.userId,
+      aksi: 'UPDATE_ROLE',
+      modul: 'Role & Permission',
+      detail: 'Ubah Role Permission',
+      ip_address: req.ip || '127.0.0.1',
+      device: req.headers['user-agent'] || 'Web Browser'
+    });
+
     res.json({ success: true });
   } catch (err) { res.status(500).json({ success: false, message: err.message }); }
 });

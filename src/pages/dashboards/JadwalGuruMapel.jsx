@@ -10,7 +10,8 @@ const JadwalGuruMapel = ({ user, onNavigate }) => {
       try {
         setLoading(true);
         // Ambil ID Guru
-        const resGuru = await api.get(`/guru?search=${encodeURIComponent(user?.email || "")}`);
+        const searchQuery = user?.fullName || user?.nama || user?.email || "";
+        const resGuru = await api.get(`/guru?search=${encodeURIComponent(searchQuery)}`);
         const dataGuru = resGuru.data?.data?.[0];
         const fetchedId = dataGuru?.id;
 

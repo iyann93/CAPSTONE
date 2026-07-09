@@ -175,8 +175,19 @@ exports.getStats = async (req, res, next) => {
       }
     }
 
-    // 3. Return combined used space
-    const usedSpace = dbSize + backupSize;
+    // 3. Get announcements folder size
+    const ANNOUNCEMENT_DIR = path.join(__dirname, '../../data/announcements');
+    let announcementsSize = 0;
+    if (fs.existsSync(ANNOUNCEMENT_DIR)) {
+      const files = fs.readdirSync(ANNOUNCEMENT_DIR);
+      files.forEach(file => {
+        const stats = fs.statSync(path.join(ANNOUNCEMENT_DIR, file));
+        announcementsSize += stats.size;
+      });
+    }
+
+    // 4. Return combined used space
+    const usedSpace = dbSize + backupSize + announcementsSize;
     
     // Let's set total space to 5 GB (or 10 GB) to show a realistic percentage for a small web app
     const totalSpace = 5 * 1024 * 1024 * 1024; // 5 GB
@@ -189,7 +200,8 @@ exports.getStats = async (req, res, next) => {
         usedSpace,
         freeSpace,
         lastBackup,
-        dbStatus: 'Optimal'
+        dbStatus: 'Optimal',
+        uptime: process.uptime()
       }
     });
   } catch (err) {

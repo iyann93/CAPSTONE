@@ -71,3 +71,9 @@ export const getBackupSettings = () =>
 
 export const updateBackupSettings = (data) =>
   api.put('/system/backup-settings', data).then(r => r.data);
+
+// === PENGUMUMAN ===
+export const uploadAnnouncementFile = (formData) =>
+  api.post('/system/upload-announcement-file', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }).then(r => r.data.data);
