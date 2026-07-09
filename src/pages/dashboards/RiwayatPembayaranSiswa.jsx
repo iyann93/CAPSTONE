@@ -1,0 +1,259 @@
+import React, { useState, useEffect } from "react";
+import ReactDOM from "react-dom";
+import { getTagihan } from "../../api/finance";
+
+const fmt = (n) => "Rp " + Number(n).toLocaleString("id-ID");
+
+const getBulanNama = (b) => ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][b-1];
+
+const mapStatus = (status) => {
+  if (status === "lunas") return "Lunas";
+  if (status === "menunggu_konfirmasi") return "Menunggu";
+  return "Belum Lunas";
+};
+
+const getNominalTagihan = (t) => {
+  const baseNominal = Number(t.nominal || 0);
+  const potongan = Number(t.potongan || 0);
+  const nominalAkhir = (t.nominal_akhir !== undefined && t.nominal_akhir !== null) 
+     ? Number(t.nominal_akhir) 
+     : (baseNominal - potongan);
+  return Math.max(0, nominalAkhir);
+};
+
+const RiwayatPembayaranSiswa = ({ user, onNavigate }) => {
+  const [tagihan, setTagihan] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("Semua");
+  const [detail, setDetail] = useState(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+
+  const studentData = {
+    nama: user?.anak?.nama || "Siswa",
+    kelas: user?.anak?.kelas || "-",
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const res = await getTagihan({ limit: 5000 });
+        const arr = Array.isArray(res) ? res : [];
+        
+        const anakId = user?.anak?.id;
+        const anakNis = user?.anak?.nis;
+        const anakNisn = user?.anak?.nisn;
+        const anakNama = user?.anak?.nama;
+
+        const myTagihans = arr.filter(t => 
+           (anakId && t.id_siswa === anakId) ||
+           (anakNis && t.nis === anakNis) ||
+           (anakNama && (t.nama_siswa === anakNama || t.nama === anakNama)) ||
+           (anakNisn && t.nisn === anakNisn)
+        );
+
+        const mapped = myTagihans.map(t => {
+          const d = t.created_at ? new Date(t.created_at) : new Date();
+          return {
+            id: t.id,
+            bulan: `${getBulanNama(t.bulan)} ${t.tahun}`,
+            nominal: getNominalTagihan(t),
+            jatuhTempo: t.jatuh_tempo ? new Date(t.jatuh_tempo).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : "10 " + getBulanNama(t.bulan).substring(0,3) + " " + t.tahun,
+            status: mapStatus(t.status),
+            tglBayar: t.status === 'lunas' && t.updated_at ? new Date(t.updated_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : null,
+            denda: 0,
+            bukti: t.bukti_pembayaran_url
+          };
+        });
+        setTagihan(mapped);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (user) {
+      loadData();
+    }
+  }, [user]);
+
+  const baseTagihan = tagihan.filter(t => t.status !== "Belum Lunas");
+  const filtered = filter === "Semua" ? baseTagihan : baseTagihan.filter(t => t.status === filter);
+
+  return (
+    <div className="p-6 md:p-8 space-y-6 animate-fadeIn bg-[#F4F6FA] min-h-full">
+      <div className="text-[13px] text-gray-400">
+        Dashboard &gt; <span className="text-[#2A4365] font-semibold">Riwayat Pembayaran</span>
+      </div>
+
+      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+        <div>
+          <h1 className="text-[26px] font-bold text-[#1e293b]">Riwayat Pembayaran</h1>
+          <p className="text-[14px] text-gray-500 mt-1">{studentData.nama} · Kelas {studentData.kelas} · Tahun Ajaran 2025/2026</p>
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="px-5 pt-5 pb-4 border-b border-gray-100 flex items-center gap-2 flex-wrap">
+          {["Semua", "Menunggu", "Lunas"].map(f => (
+            <button key={f} onClick={() => setFilter(f)} className={`px-4 py-1.5 rounded-full text-[12px] font-semibold transition-colors ${filter === f ? "bg-[#1A3D63] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>{f === "Menunggu" ? "Proses Verifikasi" : f}</button>
+          ))}
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="border-b border-gray-100">
+              <tr>
+                {["BULAN", "NOMINAL", "JATUH TEMPO", "TGL BAYAR", "STATUS", "DETAIL"].map(h => (
+                  <th key={h} className="px-5 py-3.5 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filtered.map((t, i) => (
+                <tr key={i} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="px-5 py-4 text-[13px] font-semibold text-gray-800">{t.bulan}</td>
+                  <td className="px-5 py-4 text-[13px] font-bold text-gray-700">{fmt(t.nominal)}</td>
+                  <td className="px-5 py-4 text-[13px] text-gray-500">{t.jatuhTempo}</td>
+                  <td className="px-5 py-4 text-[13px] text-gray-500">{t.tglBayar || "—"}</td>
+                  <td className="px-5 py-4">
+                    {t.status === "Lunas" ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-green-50 text-green-600 border border-green-100">
+                        <svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>Lunas
+                      </span>
+                    ) : t.status === "Menunggu" ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-600 border border-blue-100">
+                        <svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>Proses Verifikasi
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-600 border border-amber-100">
+                        <svg width="9" height="9" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Belum Lunas
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-5 py-4">
+                    <button onClick={() => setDetail(t)} className="w-8 h-8 flex items-center justify-center bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors" title="Lihat Detail">
+                      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Detail Modal — rendered via Portal to escape overflow-y-auto scroll container */}
+      {detail && ReactDOM.createPortal(
+        <div
+          style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(0,0,0,0.65)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)", padding: "1rem" }}>
+          <div className="bg-white rounded-2xl w-full max-w-[440px] shadow-2xl overflow-hidden">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h3 className="text-[17px] font-bold text-[#1e293b]">Detail Tagihan</h3>
+            </div>
+
+            {/* Body */}
+            <div className="px-6 pt-4 pb-2">
+              {[
+                ["Bulan", detail.bulan],
+                ["Nominal SPP", fmt(detail.nominal)],
+                ["Jatuh Tempo", detail.jatuhTempo],
+                ["Tanggal Bayar", detail.tglBayar || "Belum dibayar"],
+                ["Status", detail.status],
+              ].map(([k, v], idx, arr) => (
+                <div
+                  key={k}
+                  className={`flex justify-between items-center py-3 ${idx < arr.length - 1 ? "border-b border-gray-100" : ""}`}
+                >
+                  <span className="text-[13px] text-gray-500">{k}</span>
+                  <span className={`text-[13px] font-bold ${
+                    k === "Status" && detail.status === "Lunas"
+                      ? "text-green-600"
+                      : k === "Status" && detail.status === "Menunggu"
+                      ? "text-blue-600"
+                      : k === "Status"
+                      ? "text-amber-600"
+                      : "text-gray-800"
+                  }`}>
+                    {v === "Menunggu" ? "Proses Verifikasi" : v}
+                  </span>
+                </div>
+              ))}
+
+              {detail.bukti && (
+                <div className="pt-3 pb-2">
+                  <p className="text-[13px] text-gray-500 mb-2 font-bold">Bukti Pembayaran</p>
+                  <div className="border border-gray-100 rounded-xl overflow-hidden shadow-sm relative group cursor-pointer" onClick={() => setShowPreviewModal(true)}>
+                    {(detail.bukti.toLowerCase().includes('.pdf') || detail.bukti.startsWith('data:application/pdf')) ? (
+                      <div className="flex flex-col items-center justify-center p-6 bg-gray-50 h-32">
+                        <svg width="40" height="40" fill="none" stroke="#ef4444" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+                        <span className="text-xs font-bold text-gray-500 mt-2">Dokumen PDF</span>
+                      </div>
+                    ) : (
+                      <img src={detail.bukti} alt="Bukti Pembayaran" className="w-full h-auto object-cover max-h-40" />
+                    )}
+                    <div className="absolute inset-0 bg-black/30 hidden group-hover:flex items-center justify-center transition-all">
+                      <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" /></svg>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 flex gap-3">
+              <button
+                onClick={() => setDetail(null)}
+                className="flex-1 py-3 bg-white border border-gray-200 rounded-xl text-gray-600 text-[13px] font-bold hover:bg-gray-50 transition-colors"
+              >
+                Tutup
+              </button>
+              {detail.status === "Belum Lunas" && (
+                <button
+                  onClick={() => { setDetail(null); onNavigate("Tagihan SPP"); }}
+                  className="flex-1 py-3 bg-[#1A3D63] text-white rounded-xl text-[13px] font-bold hover:bg-[#163256] transition-colors"
+                >
+                  Bayar Sekarang
+                </button>
+              )}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Full Image Preview Modal */}
+      {showPreviewModal && detail?.bukti && ReactDOM.createPortal(
+        <div style={{ position: "fixed", inset: 0, zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowPreviewModal(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl overflow-hidden max-w-3xl w-full flex flex-col max-h-[90vh] animate-scaleUp">
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-white">
+              <h3 className="font-bold text-gray-800 text-[15px]">Pratinjau Bukti Pembayaran</h3>
+              <button onClick={() => setShowPreviewModal(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-500 transition-colors flex-shrink-0">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto bg-gray-50 flex items-center justify-center p-4">
+              {(detail.bukti.toLowerCase().includes('.pdf') || detail.bukti.startsWith('data:application/pdf')) ? (
+                <object data={detail.bukti} type="application/pdf" className="w-full h-[70vh] rounded-lg shadow-sm">
+                  <div className="flex flex-col items-center justify-center h-full text-center p-4">
+                    <svg width="48" height="48" fill="none" stroke="#ef4444" strokeWidth="2" viewBox="0 0 24 24" className="mb-4"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+                    <p className="text-gray-500 text-sm font-medium">Browser Anda mungkin tidak mendukung pratinjau langsung PDF.</p>
+                    <a href={detail.bukti} target="_blank" rel="noreferrer" className="mt-4 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-bold text-sm hover:bg-blue-100 transition-colors">Unduh / Buka PDF di Tab Baru</a>
+                  </div>
+                </object>
+              ) : (
+                <img src={detail.bukti} alt="Bukti Pembayaran Full" className="max-w-full max-h-full object-contain rounded-lg shadow-sm" />
+              )}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+    </div>
+  );
+};
+
+export default RiwayatPembayaranSiswa;
+
+
