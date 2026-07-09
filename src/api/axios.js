@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api/v1',
+  // Gunakan URL dari .env jika ada, jika tidak fallback ke '/api/v1' (Vite proxy lokal)
+  baseURL: import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/v1` : '/api/v1',
   withCredentials: true, // Untuk mengirim cookies (JWT)
   headers: {
     'Content-Type': 'application/json',
