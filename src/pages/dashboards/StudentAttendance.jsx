@@ -114,7 +114,7 @@ const StudentAttendance = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
-          <h1 className="text-[26px] font-bold text-[#1e293b]">Absensi Siswa</h1>
+          <h1 className="text-[26px] font-bold text-[#1e293b]">Input Absensi</h1>
           <p className="text-gray-500 text-[15px] mt-1">
             Monitor dan input kehadiran siswa harian per kelas.
           </p>
@@ -276,8 +276,22 @@ const StudentAttendance = () => {
 
       {/* Table Section */}
       <div className="bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-hidden flex flex-col">
-        <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="flex bg-gray-100 p-1 rounded-xl">
+        <div className="p-5 border-b border-gray-100 flex flex-col gap-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <h3 className="text-base font-bold text-[#1e293b]">Input Absensi</h3>
+            <div className="relative w-full md:w-[280px]">
+              <input
+                type="text"
+                placeholder="Cari kelas..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all bg-gray-50 focus:bg-white"
+              />
+              <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            </div>
+          </div>
+
+          <div className="flex bg-gray-100 p-1 rounded-xl w-fit">
             {["Semua Kelas", "Kelas VII", "Kelas VIII", "Kelas IX"].map((tab) => (
               <button
                 key={tab}
@@ -291,17 +305,6 @@ const StudentAttendance = () => {
                 {tab}
               </button>
             ))}
-          </div>
-
-          <div className="relative w-full md:w-[280px]">
-            <input
-              type="text"
-              placeholder="Cari kelas..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all bg-gray-50 focus:bg-white"
-            />
-            <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           </div>
         </div>
 
@@ -411,15 +414,8 @@ const StudentAttendance = () => {
           </table>
         </div>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-gray-100 flex items-center justify-between text-[13px]">
-          <div className="text-gray-500">
-            Total {classes.length} kelas ditampilkan
-          </div>
-          <button className="px-4 py-2 bg-[#1A3D63] hover:bg-[#122A44] text-white rounded-xl text-[13px] font-bold flex items-center gap-2 shadow-sm transition-colors">
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            Input Absensi Cepat
-          </button>
+        <div className="p-4 border-t border-gray-100 text-[13px] text-gray-500">
+          Total {classes.length} kelas ditampilkan
         </div>
       </div>
     </div>

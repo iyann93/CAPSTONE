@@ -53,7 +53,7 @@ const Schedules = () => {
         fetchSchedules();
       } catch (err) {
         console.error("Gagal menghapus jadwal:", err);
-        alert("Gagal menghapus jadwal.");
+        alert("Gagal menghapus jadwal: " + (err.response?.data?.message || err.message));
       }
     }
   };

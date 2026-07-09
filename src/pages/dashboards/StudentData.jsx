@@ -52,11 +52,11 @@ const mapSiswa = (s, index) => {
   };
 };
 
-const StudentData = () => {
+const StudentData = ({ initialView = "list" }) => {
   const [students, setStudents]         = useState([]);
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState(null);
-  const [viewMode, setViewMode]         = useState("list");
+  const [viewMode, setViewMode]         = useState(initialView);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [activeTab, setActiveTab]       = useState("Semua");
   const [searchQuery, setSearchQuery]   = useState("");

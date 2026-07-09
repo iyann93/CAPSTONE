@@ -105,7 +105,10 @@ const StudentAttendanceInput = ({ classData, selectedDate, onBack, onSave }) => 
   };
 
   const totalStudents = students.length;
-  const pctHadir = Math.round((counts.Hadir / totalStudents) * 100) || 0;
+  const pctHadir = totalStudents > 0 ? Math.round((counts.Hadir / totalStudents) * 100) : 0;
+  const pctSakit = totalStudents > 0 ? Math.round((counts.Sakit / totalStudents) * 100) : 0;
+  const pctIzin = totalStudents > 0 ? Math.round((counts.Izin / totalStudents) * 100) : 0;
+  const pctAlpha = totalStudents > 0 ? Math.round((counts.Alpha / totalStudents) * 100) : 0;
 
   return (
     <div className="p-6 md:p-8 animate-fadeIn space-y-6 bg-[#F4F6FA] min-h-full">
@@ -280,19 +283,19 @@ const StudentAttendanceInput = ({ classData, selectedDate, onBack, onSave }) => 
               <div className="w-full space-y-3">
                 <div className="flex items-center justify-between text-[13px]">
                   <div className="flex items-center gap-2"><div className="w-3.5 h-3.5 rounded-full border-2 border-emerald-500 bg-white shadow-sm"></div><span className="text-gray-600">Hadir</span></div>
-                  <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-full h-full bg-emerald-500 rounded-full"></div></div><span className="font-bold text-[#1e293b] w-6 text-right">{counts.Hadir}</span></div>
+                  <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-emerald-500 rounded-full" style={{ width: `${pctHadir}%` }}></div></div><span className="font-bold text-[#1e293b] w-6 text-right">{counts.Hadir}</span></div>
                 </div>
                 <div className="flex items-center justify-between text-[13px]">
                   <div className="flex items-center gap-2"><div className="w-3.5 h-3.5 rounded-full border-2 border-orange-400 bg-white shadow-sm"></div><span className="text-gray-600">Sakit</span></div>
-                  <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-[10%] h-full bg-orange-400 rounded-full"></div></div><span className="font-bold text-[#1e293b] w-6 text-right">{counts.Sakit}</span></div>
+                  <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-orange-400 rounded-full" style={{ width: `${pctSakit}%` }}></div></div><span className="font-bold text-[#1e293b] w-6 text-right">{counts.Sakit}</span></div>
                 </div>
                 <div className="flex items-center justify-between text-[13px]">
                   <div className="flex items-center gap-2"><div className="w-3.5 h-3.5 rounded-full border-2 border-purple-500 bg-white shadow-sm"></div><span className="text-gray-600">Izin</span></div>
-                  <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-[10%] h-full bg-purple-500 rounded-full"></div></div><span className="font-bold text-[#1e293b] w-6 text-right">{counts.Izin}</span></div>
+                  <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-purple-500 rounded-full" style={{ width: `${pctIzin}%` }}></div></div><span className="font-bold text-[#1e293b] w-6 text-right">{counts.Izin}</span></div>
                 </div>
                 <div className="flex items-center justify-between text-[13px]">
                   <div className="flex items-center gap-2"><div className="w-3.5 h-3.5 rounded-full border-2 border-red-500 bg-white shadow-sm"></div><span className="text-gray-600">Alpha</span></div>
-                  <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-[0%] h-full bg-red-500 rounded-full"></div></div><span className="font-bold text-[#1e293b] w-6 text-right">{counts.Alpha}</span></div>
+                  <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-red-500 rounded-full" style={{ width: `${pctAlpha}%` }}></div></div><span className="font-bold text-[#1e293b] w-6 text-right">{counts.Alpha}</span></div>
                 </div>
               </div>
             </div>

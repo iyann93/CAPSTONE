@@ -1,21 +1,22 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api/axios";
 import { getTagihan } from "../../api/finance";
+import { getAnnouncements } from "../../utils/announcementStore";
 
 const mockNotifications = [
   { id: 2, type: "nilai", title: "Rapor Semester Genap Tersedia", desc: "Rapor semester genap 2023/2024 sudah bisa diunduh", time: "1 hari lalu", read: false },
   { id: 3, type: "pengumuman", title: "Pengumuman Libur Akhir Tahun", desc: "Sekolah libur tanggal 20-31 Desember 2024", time: "3 hari lalu", read: true },
 ];
 
-const mockAnnouncements = [
-  { id: 1, title: "Jadwal Ujian Akhir Semester", date: "20 Jun 2024", category: "Akademik", penting: true },
-  { id: 2, title: "Pentas Seni Akhir Tahun 2024", date: "15 Jun 2024", category: "Kegiatan", penting: false },
-  { id: 3, title: "Pengumuman Penerimaan Siswa Baru", date: "10 Jun 2024", category: "Penerimaan", penting: false },
-];
-
 const OrangTuaHome = ({ user, onNavigate }) => {
   const [showAllNotif, setShowAllNotif] = useState(false);
+  const [liveAnnouncements, setLiveAnnouncements] = useState([]);
   console.log("OrangTuaHome user prop:", user);
+
+  // Baca pengumuman dari localStorage (dibuat oleh Admin TU)
+  useEffect(() => {
+    setLiveAnnouncements(getAnnouncements().slice(0, 3));
+  }, []);
 
   const [akademikStats, setAkademikStats] = useState({
     rataRata: "-",
@@ -314,7 +315,7 @@ const OrangTuaHome = ({ user, onNavigate }) => {
             <button onClick={() => onNavigate("Pengumuman Sekolah")} className="text-[12px] text-[#2A4365] font-semibold hover:underline">Lihat Semua</button>
           </div>
           <div className="divide-y divide-gray-50">
-            {mockAnnouncements.map((ann) => (
+            {(liveAnnouncements.length > 0 ? liveAnnouncements : []).map((ann) => (
               <div key={ann.id} className="px-5 py-4 flex items-start gap-3 hover:bg-gray-50/50 cursor-pointer" onClick={() => onNavigate("Pengumuman Sekolah")}>
                 <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
                   <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#2563eb" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 0 1-3.417.592l-2.147-6.15M18 13a3 3 0 1 0 0-6M5.436 13.683A4.001 4.001 0 0 1 7 6h1.832"/></svg>

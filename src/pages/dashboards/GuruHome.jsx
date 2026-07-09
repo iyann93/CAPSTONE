@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { getAnnouncements } from "../../utils/announcementStore";
 import api from "../../api/axios";
 
 const GuruHome = ({ user, onNavigate }) => {
@@ -11,21 +12,13 @@ const GuruHome = ({ user, onNavigate }) => {
     id: null
   });
   const [jadwalHariIni, setJadwalHariIni] = useState([]);
-  const [pengumuman, setPengumuman] = useState([
-    {
-      kategori: "AKADEMIK",
-      judul: "Rapat Evaluasi Semester",
-      isi: "Akan diadakan rapat evaluasi pada hari Jumat, pukul 13:00 WIB di Ruang Guru. Kehadiran sangat diharapkan.",
-      color: "blue"
-    },
-    {
-      kategori: "KEUANGAN",
-      judul: "Pencairan Gaji Mei",
-      isi: "Gaji bulan Mei 2026 telah ditransfer ke rekening masing-masing. Silakan cek menu Riwayat Terima Gaji untuk rincian.",
-      color: "emerald"
-    }
-  ]);
   const [loading, setLoading] = useState(true);
+
+  const [liveAnn, setLiveAnn] = useState([]);
+
+  useEffect(() => {
+    setLiveAnn(getAnnouncements().slice(0, 3));
+  }, []);
 
   const fmt = (n) => "Rp " + n.toLocaleString("id-ID");
 
@@ -272,18 +265,31 @@ const GuruHome = ({ user, onNavigate }) => {
 
         {/* Pengumuman Sekolah */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-          <h2 className="text-lg font-bold text-gray-800 mb-6">Pengumuman Sekolah</h2>
-          <div className="space-y-4">
-            {pengumuman.map((p, i) => (
-              <div key={i} className={`p-4 rounded-xl bg-${p.color}-50/50 border border-${p.color}-100 relative overflow-hidden hover:bg-${p.color}-50 transition-colors`}>
-                <div className={`absolute left-0 top-0 bottom-0 w-1 bg-${p.color}-500`}></div>
-                <div className={`text-[10px] font-black px-2.5 py-1 rounded-md tracking-wide uppercase bg-${p.color}-100 text-${p.color}-600 mb-2 inline-flex items-center gap-1.5`}>
-                  {p.kategori}
+          <div className="flex justify-between items-center mb-5">
+            <h2 className="text-lg font-bold text-gray-800">Pengumuman Sekolah</h2>
+            <button onClick={() => onNavigate && onNavigate("Pengumuman Sekolah")} className="text-[12px] font-bold text-[#1A3D63] hover:underline">Lihat Semua →</button>
+          </div>
+          <div className="space-y-3">
+            {liveAnn.length > 0 ? liveAnn.map(ann => (
+              <div key={ann.id} className={`p-4 rounded-xl border relative overflow-hidden hover:opacity-90 transition-colors ${
+                ann.importance === "Penting" ? "bg-red-50/50 border-red-100" : "bg-blue-50/50 border-blue-100"
+              }`}>
+                <div className={`absolute left-0 top-0 bottom-0 w-1 ${
+                  ann.importance === "Penting" ? "bg-red-400" : "bg-blue-400"
+                }`}></div>
+                <div className={`text-[10px] font-black px-2.5 py-1 rounded-md tracking-wide uppercase mb-2 inline-flex items-center gap-1.5 ${
+                  ann.importance === "Penting" ? "bg-red-100 text-red-600" : "bg-blue-100 text-blue-600"
+                }`}>
+                  {ann.category.toUpperCase()}
+                  {ann.importance === "Penting" && <span className="ml-1 px-1 bg-red-500 text-white rounded text-[8px]">PENTING</span>}
                 </div>
-                <div className="font-bold text-gray-800 text-[15px] mb-2 leading-snug">{p.judul}</div>
-                <div className="text-[13px] text-gray-600 leading-relaxed">{p.isi}</div>
+                <div className="font-bold text-gray-800 text-[14px] mb-1 leading-snug">{ann.title}</div>
+                <div className="text-[12px] text-gray-500 line-clamp-2 leading-relaxed">{ann.desc}</div>
+                <div className="text-[11px] text-gray-400 mt-1.5">Oleh: {ann.author} · {ann.date}</div>
               </div>
-            ))}
+            )) : (
+              <div className="text-[13px] text-gray-400 text-center py-6">Belum ada pengumuman.</div>
+            )}
           </div>
         </div>
       </div>
