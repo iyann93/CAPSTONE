@@ -57,7 +57,10 @@ const AbsensiController = {
   getRekapSemester: async (req, res, next) => {
     try {
       const errors = validationResult(req);
-      if (!errors.isEmpty()) return next(Object.assign(new Error('Validation failed'), { type: 'validation', errors: errors.array() }));
+      if (!errors.isEmpty()) {
+        require('fs').appendFileSync('error.log', new Date().toISOString() + ' REKAP SEMESTER ERRORS: ' + JSON.stringify(errors.array()) + '\n');
+        return next(Object.assign(new Error('Validation failed'), { type: 'validation', errors: errors.array() }));
+      }
       const data = await AbsensiService.getRekapSemester(req.query);
       return response.success(res, 200, 'Rekap absensi semester berhasil diambil', data);
     } catch (err) { next(err); }

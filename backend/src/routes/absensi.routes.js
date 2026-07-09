@@ -10,9 +10,9 @@ const {
 } = require('../validators/absensi.validator');
 
 // ==== LAPORAN & STATISTIK (Harus didaftarkan sebelum /:id) ====
-router.get('/rekap/bulanan',  verifyToken, authorize('absensi.report'), rekapBulananValidator, AbsensiController.getRekapBulanan);
-router.get('/rekap/semester', verifyToken, authorize('absensi.report'), rekapSemesterValidator, AbsensiController.getRekapSemester);
-router.get('/statistik',      verifyToken, authorize('absensi.report'), statistikValidator, AbsensiController.getStatistik);
+router.get('/rekap/bulanan',  verifyToken, authorize('absensi.read'), rekapBulananValidator, AbsensiController.getRekapBulanan);
+router.get('/rekap/semester', verifyToken, authorize('absensi.read'), rekapSemesterValidator, AbsensiController.getRekapSemester);
+router.get('/statistik',      verifyToken, authorize('absensi.read'), statistikValidator, AbsensiController.getStatistik);
 
 // ==== CRUD DASAR ====
 router.get('/',       verifyToken, authorize('absensi.read'),   AbsensiController.getAll);

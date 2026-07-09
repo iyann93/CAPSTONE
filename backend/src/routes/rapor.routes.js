@@ -8,10 +8,13 @@ const { generateRaporValidator, publishRaporValidator } = require('../validators
 
 // ==== WRITE ACTIONS (Generate & Publish) ====
 // POST /api/v1/rapor/generate
-router.post('/generate', verifyToken, authorize('rapor.create'), generateRaporValidator, RaporController.generate);
+router.post('/generate', verifyToken, authorize('rapor.publish'), generateRaporValidator, RaporController.generate);
 
 // POST /api/v1/rapor/publish
-router.post('/publish',  verifyToken, authorize('rapor.update'), publishRaporValidator, RaporController.publish);
+router.post('/publish',  verifyToken, authorize('rapor.publish'), publishRaporValidator, RaporController.publish);
+
+// POST /api/v1/rapor/unpublish
+router.post('/unpublish', verifyToken, authorize('rapor.publish'), RaporController.unpublish);
 
 // ==== READ ACTIONS ====
 // GET /api/v1/rapor/siswa/:id -> Riwayat Rapor Siswa

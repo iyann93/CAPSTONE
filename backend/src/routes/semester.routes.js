@@ -9,7 +9,7 @@ const { createSemesterValidator, updateSemesterValidator } = require('../validat
 // Special route for setting active
 router.put('/:id/active', verifyToken, authorize('semester.update'), SemesterController.setActive);
 
-router.get('/',     verifyToken, authorize('semester.read'),   SemesterController.getAll);
+router.get('/',     verifyToken, SemesterController.getAll);
 router.get('/:id',  verifyToken, authorize('semester.read'),   SemesterController.getById);
 router.post('/',    verifyToken, authorize('semester.create'), createSemesterValidator, SemesterController.create);
 router.put('/:id',  verifyToken, authorize('semester.update'), updateSemesterValidator, SemesterController.update);

@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import logoUrl from "../../assets/logo-round.png";
 import api from "../../api/axios";
 
 const RaporSiswa = ({ user }) => {
@@ -13,27 +16,26 @@ const RaporSiswa = ({ user }) => {
 
   useEffect(() => {
     const fetchRapor = async () => {
-      if (!studentId) {
-        setLoading(false);
-        return;
-      }
+      if (!studentId) { setLoading(false); return; }
       try {
         setLoading(true);
-        // Fallback endpoint if specific student endpoint doesn't exist yet, we try to use a valid one
         const res = await api.get(`/rapor/siswa/${studentId}`).catch(() => ({ data: { data: [] } }));
         const data = res.data?.data || [];
-        
-        // Map backend data to UI structure
+
         const mapped = data.map(r => ({
           id: r.id,
-          semester: r.tipe_semester + ' ' + r.tahun_ajaran,
-          tanggal: r.published_at ? new Date(r.published_at).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'}) : "—",
+          siswaId: r.siswa_id,
+          kelasId: r.kelas_id,
+          semesterId: r.semester_id,
+          semester: r.semester_nama || "—",
+          tanggal: r.published_at ? new Date(r.published_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : "—",
           status: r.is_published ? "Tersedia" : "Belum Tersedia",
-          rataRata: r.rata_rata || null,
+          rataRata: r.rata_rata ? parseFloat(r.rata_rata).toFixed(1) : null,
           peringkat: r.peringkat || null,
-          kelas: r.nama_kelas
+          kelas: r.nama_kelas,
+          keteranganWali: r.keterangan_wali || ""
         }));
-        
+
         setRaporData(mapped);
       } catch (err) {
         console.error("Gagal mengambil data rapor:", err);
@@ -46,14 +48,117 @@ const RaporSiswa = ({ user }) => {
 
   const studentClass = raporData.length > 0 ? raporData[0].kelas : (user?.anak?.kelas || "—");
 
-  const handleDownload = (rapor) => {
+  const handleDownload = async (rapor) => {
     if (rapor.status !== "Tersedia") return;
     setDownloading(rapor.id);
-    setTimeout(() => {
-      setDownloading(null);
+    try {
+      // Fetch nilai dan catatan secara bersamaan
+      const [nilaiRes, catatanRes] = await Promise.all([
+        api.get(`/nilai/kelas/${rapor.kelasId}?semester_id=${rapor.semesterId}`)
+          .catch(() => ({ data: { data: [] } })),
+        api.get(`/catatan-siswa?siswa_id=${rapor.siswaId}`)
+          .catch(() => ({ data: { data: [] } }))
+      ]);
+      const allNilai = nilaiRes.data?.data || [];
+      const myNilai = allNilai.filter(n => n.siswa_id === rapor.siswaId || n.siswa_id === studentId);
+      
+      // Ambil catatan wali kelas terbaru (dari catatan-siswa, bukan dari rapor)
+      const catatanArr = catatanRes.data?.data || [];
+      const catatanObj = catatanArr.find(c => c.siswa_id === rapor.siswaId || c.siswa_id === studentId);
+      const catatanWali = catatanObj?.isi_catatan || rapor.keteranganWali || "";
+
+      // Build PDF
+      const doc = new jsPDF();
+
+      // Logo
+      const img = new Image();
+      img.src = logoUrl;
+      doc.addImage(img, 'PNG', 14, 12, 18, 18);
+
+      // Header
+      doc.setFont("times", "bold");
+      doc.setFontSize(14);
+      doc.text("LAPORAN HASIL BELAJAR", 105, 20, { align: "center" });
+      doc.setFontSize(10);
+      doc.text(`Semester ${rapor.semester}`, 105, 26, { align: "center" });
+
+      doc.setLineWidth(0.5);
+      doc.line(14, 32, 196, 32);
+
+      // Student info
+      doc.setFont("times", "normal");
+      doc.setFontSize(10);
+      doc.text(`Nama Siswa    : ${studentName}`, 14, 40);
+      doc.text(`Kelas         : ${rapor.kelas}`, 120, 40);
+      doc.text(`Fase          : D (SMP)`, 120, 46);
+
+      // A. Sikap
+      doc.setFont("times", "bold");
+      doc.text("A. Sikap", 14, 60);
+      doc.setFont("times", "normal");
+      const sikapText = `Deskripsi: ${studentName} menunjukkan sikap spiritual dan sosial yang baik dalam mengikuti pembelajaran, menjunjung tinggi nilai gotong royong, dan berinteraksi secara sopan di lingkungan sekolah.`;
+      const splitSikap = doc.splitTextToSize(sikapText, 182);
+      doc.text(splitSikap, 14, 66);
+
+      // B. Pengetahuan & Keterampilan
+      doc.setFont("times", "bold");
+      doc.text("B. Pengetahuan & Keterampilan", 14, 85);
+
+      const tableBody = myNilai.map((n, i) => {
+        const akhir = n.nilai_akhir || (((n.nilai_harian || 0) * 0.3) + ((n.nilai_uts || 0) * 0.3) + ((n.nilai_uas || 0) * 0.4)).toFixed(0);
+        const na = parseFloat(akhir);
+        return [i + 1, n.nama_mapel || n.mapel_nama || "-", 75, na.toFixed(0)];
+      });
+
+      autoTable(doc, {
+        startY: 90,
+        head: [['No', 'Mata Pelajaran', 'KKM', 'Nilai']],
+        body: tableBody.length > 0 ? tableBody : [['-', 'Belum ada nilai', '-', '-']],
+        theme: 'grid',
+        headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center' },
+        columnStyles: {
+          0: { halign: 'center', cellWidth: 15 },
+          2: { halign: 'center', cellWidth: 25 },
+          3: { halign: 'center', cellWidth: 25 },
+        },
+        styles: { font: 'times', fontSize: 10, textColor: [0, 0, 0], lineColor: [0, 0, 0] }
+      });
+
+      const finalY = doc.lastAutoTable.finalY || 150;
+
+      // C. Ketidakhadiran (placeholder)
+      doc.setFont("times", "bold");
+      doc.text("C. Ketidakhadiran", 14, finalY + 15);
+      autoTable(doc, {
+        startY: finalY + 20,
+        body: [['Sakit', '0 hari'], ['Izin', '0 hari'], ['Tanpa Keterangan', '0 hari']],
+        theme: 'grid',
+        columnStyles: {
+          0: { cellWidth: 60, fontStyle: 'bold', fillColor: [248, 248, 248] },
+          1: { cellWidth: 40, halign: 'center' }
+        },
+        styles: { font: 'times', fontSize: 10, textColor: [0, 0, 0], lineColor: [0, 0, 0] },
+        margin: { left: 14 }
+      });
+
+      // D. Catatan Wali Kelas
+      const afterAbsenY = doc.lastAutoTable.finalY || (finalY + 50);
+      doc.setFont("times", "bold");
+      doc.text("D. Catatan Wali Kelas", 120, finalY + 15);
+      doc.setFont("times", "italic");
+      doc.rect(120, finalY + 18, 76, 25);
+      const catatanText = catatanWali ? `"${catatanWali}"` : "(Belum ada catatan)";
+      const splitCatatan = doc.splitTextToSize(catatanText, 72);
+      doc.text(splitCatatan, 122, finalY + 24);
+
+      doc.save(`rapor_${rapor.semester.replace(/\s/g, '_')}_${studentName.replace(/\s/g, '_')}.pdf`);
       setDownloaded(prev => [...prev, rapor.id]);
-      alert(`✅ Rapor ${rapor.semester} berhasil diunduh!`);
-    }, 2000);
+    } catch (err) {
+      console.error("Gagal download PDF:", err);
+      alert("Gagal membuat PDF. Silakan coba lagi.");
+    } finally {
+      setDownloading(null);
+    }
   };
 
   return (
@@ -96,6 +201,7 @@ const RaporSiswa = ({ user }) => {
                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#9ca3af" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
              </div>
              <p className="text-[14px] font-bold text-gray-500">Belum ada rapor yang tersedia</p>
+             <p className="text-[13px] text-gray-400 mt-1">Rapor akan muncul setelah diterbitkan oleh Wali Kelas</p>
           </div>
         ) : raporData.map((rapor) => {
           const isAvailable = rapor.status === "Tersedia";
@@ -203,11 +309,13 @@ const RaporSiswa = ({ user }) => {
             </div>
             <div className="p-6">
               <div className="border border-gray-200 rounded-xl p-6 bg-gray-50 text-center">
-                <div className="w-16 h-16 bg-[#1A3D63] rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <img src={logoUrl} alt="Logo" className="w-12 h-12" />
+                  <div className="text-left">
+                    <h4 className="text-[16px] font-bold text-gray-800">RAPOR AKADEMIK</h4>
+                    <p className="text-[13px] text-gray-500">Semester {preview.semester}</p>
+                  </div>
                 </div>
-                <h4 className="text-[16px] font-bold text-gray-800">RAPOR AKADEMIK</h4>
-                <p className="text-[13px] text-gray-500 mt-1">Semester {preview.semester}</p>
                 <div className="mt-4 grid grid-cols-2 gap-3 text-left">
                   <div className="bg-white border border-gray-100 rounded-lg p-3">
                     <p className="text-[11px] text-gray-400">Nama Siswa</p>
@@ -219,11 +327,11 @@ const RaporSiswa = ({ user }) => {
                   </div>
                   <div className="bg-white border border-gray-100 rounded-lg p-3">
                     <p className="text-[11px] text-gray-400">Rata-rata Nilai</p>
-                    <p className="text-[13px] font-bold text-green-600">{preview.rataRata}</p>
+                    <p className="text-[13px] font-bold text-green-600">{preview.rataRata || "—"}</p>
                   </div>
                   <div className="bg-white border border-gray-100 rounded-lg p-3">
                     <p className="text-[11px] text-gray-400">Peringkat Kelas</p>
-                    <p className="text-[13px] font-bold text-blue-600">#{preview.peringkat}</p>
+                    <p className="text-[13px] font-bold text-blue-600">{preview.peringkat ? `#${preview.peringkat}` : "—"}</p>
                   </div>
                 </div>
               </div>
@@ -248,6 +356,3 @@ const RaporSiswa = ({ user }) => {
 };
 
 export default RaporSiswa;
-
-
-

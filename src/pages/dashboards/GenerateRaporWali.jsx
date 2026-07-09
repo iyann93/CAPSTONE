@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import logoUrl from '../../assets/logo-round.png';
 
 const GenerateRaporWali = ({ user }) => {
   const [classes, setClasses] = useState([]);
@@ -33,7 +34,7 @@ const GenerateRaporWali = ({ user }) => {
         setClasses(dbClasses);
         if (dbClasses.length > 0) setSelectedClassId(dbClasses[0].id);
 
-        const active = (semRes.data?.data || []).find(s => s.is_active);
+        const active = (semRes.data?.data || []).find(s => s.is_aktif);
         setActiveSemester(active);
       } catch (e) {
         console.error("Gagal inisialisasi:", e);
@@ -55,13 +56,21 @@ const GenerateRaporWali = ({ user }) => {
         api.get(`/rapor/kelas/${selectedClassId}?semester_id=${activeSemester.id}`)
       ]);
 
+      console.log('Promise.all finished:', {
+        siswa: siswaRes.data?.data,
+        nilai: nilaiRes.data?.data,
+        abs: absRes.data?.data,
+        cat: catRes.data?.data,
+        rapor: raporRes.data?.data
+      });
+
       setStudentsData(siswaRes.data?.data || []);
       setNilaiData(nilaiRes.data?.data || []);
       setAbsensiData(absRes.data?.data || []);
       setCatatanData(catRes.data?.data || []);
       setRaporData(raporRes.data?.data || []);
     } catch (e) {
-      console.error("Gagal mengambil data kelas:", e);
+      console.error("Gagal mengambil data kelas DETAIL:", e.response?.data || e.message || e);
     }
   };
 
@@ -128,16 +137,18 @@ const GenerateRaporWali = ({ user }) => {
     setPublishing(true);
     try {
       const { default: api } = await import('../../api/axios');
-      // Step 1: Generate rapor for the class
+      // Step 1: Generate rapor for the student
       await api.post('/rapor/generate', {
-        mode: 'kelas',
+        mode: 'siswa',
+        siswaId: selectedStudent.id,
         kelasId: selectedClassId,
-        semesterId: activeSemester.id
+        semesterId: activeSemester.id,
+        keteranganWali: currentDetails.catatan
       });
-      // Step 2: Publish rapor for the class
       await api.post('/rapor/publish', {
         kelasId: selectedClassId,
-        semesterId: activeSemester.id
+        semesterId: activeSemester.id,
+        siswaId: selectedStudent.id
       });
       
       await fetchClassData();
@@ -151,11 +162,33 @@ const GenerateRaporWali = ({ user }) => {
     }
   };
 
+  const handleUnpublish = async () => {
+    if (!selectedStudent || !activeSemester) return;
+    if (!window.confirm(`Yakin ingin membatalkan penerbitan rapor ${selectedStudent.nama_lengkap}? Siswa/orang tua tidak akan bisa mengakses rapor ini lagi.`)) return;
+    try {
+      const { default: api } = await import('../../api/axios');
+      await api.post('/rapor/unpublish', {
+        siswaId: selectedStudent.id,
+        semesterId: activeSemester.id
+      });
+      await fetchClassData();
+      alert(`Rapor ${selectedStudent.nama_lengkap} berhasil dibatalkan penerbitannya.`);
+    } catch (e) {
+      console.error(e);
+      alert("Gagal membatalkan penerbitan rapor.");
+    }
+  };
+
   const handleDownloadPDF = () => {
     if (!selectedStudent || !currentDetails) return;
     setDownloading(true);
     try {
         const doc = new jsPDF();
+        
+        // Logo
+        const img = new Image();
+        img.src = logoUrl;
+        doc.addImage(img, 'PNG', 14, 12, 18, 18);
         
         // Header
         doc.setFont("times", "bold");
@@ -165,7 +198,7 @@ const GenerateRaporWali = ({ user }) => {
         doc.text(`Semester ${activeSemester?.tipe} Tahun Ajaran ${activeSemester?.tahun_ajaran}`, 105, 26, { align: "center" });
         
         doc.setLineWidth(0.5);
-        doc.line(14, 30, 196, 30);
+        doc.line(14, 32, 196, 32);
         
         // Student Info
         doc.setFont("times", "normal");
@@ -189,12 +222,12 @@ const GenerateRaporWali = ({ user }) => {
         doc.text("B. Pengetahuan & Keterampilan", 14, 85);
         
         const tableBody = currentDetails.mapelList.map((m, i) => [
-            i + 1, m.mapel, m.nilai, m.predikat
+            i + 1, m.mapel, m.kkm, m.nilai
         ]);
         
         autoTable(doc, {
             startY: 90,
-            head: [['No', 'Mata Pelajaran', 'Nilai', 'Predikat']],
+            head: [['No', 'Mata Pelajaran', 'KKM', 'Nilai']],
             body: tableBody,
             theme: 'grid',
             headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold', halign: 'center' },
@@ -511,7 +544,8 @@ const GenerateRaporWali = ({ user }) => {
                     <div className="absolute top-6 right-6 border-2 border-red-500 text-red-500 font-bold px-3 py-1 transform rotate-12 opacity-30 text-[12px] tracking-widest uppercase">
                       Preview Draft
                     </div>
-                    <div className="text-center mb-6 border-b-2 border-gray-800 pb-4">
+                    <div className="text-center mb-6 border-b-2 border-gray-800 pb-4 relative">
+                      <img src={logoUrl} alt="Logo" className="absolute left-0 top-0 w-12 h-12" />
                       <h3 className="text-[18px] font-bold text-gray-900 uppercase tracking-widest">Laporan Hasil Belajar</h3>
                       <p className="text-gray-600 mt-1">Semester {activeSemester?.tipe} Tahun Ajaran {activeSemester?.tahun_ajaran}</p>
                     </div>
@@ -549,8 +583,8 @@ const GenerateRaporWali = ({ user }) => {
                           <tr className="bg-gray-100">
                             <th className="border border-gray-300 py-1.5 px-2 text-center w-10">No</th>
                             <th className="border border-gray-300 py-1.5 px-2 text-left">Mata Pelajaran</th>
-                            <th className="border border-gray-300 py-1.5 px-2 text-center w-16">Nilai</th>
-                            <th className="border border-gray-300 py-1.5 px-2 text-center w-24">Predikat</th>
+                            <th className="border border-gray-300 py-1.5 px-2 text-center w-16">KKM</th>
+                            <th className="border border-gray-300 py-1.5 px-2 text-center w-24">Nilai</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -558,8 +592,8 @@ const GenerateRaporWali = ({ user }) => {
                             <tr key={i} className="hover:bg-gray-50">
                               <td className="border border-gray-300 py-1.5 px-2 text-center text-gray-500">{i+1}</td>
                               <td className="border border-gray-300 py-1.5 px-2 font-medium">{m.mapel}</td>
+                              <td className="border border-gray-300 py-1.5 px-2 text-center">{m.kkm}</td>
                               <td className="border border-gray-300 py-1.5 px-2 text-center font-bold">{m.nilai}</td>
-                              <td className="border border-gray-300 py-1.5 px-2 text-center">{m.predikat}</td>
                             </tr>
                           ))}
                           {currentDetails.mapelList.length === 0 && (
@@ -591,7 +625,19 @@ const GenerateRaporWali = ({ user }) => {
                 )}
               </div>
 
-              <div className="p-6 border-t border-gray-100 flex items-center justify-end gap-3 bg-gray-50">
+              <div className="p-6 border-t border-gray-100 flex items-center justify-between gap-3 bg-gray-50">
+                <div>
+                  {currentDetails.statusRapor === "Terbit" && (
+                    <button
+                      onClick={handleUnpublish}
+                      className="px-4 py-2 bg-red-50 border border-red-200 text-red-600 rounded-xl text-[12px] font-bold hover:bg-red-100 transition-colors flex items-center gap-1.5"
+                    >
+                      <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                      Batalkan Terbit
+                    </button>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
                 {!showPreview ? (
                   <button 
                     onClick={() => setShowPreview(true)}
@@ -614,7 +660,7 @@ const GenerateRaporWali = ({ user }) => {
                              <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
                              Menyimpan...
                           </>
-                        ) : "Simpan & Terbitkan Kelas"}
+                        ) : "Simpan & Terbitkan Siswa"}
                       </button>
                     )}
                     <button 
@@ -636,6 +682,7 @@ const GenerateRaporWali = ({ user }) => {
                     </button>
                   </>
                 )}
+                </div>
               </div>
             </div>
           ) : (

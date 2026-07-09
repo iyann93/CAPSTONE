@@ -36,12 +36,17 @@ const RaporService = {
   },
 
   publish: async (body, userId) => {
-    const { kelasId, semesterId } = body;
-    const published = await RaporRepository.publish(kelasId, semesterId, userId);
+    const { kelasId, semesterId, siswaId } = body;
+    const published = await RaporRepository.publish(kelasId, semesterId, userId, siswaId);
     if (published.length === 0) {
-      return { message: 'Tidak ada rapor yang perlu dipublish (semua sudah dipublish atau belum di-generate).' };
+      return { message: 'Tidak ada rapor yang perlu dipublish (sudah dipublish atau belum di-generate).' };
     }
+    if (siswaId) return { message: 'Berhasil mem-publish rapor siswa ini.' };
     return { message: `Berhasil mem-publish ${published.length} rapor kelas ini.` };
+  },
+
+  unpublish: async (siswaId, semesterId) => {
+    return RaporRepository.unpublish(siswaId, semesterId);
   }
 };
 

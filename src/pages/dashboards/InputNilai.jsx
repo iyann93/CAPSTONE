@@ -18,6 +18,7 @@ const InputNilai = ({ user }) => {
   
   const [studentsData, setStudentsData] = useState({});
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [toastMsg, setToastMsg] = useState(null);
 
   const showToast = (msg, type = "success") => {
@@ -147,8 +148,10 @@ const InputNilai = ({ user }) => {
           return; // The state change will trigger this useEffect again with the correct selectedMapel
         }
 
-        const semId = dbSemesters.length > 0 ? dbSemesters[0].id : "00000002-0000-0000-0000-000000000001";
-        const mapelId = actualMapelId || dbMapels.find(m => m.nama === autoMapel)?.id || dbMapels[0]?.id;
+        const activeSemester = dbSemesters.find(s => s.is_aktif) || dbSemesters[0];
+        const semId = activeSemester ? activeSemester.id : "00000002-0000-0000-0000-000000000001";
+        
+        const mapelId = actualMapelId || dbMapels.find(m => m.nama === autoMapel)?.id || dbMapels.find(m => m.nama === selectedMapel)?.id || dbMapels[0]?.id;
         if (!mapelId) return;
 
         const res = await api.get(`/nilai/kelas/${cls.id}?semester_id=${semId}&mata_pelajaran_id=${mapelId}`);
@@ -162,9 +165,9 @@ const InputNilai = ({ user }) => {
               return { 
                 ...student, 
                 nilai_id: record.id,
-                harian: record.nilai_harian !== null ? record.nilai_harian.toString() : "",
-                uts: record.nilai_uts !== null ? record.nilai_uts.toString() : "",
-                uas: record.nilai_uas !== null ? record.nilai_uas.toString() : "",
+                harian: record.nilai_harian !== null ? parseInt(record.nilai_harian).toString() : "",
+                uts: record.nilai_uts !== null ? parseInt(record.nilai_uts).toString() : "",
+                uas: record.nilai_uas !== null ? parseInt(record.nilai_uas).toString() : "",
                 catatan: record.catatan || ""
               };
             }
@@ -185,8 +188,19 @@ const InputNilai = ({ user }) => {
   }, [selectedClass, selectedMapel, dbClasses, dbMapels, dbSemesters, dbJadwal, myGuruId, loading]);
 
   const handleGradeChange = (studentId, field, value) => {
-    const sanitizedVal = value.replace(/[^0-9]/g, "");
-    if (sanitizedVal !== "" && parseInt(sanitizedVal) > 100) return;
+    // Hilangkan karakter selain angka
+    let sanitizedVal = value.replace(/[^0-9]/g, "");
+    
+    // Jika lebih dari 100, cegah penambahan angka baru, tapi izinkan penghapusan (backspace)
+    if (sanitizedVal !== "" && parseInt(sanitizedVal) > 100) {
+      // Jika pengguna mencoba mengetik angka lebih besar dari 100, kita kembalikan saja nilai sebelumnya
+      // Namun, karena ini sulit dilacak tanpa state tambahan, cara terbaik adalah tidak mengubah state.
+      // TETAPI jika state sebelumnya sudah kadung error (misal 800 karena desimal), kita harus izinkan!
+      // Jadi kita batasi saja panjang karakternya, nilai max 100
+      if (parseInt(sanitizedVal) > 100) {
+        sanitizedVal = "100";
+      }
+    }
 
     setStudentsData((prev) => {
       const updatedList = (prev[selectedClass] || []).map((student) => {
@@ -230,16 +244,34 @@ const InputNilai = ({ user }) => {
   }, [currentStudents, searchQuery]);
 
   const handleSave = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
     try {
       const { default: api } = await import('../../api/axios');
       
       const cls = dbClasses.find(c => c.nama_kelas === selectedClass);
       if (!cls) throw new Error("Data kelas tidak ditemukan");
 
-      const semId = dbSemesters.length > 0 ? dbSemesters[0].id : "00000002-0000-0000-0000-000000000001";
+      const activeSemester = dbSemesters.find(s => s.is_aktif) || dbSemesters[0];
+      const semId = activeSemester ? activeSemester.id : "00000002-0000-0000-0000-000000000001";
       
+      let actualMapelId = null;
+      let autoMapel = "";
       const jadwalGuru = dbJadwal.find(j => j.kelas_id === cls.id && j.guru_id === myGuruId);
-      const mapelId = jadwalGuru ? jadwalGuru.mata_pelajaran_id : dbMapels.find(m => m.nama === selectedMapel)?.id;
+      
+      if (jadwalGuru) {
+        actualMapelId = jadwalGuru.mata_pelajaran_id;
+      } else {
+        const defaultMapel = dbMapels.find(m => m.guru_pengampu_id === myGuruId);
+        if (defaultMapel) {
+          actualMapelId = defaultMapel.id;
+          autoMapel = defaultMapel.nama;
+        } else if (mapels.length > 0) {
+          autoMapel = mapels[0];
+        }
+      }
+
+      const mapelId = actualMapelId || dbMapels.find(m => m.nama === autoMapel)?.id || dbMapels.find(m => m.nama === selectedMapel)?.id || dbMapels[0]?.id;
       
       if (!mapelId) throw new Error("Mata pelajaran belum dipilih");
 
@@ -287,6 +319,8 @@ const InputNilai = ({ user }) => {
         ? error.response.data.errors.map(e => e.msg).join(', ')
         : error.response?.data?.message || error.message || "Terjadi kesalahan";
       showToast(`Gagal: ${errorMsg}`, "error");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -509,15 +543,22 @@ const InputNilai = ({ user }) => {
 
         <button
           onClick={handleSave}
-          disabled={totalStudents === 0}
+          disabled={totalStudents === 0 || isSaving}
           className="flex items-center justify-center gap-2.5 bg-[#1A3D63] hover:bg-[#122A44] disabled:opacity-50 disabled:pointer-events-none text-white px-7 py-3.5 rounded-2xl text-xs font-black transition-all shadow-lg shadow-[#1A3D63]/15 active:scale-95 w-full sm:w-auto"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-            <polyline points="17 21 17 13 7 13 7 21" />
-            <polyline points="7 3 7 8 15 8" />
-          </svg>
-          Simpan Nilai
+          {isSaving ? (
+            <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+              <polyline points="17 21 17 13 7 13 7 21" />
+              <polyline points="7 3 7 8 15 8" />
+            </svg>
+          )}
+          {isSaving ? "Menyimpan..." : "Simpan Nilai"}
         </button>
       </div>
     </div>

@@ -158,16 +158,34 @@ const RaporRepository = {
     }
   },
 
-  publish: async (kelasId, semesterId, userId) => {
-    const sql = `
+  publish: async (kelasId, semesterId, userId, siswaId = null) => {
+    let sql = `
       UPDATE academic.rapor
       SET is_published = true,
           published_at = NOW(),
           published_by = $1
       WHERE kelas_id = $2 AND semester_id = $3 AND is_published = false
+    `;
+    const params = [userId, kelasId, semesterId];
+    if (siswaId) {
+      sql += ` AND siswa_id = $4`;
+      params.push(siswaId);
+    }
+    sql += ` RETURNING id`;
+    const result = await query(sql, params);
+    return result.rows;
+  },
+
+  unpublish: async (siswaId, semesterId) => {
+    const sql = `
+      UPDATE academic.rapor
+      SET is_published = false,
+          published_at = NULL,
+          published_by = NULL
+      WHERE siswa_id = $1 AND semester_id = $2
       RETURNING id
     `;
-    const result = await query(sql, [userId, kelasId, semesterId]);
+    const result = await query(sql, [siswaId, semesterId]);
     return result.rows;
   }
 };

@@ -6,7 +6,7 @@ const app = require('./src/app');
 const { pool } = require('./src/config/db');
 const logger = require('./src/utils/logger');
 const env = require('./src/config/env');
-const scheduler = require('./src/utils/scheduler'); // Initialize auto-backup scheduler
+// const scheduler = require('./src/utils/scheduler');
 
 const PORT = env.port;
 

@@ -310,12 +310,14 @@ const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) =>
       // Allow if explicit permission 'lihat' is true, or if no permissions loaded yet and it's super admin
       if (roleId === 'superadmin') return true;
       
+      // Jika permission untuk role ini belum pernah di-save oleh SuperAdmin, kembalikan ke akses default
+      if (!userPerms) return true;
+      
       if (userPerms && userPerms[item.label]) {
         return userPerms[item.label].lihat === true;
       }
       
-      // If we don't have perms yet, fallback to true so the app isn't empty on first load,
-      // but once loaded it strictly follows the DB.
+      // If we don't have perms yet, fallback to true so the app isn't empty on first load
       if (!rolePermissions) return true;
       
       return false;

@@ -54,6 +54,23 @@ api.interceptors.response.use(
         
         // Simpan token baru ke localStorage
         const user = JSON.parse(localStorage.getItem('siakad_user') || '{}');
+
+        // Mencegah tab-tab yang berbeda menimpa session satu sama lain
+        if (newAccessToken && user.accessToken) {
+          try {
+            const oldPayload = JSON.parse(atob(user.accessToken.split('.')[1]));
+            const newPayload = JSON.parse(atob(newAccessToken.split('.')[1]));
+            if (oldPayload.userId !== newPayload.userId) {
+              console.warn("Token refresh dibatalkan karena User ID berubah (kemungkinan login di tab lain).");
+              localStorage.removeItem('siakad_user');
+              window.location.href = '/login';
+              return Promise.reject(new Error("Sesi tertimpa oleh tab lain"));
+            }
+          } catch (e) {
+            console.error("Gagal memverifikasi payload token", e);
+          }
+        }
+
         user.accessToken = newAccessToken;
         localStorage.setItem('siakad_user', JSON.stringify(user));
 

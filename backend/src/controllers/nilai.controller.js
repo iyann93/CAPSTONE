@@ -68,37 +68,38 @@ const NilaiController = {
          }
       }
 
-      // Auto resolve mata_pelajaran_id
-      // req.body.siswaId -> kelas_id -> jadwal_pelajaran
-      const siswaRes = await query('SELECT kelas_id FROM academic.siswa WHERE id = $1', [req.body.siswaId]);
-      if (siswaRes.rows.length === 0) {
-         const e = new Error('Data siswa tidak valid');
-         e.statusCode = 400;
-         return next(e);
-      }
-      
-      const kelasId = siswaRes.rows[0].kelas_id;
-      const jadwalRes = await query(
-         'SELECT mata_pelajaran_id FROM academic.jadwal_pelajaran WHERE guru_id = $1 AND kelas_id = $2 LIMIT 1',
-         [guruId, kelasId]
-      );
-      
-      if (jadwalRes.rows.length === 0) {
-         // Fallback: check if the guru is a global guru_pengampu_id for ANY mapel
-         const mapelRes = await query(
-           'SELECT id FROM academic.mata_pelajaran WHERE guru_pengampu_id = $1 LIMIT 1',
-           [guruId]
-         );
-         if (mapelRes.rows.length > 0) {
-           req.body.mataPelajaranId = mapelRes.rows[0].id;
-         } else {
-           const e = new Error('Guru ini tidak memiliki jadwal mengajar maupun mata pelajaran default');
+      // Auto resolve mata_pelajaran_id if not provided
+      if (!req.body.mataPelajaranId) {
+        // req.body.siswaId -> kelas_id -> jadwal_pelajaran
+        const siswaRes = await query('SELECT kelas_id FROM academic.siswa WHERE id = $1', [req.body.siswaId]);
+        if (siswaRes.rows.length === 0) {
+           const e = new Error('Data siswa tidak valid');
            e.statusCode = 400;
            return next(e);
-         }
-      } else {
-         // Override mataPelajaranId from body with the absolute SSOT value
-         req.body.mataPelajaranId = jadwalRes.rows[0].mata_pelajaran_id;
+        }
+        
+        const kelasId = siswaRes.rows[0].kelas_id;
+        const jadwalRes = await query(
+           'SELECT mata_pelajaran_id FROM academic.jadwal_pelajaran WHERE guru_id = $1 AND kelas_id = $2 LIMIT 1',
+           [guruId, kelasId]
+        );
+        
+        if (jadwalRes.rows.length === 0) {
+           // Fallback: check if the guru is a global guru_pengampu_id for ANY mapel
+           const mapelRes = await query(
+             'SELECT id FROM academic.mata_pelajaran WHERE guru_pengampu_id = $1 LIMIT 1',
+             [guruId]
+           );
+           if (mapelRes.rows.length > 0) {
+             req.body.mataPelajaranId = mapelRes.rows[0].id;
+           } else {
+             const e = new Error('Mata pelajaran tidak ditemukan dan guru tidak memiliki mapel default');
+             e.statusCode = 400;
+             return next(e);
+           }
+        } else {
+           req.body.mataPelajaranId = jadwalRes.rows[0].mata_pelajaran_id;
+        }
       }
 
       const data = await NilaiService.create(req.body, guruId);

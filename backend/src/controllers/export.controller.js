@@ -1,8 +1,8 @@
 'use strict';
 
 const { query } = require('../config/db');
-const archiver = require('archiver');
-const ExcelJS = require('exceljs');
+// const archiver = require('archiver');
+// const ExcelJS = require('exceljs');
 const fs = require('fs');
 
 /**
@@ -106,31 +106,7 @@ const ExportController = {
       }
 
       if (format === 'excel') {
-        const workbook = new ExcelJS.Workbook();
-        const sheet = workbook.addWorksheet(table.substring(0, 31)); // Max length 31
-        
-        if (rows.length > 0) {
-          const columns = Object.keys(rows[0]).map(key => ({ header: key, key }));
-          sheet.columns = columns;
-          sheet.addRows(rows);
-          
-          sheet.columns.forEach(column => {
-            let maxLength = 0;
-            column["eachCell"]({ includeEmpty: true }, function(cell) {
-              const columnLength = cell.value ? cell.value.toString().length : 10;
-              if (columnLength > maxLength) {
-                maxLength = columnLength;
-              }
-            });
-            column.width = maxLength < 10 ? 10 : maxLength + 2;
-          });
-        }
-
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.setHeader('Content-Disposition', `attachment; filename="${table}.xlsx"`);
-        
-        await workbook.xlsx.write(res);
-        return res.end();
+        return res.status(500).json({ success: false, message: "Excel export is disabled due to missing dependency" });
       }
 
       res.status(400).json({ success: false, message: "Format tidak didukung" });
@@ -157,50 +133,17 @@ const ExportController = {
       const tables = tableResult.rows;
 
       if (format === 'excel') {
-        const workbook = new ExcelJS.Workbook();
-        const dict = await ExportController.buildDictionaries();
-        
-        for (const t of tables) {
-          const sheetName = (t.schemaname + '_' + t.relname).substring(0, 31);
-          const sheet = workbook.addWorksheet(sheetName);
-          
-          const dataResult = await query(`SELECT * FROM "${t.schemaname}"."${t.relname}" LIMIT 5000`);
-          const rows = dataResult.rows.map(r => ExportController.translateRow(r, dict));
-
-          if (rows.length > 0) {
-            const columns = Object.keys(rows[0]).map(key => ({ header: key, key }));
-            sheet.columns = columns;
-            sheet.addRows(rows);
-
-            sheet.columns.forEach(column => {
-              let maxLength = 0;
-              column["eachCell"]({ includeEmpty: true }, function(cell) {
-                const columnLength = cell.value ? cell.value.toString().length : 10;
-                if (columnLength > maxLength) {
-                  maxLength = columnLength;
-                }
-              });
-              column.width = maxLength < 10 ? 10 : maxLength + 2;
-            });
-          } else {
-            sheet.addRow(["Tabel Kosong"]);
-          }
-        }
-
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        res.setHeader('Content-Disposition', `attachment; filename="Full_Backup_${new Date().getTime()}.xlsx"`);
-        
-        await workbook.xlsx.write(res);
-        return res.end();
+        return res.status(500).json({ success: false, message: "Excel export is disabled due to missing dependency" });
       }
 
       if (format === 'zip') {
         res.setHeader('Content-Type', 'application/zip');
         res.setHeader('Content-Disposition', `attachment; filename="Full_Backup_${new Date().getTime()}.zip"`);
 
-        const archive = archiver('zip', {
-          zlib: { level: 9 }
-        });
+        // const archive = archiver('zip', {
+        //   zlib: { level: 9 }
+        // });
+        return res.status(500).json({ success: false, message: "Archiver is disabled due to missing dependency" });
 
         archive.on('error', function(err) {
           throw err;

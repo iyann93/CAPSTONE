@@ -35,6 +35,10 @@ const authorize = (permissionCode) => {
 
       const userPermissions = result.rows.map((r) => r.code);
 
+      try {
+        require('fs').appendFileSync('debug.txt', `[DEBUG AUTHORIZE] User: ${userId} | Requesting: ${permissionCode} | Has: ${userPermissions.join(',')}\n`);
+      } catch (e) {}
+
       if (!userPermissions.includes(permissionCode)) {
         return response.error(
           res,

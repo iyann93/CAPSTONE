@@ -19,7 +19,12 @@ import KepalaSekolahDashboard from "./pages/dashboards/KepalaSekolahDashboard";
 const App = () => {
   const [user, setUser] = useState(null);
   const [collapsed, setCollapsed] = useState(true);
-  const [authView, setAuthView] = useState("login");
+  const [authView, setAuthView] = useState(() => {
+    const path = window.location.pathname;
+    if (path === '/reset-password') return 'reset';
+    if (path === '/forgot-password') return 'forgot';
+    return 'login';
+  });
   const [activeMenu, setActiveMenu] = useState("Dashboard");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const scrollContainerRef = React.useRef(null);
@@ -36,23 +41,18 @@ const App = () => {
 
   React.useEffect(() => {
     // Observer to globally detect if any modal is open across the app
+    let timeoutId;
     const checkModals = () => {
-      // Check for any modal that uses the fixed inset-0 pattern
-      // We exclude those with pointer-events-none to prevent false positives
-      const modalElements = document.querySelectorAll('.fixed.inset-0:not(.pointer-events-none)');
-      let hasVisibleModal = false;
-      
-      modalElements.forEach(el => {
-        // Only count if it's not hidden
-        if (window.getComputedStyle(el).display !== 'none' && !el.classList.contains('hidden')) {
-          hasVisibleModal = true;
-        }
-      });
-      
-      setIsModalOpen(hasVisibleModal);
+      // Debounced check to avoid layout thrashing during React renders
+      const modalElements = document.querySelectorAll('.fixed.inset-0:not(.pointer-events-none):not(.hidden)');
+      // React mostly removes modals from DOM or uses 'hidden' class, so we can skip expensive getComputedStyle
+      setIsModalOpen(modalElements.length > 0);
     };
 
-    const observer = new MutationObserver(checkModals);
+    const observer = new MutationObserver(() => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(checkModals, 50); // Debounce to run after render cycle
+    });
     
     observer.observe(document.body, {
       childList: true,
@@ -64,7 +64,10 @@ const App = () => {
     // Initial check
     checkModals();
     
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, []);
 
   // Inactivity / Idle Timeout Logic
