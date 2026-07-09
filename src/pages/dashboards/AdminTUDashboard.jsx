@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Profile from "../Profile";
 import PlaceholderDashboard from "./PlaceholderDashboard";
 import Subjects from "./Subjects";
@@ -8,6 +8,7 @@ import Schedules from "./Schedules";
 import GradePromotion from "./GradePromotion";
 import GraduationData from "./GraduationData";
 import StudentData from "./StudentData";
+import StudentForm from "./StudentForm";
 import StudentAttendance from "./StudentAttendance";
 import ParentData from "./ParentData";
 import EmployeeData from "./EmployeeData";
@@ -134,7 +135,9 @@ const AdminTUDashboard = ({ user, activeMenu, onViewChange }) => {
   }
 
   if (activeMenu === "Data Siswa") {
-    return <StudentData />;
+    const iv = sessionStorage.getItem("studentInitialView") || "list";
+    sessionStorage.removeItem("studentInitialView"); // reset for next normal navigation
+    return <StudentData initialView={iv} />;
   }
 
   if (activeMenu === "Absensi Siswa") {
@@ -248,7 +251,7 @@ const AdminTUDashboard = ({ user, activeMenu, onViewChange }) => {
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <h3 className="font-bold text-[#1e293b] mb-4">Aksi Cepat</h3>
             <div className="space-y-3">
-              <button onClick={() => onViewChange && onViewChange("Data Siswa")} className="w-full flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all text-left">
+              <button onClick={() => { sessionStorage.setItem("studentInitialView", "add"); onViewChange && onViewChange("Data Siswa"); }} className="w-full flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all text-left">
                 <div className="w-8 h-8 rounded-lg bg-[#E8EEF2] flex items-center justify-center text-[#1A3D63]">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
                 </div>

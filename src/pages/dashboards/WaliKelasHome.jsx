@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { getAnnouncements } from "../../utils/announcementStore";
 
 const WaliKelasHome = ({ user, onNavigate }) => {
   const classData = {
@@ -7,6 +8,12 @@ const WaliKelasHome = ({ user, onNavigate }) => {
     tahunAjaran: "2025/2026",
     jumlahSiswa: 32,
   };
+
+  const [liveAnn, setLiveAnn] = useState([]);
+
+  useEffect(() => {
+    setLiveAnn(getAnnouncements().slice(0, 3));
+  }, []);
 
   const today = new Date().toLocaleDateString("id-ID", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
 
@@ -153,6 +160,42 @@ const WaliKelasHome = ({ user, onNavigate }) => {
           </div>
         </div>
       </div>
+
+      {/* Pengumuman Sekolah Terbaru */}
+      {liveAnn.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-[15px] font-bold text-gray-800">Pengumuman Sekolah Terbaru</h3>
+            <button onClick={() => onNavigate && onNavigate("Pengumuman Sekolah")} className="text-[12px] font-bold text-[#1A3D63] hover:underline">Lihat Semua →</button>
+          </div>
+          <div className="space-y-3">
+            {liveAnn.map(ann => (
+              <div
+                key={ann.id}
+                onClick={() => onNavigate && onNavigate("Pengumuman Sekolah")}
+                className="flex items-start gap-3 p-3.5 rounded-xl bg-gray-50 border border-gray-100 hover:bg-blue-50/30 cursor-pointer transition-colors"
+              >
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${ann.importance === "Penting" ? "bg-red-100" : "bg-blue-100"}`}>
+                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke={ann.importance === "Penting" ? "#dc2626" : "#2563eb"} strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832"/>
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <p className="text-[13px] font-semibold text-gray-800 truncate">{ann.title}</p>
+                    {ann.importance === "Penting" && <span className="px-1.5 py-0.5 bg-red-100 text-red-600 text-[9px] font-bold rounded flex-shrink-0">PENTING</span>}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] text-gray-400">{ann.date}</span>
+                    <span className="w-1 h-1 bg-gray-300 rounded-full"/>
+                    <span className="text-[11px] text-blue-500 font-medium">{ann.category}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

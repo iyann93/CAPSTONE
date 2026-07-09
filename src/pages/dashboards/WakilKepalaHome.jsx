@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { getBeasiswa, getDanaBeasiswa, getOperasional } from "../../api/finance";
 import { getGlobalFinanceSummary } from "../../utils/financeHelpers";
+import { getAnnouncements } from "../../utils/announcementStore";
 
 
 
@@ -117,6 +118,11 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
   const [selectedDetailItem, setSelectedDetailItem] = useState(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [selectedPreviewFile, setSelectedPreviewFile] = useState(null);
+  const [liveAnn, setLiveAnn] = useState([]);
+
+  useEffect(() => {
+    setLiveAnn(getAnnouncements().slice(0, 3));
+  }, []);
 
   const formatRupiah = (value) => {
     return new Intl.NumberFormat("id-ID", {
@@ -432,6 +438,52 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
           </div>
         </div>
       </section>
+
+      {/* Pengumuman Sekolah Terbaru */}
+      {liveAnn.length > 0 && (
+        <section className="space-y-4 pt-6 border-t border-gray-200">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold text-[#1F3A5F]">Pengumuman Sekolah Terbaru</h2>
+            <button
+              onClick={() => onNavigate && onNavigate("Pengumuman Sekolah")}
+              className="text-[12px] font-bold text-[#1F3A5F] hover:underline cursor-pointer bg-transparent border-none"
+            >
+              Lihat Semua →
+            </button>
+          </div>
+          <div className="bg-white rounded-[16px] shadow-sm border border-gray-50 divide-y divide-gray-50 overflow-hidden">
+            {liveAnn.map(ann => (
+              <div
+                key={ann.id}
+                onClick={() => onNavigate && onNavigate("Pengumuman Sekolah")}
+                className="px-6 py-4 flex items-start gap-4 hover:bg-gray-50/50 cursor-pointer transition-colors"
+              >
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                  ann.importance === "Penting" ? "bg-red-100" : "bg-blue-100"
+                }`}>
+                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke={ann.importance === "Penting" ? "#dc2626" : "#2563eb"} strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832"/>
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <p className="text-[13px] font-bold text-gray-800 truncate">{ann.title}</p>
+                    {ann.importance === "Penting" && (
+                      <span className="px-1.5 py-0.5 bg-red-100 text-red-600 text-[9px] font-bold rounded flex-shrink-0">PENTING</span>
+                    )}
+                  </div>
+                  <p className="text-[12px] text-gray-500 line-clamp-1">{ann.desc}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[11px] text-gray-400">{ann.date}</span>
+                    <span className="w-1 h-1 bg-gray-300 rounded-full"/>
+                    <span className="text-[11px] text-blue-500 font-medium">{ann.category}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Modal Detail Pengeluaran */}
       {selectedDetailItem && (

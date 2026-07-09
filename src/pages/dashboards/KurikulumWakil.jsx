@@ -104,6 +104,12 @@ const KurikulumWakil = () => {
     }
   };
 
+  const handleSubmitToKepala = (id) => {
+    const updated = data.map(d => d.id === id ? { ...d, status: "Menunggu Persetujuan" } : d);
+    save(updated);
+    showToast("Kurikulum dikirim ke Kepala untuk persetujuan.");
+  };
+
   const filtered = data.filter(d => {
     const s = (d.nama_kurikulum || '').toLowerCase().includes(search.toLowerCase()) || (d.kode_kurikulum || '').toLowerCase().includes(search.toLowerCase());
     const f = filterStatus === "Semua" || d.status === filterStatus;

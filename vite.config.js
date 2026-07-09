@@ -39,4 +39,7 @@ export default defineConfig({
   esbuild: {
     target: 'esnext',
   },
+  optimizeDeps: {
+    include: ['jspdf', 'jspdf-autotable']
+  },
 })
