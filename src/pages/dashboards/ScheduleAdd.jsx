@@ -44,9 +44,11 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "class") {
-      setFormData({ class: value, subject: "", teacher: "", room: formData.room });
+      setFormData({ ...formData, class: value });
     } else if (name === "subject") {
-      setFormData({ ...formData, subject: value, teacher: "" });
+      const selectedSubject = subjectsList.find(s => s.id === value);
+      const defaultTeacherId = selectedSubject ? selectedSubject.guru_pengampu_id : "";
+      setFormData({ ...formData, subject: value, teacher: defaultTeacherId || "" });
     } else {
       setFormData({ ...formData, [name]: value });
     }
@@ -129,9 +131,9 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-2">Mata Pelajaran<span className="text-red-500">*</span></label>
                 <div className="relative">
-                  <select name="subject" value={formData.subject} onChange={handleChange} disabled={!formData.class}
-                    className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700 disabled:bg-gray-50 disabled:text-gray-400">
-                    <option value="">{formData.class ? "Pilih mata pelajaran..." : "Pilih kelas dulu"}</option>
+                  <select name="subject" value={formData.subject} onChange={handleChange}
+                    className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700">
+                    <option value="">Pilih mata pelajaran...</option>
                     {subjectsList.map(s => <option key={s.id} value={s.id}>{s.nama}</option>)}
                   </select>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-4 top-4 text-gray-400 pointer-events-none"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -144,12 +146,9 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
               <label className="block text-[13px] font-bold text-gray-700 mb-2">Guru Pengampu<span className="text-red-500">*</span></label>
               <div className="relative">
                 <select name="teacher" value={formData.teacher} onChange={handleChange}
-                  disabled={!formData.subject}
-                  className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700 disabled:bg-gray-50 disabled:text-gray-400">
-                  <option value="">
-                    {!formData.class ? "Pilih kelas dulu" : !formData.subject ? "Pilih mata pelajaran dulu" : "Pilih guru pengampu..."}
-                  </option>
-                  {teachersList.map(t => <option key={t.id} value={t.id}>{t.nama_lengkap}</option>)}
+                  className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700">
+                  <option value="">Pilih guru pengampu...</option>
+                  {teachersList.map(t => <option key={t.id} value={t.id}>{t.nama}</option>)}
                 </select>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-4 top-4 text-gray-400 pointer-events-none"><polyline points="6 9 12 15 18 9"></polyline></svg>
               </div>

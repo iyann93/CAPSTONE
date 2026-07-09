@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
-<<<<<<< HEAD
 import { getAnnouncements } from "../../utils/announcementStore";
-=======
 import api from "../../api/axios";
->>>>>>> 6e1ed0a241b981b290023c786a1081d909905717
 
 const GuruHome = ({ user, onNavigate }) => {
   const [guruData, setGuruData] = useState({
@@ -15,20 +12,6 @@ const GuruHome = ({ user, onNavigate }) => {
     id: null
   });
   const [jadwalHariIni, setJadwalHariIni] = useState([]);
-  const [pengumuman, setPengumuman] = useState([
-    {
-      kategori: "AKADEMIK",
-      judul: "Rapat Evaluasi Semester",
-      isi: "Akan diadakan rapat evaluasi pada hari Jumat, pukul 13:00 WIB di Ruang Guru. Kehadiran sangat diharapkan.",
-      color: "blue"
-    },
-    {
-      kategori: "KEUANGAN",
-      judul: "Pencairan Gaji Mei",
-      isi: "Gaji bulan Mei 2026 telah ditransfer ke rekening masing-masing. Silakan cek menu Riwayat Terima Gaji untuk rincian.",
-      color: "emerald"
-    }
-  ]);
   const [loading, setLoading] = useState(true);
 
   const [liveAnn, setLiveAnn] = useState([]);
@@ -282,7 +265,6 @@ const GuruHome = ({ user, onNavigate }) => {
 
         {/* Pengumuman Sekolah */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-<<<<<<< HEAD
           <div className="flex justify-between items-center mb-5">
             <h2 className="text-lg font-bold text-gray-800">Pengumuman Sekolah</h2>
             <button onClick={() => onNavigate && onNavigate("Pengumuman Sekolah")} className="text-[12px] font-bold text-[#1A3D63] hover:underline">Lihat Semua →</button>
@@ -308,20 +290,6 @@ const GuruHome = ({ user, onNavigate }) => {
             )) : (
               <div className="text-[13px] text-gray-400 text-center py-6">Belum ada pengumuman.</div>
             )}
-=======
-          <h2 className="text-lg font-bold text-gray-800 mb-6">Pengumuman Sekolah</h2>
-          <div className="space-y-4">
-            {pengumuman.map((p, i) => (
-              <div key={i} className={`p-4 rounded-xl bg-${p.color}-50/50 border border-${p.color}-100 relative overflow-hidden hover:bg-${p.color}-50 transition-colors`}>
-                <div className={`absolute left-0 top-0 bottom-0 w-1 bg-${p.color}-500`}></div>
-                <div className={`text-[10px] font-black px-2.5 py-1 rounded-md tracking-wide uppercase bg-${p.color}-100 text-${p.color}-600 mb-2 inline-flex items-center gap-1.5`}>
-                  {p.kategori}
-                </div>
-                <div className="font-bold text-gray-800 text-[15px] mb-2 leading-snug">{p.judul}</div>
-                <div className="text-[13px] text-gray-600 leading-relaxed">{p.isi}</div>
-              </div>
-            ))}
->>>>>>> 6e1ed0a241b981b290023c786a1081d909905717
           </div>
         </div>
       </div>

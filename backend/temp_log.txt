@@ -1,0 +1,39 @@
+    at async Promise.all (index 1)
+    at async Object.findAll (D:\TUGAS SMT 6\CP\PROYEK\CAPSTONE\backend\src\repositories\jadwal_pelajaran.repository.js:43:27)
+    at async Object.getAll (D:\TUGAS SMT 6\CP\PROYEK\CAPSTONE\backend\src\services\jadwal_pelajaran.service.js:14:29)
+    at async getAll (D:\TUGAS SMT 6\CP\PROYEK\CAPSTONE\backend\src\controllers\jadwal_pelajaran.controller.js:10:30)
+2026-07-09T13:27:43.287Z error: (EMAXCONNSESSION) max clients reached in session mode - max clients are limited to pool_size: 15
+    at D:\TUGAS SMT 6\CP\PROYEK\CAPSTONE\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async verifyToken (D:\TUGAS SMT 6\CP\PROYEK\CAPSTONE\backend\src\middleware\verifyToken.js:23:21)
+2026-07-09T13:27:43.601Z error: (EMAXCONNSESSION) max clients reached in session mode - max clients are limited to pool_size: 15
+    at D:\TUGAS SMT 6\CP\PROYEK\CAPSTONE\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Object.findUserById (D:\TUGAS SMT 6\CP\PROYEK\CAPSTONE\backend\src\repositories\auth.repository.js:68:20)
+    at async Object.refresh (D:\TUGAS SMT 6\CP\PROYEK\CAPSTONE\backend\src\services\auth.service.js:139:18)
+    at async refresh (D:\TUGAS SMT 6\CP\PROYEK\CAPSTONE\backend\src\controllers\auth.controller.js:44:31)
+2026-07-09T13:27:46.424Z error: (EMAXCONNSESSION) max clients reached in session mode - max clients are limited to pool_size: 15
+    at D:\TUGAS SMT 6\CP\PROYEK\CAPSTONE\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Promise.all (index 1)
+    at async Object.findAll (D:\TUGAS SMT 6\CP\PROYEK\CAPSTONE\backend\src\repositories\jadwal_pelajaran.repository.js:43:27)
+    at async Object.getAll (D:\TUGAS SMT 6\CP\PROYEK\CAPSTONE\backend\src\services\jadwal_pelajaran.service.js:14:29)
+    at async getAll (D:\TUGAS SMT 6\CP\PROYEK\CAPSTONE\backend\src\controllers\jadwal_pelajaran.controller.js:10:30)
+2026-07-09T13:27:46.448Z error: (EMAXCONNSESSION) max clients reached in session mode - max clients are limited to pool_size: 15
+    at D:\TUGAS SMT 6\CP\PROYEK\CAPSTONE\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Promise.all (index 1)
+    at async Object.findAll (D:\TUGAS SMT 6\CP\PROYEK\CAPSTONE\backend\src\repositories\guru.repository.js:27:27)
+    at async Object.getAll (D:\TUGAS SMT 6\CP\PROYEK\CAPSTONE\backend\src\services\guru.service.js:10:29)
+    at async getAll (D:\TUGAS SMT 6\CP\PROYEK\CAPSTONE\backend\src\controllers\guru.controller.js:12:22)
+2026-07-09T13:27:46.463Z error: (EMAXCONNSESSION) max clients reached in session mode - max clients are limited to pool_size: 15
+    at D:\TUGAS SMT 6\CP\PROYEK\CAPSTONE\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Promise.all (index 1)
+    at async Object.findAll (D:\TUGAS SMT 6\CP\PROYEK\CAPSTONE\backend\src\repositories\jadwal_pelajaran.repository.js:43:27)
+    at async Object.getAll (D:\TUGAS SMT 6\CP\PROYEK\CAPSTONE\backend\src\services\jadwal_pelajaran.service.js:14:29)
+    at async getAll (D:\TUGAS SMT 6\CP\PROYEK\CAPSTONE\backend\src\controllers\jadwal_pelajaran.controller.js:10:30)
+2026-07-09T13:27:46.605Z error: (EMAXCONNSESSION) max clients reached in session mode - max clients are limited to pool_size: 15
+    at D:\TUGAS SMT 6\CP\PROYEK\CAPSTONE\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async verifyToken (D:\TUGAS SMT 6\CP\PROYEK\CAPSTONE\backend\src\middleware\verifyToken.js:23:21)

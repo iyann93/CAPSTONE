@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { getAnnouncements } from "../../utils/announcementStore";
+import { getNotifications } from "../../utils/notificationStore";
 
 const WaliKelasHome = ({ user, onNavigate }) => {
   const classData = {
@@ -10,9 +11,13 @@ const WaliKelasHome = ({ user, onNavigate }) => {
   };
 
   const [liveAnn, setLiveAnn] = useState([]);
+  const [liveNotifications, setLiveNotifications] = useState([]);
 
   useEffect(() => {
     setLiveAnn(getAnnouncements().slice(0, 3));
+    const allNotifs = getNotifications();
+    const waliNotifs = allNotifs.filter(n => n.roleTarget === "Wali Kelas");
+    setLiveNotifications(waliNotifs.slice(0, 3));
   }, []);
 
   const today = new Date().toLocaleDateString("id-ID", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
@@ -160,6 +165,40 @@ const WaliKelasHome = ({ user, onNavigate }) => {
           </div>
         </div>
       </div>
+
+      {/* Notifikasi Sistem / Akademik */}
+      {liveNotifications.length > 0 && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="text-[15px] font-bold text-[#1A3D63]">Notifikasi Akademik</h3>
+            <span className="px-2 py-0.5 bg-blue-600 text-white text-[10px] font-bold rounded-full">{liveNotifications.length} Baru</span>
+          </div>
+          <div className="space-y-3">
+            {liveNotifications.map(notif => (
+              <div key={notif.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-blue-100 shadow-sm">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#2563eb" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-[14px] font-bold text-gray-800">{notif.title}</h4>
+                    <p className="text-[12px] text-gray-500 mt-0.5 leading-snug">{notif.message}</p>
+                    <span className="text-[10px] text-gray-400 mt-1.5 block">{notif.date}</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => onNavigate && onNavigate("Rapor Siswa")}
+                  className="flex shrink-0 items-center justify-center gap-2 px-4 py-2 bg-[#1A3D63] hover:bg-[#122A44] text-white text-[12px] font-bold rounded-lg transition-colors border-none cursor-pointer"
+                >
+                  Generate Rapor
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Pengumuman Sekolah Terbaru */}
       {liveAnn.length > 0 && (

@@ -19,6 +19,8 @@ const InputNilai = ({ user }) => {
   const [studentsData, setStudentsData] = useState({});
   const [loading, setLoading] = useState(true);
   const [toastMsg, setToastMsg] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(true);
 
   const showToast = (msg, type = "success") => {
     setToastMsg({ msg, type });
@@ -154,6 +156,12 @@ const InputNilai = ({ user }) => {
         const res = await api.get(`/nilai/kelas/${cls.id}?semester_id=${semId}&mata_pelajaran_id=${mapelId}`);
         const existingData = res.data?.data || [];
         
+        if (existingData.length > 0) {
+          setIsEditing(false);
+        } else {
+          setIsEditing(true);
+        }
+        
         
         setStudentsData(prev => {
           const updatedList = (prev[selectedClass] || []).map(student => {
@@ -230,6 +238,7 @@ const InputNilai = ({ user }) => {
   }, [currentStudents, searchQuery]);
 
   const handleSave = async () => {
+    setIsSaving(true);
     try {
       const { default: api } = await import('../../api/axios');
       
@@ -243,50 +252,84 @@ const InputNilai = ({ user }) => {
       
       if (!mapelId) throw new Error("Mata pelajaran belum dipilih");
 
-      const studentsToSave = currentStudents.filter(s => s.harian !== "" || s.uts !== "" || s.uas !== "");
+      const studentsToProcess = currentStudents.filter(s => 
+        (s.harian !== "" || s.uts !== "" || s.uas !== "") || 
+        (s.nilai_id !== null && s.harian === "" && s.uts === "" && s.uas === "")
+      );
       
-      if (studentsToSave.length === 0) {
-        showToast("Gagal: Tidak ada nilai yang diinput.", "error");
+      if (studentsToProcess.length === 0) {
+        showToast("Gagal: Tidak ada perubahan nilai yang diinput.", "error");
         return;
       }
 
-      for (const student of studentsToSave) {
-        const payload = {
-          siswaId: student.id,
-          mataPelajaranId: mapelId,
-          semesterId: semId,
-          nilaiHarian: parseInt(student.harian || 0),
-          nilaiUts: parseInt(student.uts || 0),
-          nilaiUas: parseInt(student.uas || 0),
-          catatan: student.catatan
-        };
-
-        if (student.nilai_id) {
-          // Update existing
-          await api.put(`/nilai/${student.nilai_id}`, payload);
-        } else {
-          // Create new
-          const res = await api.post('/nilai', payload);
-          // Update local state with new ID if successfully inserted
-          if (res.data?.data?.id) {
-            setStudentsData(prev => {
-              const updatedList = (prev[selectedClass] || []).map(s => {
-                if (s.id === student.id) return { ...s, nilai_id: res.data.data.id };
-                return s;
-              });
-              return { ...prev, [selectedClass]: updatedList };
+      for (const student of studentsToProcess) {
+        const isEmpty = student.harian === "" && student.uts === "" && student.uas === "";
+        
+        if (student.nilai_id && isEmpty) {
+          // Delete request
+          await api.delete(`/nilai/${student.nilai_id}`);
+          // Update local state to remove nilai_id
+          setStudentsData(prev => {
+            const updatedList = (prev[selectedClass] || []).map(s => {
+              if (s.id === student.id) return { ...s, nilai_id: null, harian: "", uts: "", uas: "", catatan: "" };
+              return s;
             });
+            return { ...prev, [selectedClass]: updatedList };
+          });
+        } else {
+          // Create or Update payload
+          const payload = {
+            siswaId: student.id,
+            mataPelajaranId: mapelId,
+            semesterId: semId,
+            nilaiHarian: parseInt(student.harian || 0),
+            nilaiUts: parseInt(student.uts || 0),
+            nilaiUas: parseInt(student.uas || 0),
+            catatan: student.catatan
+          };
+
+          if (student.nilai_id) {
+            // Update existing
+            await api.put(`/nilai/${student.nilai_id}`, payload);
+          } else if (!isEmpty) {
+            // Create new
+            const res = await api.post('/nilai', payload);
+            if (res.data?.data?.id) {
+              setStudentsData(prev => {
+                const updatedList = (prev[selectedClass] || []).map(s => {
+                  if (s.id === student.id) return { ...s, nilai_id: res.data.data.id };
+                  return s;
+                });
+                return { ...prev, [selectedClass]: updatedList };
+              });
+            }
           }
         }
       }
 
+      // Notifikasi ke Wali Kelas
+      try {
+        const { addNotification } = await import('../../utils/notificationStore');
+        addNotification({
+          title: "Data Nilai Masuk",
+          message: `Guru Mapel telah menginput dan menyimpan data nilai untuk kelas ${selectedClass}. Silakan validasi dan generate rapor.`,
+          type: "success",
+          roleTarget: "Wali Kelas"
+        });
+      } catch (err) {
+        console.error("Gagal mengirim notifikasi", err);
+      }
+
       showToast(`Berhasil menyimpan nilai untuk kelas ${selectedClass}!`, "success");
+      setIsEditing(false);
     } catch (error) {
       console.error("Error saving grades:", error);
       const errorMsg = error.response?.data?.errors 
         ? error.response.data.errors.map(e => e.msg).join(', ')
         : error.response?.data?.message || error.message || "Terjadi kesalahan";
       showToast(`Gagal: ${errorMsg}`, "error");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -437,40 +480,64 @@ const InputNilai = ({ user }) => {
                       </div>
                     </td>
                     <td className="py-4 px-2 text-center">
-                      <input
-                        type="text"
-                        value={student.harian}
-                        onChange={(e) => handleGradeChange(student.id, 'harian', e.target.value)}
-                        placeholder="—"
-                        className="w-[70px] bg-[#EBF3FA] text-[#1A3D63] text-center font-extrabold text-xs rounded-xl py-2 border border-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all shadow-inner"
-                      />
+                      {!isEditing ? (
+                        <div className="w-[70px] bg-slate-50 text-[#1A3D63] text-center font-extrabold text-xs rounded-xl py-2 mx-auto border border-transparent shadow-sm">
+                          {student.harian || "—"}
+                        </div>
+                      ) : (
+                        <input
+                          type="text"
+                          value={student.harian}
+                          onChange={(e) => handleGradeChange(student.id, 'harian', e.target.value)}
+                          placeholder="—"
+                          className="w-[70px] bg-[#EBF3FA] text-[#1A3D63] text-center font-extrabold text-xs rounded-xl py-2 border border-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all shadow-inner"
+                        />
+                      )}
                     </td>
                     <td className="py-4 px-2 text-center">
-                      <input
-                        type="text"
-                        value={student.uts}
-                        onChange={(e) => handleGradeChange(student.id, 'uts', e.target.value)}
-                        placeholder="—"
-                        className="w-[70px] bg-[#EBF3FA] text-[#1A3D63] text-center font-extrabold text-xs rounded-xl py-2 border border-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all shadow-inner"
-                      />
+                      {!isEditing ? (
+                        <div className="w-[70px] bg-slate-50 text-[#1A3D63] text-center font-extrabold text-xs rounded-xl py-2 mx-auto border border-transparent shadow-sm">
+                          {student.uts || "—"}
+                        </div>
+                      ) : (
+                        <input
+                          type="text"
+                          value={student.uts}
+                          onChange={(e) => handleGradeChange(student.id, 'uts', e.target.value)}
+                          placeholder="—"
+                          className="w-[70px] bg-[#EBF3FA] text-[#1A3D63] text-center font-extrabold text-xs rounded-xl py-2 border border-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all shadow-inner"
+                        />
+                      )}
                     </td>
                     <td className="py-4 px-2 text-center">
-                      <input
-                        type="text"
-                        value={student.uas}
-                        onChange={(e) => handleGradeChange(student.id, 'uas', e.target.value)}
-                        placeholder="—"
-                        className="w-[70px] bg-[#1A3D63] text-white text-center font-extrabold text-xs rounded-xl py-2 border-0 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all shadow-md"
-                      />
+                      {!isEditing ? (
+                        <div className="w-[70px] bg-[#1A3D63]/10 text-[#1A3D63] text-center font-extrabold text-xs rounded-xl py-2 mx-auto border border-transparent shadow-sm">
+                          {student.uas || "—"}
+                        </div>
+                      ) : (
+                        <input
+                          type="text"
+                          value={student.uas}
+                          onChange={(e) => handleGradeChange(student.id, 'uas', e.target.value)}
+                          placeholder="—"
+                          className="w-[70px] bg-[#1A3D63] text-white text-center font-extrabold text-xs rounded-xl py-2 border-0 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all shadow-md"
+                        />
+                      )}
                     </td>
                     <td className="py-4 px-4">
-                      <input
-                        type="text"
-                        value={student.catatan}
-                        onChange={(e) => handleNoteChange(student.id, e.target.value)}
-                        placeholder="Catatan nilai..."
-                        className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-700 focus:outline-none focus:border-blue-500 shadow-sm transition-all"
-                      />
+                      {!isEditing ? (
+                        <div className="w-full bg-slate-50 border border-transparent rounded-xl px-3 py-2 text-xs font-bold text-gray-500 italic min-h-[34px] flex items-center shadow-sm">
+                          {student.catatan || "Tidak ada catatan"}
+                        </div>
+                      ) : (
+                        <input
+                          type="text"
+                          value={student.catatan}
+                          onChange={(e) => handleNoteChange(student.id, e.target.value)}
+                          placeholder="Catatan nilai..."
+                          className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs font-bold text-gray-700 focus:outline-none focus:border-blue-500 shadow-sm transition-all"
+                        />
+                      )}
                     </td>
                   </tr>
                 ))
@@ -499,7 +566,7 @@ const InputNilai = ({ user }) => {
           </div>
           <div>
             <h3 className="text-sm font-black text-[#1e293b]">
-              Simpan nilai kelas {selectedClass || "..."}
+              {!isEditing ? "Data Nilai Tersimpan" : `Simpan nilai kelas ${selectedClass || "..."}`}
             </h3>
             <p className="text-[11px] text-gray-400 font-semibold mt-0.5">
               {filledStudentsCount} dari {totalStudents} siswa telah memiliki nilai
@@ -507,18 +574,39 @@ const InputNilai = ({ user }) => {
           </div>
         </div>
 
+        {!isEditing ? (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="flex items-center justify-center gap-2.5 bg-amber-500 hover:bg-amber-600 text-white px-7 py-3.5 rounded-2xl text-xs font-black transition-all shadow-lg shadow-amber-500/20 active:scale-95 w-full sm:w-auto"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+            Edit Nilai
+          </button>
+        ) : (
+
         <button
           onClick={handleSave}
-          disabled={totalStudents === 0}
+          disabled={totalStudents === 0 || isSaving}
           className="flex items-center justify-center gap-2.5 bg-[#1A3D63] hover:bg-[#122A44] disabled:opacity-50 disabled:pointer-events-none text-white px-7 py-3.5 rounded-2xl text-xs font-black transition-all shadow-lg shadow-[#1A3D63]/15 active:scale-95 w-full sm:w-auto"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-            <polyline points="17 21 17 13 7 13 7 21" />
-            <polyline points="7 3 7 8 15 8" />
-          </svg>
-          Simpan Nilai
+          {isSaving ? (
+            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+              <polyline points="17 21 17 13 7 13 7 21" />
+              <polyline points="7 3 7 8 15 8" />
+            </svg>
+          )}
+          {isSaving ? "Menyimpan..." : "Simpan Nilai"}
         </button>
+        )}
       </div>
     </div>
   );

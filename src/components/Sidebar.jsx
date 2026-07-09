@@ -314,9 +314,12 @@ const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) =>
         return userPerms[item.label].lihat === true;
       }
       
-      // If we don't have perms yet, fallback to true so the app isn't empty on first load,
-      // but once loaded it strictly follows the DB.
+      // If we don't have perms yet, fallback to true so the app isn't empty on first load.
       if (!rolePermissions) return true;
+      
+      // If the role doesn't have custom dynamic permissions defined in RBAC,
+      // fallback to statically defined menus.
+      if (!userPerms) return true;
       
       return false;
     });

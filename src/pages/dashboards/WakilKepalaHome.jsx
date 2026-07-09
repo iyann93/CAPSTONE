@@ -108,16 +108,14 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
   const [selectedDetailItem, setSelectedDetailItem] = useState(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [selectedPreviewFile, setSelectedPreviewFile] = useState(null);
-<<<<<<< HEAD
   const [liveAnn, setLiveAnn] = useState([]);
 
   useEffect(() => {
     setLiveAnn(getAnnouncements().slice(0, 3));
   }, []);
-=======
+
   const [recentCurriculumList, setRecentCurriculumList] = useState([]);
   const [jadwalList, setJadwalList] = useState([]);
->>>>>>> 6e1ed0a241b981b290023c786a1081d909905717
 
   const formatRupiah = (value) => {
     return new Intl.NumberFormat("id-ID", {
