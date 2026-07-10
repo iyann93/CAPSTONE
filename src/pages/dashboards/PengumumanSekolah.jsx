@@ -183,7 +183,7 @@ const PengumumanSekolah = ({ user, onNavigate }) => {
       </div>
 
       {/* Main Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-3 gap-6">
         {/* Left Side: List of Announcements */}
         <div className="lg:col-span-2 space-y-4">
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col md:flex-row items-center justify-between gap-3">
@@ -323,7 +323,7 @@ const PengumumanSekolah = ({ user, onNavigate }) => {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Kategori</label>
                     <select
