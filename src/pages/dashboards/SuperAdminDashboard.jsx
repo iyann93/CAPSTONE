@@ -1001,9 +1001,9 @@ const RolePermissionModule = () => {
       </div>
 
       {/* Main content grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-3 gap-6 items-start">
         {/* Left column: Daftar Role */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4 flex flex-col">
+        <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4 flex flex-col ${(isCreating || selectedRole) ? 'hidden md:flex' : 'flex'}`}>
           <div className="flex flex-wrap items-center justify-between">
             <h3 className="text-base font-bold text-gray-800">Daftar Role</h3>
             <span className="bg-gray-100 text-gray-500 text-xs font-semibold px-2 py-0.5 rounded-full">
@@ -1072,7 +1072,7 @@ const RolePermissionModule = () => {
         </div>
 
         {/* Right column: Permissions Table */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col gap-6">
+        <div className={`md:col-span-2 lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col gap-6 ${(isCreating || selectedRole) ? 'flex' : 'hidden md:flex'}`}>
           {!isCreating && !selectedRole ? (
             <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center opacity-70">
               <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
@@ -1151,6 +1151,16 @@ const RolePermissionModule = () => {
             /* VIEW MODE HEADER */
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
               <div className="space-y-2 flex-1">
+                <button 
+                  onClick={() => setSelectedRoleId(null)}
+                  className="md:hidden flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-gray-800 transition-colors mb-2"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                  </svg>
+                  Kembali ke Daftar
+                </button>
                 <div className="flex items-center gap-2.5">
                   <h2 className="text-lg font-bold text-gray-800 leading-none">{selectedRole?.name}</h2>
                   <span className={`px-2 py-0.5 text-[9.5px] font-black tracking-widest rounded-md ${
