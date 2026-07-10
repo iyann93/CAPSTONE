@@ -159,7 +159,7 @@ const Classes = () => {
         kapasitas: parseInt(addForm.capacity) || 36
       });
       await fetchClassesAndStudents();
-      setView("list");
+      setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
       setAddForm({
         code: "", name: "", desc: "", room: "", capacity: 36, year: "2025/2026", semester: "Ganjil", teacher: ""
       });
@@ -204,7 +204,7 @@ const Classes = () => {
           kapasitas: parseInt(updatedData.capacity) || 36
         });
         await fetchClassesAndStudents();
-        setView("list");
+        setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
         setSelectedClass(null);
       } catch (err) {
         console.error(err);
@@ -222,7 +222,7 @@ const Classes = () => {
 
         <div className="flex flex-wrap items-center gap-4 mb-6">
           <button 
-            onClick={() => setView("list")}
+            onClick={() => { setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }}
             className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors shadow-sm"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
@@ -378,7 +378,7 @@ const Classes = () => {
                 Simpan Kelas
               </button>
               <button 
-                onClick={() => setView("list")}
+                onClick={() => { setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }}
                 className="w-full py-3.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-[14px] font-bold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 shadow-sm"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -410,7 +410,7 @@ const Classes = () => {
           </button>
           {perms.buat && (
             <button
-              onClick={() => setView("add")}
+              onClick={() => { setView("add"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }}
               className="bg-[#1A3D63] hover:bg-[#122A44] text-white px-5 py-2.5 rounded-xl font-bold text-[13px] shadow-sm transition-all flex items-center gap-2"
             >
               <span className="text-lg leading-none">+</span>
@@ -545,11 +545,11 @@ const Classes = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-center gap-2">
-                      <button onClick={() => { setSelectedClass(item); setView("detail"); }} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                      <button onClick={() => { setSelectedClass(item); setView("detail"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                       </button>
                       {perms.ubah && (
-                        <button onClick={() => { setSelectedClass(item); setView("edit"); }} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                        <button onClick={() => { setSelectedClass(item); setView("edit"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
                       )}

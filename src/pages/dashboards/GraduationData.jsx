@@ -94,7 +94,7 @@ const GraduationData = () => {
   const handleSaveGraduation = async (classKode, updatedStats) => {
     // Dipanggil dari GraduationDataDetail jika ingin mengupdate state lokal sebelum fetch
     // Tapi karena view pindah ke "list", useEffect fetchData akan terpanggil lagi
-    setView("list");
+    setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
   };
 
   const totalSiswa = classes.reduce((a,c)=>a+c.total,0);
@@ -215,12 +215,12 @@ const GraduationData = () => {
                   <td className="px-4 py-4"><StatusBadge s={row.status} /></td>
                   <td className="px-4 py-4">
                     {row.status==="Belum Diproses" ? (
-                      <button onClick={()=>{setSelectedClass(row);setView("detail");}} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-lg text-[12px] font-bold">
+                      <button onClick={()=>{setSelectedClass(row);setView("detail"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);}} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#3B82F6] hover:bg-[#2563EB] text-white rounded-lg text-[12px] font-bold">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 16 16 12 12 8"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
                         Proses
                       </button>
                     ) : (
-                      <button onClick={()=>{setSelectedClass(row);setView("detail");}} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg text-[12px] font-bold">
+                      <button onClick={()=>{setSelectedClass(row);setView("detail"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);}} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg text-[12px] font-bold">
                         <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                         Detail
                       </button>

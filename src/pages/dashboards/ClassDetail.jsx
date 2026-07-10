@@ -10,7 +10,7 @@ const ClassDetail = ({ setView, selectedClass, perms }) => {
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
         <div className="flex flex-wrap items-center gap-4">
           <button 
-            onClick={() => setView("list")}
+            onClick={() => { setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }}
             className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors shadow-sm shrink-0"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
@@ -31,7 +31,7 @@ const ClassDetail = ({ setView, selectedClass, perms }) => {
           </button>
           {perms?.ubah && (
             <button
-              onClick={() => setView("edit")}
+              onClick={() => { setView("edit"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }}
               className="bg-[#3B82F6] hover:bg-[#2563EB] text-white px-5 py-2.5 rounded-xl font-bold text-[13px] shadow-sm transition-all flex items-center gap-2"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>

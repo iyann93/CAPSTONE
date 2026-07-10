@@ -175,13 +175,13 @@ const GradePromotionDetail = ({ setView, classData, activeTahunAjaran, onSave })
 
       {/* Breadcrumb */}
       <div className="text-[13px] font-medium text-gray-400 mb-4">
-        Dashboard &gt; <button onClick={() => setView("list")} className="text-gray-500 hover:text-[#2A4365]">Kenaikan Kelas</button> &gt; <span className="text-[#2A4365] font-semibold">{classData?.kelas || "Kelas VII A"}</span>
+        Dashboard &gt; <button onClick={() => { setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} className="text-gray-500 hover:text-[#2A4365]">Kenaikan Kelas</button> &gt; <span className="text-[#2A4365] font-semibold">{classData?.kelas || "Kelas VII A"}</span>
       </div>
 
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between md:items-start gap-4 mb-6">
         <div className="flex items-start gap-3">
-          <button onClick={() => setView("list")} className="p-2 mt-1 rounded-xl bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 shadow-sm">
+          <button onClick={() => { setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} className="p-2 mt-1 rounded-xl bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 shadow-sm">
             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
           <div>

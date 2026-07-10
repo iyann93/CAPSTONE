@@ -38,12 +38,12 @@ const Schedules = () => {
 
   const handleAdd = () => {
     fetchSchedules();
-    setView("list");
+    setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
   };
 
   const handleEdit = () => {
     fetchSchedules();
-    setView("list");
+    setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
   };
 
   const handleDelete = async (id) => {
@@ -88,7 +88,7 @@ const Schedules = () => {
             Ekspor Jadwal
           </button>
           <button 
-            onClick={() => setView("add")}
+            onClick={() => { setView("add"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }}
             className="bg-[#3B82F6] hover:bg-[#2563EB] text-white px-5 py-2.5 rounded-xl font-bold text-[13px] shadow-sm transition-all flex items-center gap-2"
           >
             <span className="text-lg leading-none">+</span>
@@ -266,7 +266,7 @@ const Schedules = () => {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center justify-center gap-2">
-                        <button onClick={() => { setCurrentEditItem(item); setView("edit"); }} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                        <button onClick={() => { setCurrentEditItem(item); setView("edit"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
                         <button onClick={() => handleDelete(item.id)} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors">

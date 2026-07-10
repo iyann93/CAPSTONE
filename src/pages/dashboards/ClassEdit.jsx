@@ -29,7 +29,7 @@ const ClassEdit = ({ setView, initialData, teachers, onSave, onDelete }) => {
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
         <div className="flex flex-wrap items-center gap-4">
           <button 
-            onClick={() => setView("list")}
+            onClick={() => { setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }}
             className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors shadow-sm shrink-0"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
@@ -46,7 +46,7 @@ const ClassEdit = ({ setView, initialData, teachers, onSave, onDelete }) => {
           onClick={() => {
             if (onDelete) {
               onDelete(editForm.id);
-              setView("list");
+              setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
             }
           }}
           className="bg-white border border-red-200 text-red-500 hover:bg-red-50 px-5 py-2.5 rounded-xl font-bold text-[13px] shadow-sm transition-all flex items-center gap-2"
@@ -230,7 +230,7 @@ const ClassEdit = ({ setView, initialData, teachers, onSave, onDelete }) => {
               Simpan Perubahan
             </button>
             <button 
-              onClick={() => setView("list")}
+              onClick={() => { setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }}
               className="w-full py-3.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-[14px] font-bold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 shadow-sm"
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>

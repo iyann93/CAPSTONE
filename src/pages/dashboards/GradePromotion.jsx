@@ -111,7 +111,7 @@ const GradePromotion = () => {
 
   const handleSavePromotion = async () => {
     await fetchState();
-    setView("list");
+    setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
   };
 
   const filtered = activeTab === "Semua Tingkat"
@@ -270,12 +270,12 @@ const GradePromotion = () => {
                   <td className="px-5 py-4"><StatusBadge status={row.status} /></td>
                   <td className="px-5 py-4">
                     {row.status === "Belum Diproses" ? (
-                      <button onClick={() => { setSelectedClass(row); setView("process"); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#2A4365] hover:bg-[#1A365D] text-white rounded-lg text-[12px] font-bold transition-colors">
+                      <button onClick={() => { setSelectedClass(row); setView("process"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#2A4365] hover:bg-[#1A365D] text-white rounded-lg text-[12px] font-bold transition-colors">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
                         Proses
                       </button>
                     ) : (
-                      <button onClick={() => { setSelectedClass(row); setView("detail"); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg text-[12px] font-bold transition-colors">
+                      <button onClick={() => { setSelectedClass(row); setView("detail"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg text-[12px] font-bold transition-colors">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                         Detail
                       </button>
@@ -364,7 +364,7 @@ const GradePromotion = () => {
               <button onClick={() => setShowCriteria(false)} className="flex-1 py-3 rounded-xl border border-gray-200 text-[14px] font-bold text-gray-600 hover:bg-gray-50 transition-colors">
                 Tutup
               </button>
-              <button onClick={() => { setShowCriteria(false); setView("criteria"); }} className="flex-1 py-3 rounded-xl bg-[#2A4365] hover:bg-[#1A365D] text-white text-[14px] font-bold transition-colors">
+              <button onClick={() => { setShowCriteria(false); setView("criteria"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} className="flex-1 py-3 rounded-xl bg-[#2A4365] hover:bg-[#1A365D] text-white text-[14px] font-bold transition-colors">
                 Edit Kriteria
               </button>
             </div>

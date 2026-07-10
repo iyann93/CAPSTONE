@@ -129,12 +129,12 @@ const GraduationDataDetail = ({ cls, setView, onSave }) => {
   return (
     <div className="p-6 md:p-8 animate-fadeIn bg-[#F4F6FA] min-h-full">
       <div className="text-[13px] text-gray-400 mb-4">
-        Dashboard &gt; <button onClick={()=>setView("list")} className="text-gray-500 hover:text-[#2A4365]">Data Kelulusan</button> &gt; <span className="text-[#2A4365] font-semibold">{clsName}</span>
+        Dashboard &gt; <button onClick={() => { setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} className="text-gray-500 hover:text-[#2A4365]">Data Kelulusan</button> &gt; <span className="text-[#2A4365] font-semibold">{clsName}</span>
       </div>
 
       <div className="flex flex-col md:flex-row justify-between md:items-start gap-4 mb-6">
         <div className="flex items-start gap-3">
-          <button onClick={()=>setView("list")} className="w-10 h-10 mt-0.5 rounded-full bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 shadow-sm flex items-center justify-center">
+          <button onClick={() => { setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} className="w-10 h-10 mt-0.5 rounded-full bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 shadow-sm flex items-center justify-center">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
           </button>
           <div>

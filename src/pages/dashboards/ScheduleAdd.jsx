@@ -92,7 +92,7 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
       {/* Header */}
       <div className="flex flex-wrap items-center gap-4 mb-6">
         <button
-          onClick={() => setView("list")}
+          onClick={() => { setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }}
           className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors shadow-sm shrink-0"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -258,7 +258,7 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
               </svg>
               Simpan Jadwal
             </button>
-            <button onClick={() => setView("list")}
+            <button onClick={() => { setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }}
               className="w-full py-3.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-[14px] font-bold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 shadow-sm">
               Batalkan
             </button>

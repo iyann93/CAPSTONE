@@ -123,7 +123,7 @@ const ManageUsers = ({ onViewChange }) => {
         await createSystemUser(formData);
         triggerToast('Pengguna berhasil ditambahkan');
       }
-      setView("list");
+      setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
       fetchData();
     } catch (e) {
       console.error(e);
@@ -209,7 +209,7 @@ const ManageUsers = ({ onViewChange }) => {
     });
     setShowPassword(false);
     setShowConfirmPassword(false);
-    setView("edit");
+    setView("edit"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
   };
 
   const handleAddClick = () => {
@@ -217,7 +217,7 @@ const ManageUsers = ({ onViewChange }) => {
     setFormData({ nama: '', email: '', password: '', roleId: '', siswaId: '', isActive: true, tanggal_lahir: '', jenis_kelamin: '', telepon: '', alamat: '', mustChangePassword: true });
     setShowPassword(false);
     setShowConfirmPassword(false);
-    setView("add");
+    setView("add"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
   };
 
   if (view === "add" || view === "edit") {
@@ -238,7 +238,7 @@ const ManageUsers = ({ onViewChange }) => {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <button onClick={() => setView("list")} className="flex items-center gap-1.5 text-sm font-semibold text-gray-400 hover:text-[#1A3D63] transition-colors mb-3">
+            <button onClick={() => { setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} className="flex items-center gap-1.5 text-sm font-semibold text-gray-400 hover:text-[#1A3D63] transition-colors mb-3">
               <ArrowLeftIcon /> Kembali ke Daftar
             </button>
             <h1 className="text-2xl font-black text-gray-800 tracking-tight">{title}</h1>
@@ -246,7 +246,7 @@ const ManageUsers = ({ onViewChange }) => {
           </div>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto shrink-0">
             <button
-              onClick={() => setView("list")}
+              onClick={() => { setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }}
               className="w-full sm:w-auto text-center px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-all bg-white shadow-sm"
             >
               Batal
