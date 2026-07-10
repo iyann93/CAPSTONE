@@ -186,7 +186,7 @@ const PengumumanSekolah = ({ user, onNavigate }) => {
       {/* Main Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-3 gap-6">
         {/* Left Side: List of Announcements */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className={`lg:col-span-2 space-y-4 ${(showForm || selectedAnnouncement) ? 'hidden lg:block' : 'block'}`}>
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-col md:flex-row items-center justify-between gap-3">
             <div className="flex gap-1.5 flex-wrap">
               {["Semua", "Akademik", "Kegiatan", "Penerimaan", "Tagihan SPP"].map(t => (
@@ -301,7 +301,7 @@ const PengumumanSekolah = ({ user, onNavigate }) => {
         </div>
 
         {/* Right Side: Detail or Add Form */}
-        <div className="space-y-4">
+        <div className={`space-y-4 ${(showForm || selectedAnnouncement) ? 'block' : 'hidden lg:block'}`}>
           {/* Form Tambah Pengumuman (Admin TU) */}
           {showForm && isAdminTU ? (
             <div className="bg-white rounded-2xl border border-[#1A3D63] shadow-sm p-6 space-y-4 animate-fadeIn">
@@ -418,8 +418,8 @@ const PengumumanSekolah = ({ user, onNavigate }) => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setShowForm(false); setFormError(""); setForm(EMPTY_FORM); }}
-                    className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-[13px] font-bold rounded-xl transition-colors"
+                    onClick={() => { setShowForm(false); setForm(EMPTY_FORM); setFormError(""); }}
+                    className="flex-1 py-2.5 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 text-[13px] font-bold rounded-xl transition-colors"
                   >
                     Batal
                   </button>

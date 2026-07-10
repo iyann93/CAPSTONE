@@ -40,6 +40,29 @@ const App = () => {
   }, [activeMenu, user]);
 
   React.useEffect(() => {
+    if (!scrollContainerRef.current) return;
+    const scrollObserver = new MutationObserver((mutations) => {
+      let shouldScroll = false;
+      for (const mutation of mutations) {
+        if (mutation.addedNodes) {
+          for (const node of mutation.addedNodes) {
+            if (node.nodeType === 1 && (node.classList.contains('animate-fadeIn') || node.querySelector('.animate-fadeIn'))) {
+              shouldScroll = true;
+              break;
+            }
+          }
+        }
+        if (shouldScroll) break;
+      }
+      if (shouldScroll) {
+        scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+    scrollObserver.observe(scrollContainerRef.current, { childList: true, subtree: true });
+    return () => scrollObserver.disconnect();
+  }, [user, activeMenu]);
+
+  React.useEffect(() => {
     // Observer to globally detect if any modal is open across the app
     let timeoutId;
     const checkModals = () => {
