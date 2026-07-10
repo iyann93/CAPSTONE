@@ -149,7 +149,7 @@ const ScheduleEdit = ({ setView, handleEdit, handleDelete, currentSchedule }) =>
                   <option value="">
                     {!formData.class ? "Pilih kelas dulu" : !formData.subject ? "Pilih mata pelajaran dulu" : "Pilih guru pengampu..."}
                   </option>
-                  {teachersList.map(t => <option key={t.id} value={t.id}>{t.nama_lengkap}</option>)}
+                  {teachersList.map(t => <option key={t.id} value={t.id}>{t.nama_lengkap || t.nama || t.name || t.email}</option>)}
                 </select>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-4 top-4 text-gray-400 pointer-events-none"><polyline points="6 9 12 15 18 9"></polyline></svg>
               </div>
@@ -206,7 +206,7 @@ const ScheduleEdit = ({ setView, handleEdit, handleDelete, currentSchedule }) =>
                 </div>
                 <div className="text-[12px] text-gray-500 space-y-1">
                   <p>🏫 <strong>{classesList.find(c => c.id == formData.class)?.nama_kelas}</strong></p>
-                  <p>👨‍🏫 {teachersList.find(t => t.id == formData.teacher)?.nama_lengkap}</p>
+                  <p>👨‍🏫 {teachersList.find(t => t.id == formData.teacher)?.nama_lengkap || teachersList.find(t => t.id == formData.teacher)?.nama || teachersList.find(t => t.id == formData.teacher)?.name}</p>
                   {selectedDay && <p>📅 {selectedDay} · {selectedSlot}</p>}
                 </div>
               </div>

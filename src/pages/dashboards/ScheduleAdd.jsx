@@ -148,7 +148,7 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
                 <select name="teacher" value={formData.teacher} onChange={handleChange}
                   className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700">
                   <option value="">Pilih guru pengampu...</option>
-                  {teachersList.map(t => <option key={t.id} value={t.id}>{t.nama}</option>)}
+                  {teachersList.map(t => <option key={t.id} value={t.id}>{t.nama_lengkap || t.nama || t.name || t.email}</option>)}
                 </select>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-4 top-4 text-gray-400 pointer-events-none"><polyline points="6 9 12 15 18 9"></polyline></svg>
               </div>
@@ -210,7 +210,7 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
                 </div>
                 <div className="text-[12px] text-gray-500 space-y-1">
                   <p>🏫 <strong>{classesList.find(c => c.id == formData.class)?.nama_kelas || formData.class}</strong></p>
-                  <p>👨‍🏫 {teachersList.find(t => t.id == formData.teacher)?.nama || formData.teacher}</p>
+                  <p>👨‍🏫 {teachersList.find(t => t.id == formData.teacher)?.nama_lengkap || teachersList.find(t => t.id == formData.teacher)?.nama || teachersList.find(t => t.id == formData.teacher)?.name || formData.teacher}</p>
                   {selectedDay && <p>📅 {selectedDay} · {selectedSlot}</p>}
                 </div>
               </div>
