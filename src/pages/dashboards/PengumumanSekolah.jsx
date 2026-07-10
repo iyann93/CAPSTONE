@@ -120,9 +120,9 @@ const PengumumanSekolah = ({ user, onNavigate }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.title.trim()) { setFormError("Judul pengumuman wajib diisi."); return; }
-    if (!form.desc.trim()) { setFormError("Isi pengumuman wajib diisi."); return; }
-    const authorName = form.author.trim() || (user?.name || user?.fullName || "Admin TU");
+    if (!form.title?.trim()) { setFormError("Judul pengumuman wajib diisi."); return; }
+    if (!form.desc?.trim()) { setFormError("Isi pengumuman wajib diisi."); return; }
+    const authorName = (form.author || "").trim() || (user?.nama || user?.name || user?.fullName || "Admin TU");
     
     let updated;
     if (form.id) {
@@ -316,7 +316,7 @@ const PengumumanSekolah = ({ user, onNavigate }) => {
                   <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Judul Pengumuman *</label>
                   <input
                     name="title"
-                    value={form.title}
+                    value={form.title || ""}
                     onChange={handleFormChange}
                     placeholder="Masukkan judul pengumuman..."
                     className="w-full text-[13px] border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
@@ -355,9 +355,9 @@ const PengumumanSekolah = ({ user, onNavigate }) => {
                   <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Pembuat</label>
                   <input
                     name="author"
-                    value={form.author}
+                    value={form.author || ""}
                     onChange={handleFormChange}
-                    placeholder={user?.name || user?.fullName || "Nama pembuat..."}
+                    placeholder={user?.nama || user?.name || user?.fullName || "Nama pembuat..."}
                     className="w-full text-[13px] border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300"
                   />
                 </div>
@@ -366,7 +366,7 @@ const PengumumanSekolah = ({ user, onNavigate }) => {
                   <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Isi Pengumuman *</label>
                   <textarea
                     name="desc"
-                    value={form.desc}
+                    value={form.desc || ""}
                     onChange={handleFormChange}
                     rows={5}
                     placeholder="Tulis isi pengumuman secara lengkap..."
