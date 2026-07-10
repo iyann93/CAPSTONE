@@ -1,43 +1,43 @@
 // announcementStore.js
 // Shared utility untuk menyimpan dan membaca pengumuman sekolah via localStorage
 
-const STORAGE_KEY = 'school_announcements';
+const STORAGE_KEY = 'school_announcements_v2';
 
 export const DEFAULT_ANNOUNCEMENTS = [
   {
     id: 1,
-    title: "Jadwal Ujian Akhir Semester Genap TA 2023/2024",
-    date: "20 Jun 2024",
+    title: "Jadwal Ujian Akhir Semester Genap TA 2025/2026",
+    date: "20 Jun 2026",
     author: "Drs. Wahyu (Waka Kurikulum)",
     category: "Akademik",
     importance: "Penting",
-    desc: "Diberitahukan kepada seluruh Orang Tua/Wali siswa bahwa Ujian Akhir Semester Genap akan dilaksanakan mulai tanggal 24 Juni hingga 28 Juni 2024. Kartu ujian dapat diambil melalui TU mulai hari ini. Pastikan siswa mempersiapkan diri dengan baik dan hadir tepat waktu sesuai jadwal.",
+    desc: "Diberitahukan kepada seluruh Orang Tua/Wali siswa bahwa Ujian Akhir Semester Genap akan dilaksanakan mulai tanggal 24 Juni hingga 28 Juni 2026. Kartu ujian dapat diambil melalui TU mulai hari ini. Pastikan siswa mempersiapkan diri dengan baik dan hadir tepat waktu sesuai jadwal.",
     attachment: "Jadwal_UAS_Genap_2024.pdf"
   },
   {
     id: 2,
     title: "Pentas Seni & Bazar Kreativitas Siswa Akhir Tahun",
-    date: "15 Jun 2024",
+    date: "15 Jun 2026",
     author: "Indah Sari (Pembina OSIS)",
     category: "Kegiatan",
     importance: "Normal",
-    desc: "Undangan resmi menghadiri acara Pentas Seni Akhir Tahun MBS Prambanan yang diselenggarakan pada Sabtu, 22 Juni 2024. Acara ini akan menampilkan kreativitas seni, musik, dan bazar produk kewirausahaan siswa kelas VIII dan IX. Kehadiran Bapak/Ibu sangat kami harapkan untuk memberikan apresiasi.",
+    desc: "Undangan resmi menghadiri acara Pentas Seni Akhir Tahun MBS Prambanan yang diselenggarakan pada Sabtu, 22 Juni 2026. Acara ini akan menampilkan kreativitas seni, musik, dan bazar produk kewirausahaan siswa kelas VIII dan IX. Kehadiran Bapak/Ibu sangat kami harapkan untuk memberikan apresiasi.",
     attachment: "Undangan_Pensi_2024.pdf"
   },
   {
     id: 3,
     title: "Sosialisasi Program Kenaikan & Kelulusan Kelas IX",
-    date: "10 Jun 2024",
+    date: "10 Jun 2026",
     author: "Drs. Ahmad Wijaya (Kepala Sekolah)",
     category: "Akademik",
     importance: "Penting",
-    desc: "Rapat koordinasi dan pemaparan kriteria kenaikan kelas serta kelulusan akan dilaksanakan secara tatap muka di Aula Sekolah pada tanggal 14 Juni 2024 pukul 09.00 WIB. Pertemuan ini sangat penting guna membahas arah pendidikan anak ke depan serta penyelesaian administrasi akhir tahun.",
+    desc: "Rapat koordinasi dan pemaparan kriteria kenaikan kelas serta kelulusan akan dilaksanakan secara tatap muka di Aula Sekolah pada tanggal 14 Juni 2026 pukul 09.00 WIB. Pertemuan ini sangat penting guna membahas arah pendidikan anak ke depan serta penyelesaian administrasi akhir tahun.",
     attachment: "Panduan_Kelulusan_Kenaikan.pdf"
   },
   {
     id: 4,
     title: "Penerimaan Proposal Beasiswa Prestasi Semester Ganjil",
-    date: "05 Jun 2024",
+    date: "05 Jun 2026",
     author: "Siti Aminah (Bendahara)",
     category: "Penerimaan",
     importance: "Normal",
