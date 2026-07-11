@@ -306,7 +306,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
     (activeTab === "pemasukan" ? totalBulanIniSpp : 0);
     
   const totalKeseluruhan = currentData.reduce((acc, curr) => acc + Number(curr.nominal), 0) + currentBeasiswa.reduce((acc, curr) => acc + Number(curr.nominal), 0) + (activeTab === "pemasukan" ? totalSppTahunan : 0);
-  const totalOperasionalSaja = currentData.reduce((acc, curr) => acc + Number(curr.nominal), 0);
+  const totalOperasionalSaja = currentData.filter(item => item.kategori !== 'Gaji Pegawai').reduce((acc, curr) => acc + Number(curr.nominal), 0);
 
   const card1Title = activeTab === "pemasukan" 
     ? (selectedMonthFilter === "Semua Bulan" ? "Total Pemasukan" : `Pemasukan ${selectedMonthFilter}`) 
