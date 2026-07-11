@@ -36,13 +36,13 @@ const SystemSettings = () => {
     
     try {
       const formDataWide = new FormData();
-      formDataWide.append("logo", file);
       formDataWide.append("type", 'wide');
+      formDataWide.append("logo", file);
       await uploadLogoFile(formDataWide);
 
       const formDataRound = new FormData();
-      formDataRound.append("logo", file);
       formDataRound.append("type", 'round');
+      formDataRound.append("logo", file);
       await uploadLogoFile(formDataRound);
 
       const newTs = Date.now().toString();
