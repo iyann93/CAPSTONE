@@ -565,7 +565,6 @@ const WakilKepalaSarpras = ({ user }) => {
                     <p className="text-sm font-bold uppercase text-black">MAJELIS PENDIDIKAN DASAR DAN MENENGAH PDM KABUPATEN SLEMAN</p>
                     <p className="text-sm font-bold uppercase text-black">PONDOK PESANTREN MODERN</p>
                     <h1 className="text-2xl font-black uppercase tracking-wider mt-1 mb-1 text-black">SMP MUHAMMADIYAH BOARDING SCHOOL (MBS) PRAMBANAN</h1>
-                    <p className="text-xs text-black">NPSN: 20400000</p>
                     <p className="text-xs mt-0.5 text-black">Alamat: Jl. Raya Piyungan - Prambanan Km 4.5, Bokoharjo, Prambanan, Sleman, DI Yogyakarta 55572</p>
                     <p className="text-xs mt-0.5 text-black">Telp: (0274) 123456 | Email: info@mbsprambanan.sch.id | Website: mbsprambanan.sch.id</p>
                   </div>
@@ -668,7 +667,6 @@ const WakilKepalaSarpras = ({ user }) => {
               <p className="text-sm font-bold uppercase text-black">MAJELIS PENDIDIKAN DASAR DAN MENENGAH PDM KABUPATEN SLEMAN</p>
               <p className="text-sm font-bold uppercase text-black">PONDOK PESANTREN MODERN</p>
               <h1 className="text-2xl font-black uppercase tracking-wider mt-1 mb-1 text-black">SMP MUHAMMADIYAH BOARDING SCHOOL (MBS) PRAMBANAN</h1>
-              <p className="text-xs text-black">NPSN: 20400000</p>
               <p className="text-xs mt-0.5 text-black">Alamat: Jl. Raya Piyungan - Prambanan Km 4.5, Bokoharjo, Prambanan, Sleman, DI Yogyakarta 55572</p>
               <p className="text-xs mt-0.5 text-black">Telp: (0274) 123456 | Email: info@mbsprambanan.sch.id | Website: mbsprambanan.sch.id</p>
             </div>

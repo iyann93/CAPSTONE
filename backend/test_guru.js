@@ -1,10 +1,5 @@
-require('dotenv').config();
-const db = require('./src/config/db');
-async function run() {
-  const users = await db.query('SELECT id, role FROM shared.users');
-  console.log('Users:', users.rows);
-  const gurus = await db.query('SELECT id, user_id FROM academic.guru');
-  console.log('Gurus:', gurus.rows);
-  process.exit(0);
-}
-run();
+const { pool } = require('./src/config/db');
+pool.query("SELECT * FROM shared.users WHERE role='guru' OR role='Guru' LIMIT 1")
+  .then(res => console.log(res.rows[0]))
+  .catch(console.error)
+  .finally(() => process.exit(0));

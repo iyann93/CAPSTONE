@@ -85,8 +85,7 @@ const RaporSiswa = ({ user }) => {
       doc.text("SMP MUHAMMADIYAH BOARDING SCHOOL (MBS) PRAMBANAN", 115, 25, { align: "center" });
       doc.setFontSize(8);
       doc.setFont("times", "normal");
-      doc.text("NPSN: 20400000", 115, 30, { align: "center" });
-      doc.text("Alamat: Jl. Raya Piyungan - Prambanan Km 4.5, Bokoharjo, Prambanan, Sleman, DI Yogyakarta 55572", 115, 34, { align: "center" });
+      doc.text("Alamat: Jl. Raya Piyungan - Prambanan Km 4.5, Bokoharjo, Prambanan, Sleman, DI Yogyakarta 55572", 115, 30, { align: "center" });
       doc.text("Telp: (0274) 123456 | Email: info@mbsprambanan.sch.id | Website: mbsprambanan.sch.id", 115, 38, { align: "center" });
 
       // Garis Ganda
