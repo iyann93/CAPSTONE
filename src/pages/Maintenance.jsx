@@ -1,5 +1,4 @@
 import React from "react";
-import { useNavigate } from "react-dom";
 
 const Maintenance = () => {
   return (
