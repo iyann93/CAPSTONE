@@ -1,5 +1,5 @@
 import { useState } from "react";
-import LogoWide from "../assets/logo-wide.png";
+import { getLogoWideUrl } from "../utils/logo";
 const CheckShieldIcon = () => <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-green-500">
     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
     <path d="m9 12 2 2 4-4" />
@@ -38,7 +38,7 @@ const ResetPassword = ({ onBack, onSave }) => {
     /* Header Logo */
   }
         <div className="flex flex-wrap items-center gap-4">
-          <img src={LogoWide} alt="MBS Prambanan" className="h-16 object-contain" />
+          <img src={getLogoWideUrl()} alt="MBS Prambanan" className="h-16 object-contain" />
         </div>
 
         {

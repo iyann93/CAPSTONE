@@ -29,6 +29,28 @@ const uploadAnnouncement = multer({ storage: announcementStorage });
 router.post('/upload-announcement-file', verifyToken, uploadAnnouncement.single('file'), SystemController.uploadAnnouncementFile);
 router.get('/announcements/:filename', SystemController.getAnnouncementFile);
 
+// Logo File Handling
+const logoStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, '../../public');
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    // Determine which logo to overwrite based on a form field or query param
+    // Default to logo-wide.png, or if req.body.type === 'round', use logo-round.png
+    const type = req.body.type === 'round' ? 'logo-round.png' : 'logo-wide.png';
+    cb(null, type);
+  }
+});
+const uploadLogo = multer({ storage: logoStorage });
+
+router.post('/upload-logo', verifyToken, authorize('system.manage'), uploadLogo.single('logo'), (req, res) => {
+  res.json({ success: true, message: 'Logo berhasil diperbarui' });
+});
+
 // Backup Routes
 const BackupController = require('../controllers/backup.controller');
 router.get('/backups', verifyToken, authorize('system.manage'), BackupController.getBackups);

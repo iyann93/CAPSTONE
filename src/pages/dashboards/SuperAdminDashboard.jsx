@@ -11,7 +11,7 @@ import { getPendingUsers, activateUser, deactivateUser, getAuditLogs, getAllSyst
 import api from "../../api/axios";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import LogoRound from "../../assets/logo-round.png";
+import { getLogoRoundUrl, fetchImageAsBase64 } from "../../utils/logo";
 
 // Icons
 const IconUsers = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>;
@@ -2204,16 +2204,8 @@ const AksesSeluruhDataModule = () => {
       
       if (pdfKopSurat) {
         try {
-          const loadImage = (url) => new Promise((resolve, reject) => {
-            const img = new Image();
-            img.crossOrigin = "Anonymous";
-            img.onload = () => resolve(img);
-            img.onerror = reject;
-            img.src = url;
-          });
-          
-          const img = await loadImage(LogoRound);
-          doc.addImage(img, 'PNG', 14, 12, 16, 16);
+          const base64Logo = await fetchImageAsBase64(getLogoRoundUrl());
+          if (base64Logo) doc.addImage(base64Logo, 'PNG', 14, 12, 16, 16);
           
           doc.setFontSize(18);
           doc.text("MBS PRAMBANAN", 34, 19);

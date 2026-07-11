@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import logoUrl from "../../assets/logo-round.png";
+import { getLogoRoundUrl, fetchImageAsBase64 } from "../../utils/logo";
 import api from "../../api/axios";
 
 const RaporSiswa = ({ user }) => {
@@ -71,38 +71,56 @@ const RaporSiswa = ({ user }) => {
       const doc = new jsPDF();
 
       // Logo
-      const img = new Image();
-      img.src = logoUrl;
-      doc.addImage(img, 'PNG', 14, 12, 18, 18);
+      const base64Logo = await fetchImageAsBase64(getLogoRoundUrl());
+      if (base64Logo) {
+        doc.addImage(base64Logo, 'PNG', 15, 10, 24, 24);
+      }
 
-      // Header
+      // --- KOP SURAT ---
       doc.setFont("times", "bold");
-      doc.setFontSize(14);
-      doc.text("LAPORAN HASIL BELAJAR", 105, 20, { align: "center" });
       doc.setFontSize(10);
-      doc.text(`Semester ${rapor.semester}`, 105, 26, { align: "center" });
+      doc.text("MAJELIS PENDIDIKAN DASAR DAN MENENGAH PDM KABUPATEN SLEMAN", 115, 14, { align: "center" });
+      doc.text("PONDOK PESANTREN MODERN", 115, 19, { align: "center" });
+      doc.setFontSize(12);
+      doc.text("SMP MUHAMMADIYAH BOARDING SCHOOL (MBS) PRAMBANAN", 115, 25, { align: "center" });
+      doc.setFontSize(8);
+      doc.setFont("times", "normal");
+      doc.text("NPSN: 20400000", 115, 30, { align: "center" });
+      doc.text("Alamat: Jl. Raya Piyungan - Prambanan Km 4.5, Bokoharjo, Prambanan, Sleman, DI Yogyakarta 55572", 115, 34, { align: "center" });
+      doc.text("Telp: (0274) 123456 | Email: info@mbsprambanan.sch.id | Website: mbsprambanan.sch.id", 115, 38, { align: "center" });
 
-      doc.setLineWidth(0.5);
-      doc.line(14, 32, 196, 32);
+      // Garis Ganda
+      doc.setLineWidth(1.0);
+      doc.line(14, 42, 196, 42); // Garis tebal
+      doc.setLineWidth(0.3);
+      doc.line(14, 43.2, 196, 43.2); // Garis tipis bawahnya
+      doc.setLineWidth(0.1); // Reset
 
-      // Student info
+      // --- JUDUL LAPORAN ---
+      doc.setFont("times", "bold");
+      doc.setFontSize(12);
+      doc.text("LAPORAN HASIL BELAJAR", 105, 52, { align: "center" });
+      doc.setFontSize(10);
+      doc.text(`Semester ${rapor.semester}`, 105, 57, { align: "center" });
+
+      // --- DATA SISWA ---
       doc.setFont("times", "normal");
       doc.setFontSize(10);
-      doc.text(`Nama Siswa    : ${studentName}`, 14, 40);
-      doc.text(`Kelas         : ${rapor.kelas}`, 120, 40);
-      doc.text(`Fase          : D (SMP)`, 120, 46);
+      doc.text(`Nama Siswa    : ${studentName}`, 14, 66);
+      doc.text(`Kelas         : ${rapor.kelas}`, 140, 66);
+      doc.text(`Fase          : D (SMP)`, 140, 72);
 
       // A. Sikap
       doc.setFont("times", "bold");
-      doc.text("A. Sikap", 14, 60);
+      doc.text("A. Sikap", 14, 84);
       doc.setFont("times", "normal");
       const sikapText = `Deskripsi: ${studentName} menunjukkan sikap spiritual dan sosial yang baik dalam mengikuti pembelajaran, menjunjung tinggi nilai gotong royong, dan berinteraksi secara sopan di lingkungan sekolah.`;
       const splitSikap = doc.splitTextToSize(sikapText, 182);
-      doc.text(splitSikap, 14, 66);
+      doc.text(splitSikap, 14, 90);
 
       // B. Pengetahuan & Keterampilan
       doc.setFont("times", "bold");
-      doc.text("B. Pengetahuan & Keterampilan", 14, 85);
+      doc.text("B. Pengetahuan & Keterampilan", 14, 108);
 
       const tableBody = myNilai.map((n, i) => {
         const akhir = n.nilai_akhir || (((n.nilai_harian || 0) * 0.3) + ((n.nilai_uts || 0) * 0.3) + ((n.nilai_uas || 0) * 0.4)).toFixed(0);
@@ -111,7 +129,7 @@ const RaporSiswa = ({ user }) => {
       });
 
       autoTable(doc, {
-        startY: 90,
+        startY: 112,
         head: [['No', 'Mata Pelajaran', 'KKM', 'Nilai']],
         body: tableBody.length > 0 ? tableBody : [['-', 'Belum ada nilai', '-', '-']],
         theme: 'grid',
@@ -146,6 +164,7 @@ const RaporSiswa = ({ user }) => {
       doc.setFont("times", "bold");
       doc.text("D. Catatan Wali Kelas", 120, finalY + 15);
       doc.setFont("times", "italic");
+      doc.setLineWidth(0.1);
       doc.rect(120, finalY + 18, 76, 25);
       const catatanText = catatanWali ? `"${catatanWali}"` : "(Belum ada catatan)";
       const splitCatatan = doc.splitTextToSize(catatanText, 72);
@@ -310,7 +329,7 @@ const RaporSiswa = ({ user }) => {
             <div className="p-6">
               <div className="border border-gray-200 rounded-xl p-6 bg-gray-50 text-center">
                 <div className="flex items-center justify-center gap-3 mb-4">
-                  <img src={logoUrl} alt="Logo" className="w-12 h-12" />
+                  <img src={getLogoRoundUrl()} alt="Logo" className="w-12 h-12" />
                   <div className="text-left">
                     <h4 className="text-[16px] font-bold text-gray-800">RAPOR AKADEMIK</h4>
                     <p className="text-[13px] text-gray-500">Semester {preview.semester}</p>

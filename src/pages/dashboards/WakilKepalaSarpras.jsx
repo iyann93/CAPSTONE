@@ -4,6 +4,7 @@ import { getOperasional } from "../../api/finance";
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import { jsPDF } from "jspdf";
 import * as htmlToImage from "html-to-image";
+import { getLogoRoundUrl } from "../../utils/logo";
 
 // Icons
 const InfoIcon = () => (
@@ -555,18 +556,22 @@ const WakilKepalaSarpras = ({ user }) => {
                   padding: '5%',
                 }}
               >
-                {/* Header MBS */}
-                <div className="flex flex-wrap items-center justify-between border-b-4 border-gray-800 pb-4 mb-8">
-                  <div className="w-32 h-32 flex items-center justify-center">
-                    <img src="/Logo MBS Prambanan.png" alt="Logo MBS Prambanan" className="w-full h-full object-contain" />
+                {/* Header Resmi MBS */}
+                <div className="flex items-center border-b-[3px] border-black pb-4 mb-1">
+                  <div className="w-24 h-24 flex-shrink-0">
+                    <img src={getLogoRoundUrl()} alt="Logo MBS Prambanan" className="w-full h-full object-contain" />
                   </div>
                   <div className="text-center flex-1">
-                    <h1 className="text-2xl font-bold uppercase tracking-widest">Muhammadiyah Boarding School (MBS) Prambanan</h1>
-                    <p className="text-sm mt-1">Jl. Raya Piyungan - Prambanan Km 4.5, Sleman, DI Yogyakarta</p>
-                    <p className="text-sm">Telp: (0274) 123456 | Email: info@mbsprambanan.sch.id</p>
+                    <p className="text-sm font-bold uppercase text-black">MAJELIS PENDIDIKAN DASAR DAN MENENGAH PDM KABUPATEN SLEMAN</p>
+                    <p className="text-sm font-bold uppercase text-black">PONDOK PESANTREN MODERN</p>
+                    <h1 className="text-2xl font-black uppercase tracking-wider mt-1 mb-1 text-black">SMP MUHAMMADIYAH BOARDING SCHOOL (MBS) PRAMBANAN</h1>
+                    <p className="text-xs text-black">NPSN: 20400000</p>
+                    <p className="text-xs mt-0.5 text-black">Alamat: Jl. Raya Piyungan - Prambanan Km 4.5, Bokoharjo, Prambanan, Sleman, DI Yogyakarta 55572</p>
+                    <p className="text-xs mt-0.5 text-black">Telp: (0274) 123456 | Email: info@mbsprambanan.sch.id | Website: mbsprambanan.sch.id</p>
                   </div>
-                  <div className="w-32 h-32 invisible"></div>
+                  <div className="w-24 h-24 flex-shrink-0 invisible"></div>
                 </div>
+                <div className="border-b-[1px] border-black mb-8 w-full"></div>
 
                 {/* Title */}
                 <div className="text-center mb-8">
@@ -654,18 +659,22 @@ const WakilKepalaSarpras = ({ user }) => {
       {/* Template PDF Tersembunyi (Digunakan oleh html-to-image) */}
       <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
         <div id="pdf-report-sarpras-template" className="bg-white p-12 text-gray-800 w-full max-w-[794px] h-[1123px] flex flex-col font-sans">
-          {/* Header MBS */}
-          <div className="flex flex-wrap items-center justify-between border-b-4 border-gray-800 pb-4 mb-8">
-            <div className="w-32 h-32 flex items-center justify-center">
-              <img src="/Logo MBS Prambanan.png" alt="Logo MBS Prambanan" className="w-full h-full object-contain" />
+          {/* Header Resmi MBS */}
+          <div className="flex items-center border-b-[3px] border-black pb-4 mb-1">
+            <div className="w-24 h-24 flex-shrink-0">
+              <img src={getLogoRoundUrl()} alt="Logo MBS Prambanan" className="w-full h-full object-contain" />
             </div>
             <div className="text-center flex-1">
-              <h1 className="text-2xl font-bold uppercase tracking-widest">Muhammadiyah Boarding School (MBS) Prambanan</h1>
-              <p className="text-sm mt-1">Jl. Raya Piyungan - Prambanan Km 4.5, Sleman, DI Yogyakarta</p>
-              <p className="text-sm">Telp: (0274) 123456 | Email: info@mbsprambanan.sch.id</p>
+              <p className="text-sm font-bold uppercase text-black">MAJELIS PENDIDIKAN DASAR DAN MENENGAH PDM KABUPATEN SLEMAN</p>
+              <p className="text-sm font-bold uppercase text-black">PONDOK PESANTREN MODERN</p>
+              <h1 className="text-2xl font-black uppercase tracking-wider mt-1 mb-1 text-black">SMP MUHAMMADIYAH BOARDING SCHOOL (MBS) PRAMBANAN</h1>
+              <p className="text-xs text-black">NPSN: 20400000</p>
+              <p className="text-xs mt-0.5 text-black">Alamat: Jl. Raya Piyungan - Prambanan Km 4.5, Bokoharjo, Prambanan, Sleman, DI Yogyakarta 55572</p>
+              <p className="text-xs mt-0.5 text-black">Telp: (0274) 123456 | Email: info@mbsprambanan.sch.id | Website: mbsprambanan.sch.id</p>
             </div>
-            <div className="w-32 h-32 invisible"></div>
+            <div className="w-24 h-24 flex-shrink-0 invisible"></div>
           </div>
+          <div className="border-b-[1px] border-black mb-8 w-full"></div>
           
           {/* Title */}
           <div className="text-center mb-8">

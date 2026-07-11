@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import logoUrl from '../../assets/logo-round.png';
+import { getLogoRoundUrl, fetchImageAsBase64 } from "../../utils/logo";
 
 const GenerateRaporWali = ({ user }) => {
   const [classes, setClasses] = useState([]);
@@ -206,38 +206,65 @@ const GenerateRaporWali = ({ user }) => {
     });
   };
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     if (!selectedStudent || !currentDetails) return;
     setDownloading(true);
     try {
         const doc = new jsPDF();
-        const img = new Image();
-        img.src = logoUrl;
-        doc.addImage(img, 'PNG', 14, 12, 18, 18);
+        const base64Logo = await fetchImageAsBase64(getLogoRoundUrl());
+        if (base64Logo) {
+          doc.addImage(base64Logo, 'PNG', 15, 10, 24, 24);
+        }
+        
+        // --- KOP SURAT ---
         doc.setFont("times", "bold");
-        doc.setFontSize(14);
-        doc.text("LAPORAN HASIL BELAJAR", 105, 20, { align: "center" });
         doc.setFontSize(10);
-        doc.text(`Semester ${activeSemester?.tipe} Tahun Ajaran ${activeSemester?.tahun_ajaran}`, 105, 26, { align: "center" });
-        doc.setLineWidth(0.5);
-        doc.line(14, 32, 196, 32);
+        doc.text("MAJELIS PENDIDIKAN DASAR DAN MENENGAH PDM KABUPATEN SLEMAN", 115, 14, { align: "center" });
+        doc.text("PONDOK PESANTREN MODERN", 115, 19, { align: "center" });
+        doc.setFontSize(12);
+        doc.text("SMP MUHAMMADIYAH BOARDING SCHOOL (MBS) PRAMBANAN", 115, 25, { align: "center" });
+        doc.setFontSize(8);
         doc.setFont("times", "normal");
-        doc.text(`Nama Siswa    : ${selectedStudent.nama_lengkap}`, 14, 40);
-        doc.text(`NISN / NIS    : ${selectedStudent.nisn || '-'} / ${selectedStudent.nis || '-'}`, 14, 46);
-        const clsName = classes.find(c => c.id === selectedClassId)?.nama_kelas || "-";
-        doc.text(`Kelas         : ${clsName}`, 140, 40);
-        doc.text(`Fase          : D (SMP)`, 140, 46);
+        doc.text("NPSN: 20400000", 115, 30, { align: "center" });
+        doc.text("Alamat: Jl. Raya Piyungan - Prambanan Km 4.5, Bokoharjo, Prambanan, Sleman, DI Yogyakarta 55572", 115, 34, { align: "center" });
+        doc.text("Telp: (0274) 123456 | Email: info@mbsprambanan.sch.id | Website: mbsprambanan.sch.id", 115, 38, { align: "center" });
+        
+        // Garis Ganda
+        doc.setLineWidth(1.0);
+        doc.line(14, 42, 196, 42); // Garis tebal
+        doc.setLineWidth(0.3);
+        doc.line(14, 43.2, 196, 43.2); // Garis tipis bawahnya
+        doc.setLineWidth(0.1); // Reset
+
+        // --- JUDUL LAPORAN ---
         doc.setFont("times", "bold");
-        doc.text("A. Sikap", 14, 60);
+        doc.setFontSize(12);
+        doc.text("LAPORAN HASIL BELAJAR", 105, 52, { align: "center" });
+        doc.setFontSize(10);
+        doc.text(`Semester ${activeSemester?.tipe} Tahun Ajaran ${activeSemester?.tahun_ajaran}`, 105, 57, { align: "center" });
+        
+        // --- DATA SISWA ---
+        doc.setFont("times", "normal");
+        doc.text(`Nama Siswa    : ${selectedStudent.nama_lengkap}`, 14, 66);
+        doc.text(`NISN / NIS    : ${selectedStudent.nisn || '-'} / ${selectedStudent.nis || '-'}`, 14, 72);
+        const clsName = classes.find(c => c.id === selectedClassId)?.nama_kelas || "-";
+        doc.text(`Kelas         : ${clsName}`, 140, 66);
+        doc.text(`Fase          : D (SMP)`, 140, 72);
+        
+        // --- A. SIKAP ---
+        doc.setFont("times", "bold");
+        doc.text("A. Sikap", 14, 84);
         doc.setFont("times", "normal");
         const sikapText = `Deskripsi: ${selectedStudent.nama_lengkap} menunjukkan sikap spiritual dan sosial yang ${currentDetails.absensi.persenHadir >= 90 ? 'sangat baik' : 'baik'} dalam mengikuti pembelajaran.`;
         const splitSikap = doc.splitTextToSize(sikapText, 182);
-        doc.text(splitSikap, 14, 66);
+        doc.text(splitSikap, 14, 90);
+        
+        // --- B. PENGETAHUAN ---
         doc.setFont("times", "bold");
-        doc.text("B. Pengetahuan & Keterampilan", 14, 85);
+        doc.text("B. Pengetahuan & Keterampilan", 14, 108);
         const tableBody = currentDetails.mapelList.map((m, i) => [i + 1, m.mapel, m.kkm, m.nilai]);
         autoTable(doc, {
-            startY: 90,
+            startY: 112,
             head: [['No', 'Mata Pelajaran', 'KKM', 'Nilai']],
             body: tableBody,
             theme: 'grid',
@@ -251,12 +278,18 @@ const GenerateRaporWali = ({ user }) => {
             startY: finalY + 20,
             body: [['Sakit', `${currentDetails.absensi.sakit} hari`], ['Izin', `${currentDetails.absensi.izin} hari`], ['Tanpa Keterangan', `${currentDetails.absensi.alpa} hari`]],
             theme: 'grid',
+            tableWidth: 100,
+            columnStyles: {
+              0: { cellWidth: 60, fontStyle: 'bold', fillColor: [248, 248, 248] },
+              1: { cellWidth: 40, halign: 'center' }
+            },
             styles: { font: 'times', fontSize: 10, textColor: [0, 0, 0], lineColor: [0, 0, 0] },
             margin: { left: 14 }
         });
         doc.setFont("times", "bold");
         doc.text("D. Catatan Wali Kelas", 120, finalY + 15);
         doc.setFont("times", "italic");
+        doc.setLineWidth(0.1);
         doc.rect(120, finalY + 18, 76, 25);
         doc.text(doc.splitTextToSize(`"${currentDetails.catatan}"`, 72), 122, finalY + 24);
         doc.save(`Rapor_${selectedStudent.nama_lengkap}_Semester_${activeSemester?.tipe || ''}.pdf`);
@@ -428,7 +461,7 @@ const GenerateRaporWali = ({ user }) => {
                       Preview Draft
                     </div>
                     <div className="text-center mb-6 border-b-2 border-gray-800 pb-4 relative">
-                      <img src={logoUrl} alt="Logo" className="absolute left-0 top-0 w-12 h-12" />
+                      <img src={getLogoRoundUrl()} alt="Logo" className="absolute left-0 top-0 w-12 h-12" />
                       <h3 className="text-[18px] font-bold text-gray-900 uppercase tracking-widest">Laporan Hasil Belajar</h3>
                       <p className="text-gray-600 mt-1">Semester {activeSemester?.tipe} Tahun Ajaran {activeSemester?.tahun_ajaran}</p>
                     </div>

@@ -77,3 +77,10 @@ export const uploadAnnouncementFile = (formData) =>
   api.post('/system/upload-announcement-file', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   }).then(r => r.data.data);
+
+// === LOGO UPLOAD ===
+export const uploadLogoFile = (formData) =>
+  api.post('/system/upload-logo', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }).then(r => r.data);
+

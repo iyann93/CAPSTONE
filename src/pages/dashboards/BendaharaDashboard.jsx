@@ -40,6 +40,7 @@ import {
   getOperasional,
 } from "../../api/finance";
 import { getGlobalFinanceSummary } from "../../utils/financeHelpers";
+import { getLogoRoundUrl } from "../../utils/logo";
 import { getSiswa } from "../../api/academic";
 import { getAllSlips, getEmployees } from "../../api/payroll";
 import Profile from "../Profile";
@@ -4991,17 +4992,22 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
       {/* Hidden PDF Report Template */}
       <div style={{ position: 'absolute', top: 0, left: 0, zIndex: -100, opacity: 0.01, pointerEvents: 'none' }}>
         <div id="pdf-report-template" className="bg-white p-10 flex flex-col" style={{ width: '794px', height: '1123px', color: 'black', fontFamily: 'serif' }}>
-          {/* Header */}
-          <div className="flex items-center gap-6 border-b-4 border-black pb-4 mb-6 text-black">
-            <div className="w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0">
-              <img src="/Logo MBS Prambanan.png" alt="Logo MBS Prambanan" className="w-full h-full object-contain" />
+          {/* Header Resmi MBS */}
+          <div className="flex items-center border-b-[3px] border-black pb-4 mb-1">
+            <div className="w-24 h-24 flex-shrink-0">
+              <img src={getLogoRoundUrl()} alt="Logo MBS Prambanan" className="w-full h-full object-contain" />
             </div>
-            <div className="text-left flex-1">
-              <h1 className="text-xl sm:text-2xl font-bold uppercase tracking-widest text-gray-900">Muhammadiyah Boarding School (MBS) Prambanan</h1>
-              <p className="text-xs sm:text-sm mt-1 text-gray-800">Jl. Raya Piyungan - Prambanan Km 4.5, Sleman, DI Yogyakarta</p>
-              <p className="text-xs sm:text-sm text-gray-800">Telp: (0274) 123456 | Email: info@mbsprambanan.sch.id</p>
+            <div className="text-center flex-1">
+              <p className="text-sm font-bold uppercase">MAJELIS PENDIDIKAN DASAR DAN MENENGAH PDM KABUPATEN SLEMAN</p>
+              <p className="text-sm font-bold uppercase">PONDOK PESANTREN MODERN</p>
+              <h1 className="text-2xl font-black uppercase tracking-wider mt-1 mb-1">SMP MUHAMMADIYAH BOARDING SCHOOL (MBS) PRAMBANAN</h1>
+              <p className="text-xs">NPSN: 20400000</p>
+              <p className="text-xs mt-0.5">Alamat: Jl. Raya Piyungan - Prambanan Km 4.5, Bokoharjo, Prambanan, Sleman, DI Yogyakarta 55572</p>
+              <p className="text-xs mt-0.5">Telp: (0274) 123456 | Email: info@mbsprambanan.sch.id | Website: mbsprambanan.sch.id</p>
             </div>
+            <div className="w-24 h-24 flex-shrink-0 invisible"></div>
           </div>
+          <div className="border-b-[1px] border-black mb-8 w-full"></div>
           
           {/* Title */}
           <div className="text-center mb-8">
