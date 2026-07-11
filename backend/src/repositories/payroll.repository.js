@@ -537,6 +537,9 @@ const PayrollRepository = {
       // Delete details first
       await client.query('DELETE FROM finance.detail_slip_gaji WHERE slip_gaji_id = $1', [id]);
       
+      // Delete operasional_transactions if any
+      await client.query('DELETE FROM finance.operasional_transactions WHERE kategori = $1 AND keterangan = $2', ['Gaji Pegawai', `Pembayaran gaji untuk slip ID ${id}`]);
+      
       // Delete transfer if any
       await client.query('DELETE FROM finance.transfer_gaji WHERE slip_gaji_id = $1', [id]);
       
@@ -566,6 +569,11 @@ const PayrollRepository = {
       // Delete details first
       await client.query(`DELETE FROM finance.detail_slip_gaji WHERE slip_gaji_id IN (${placeholders})`, ids);
       
+      // Delete operasional_transactions if any
+      const ketList = ids.map(id => `Pembayaran gaji untuk slip ID ${id}`);
+      const ketPlaceholders = ketList.map((_, i) => `$${i + 1}`).join(',');
+      await client.query(`DELETE FROM finance.operasional_transactions WHERE kategori = 'Gaji Pegawai' AND keterangan IN (${ketPlaceholders})`, ketList);
+
       // Delete transfer if any
       await client.query(`DELETE FROM finance.transfer_gaji WHERE slip_gaji_id IN (${placeholders})`, ids);
       

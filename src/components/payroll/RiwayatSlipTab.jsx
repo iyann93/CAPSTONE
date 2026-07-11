@@ -234,7 +234,7 @@ const RiwayatSlipTab = ({ triggerToast }) => {
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         {[
-          { label: "TOTAL PEGAWAI", value: `${summary.total} Orang` },
+          { label: "TOTAL DATA SLIP", value: `${summary.total} Slip` },
           { label: "SUDAH DIBAYAR", value: summary.dibayar.toString() },
           { label: "BELUM DIBAYAR", value: summary.belum_dibayar.toString() }
         ].map((card, idx) => (

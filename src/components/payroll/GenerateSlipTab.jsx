@@ -135,7 +135,10 @@ const GenerateSlipTab = ({ triggerToast, onGeneratingChange, cancelRef }) => {
   ];
 
   const currentYear = new Date().getFullYear();
+  const currentMonthNum = new Date().getMonth() + 1;
   const years = Array.from(new Array(5), (val, index) => String(currentYear - 2 + index));
+
+  const isFutureSelected = Number(tahun) > currentYear || (Number(tahun) === currentYear && Number(bulan) > currentMonthNum);
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 animate-fadeIn">
@@ -156,9 +159,14 @@ const GenerateSlipTab = ({ triggerToast, onGeneratingChange, cancelRef }) => {
                 disabled={isGenerating}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 bg-white"
               >
-                {months.map(m => (
-                  <option key={m.value} value={m.value}>{m.label}</option>
-                ))}
+                {months.map(m => {
+                  const isFuture = Number(tahun) === currentYear && Number(m.value) > currentMonthNum;
+                  return (
+                    <option key={m.value} value={m.value} disabled={isFuture}>
+                      {m.label}
+                    </option>
+                  );
+                })}
               </select>
             </div>
             <div>
@@ -169,9 +177,14 @@ const GenerateSlipTab = ({ triggerToast, onGeneratingChange, cancelRef }) => {
                 disabled={isGenerating}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 bg-white"
               >
-                {years.map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
+                {years.map(y => {
+                  const isFutureYear = Number(y) > currentYear;
+                  return (
+                    <option key={y} value={y} disabled={isFutureYear}>
+                      {y}
+                    </option>
+                  );
+                })}
               </select>
             </div>
           </div>
@@ -190,7 +203,7 @@ const GenerateSlipTab = ({ triggerToast, onGeneratingChange, cancelRef }) => {
 
           <button
             onClick={handleGenerateAll}
-            disabled={isGenerating}
+            disabled={isGenerating || isFutureSelected}
             className="w-full bg-[#1A3D63] hover:bg-[#122A44] text-white py-3.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md flex items-center justify-center gap-2"
           >
             {isGenerating ? (

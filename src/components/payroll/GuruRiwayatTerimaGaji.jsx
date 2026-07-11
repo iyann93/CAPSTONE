@@ -170,7 +170,7 @@ const GuruRiwayatTerimaGaji = ({ user }) => {
                 <h3 className="text-base font-bold text-gray-800">Detail Slip Gaji</h3>
                 {detailData && (
                   <p className="text-xs text-gray-500 mt-0.5">
-                    {monthName(detailData.bulan)} {detailData.tahun}
+                    {monthName(detailData.bulan)} {detailData.tahun} &middot; {detailData.user_nama}
                   </p>
                 )}
               </div>

@@ -1425,11 +1425,6 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                   subText: `Bulan ${dashboardBulan} ${new Date().getFullYear()}`,
                 },
                 {
-                  title: "Siswa Lunas SPP",
-                  value: `${countLunas} Siswa`,
-                  subText: `dari ${totalSiswaBulanIni} siswa aktif`,
-                },
-                {
                   title: "Total Tagihan SPP",
                   value: formatRupiah(nominalTunggakan),
                   subText: `${countBelum} siswa belum bayar`,
@@ -1447,6 +1442,11 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                 {
                   title: "Total Pengeluaran Tahunan",
                   value: formatRupiah(totalPengeluaranTahunan),
+                  subText: `Akumulasi ${selectedYear}`,
+                },
+                {
+                  title: "Sisa Saldo Keuangan",
+                  value: formatRupiah(totalPemasukanTahunan - totalPengeluaranTahunan),
                   subText: `Akumulasi ${selectedYear}`,
                 }
               ].map((card, i) => (

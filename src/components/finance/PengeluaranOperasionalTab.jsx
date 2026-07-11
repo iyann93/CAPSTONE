@@ -60,9 +60,12 @@ const emptyItem = () => ({
   fileUploadError: ""
 });
 
+const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+
 const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasiswaList = [], sppPayments = [] }) => {
   const [activeTab, setActiveTab] = useState("pemasukan"); // 'pemasukan' atau 'pengeluaran'
   const [selectedYear, setSelectedYear] = useState("2025/2026");
+  const [selectedMonthFilter, setSelectedMonthFilter] = useState(() => monthNames[new Date().getMonth()]);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("Semua Kategori");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -265,49 +268,52 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
     }
   };
 
-  const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
   const currentMonth = monthNames[new Date().getMonth()];
   const currentData = activeTab === "pengeluaran" ? localPengeluaranData : localPemasukanData;
   const currentBeasiswa = activeTab === "pengeluaran" ? beasiswaList : danaBeasiswaList;
   
-  const isCurrentMonthAndYear = (dateStr) => {
+  const isFilteredMonthAndYear = (dateStr) => {
     if (!dateStr) return false;
-    const now = new Date();
-    const currentMonthNum = now.getMonth();
-    const currentYearNum = now.getFullYear();
+    if (selectedMonthFilter === "Semua Bulan") return true;
+
+    let targetMonthNum = monthNames.indexOf(selectedMonthFilter);
+    if (targetMonthNum === -1) targetMonthNum = new Date().getMonth();
+    const currentYearNum = new Date().getFullYear();
 
     const d = new Date(dateStr);
     if (!isNaN(d.getTime())) {
-      return d.getMonth() === currentMonthNum && d.getFullYear() === currentYearNum;
+      return d.getMonth() === targetMonthNum && d.getFullYear() === currentYearNum;
     }
     
     // Fallback if format is "10 Juni 2025"
     const parts = dateStr.split(' ');
     if (parts.length === 3) {
       const m = monthNames.indexOf(parts[1]);
-      if (m === currentMonthNum && parseInt(parts[2]) === currentYearNum) return true;
+      if (m === targetMonthNum && parseInt(parts[2]) === currentYearNum) return true;
     }
     return false;
   };
 
-  const totalBulanIniSpp = sppPayments.filter(item => isCurrentMonthAndYear(item.tanggal_bayar || item.updatedAt || item.createdAt))
+  const totalBulanIniSpp = sppPayments.filter(item => isFilteredMonthAndYear(item.tanggal_bayar || item.updatedAt || item.createdAt))
     .reduce((acc, curr) => acc + (Number(String(curr.amount).replace(/[^0-9]/g, '')) || 0), 0);
   const totalSppTahunan = sppPayments.reduce((acc, curr) => acc + (Number(String(curr.amount).replace(/[^0-9]/g, '')) || 0), 0);
 
   const dataForTotals = activeTab === 'pengeluaran' ? currentData.filter(item => item.kategori !== 'Gaji Pegawai') : currentData;
 
   const totalBulanIni = currentData
-    .filter(item => isCurrentMonthAndYear(item.tanggal))
+    .filter(item => isFilteredMonthAndYear(item.tanggal))
     .reduce((acc, curr) => acc + Number(curr.nominal), 0) + 
-    currentBeasiswa.filter(item => isCurrentMonthAndYear(item.tanggal || item.tanggal_mulai))
+    currentBeasiswa.filter(item => isFilteredMonthAndYear(item.tanggal || item.tanggal_mulai))
     .reduce((acc, curr) => acc + Number(curr.nominal), 0) +
     (activeTab === "pemasukan" ? totalBulanIniSpp : 0);
     
   const totalKeseluruhan = currentData.reduce((acc, curr) => acc + Number(curr.nominal), 0) + currentBeasiswa.reduce((acc, curr) => acc + Number(curr.nominal), 0) + (activeTab === "pemasukan" ? totalSppTahunan : 0);
   const totalOperasionalSaja = dataForTotals.reduce((acc, curr) => acc + Number(curr.nominal), 0);
 
-  const card1Title = activeTab === "pemasukan" ? "Pemasukan Bulan Ini" : "Total Pengeluaran Tahunan";
-  const card1Value = activeTab === "pemasukan" ? totalBulanIni : totalKeseluruhan;
+  const card1Title = activeTab === "pemasukan" 
+    ? (selectedMonthFilter === "Semua Bulan" ? "Total Pemasukan" : `Pemasukan ${selectedMonthFilter}`) 
+    : (selectedMonthFilter === "Semua Bulan" ? "Total Pengeluaran" : `Pengeluaran ${selectedMonthFilter}`);
+  const card1Value = totalBulanIni;
 
   const card2Title = activeTab === "pemasukan" ? "Total Pemasukan Tahunan" : "Total Operasional Tahunan";
   const card2Value = activeTab === "pemasukan" ? totalKeseluruhan : totalOperasionalSaja;
@@ -319,7 +325,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
     + danaBeasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
   const totalPengeluaranTahunan = localPengeluaranData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0)
     + beasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
-  const sisaDanaGaji = Math.max(0, totalPemasukanTahunan - totalPengeluaranTahunan);
+  const sisaDanaGaji = totalPemasukanTahunan - totalPengeluaranTahunan;
 
   // Aggregate SPP payments by month into summary rows
   const sppByMonth = {};
@@ -355,18 +361,23 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
       if (activeTab === 'pengeluaran' && item.kategori === 'Gaji Pegawai') return false;
       const matchesSearch = item.nama.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = categoryFilter === "Semua Kategori" || item.kategori === categoryFilter;
-      return matchesSearch && matchesCategory;
+      const matchesMonth = isFilteredMonthAndYear(item.tanggal);
+      return matchesSearch && matchesCategory && matchesMonth;
     }),
     ...(activeTab === "pemasukan" ? sppRows.filter(item => {
       const matchesSearch = item.nama.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = categoryFilter === "Semua Kategori" || item.kategori === categoryFilter;
-      return matchesSearch && matchesCategory;
+      const matchesMonth = isFilteredMonthAndYear(item.tanggal);
+      return matchesSearch && matchesCategory && matchesMonth;
     }) : [])
   ].sort((a, b) => {
     const dateA = new Date(a.tanggal || 0).getTime();
     const dateB = new Date(b.tanggal || 0).getTime();
     return dateB - dateA;
   });
+
+  const filteredDanaBeasiswaList = danaBeasiswaList.filter(item => isFilteredMonthAndYear(item.tanggal || item.tanggal_mulai));
+  const filteredBeasiswaList = beasiswaList.filter(item => isFilteredMonthAndYear(item.tanggal));
 
   return (
     <div className="flex flex-col gap-6 animate-fadeIn font-sans">
@@ -391,6 +402,21 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
           </div>
         </div>
         <div className="flex gap-2 sm:gap-3 items-center flex-wrap">
+          <div className="relative group w-full sm:w-auto">
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
+              <IconChevronDown />
+            </div>
+            <select
+              value={selectedMonthFilter}
+              onChange={(e) => setSelectedMonthFilter(e.target.value)}
+              className="w-full flex items-center gap-2 bg-white border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs sm:text-[13px] font-bold text-gray-700 cursor-pointer appearance-none focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] hover:bg-gray-50 hover:border-gray-300 shadow-sm transition-all"
+            >
+              <option value="Semua Bulan">Semua Bulan</option>
+              {monthNames.map(m => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          </div>
           <div className="relative group w-full sm:w-auto">
             <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-[#1A3D63] transition-colors">
               <svg width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5m-9-6h.008v.008H12v-.008ZM12 15h.008v.008H12V15Zm0 2.25h.008v.008H12v-.008ZM9.75 15h.008v.008H9.75V15Zm0 2.25h.008v.008H9.75v-.008ZM7.5 15h.008v.008H7.5V15Zm0 2.25h.008v.008H7.5v-.008Zm6.75-4.5h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V15Zm0 2.25h.008v.008h-.008v-.008Zm2.25-4.5h.008v.008H16.5v-.008Zm0 2.25h.008v.008H16.5V15Z" /></svg>
@@ -435,13 +461,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
 
         {/* Card 3: Sisa Dana Gaji — hanya tampil di tab Pengeluaran */}
         {activeTab === 'pengeluaran' && (
-          <div className={`rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px] relative overflow-hidden ${
-            sisaDanaGaji <= 0
-              ? 'bg-gradient-to-br from-red-500 to-rose-600'
-              : sisaDanaGaji < 5000000
-              ? 'bg-gradient-to-br from-amber-500 to-orange-500'
-              : 'bg-gradient-to-br from-emerald-500 to-green-600'
-          }`}>
+          <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px] relative overflow-hidden">
             <div className="relative z-10">
               <div className="text-xs font-bold text-white/80 uppercase tracking-wider mb-2">Sisa Saldo Keuangan</div>
               <div className="text-2xl font-black text-white">Rp {sisaDanaGaji.toLocaleString('id-ID')}</div>
@@ -639,12 +659,12 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 text-xs">
-                {danaBeasiswaList.length === 0 ? (
+                {filteredDanaBeasiswaList.length === 0 ? (
                   <tr>
                     <td colSpan="6" className="py-8 text-center text-gray-400 font-medium">Data beasiswa tidak ditemukan.</td>
                   </tr>
                 ) : (
-                  danaBeasiswaList.map((row, idx) => (
+                  filteredDanaBeasiswaList.map((row, idx) => (
                     <tr key={row.id} className="hover:bg-gray-50/80 transition-colors">
                       <td className="py-4 px-4 text-center text-gray-500 font-bold">{idx + 1}.</td>
                       <td className="py-4 px-4 font-medium text-gray-600">{formatTanggal(row.tanggal)}</td>
@@ -673,7 +693,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
           </div>
           <div className="mt-4 px-2">
             <span className="text-[11px] font-semibold text-gray-500">
-              Total {danaBeasiswaList.length} data beasiswa
+              Total {filteredDanaBeasiswaList.length} data beasiswa
             </span>
           </div>
         </div>
@@ -702,12 +722,12 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50 text-xs">
-                {beasiswaList.length === 0 ? (
+                {filteredBeasiswaList.length === 0 ? (
                   <tr>
                     <td colSpan="6" className="py-8 text-center text-gray-400 font-medium">Data penyaluran beasiswa tidak ditemukan.</td>
                   </tr>
                 ) : (
-                  beasiswaList.map((row, idx) => (
+                  filteredBeasiswaList.map((row, idx) => (
                     <tr key={row.id} className="hover:bg-gray-50/80 transition-colors">
                       <td className="py-4 px-4 text-center text-gray-500 font-bold">{idx + 1}.</td>
                       <td className="py-4 px-4 font-medium text-gray-600">{formatTanggal(row.tanggal)}</td>
@@ -736,7 +756,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
           </div>
           <div className="mt-4 px-2">
             <span className="text-[11px] font-semibold text-gray-500">
-              Total {beasiswaList.length} data beasiswa
+              Total {filteredBeasiswaList.length} data beasiswa
             </span>
           </div>
         </div>
@@ -744,7 +764,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
 
       {/* Container Riwayat Pengeluaran Gaji — khusus tab Pengeluaran */}
       {activeTab === "pengeluaran" && (() => {
-        const gajiRows = localPengeluaranData.filter(d => d.kategori === 'Gaji Pegawai');
+        const gajiRows = localPengeluaranData.filter(d => d.kategori === 'Gaji Pegawai' && isFilteredMonthAndYear(d.tanggal));
         return (
           <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm mt-2">
             <div className="mb-5">
@@ -767,7 +787,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
                 <tbody className="divide-y divide-gray-50 text-xs">
                   {gajiRows.length === 0 ? (
                     <tr>
-                      <td colSpan="6" className="py-8 text-center text-gray-400 font-medium">Belum ada riwayat pembayaran gaji.</td>
+                      <td colSpan="6" className="py-8 text-center text-gray-400 font-medium">Data pengeluaran gaji tidak ditemukan.</td>
                     </tr>
                   ) : (
                     gajiRows
