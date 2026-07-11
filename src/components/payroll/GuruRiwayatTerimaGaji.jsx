@@ -150,7 +150,7 @@ const GuruRiwayatTerimaGaji = ({ user }) => {
 
         {/* Pagination */}
         {!loading && totalPages > 1 && (
-          <div className="mt-6 flex justify-between items-center text-sm">
+          <div className="mt-6 flex flex-wrap justify-between items-center text-sm">
             <span className="text-gray-500">Halaman <span className="font-bold text-gray-800">{page}</span> dari <span className="font-bold text-gray-800">{totalPages}</span></span>
             <div className="flex gap-2">
               <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-gray-600 transition-colors bg-white">Sebelumnya</button>
@@ -165,7 +165,7 @@ const GuruRiwayatTerimaGaji = ({ user }) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.45)' }}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             {/* Header modal */}
-            <div className="flex items-center justify-between p-5 border-b border-gray-100">
+            <div className="flex flex-wrap items-center justify-between p-5 border-b border-gray-100">
               <div>
                 <h3 className="text-base font-bold text-gray-800">Detail Slip Gaji</h3>
                 {detailData && (
@@ -189,7 +189,7 @@ const GuruRiwayatTerimaGaji = ({ user }) => {
             ) : detailData ? (
               <div className="p-5 space-y-5">
                 {/* Ringkasan */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {[
                     { label: 'Gaji Pokok', value: formatRupiah(detailData.gaji_pokok), color: 'text-gray-800' },
                     { label: 'Total Tunjangan', value: formatRupiah(detailData.total_tunjangan), color: 'text-green-600' },
@@ -257,7 +257,7 @@ const GuruRiwayatTerimaGaji = ({ user }) => {
                 )}
 
                 {/* Total bersih */}
-                <div className="bg-[#1A3D63] rounded-xl p-4 flex justify-between items-center">
+                <div className="bg-[#1A3D63] rounded-xl p-4 flex flex-wrap justify-between items-center">
                   <span className="text-white text-sm font-bold">GAJI BERSIH</span>
                   <span className="text-white text-lg font-black">{formatRupiah(detailData.gaji_bersih)}</span>
                 </div>

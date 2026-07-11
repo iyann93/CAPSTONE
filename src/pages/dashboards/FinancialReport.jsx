@@ -32,8 +32,8 @@ const FinancialReport = () => {
       {
     /* ── Page Header ── */
   }
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center justify-between">
+        <div className="flex flex-wrap items-center gap-4">
           <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-600 shadow-sm">
             <FinanceIcon />
           </div>
@@ -58,7 +58,7 @@ const FinancialReport = () => {
       {
     /* ── Top Stats Cards ── */
   }
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
     { label: "Total Pemasukan", value: "Rp 253jt", sub: "Mei 2025", color: "bg-green-50 text-green-700 border-green-100" },
     { label: "Total Pengeluaran", value: "Rp 70jt", sub: "Mei 2025", color: "bg-amber-50 text-amber-700 border-amber-100" },
@@ -77,7 +77,7 @@ const FinancialReport = () => {
       {
     /* ── Charts Row ── */
   }
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-3 gap-6">
         {
     /* Bar Chart */
   }
@@ -127,7 +127,7 @@ const FinancialReport = () => {
             </ResponsiveContainer>
           </div>
           <div className="space-y-3 mt-4">
-            {PIE_DATA.map((item) => <div key={item.name} className="flex items-center justify-between">
+            {PIE_DATA.map((item) => <div key={item.name} className="flex flex-wrap items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
                   <span className="text-[11px] font-bold text-gray-600">{item.name}</span>

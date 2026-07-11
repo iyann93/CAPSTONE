@@ -1,11 +1,12 @@
 'use strict';
 
-require('dotenv').config();
+require('dotenv').config({ path: '../.env' });
 
 const app = require('./src/app');
 const { pool } = require('./src/config/db');
 const logger = require('./src/utils/logger');
 const env = require('./src/config/env');
+// const scheduler = require('./src/utils/scheduler');
 
 const PORT = env.port;
 
@@ -24,9 +25,9 @@ const start = async () => {
       }
     }
 
-    const server = app.listen(PORT, () => {
+    const server = app.listen(PORT, '0.0.0.0', () => {
       logger.info(`Server running on port ${PORT} [${env.nodeEnv}]`);
-      logger.info(`Health check: http://localhost:${PORT}/health`);
+      logger.info(`Health check: http://0.0.0.0:${PORT}/health`);
       logger.info(`API base:     http://localhost:${PORT}/api/v1`);
     });
 

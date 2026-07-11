@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api/v1',
+  // Gunakan URL dari .env jika ada, jika tidak fallback ke '/api/v1' (Vite proxy lokal)
+  baseURL: import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/v1` : '/api/v1',
   withCredentials: true, // Untuk mengirim cookies (JWT)
   headers: {
     'Content-Type': 'application/json',
@@ -44,8 +45,9 @@ api.interceptors.response.use(
 
       try {
         // Coba refresh token
+        const refreshUrl = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/v1/auth/refresh` : '/api/v1/auth/refresh';
         const refreshResponse = await axios.post(
-          '/api/v1/auth/refresh',
+          refreshUrl,
           {},
           { withCredentials: true }
         );
@@ -54,6 +56,23 @@ api.interceptors.response.use(
         
         // Simpan token baru ke localStorage
         const user = JSON.parse(localStorage.getItem('siakad_user') || '{}');
+
+        // Mencegah tab-tab yang berbeda menimpa session satu sama lain
+        if (newAccessToken && user.accessToken) {
+          try {
+            const oldPayload = JSON.parse(atob(user.accessToken.split('.')[1]));
+            const newPayload = JSON.parse(atob(newAccessToken.split('.')[1]));
+            if (oldPayload.userId !== newPayload.userId) {
+              console.warn("Token refresh dibatalkan karena User ID berubah (kemungkinan login di tab lain).");
+              localStorage.removeItem('siakad_user');
+              window.location.href = '/login';
+              return Promise.reject(new Error("Sesi tertimpa oleh tab lain"));
+            }
+          } catch (e) {
+            console.error("Gagal memverifikasi payload token", e);
+          }
+        }
+
         user.accessToken = newAccessToken;
         localStorage.setItem('siakad_user', JSON.stringify(user));
 

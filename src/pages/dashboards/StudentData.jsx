@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import StudentForm from "./StudentForm";
 import StudentDetail from "./StudentDetail";
 import StudentEdit from "./StudentEdit";
@@ -51,14 +52,20 @@ const mapSiswa = (s, index) => {
   };
 };
 
-const StudentData = () => {
+const StudentData = ({ initialView = "list" }) => {
   const [students, setStudents]         = useState([]);
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState(null);
-  const [viewMode, setViewMode]         = useState("list");
+  const [viewMode, setViewMode]         = useState(initialView);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [activeTab, setActiveTab]       = useState("Semua");
   const [searchQuery, setSearchQuery]   = useState("");
+  const [toastMsg, setToastMsg] = useState(null);
+
+  const showToast = (msg, type = "success") => {
+    setToastMsg({ msg, type });
+    setTimeout(() => setToastMsg(null), 3000);
+  };
 
   const fetchStudents = async () => {
     setLoading(true);
@@ -91,12 +98,13 @@ const StudentData = () => {
       });
       await fetchStudents();
       setViewMode("list");
+      showToast("Berhasil menambahkan siswa baru!", "success");
     } catch (err) {
       console.error(err);
       if (err.response && err.response.data) {
-        alert("Gagal: " + (err.response.data.message || JSON.stringify(err.response.data)));
+        showToast("Gagal: " + (err.response.data.message || JSON.stringify(err.response.data)), "error");
       } else {
-        alert("Gagal menambahkan siswa: " + err.message);
+        showToast("Gagal menambahkan siswa: " + err.message, "error");
       }
     }
   };
@@ -121,9 +129,10 @@ const StudentData = () => {
       await fetchStudents();
       setViewMode("list");
       setSelectedStudent(null);
+      showToast("Berhasil menyimpan perubahan data siswa!", "success");
     } catch (err) {
       console.error(err);
-      alert("Gagal menyimpan perubahan siswa");
+      showToast("Gagal menyimpan perubahan siswa", "error");
     }
   };
 
@@ -132,9 +141,10 @@ const StudentData = () => {
       await api.delete(`/siswa/${id}`);
       setStudents((prev) => prev.filter((s) => s.id !== id));
       if (viewMode !== "list") { setViewMode("list"); setSelectedStudent(null); }
+      showToast("Berhasil menghapus siswa", "success");
     } catch (err) {
       console.error(err);
-      alert("Gagal menghapus siswa");
+      showToast("Gagal menghapus siswa", "error");
     }
   };
 
@@ -194,7 +204,7 @@ const StudentData = () => {
       </div>
 
       {/* ── Summary Cards ──────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: "Total Siswa",   val: students.length,  sub: "Semua data",       icon: "👥" },
           { label: "Laki-laki",     val: totalL,           sub: "Jenis kelamin L",  icon: "♂" },
@@ -274,6 +284,7 @@ const StudentData = () => {
                   <tr className="bg-gray-50 border-b border-gray-100">
                     <th className="py-3.5 px-5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">No</th>
                     <th className="py-3.5 px-5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">NIS</th>
+                    <th className="py-3.5 px-5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">NISN</th>
                     <th className="py-3.5 px-5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Nama Lengkap</th>
                     <th className="py-3.5 px-5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Tempat Lahir</th>
                     <th className="py-3.5 px-5 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Tanggal Lahir</th>
@@ -286,7 +297,7 @@ const StudentData = () => {
                 <tbody className="divide-y divide-gray-50">
                   {filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="py-16 text-center text-gray-400 text-[14px]">
+                      <td colSpan={10} className="py-16 text-center text-gray-400 text-[14px]">
                         Tidak ada data siswa ditemukan.
                       </td>
                     </tr>
@@ -300,6 +311,13 @@ const StudentData = () => {
                         <td className="py-3.5 px-5">
                           <span className="font-mono text-[13px] font-bold text-[#1A3D63] bg-[#1A3D63]/8 px-2 py-0.5 rounded-md">
                             {s.nis}
+                          </span>
+                        </td>
+
+                        {/* NISN */}
+                        <td className="py-3.5 px-5">
+                          <span className="font-mono text-[13px] font-bold text-gray-700 bg-gray-100 px-2 py-0.5 rounded-md">
+                            {s.nisn || "-"}
                           </span>
                         </td>
 
@@ -392,7 +410,7 @@ const StudentData = () => {
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-4 border-t border-gray-100 flex items-center justify-between text-[13px] text-gray-500">
+            <div className="px-5 py-4 border-t border-gray-100 flex flex-wrap items-center justify-between text-[13px] text-gray-500">
               <span>
                 Menampilkan <span className="font-bold text-[#1A3D63]">{filtered.length}</span> dari {students.length} siswa
               </span>
@@ -409,6 +427,21 @@ const StudentData = () => {
           </>
         )}
       </div>
+
+      {/* Toast Notification */}
+      {toastMsg && createPortal(
+        <div className={`fixed top-6 right-6 z-[9999] px-6 py-4 rounded-2xl text-white text-sm font-bold shadow-2xl flex items-center gap-3 animate-slideDown ${
+          toastMsg.type === 'error' ? 'bg-red-500' : 'bg-emerald-500'
+        }`}>
+          {toastMsg.type === 'error' ? (
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          ) : (
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          )}
+          {toastMsg.msg}
+        </div>,
+        document.body
+      )}
     </div>
   );
 };

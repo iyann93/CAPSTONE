@@ -16,9 +16,9 @@ const AkademikSiswa = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [catatan, setCatatan] = useState("");
 
-  const studentName = user?.anak?.nama || user?.nama || "Siswa";
+  const studentName = user?.anak?.nama || user?.nama || user?.fullName || "Siswa";
   const studentClass = user?.anak?.kelas || "-";
-  const studentId = user?.anak?.id || user?.userId;
+  const studentId = user?.anak?.id || user?.id || user?.userId;
 
   // Ambil data semester untuk dropdown
   useEffect(() => {
@@ -39,7 +39,10 @@ const AkademikSiswa = ({ user }) => {
   // Ambil nilai dan catatan
   useEffect(() => {
     const fetchData = async () => {
-      if (!studentId || !activeSemester) return;
+      if (!studentId || !activeSemester) {
+        setLoading(false);
+        return;
+      }
       try {
         setLoading(true);
         const [nilaiRes, catRes] = await Promise.all([
@@ -107,37 +110,18 @@ const AkademikSiswa = ({ user }) => {
             onChange={e => setActiveSemester(e.target.value)}
             className="px-3 py-2 border border-gray-200 rounded-xl text-[13px] font-semibold text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
           >
-            {semesterData.map(s => <option key={s.id} value={s.id}>{s.nama_semester}</option>)}
+            {semesterData.map(s => <option key={s.id} value={s.id}>{s.nama}</option>)}
           </select>
         </div>
       </div>
 
-      {loading ? (
-        <div className="p-8 flex items-center justify-center bg-white rounded-2xl border border-gray-100 min-h-[300px]">
-           <div className="flex flex-col items-center gap-3 text-gray-500">
-             <svg className="animate-spin h-8 w-8 text-[#1A3D63]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-             </svg>
-             <span className="text-sm font-bold animate-pulse">Memuat data akademik...</span>
-           </div>
-        </div>
-      ) : subjects.length === 0 ? (
-        <div className="p-8 text-center bg-white rounded-2xl border border-gray-100 min-h-[300px] flex flex-col items-center justify-center">
-           <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
-             <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#9ca3af" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-           </div>
-           <p className="text-[14px] font-bold text-gray-500">Belum ada nilai yang diinput di semester ini</p>
-        </div>
-      ) : (
-        <>
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { label: "Rata-rata Keseluruhan", val: allAvg.toFixed(1), sub: "Semua mata pelajaran", color: "text-blue-600", bg: "bg-blue-50" },
-              { label: "Mapel Terbaik", val: best?.mapel || "-", sub: `Avg: ${best ? getAvg(best.nilai) : 0}`, color: "text-green-600", bg: "bg-green-50" },
-              { label: "Perlu Perhatian", val: lowest?.mapel || "-", sub: `Avg: ${lowest ? getAvg(lowest.nilai) : 0}`, color: "text-amber-600", bg: "bg-amber-50" },
-              { label: "Total Mata Pelajaran", val: subjects.length, sub: "Tercatat", color: "text-purple-600", bg: "bg-purple-50" },
+              { label: "Rata-rata Keseluruhan", val: loading ? "-" : allAvg.toFixed(1), sub: "Semua mata pelajaran", color: "text-blue-600", bg: "bg-blue-50" },
+              { label: "Mapel Terbaik", val: loading ? "-" : (best?.mapel || "-"), sub: `Avg: ${best ? getAvg(best.nilai) : 0}`, color: "text-green-600", bg: "bg-green-50" },
+              { label: "Perlu Perhatian", val: loading ? "-" : (lowest?.mapel || "-"), sub: `Avg: ${lowest ? getAvg(lowest.nilai) : 0}`, color: "text-amber-600", bg: "bg-amber-50" },
+              { label: "Total Mata Pelajaran", val: loading ? "-" : subjects.length, sub: "Tercatat", color: "text-purple-600", bg: "bg-purple-50" },
             ].map((card, i) => (
               <div key={i} className="bg-[#1A3D63] rounded-2xl p-5 shadow-sm">
                 <p className="text-[11px] font-bold text-blue-200 uppercase tracking-wider mb-2">{card.label}</p>
@@ -147,7 +131,7 @@ const AkademikSiswa = ({ user }) => {
             ))}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-3 gap-5">
             {/* Nilai per Mapel Table */}
             <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
               <div className="px-5 pt-5 pb-4 border-b border-gray-100 flex items-center justify-between gap-3 flex-wrap">
@@ -173,7 +157,19 @@ const AkademikSiswa = ({ user }) => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {filtered.length === 0 ? (
+                    {loading ? (
+                      <tr>
+                        <td colSpan="7" className="px-4 py-8 text-center">
+                          <div className="flex flex-col items-center justify-center gap-3 text-gray-400">
+                            <svg className="animate-spin h-6 w-6 text-[#1A3D63]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span className="text-sm font-medium">Memuat data nilai...</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : filtered.length === 0 ? (
                       <tr>
                         <td colSpan="7" className="px-4 py-8 text-center text-[13px] text-gray-500">Tidak ada mata pelajaran ditemukan</td>
                       </tr>
@@ -215,38 +211,44 @@ const AkademikSiswa = ({ user }) => {
                 <h3 className="text-[14px] font-bold text-gray-700 mb-4">
                   {selectedMapel ? `Grafik: ${selectedMapel.mapel}` : "Grafik Rata-rata"}
                 </h3>
-                <div className="flex items-end gap-2 h-28 mt-2">
-                  {(selectedMapel ? selectedMapel.nilai : subjects.map(s => parseFloat(getAvg(s.nilai)))).slice(0, 8).map((v, i) => {
-                    const h = Math.round((v / 100) * 100);
-                    return (
-                      <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                        <span className="text-[9px] font-bold text-gray-500">{typeof v === 'number' ? v.toFixed(0) : v}</span>
-                        <div className="w-full relative rounded-t-lg overflow-hidden" style={{ height: `${h}%` }}>
-                          <div
-                            className={`w-full h-full rounded-t-lg ${v >= 80 ? "bg-green-400" : v >= 75 ? "bg-blue-400" : "bg-amber-400"}`}
-                          />
-                        </div>
-                        <span className="text-[9px] text-gray-400 truncate w-full text-center">
-                          {selectedMapel ? barLabels[i] : (subjects[i]?.mapel?.slice(0, 4) || "")}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="flex items-center gap-3 mt-4 justify-center">
-                  {[["≥ 80", "bg-green-400"], ["75-79", "bg-blue-400"], ["< 75", "bg-amber-400"]].map(([l, c]) => (
-                    <div key={l} className="flex items-center gap-1.5">
-                      <div className={`w-2.5 h-2.5 rounded-sm ${c}`}/>
-                      <span className="text-[10px] text-gray-500">{l}</span>
+                {loading ? (
+                  <div className="h-28 mt-2 flex items-center justify-center text-gray-400 text-xs">Memuat grafik...</div>
+                ) : (
+                  <>
+                    <div className="flex items-end gap-2 h-28 mt-2">
+                      {(selectedMapel ? selectedMapel.nilai : subjects.map(s => parseFloat(getAvg(s.nilai)))).slice(0, 8).map((v, i) => {
+                        const h = Math.round((v / 100) * 100);
+                        return (
+                          <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                            <span className="text-[9px] font-bold text-gray-500">{typeof v === 'number' ? v.toFixed(0) : v}</span>
+                            <div className="w-full relative rounded-t-lg overflow-hidden" style={{ height: `${h}%` }}>
+                              <div
+                                className={`w-full h-full rounded-t-lg ${v >= 80 ? "bg-green-400" : v >= 75 ? "bg-blue-400" : "bg-amber-400"}`}
+                              />
+                            </div>
+                            <span className="text-[9px] text-gray-400 truncate w-full text-center">
+                              {selectedMapel ? barLabels[i] : (subjects[i]?.mapel?.slice(0, 4) || "")}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
-                  ))}
-                </div>
+                    <div className="flex items-center gap-3 mt-4 justify-center">
+                      {[["≥ 80", "bg-green-400"], ["75-79", "bg-blue-400"], ["< 75", "bg-amber-400"]].map(([l, c]) => (
+                        <div key={l} className="flex items-center gap-1.5">
+                          <div className={`w-2.5 h-2.5 rounded-sm ${c}`}/>
+                          <span className="text-[10px] text-gray-500">{l}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Detail Mapel */}
-              {selectedMapel && (
+              {selectedMapel && !loading && (
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 animate-fadeIn">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex flex-wrap items-center justify-between mb-3">
                     <h3 className="text-[14px] font-bold text-gray-700 truncate w-4/5">{selectedMapel.mapel}</h3>
                     <button onClick={() => setSelectedMapel(null)} className="text-gray-400 hover:text-gray-600 shrink-0">
                       <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -255,7 +257,7 @@ const AkademikSiswa = ({ user }) => {
                   <p className="text-[12px] text-gray-400 mb-3 truncate">Guru: {selectedMapel.guru}</p>
                   <div className="space-y-2">
                     {selectedMapel.nilai.map((n, i) => (
-                      <div key={i} className="flex items-center justify-between">
+                      <div key={i} className="flex flex-wrap items-center justify-between">
                         <span className="text-[12px] text-gray-500">{barLabels[i]}</span>
                         <div className="flex items-center gap-2">
                           <div className="w-24 h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -266,7 +268,7 @@ const AkademikSiswa = ({ user }) => {
                       </div>
                     ))}
                   </div>
-                  <div className="mt-3 pt-3 border-t border-gray-50 flex justify-between">
+                  <div className="mt-3 pt-3 border-t border-gray-50 flex flex-wrap justify-between">
                     <span className="text-[12px] text-gray-500">Rata-rata</span>
                     <span className="text-[14px] font-black text-[#2A4365]">{getAvg(selectedMapel.nilai)}</span>
                   </div>
@@ -280,15 +282,13 @@ const AkademikSiswa = ({ user }) => {
                   <div>
                     <p className="text-[13px] font-bold text-blue-800">Catatan Wali Kelas</p>
                     <p className="text-[12px] text-blue-600 mt-1 leading-relaxed">
-                      {catatan || "Belum ada catatan wali kelas di semester ini."}
+                      {loading ? "Memuat catatan..." : (catatan || "Belum ada catatan wali kelas di semester ini.")}
                     </p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </>
-      )}
     </div>
   );
 };

@@ -111,7 +111,7 @@ const GradePromotionCriteria = ({ setView }) => {
       {/* Breadcrumb */}
       <div className="text-[13px] font-medium text-gray-400">
         Dashboard &gt; <span className="text-gray-500">Kelola Akademik</span> &gt;{" "}
-        <button onClick={() => setView("list")} className="text-gray-500 hover:text-[#2A4365] transition-colors">Kenaikan Kelas</button>{" "}
+        <button onClick={() => { setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} className="text-gray-500 hover:text-[#2A4365] transition-colors">Kenaikan Kelas</button>{" "}
         &gt; <span className="text-[#2A4365] font-semibold">Kriteria Kenaikan</span>
       </div>
 
@@ -119,7 +119,7 @@ const GradePromotionCriteria = ({ setView }) => {
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setView("list")}
+            onClick={() => { setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }}
             className="p-2 rounded-xl bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors shadow-sm"
           >
             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
@@ -185,7 +185,7 @@ const GradePromotionCriteria = ({ setView }) => {
             {/* Criteria Rows */}
             <div className="divide-y divide-gray-50">
               {group.items.map((item, i) => (
-                <div key={i} className="flex items-center justify-between px-6 py-4 gap-4">
+                <div key={i} className="flex flex-wrap items-center justify-between px-6 py-4 gap-4">
                   <div className="flex-1">
                     <p className="text-[14px] font-semibold text-gray-700">{item.label}</p>
                     {item.unit && !item.editable && (

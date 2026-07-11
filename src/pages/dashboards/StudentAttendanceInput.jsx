@@ -105,7 +105,10 @@ const StudentAttendanceInput = ({ classData, selectedDate, onBack, onSave }) => 
   };
 
   const totalStudents = students.length;
-  const pctHadir = Math.round((counts.Hadir / totalStudents) * 100) || 0;
+  const pctHadir = totalStudents > 0 ? Math.round((counts.Hadir / totalStudents) * 100) : 0;
+  const pctSakit = totalStudents > 0 ? Math.round((counts.Sakit / totalStudents) * 100) : 0;
+  const pctIzin = totalStudents > 0 ? Math.round((counts.Izin / totalStudents) * 100) : 0;
+  const pctAlpha = totalStudents > 0 ? Math.round((counts.Alpha / totalStudents) * 100) : 0;
 
   return (
     <div className="p-6 md:p-8 animate-fadeIn space-y-6 bg-[#F4F6FA] min-h-full">
@@ -202,7 +205,7 @@ const StudentAttendanceInput = ({ classData, selectedDate, onBack, onSave }) => 
                 <div key={student.id} className="p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:bg-gray-50/50 transition-colors">
                   
                   {/* Student Info */}
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-wrap items-center gap-4">
                     <span className="text-[13px] font-bold text-gray-400 w-4 text-center">{idx + 1}</span>
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white text-[13px] font-bold flex-shrink-0 ${student.color}`}>
                       {student.initials}
@@ -278,26 +281,26 @@ const StudentAttendanceInput = ({ classData, selectedDate, onBack, onSave }) => 
               </div>
 
               <div className="w-full space-y-3">
-                <div className="flex items-center justify-between text-[13px]">
+                <div className="flex flex-wrap items-center justify-between text-[13px]">
                   <div className="flex items-center gap-2"><div className="w-3.5 h-3.5 rounded-full border-2 border-emerald-500 bg-white shadow-sm"></div><span className="text-gray-600">Hadir</span></div>
-                  <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-full h-full bg-emerald-500 rounded-full"></div></div><span className="font-bold text-[#1e293b] w-6 text-right">{counts.Hadir}</span></div>
+                  <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-emerald-500 rounded-full" style={{ width: `${pctHadir}%` }}></div></div><span className="font-bold text-[#1e293b] w-6 text-right">{counts.Hadir}</span></div>
                 </div>
-                <div className="flex items-center justify-between text-[13px]">
+                <div className="flex flex-wrap items-center justify-between text-[13px]">
                   <div className="flex items-center gap-2"><div className="w-3.5 h-3.5 rounded-full border-2 border-orange-400 bg-white shadow-sm"></div><span className="text-gray-600">Sakit</span></div>
-                  <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-[10%] h-full bg-orange-400 rounded-full"></div></div><span className="font-bold text-[#1e293b] w-6 text-right">{counts.Sakit}</span></div>
+                  <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-orange-400 rounded-full" style={{ width: `${pctSakit}%` }}></div></div><span className="font-bold text-[#1e293b] w-6 text-right">{counts.Sakit}</span></div>
                 </div>
-                <div className="flex items-center justify-between text-[13px]">
+                <div className="flex flex-wrap items-center justify-between text-[13px]">
                   <div className="flex items-center gap-2"><div className="w-3.5 h-3.5 rounded-full border-2 border-purple-500 bg-white shadow-sm"></div><span className="text-gray-600">Izin</span></div>
-                  <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-[10%] h-full bg-purple-500 rounded-full"></div></div><span className="font-bold text-[#1e293b] w-6 text-right">{counts.Izin}</span></div>
+                  <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-purple-500 rounded-full" style={{ width: `${pctIzin}%` }}></div></div><span className="font-bold text-[#1e293b] w-6 text-right">{counts.Izin}</span></div>
                 </div>
-                <div className="flex items-center justify-between text-[13px]">
+                <div className="flex flex-wrap items-center justify-between text-[13px]">
                   <div className="flex items-center gap-2"><div className="w-3.5 h-3.5 rounded-full border-2 border-red-500 bg-white shadow-sm"></div><span className="text-gray-600">Alpha</span></div>
-                  <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-[0%] h-full bg-red-500 rounded-full"></div></div><span className="font-bold text-[#1e293b] w-6 text-right">{counts.Alpha}</span></div>
+                  <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-red-500 rounded-full" style={{ width: `${pctAlpha}%` }}></div></div><span className="font-bold text-[#1e293b] w-6 text-right">{counts.Alpha}</span></div>
                 </div>
               </div>
             </div>
 
-            <div className="mt-6 pt-4 border-t border-gray-100 flex justify-between text-[13px]">
+            <div className="mt-6 pt-4 border-t border-gray-100 flex flex-wrap justify-between text-[13px]">
               <span className="text-gray-500">Total Siswa</span>
               <span className="font-bold text-[#1e293b]">{totalStudents} siswa</span>
             </div>
@@ -310,20 +313,20 @@ const StudentAttendanceInput = ({ classData, selectedDate, onBack, onSave }) => 
               Informasi Kelas
             </h3>
             <div className="space-y-3">
-              <div className="flex justify-between text-[13px]">
+              <div className="flex flex-wrap justify-between text-[13px]">
                 <span className="text-gray-500">Kelas</span>
                 <span className="font-bold text-[#1e293b]">{classData.name}</span>
               </div>
 
-              <div className="flex justify-between text-[13px]">
+              <div className="flex flex-wrap justify-between text-[13px]">
                 <span className="text-gray-500">Wali Kelas</span>
                 <span className="font-bold text-[#1e293b] text-right">{classData.wali}</span>
               </div>
-              <div className="flex justify-between text-[13px]">
+              <div className="flex flex-wrap justify-between text-[13px]">
                 <span className="text-gray-500">Kapasitas</span>
                 <span className="font-bold text-[#1e293b]">{classData.students} siswa</span>
               </div>
-              <div className="flex justify-between text-[13px]">
+              <div className="flex flex-wrap justify-between text-[13px]">
                 <span className="text-gray-500">Semester</span>
                 <span className="font-bold text-[#1e293b]">Ganjil 2023/2024</span>
               </div>
@@ -334,19 +337,19 @@ const StudentAttendanceInput = ({ classData, selectedDate, onBack, onSave }) => 
           <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-6">
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-4">Kelas Lain</h3>
             <div className="space-y-4">
-              <div className="flex justify-between items-center text-[13px]">
+              <div className="flex flex-wrap justify-between items-center text-[13px]">
                 <span className="font-bold text-[#1e293b]">VII A</span>
                 <span className="text-emerald-500 font-bold flex items-center gap-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>Selesai</span>
               </div>
-              <div className="flex justify-between items-center text-[13px]">
+              <div className="flex flex-wrap justify-between items-center text-[13px]">
                 <span className="font-bold text-[#1e293b]">VII B</span>
                 <span className="text-emerald-500 font-bold flex items-center gap-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>Selesai</span>
               </div>
-              <div className="flex justify-between items-center text-[13px]">
+              <div className="flex flex-wrap justify-between items-center text-[13px]">
                 <span className="font-bold text-[#1e293b]">VIII A</span>
                 <span className="text-orange-500 font-bold flex items-center gap-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Belum</span>
               </div>
-              <div className="flex justify-between items-center text-[13px]">
+              <div className="flex flex-wrap justify-between items-center text-[13px]">
                 <span className="font-bold text-[#1e293b]">IX A</span>
                 <span className="text-emerald-500 font-bold flex items-center gap-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>Selesai</span>
               </div>

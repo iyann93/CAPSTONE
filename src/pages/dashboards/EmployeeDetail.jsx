@@ -12,7 +12,7 @@ const EmployeeDetail = ({ employee, onBack, onEdit }) => {
             <span className="font-bold text-[#1e293b]">{employee.name}</span>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <button 
               onClick={onBack}
               className="w-10 h-10 flex items-center justify-center bg-white border border-gray-200 rounded-full text-gray-500 hover:bg-gray-50 hover:text-[#1e293b] shadow-sm transition-colors flex-shrink-0"
@@ -62,7 +62,7 @@ const EmployeeDetail = ({ employee, onBack, onEdit }) => {
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6 mt-2">
                 <div className="flex gap-3">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2" className="mt-1"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                   <div>

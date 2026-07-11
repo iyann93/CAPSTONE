@@ -475,7 +475,7 @@ const DashboardRepository = {
         SELECT COUNT(*) AS total
         FROM academic.kelas k
         INNER JOIN academic.tahun_ajaran ta ON ta.id = k.tahun_ajaran_id
-        WHERE ta.is_active = true
+        WHERE ta.is_aktif = true
       `),
       query(`
         SELECT COUNT(*) AS total

@@ -7,3 +7,6 @@ export const getSiswa = (params = {}) =>
     if (payload && Array.isArray(payload.data)) return payload.data;
     return [];
   });
+
+export const getSemesters = () =>
+  api.get('/semester').then(r => r.data.data || []);

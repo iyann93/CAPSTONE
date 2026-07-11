@@ -1,6 +1,6 @@
-﻿import React from "react";
+import React from "react";
 
-const ClassDetail = ({ setView, selectedClass }) => {
+const ClassDetail = ({ setView, selectedClass, perms }) => {
   return (
     <div className="p-6 md:p-8 animate-fadeIn space-y-6 bg-[#F4F6FA] min-h-full">
       <div className="text-[13px] font-medium text-gray-500 mb-1">
@@ -8,9 +8,9 @@ const ClassDetail = ({ setView, selectedClass }) => {
       </div>
 
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <button 
-            onClick={() => setView("list")}
+            onClick={() => { setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }}
             className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors shadow-sm shrink-0"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
@@ -29,17 +29,19 @@ const ClassDetail = ({ setView, selectedClass }) => {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             Ekspor Data
           </button>
-          <button
-            onClick={() => setView("edit")}
-            className="bg-[#3B82F6] hover:bg-[#2563EB] text-white px-5 py-2.5 rounded-xl font-bold text-[13px] shadow-sm transition-all flex items-center gap-2"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-            Edit Kelas
-          </button>
+          {perms?.ubah && (
+            <button
+              onClick={() => { setView("edit"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }}
+              className="bg-[#3B82F6] hover:bg-[#2563EB] text-white px-5 py-2.5 rounded-xl font-bold text-[13px] shadow-sm transition-all flex items-center gap-2"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+              Edit Kelas
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
         <div className="bg-white p-5 rounded-[20px] shadow-sm border border-gray-100 flex flex-col justify-between">
           <div className="w-10 h-10 rounded-xl bg-[#EFF6FF] text-[#3B82F6] flex items-center justify-center mb-4">
             <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
@@ -85,11 +87,11 @@ const ClassDetail = ({ setView, selectedClass }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           
           <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+            <div className="p-5 border-b border-gray-100 flex flex-wrap items-center justify-between">
               <div className="flex items-center gap-2 text-[#3B82F6]">
                 <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                 <h3 className="text-[15px] font-bold text-[#1e293b]">Jadwal Pelajaran</h3>
@@ -147,7 +149,7 @@ const ClassDetail = ({ setView, selectedClass }) => {
           </div>
 
           <div className="bg-white rounded-[24px] border border-gray-100 shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+            <div className="p-5 border-b border-gray-100 flex flex-wrap items-center justify-between">
               <div className="flex items-center gap-2 text-[#3B82F6]">
                 <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                 <h3 className="text-[15px] font-bold text-[#1e293b]">Daftar Siswa</h3>
@@ -206,7 +208,7 @@ const ClassDetail = ({ setView, selectedClass }) => {
               <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><polyline points="16 11 18 13 22 9"></polyline></svg>
               <h3 className="text-[15px] font-bold text-[#1e293b]">Wali Kelas</h3>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <div className="w-12 h-12 rounded-full bg-[#818CF8] text-white flex items-center justify-center font-bold text-lg">{(selectedClass?.teacher || "U")[0]}</div>
               <div>
                 <div className="text-[14px] font-bold text-[#1e293b]">{selectedClass?.teacher || "Belum Ditentukan"}</div>
@@ -218,16 +220,16 @@ const ClassDetail = ({ setView, selectedClass }) => {
           <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm">
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-4">Informasi Kelas</h3>
             <div className="space-y-3">
-              <div className="flex justify-between items-center pb-3 border-b border-gray-50">
+              <div className="flex flex-wrap justify-between items-center pb-3 border-b border-gray-50">
                 <span className="text-[13px] text-gray-500">Kode Kelas</span>
                 <span className="text-[13px] font-bold text-[#1e293b]">{selectedClass?.code || "-"}</span>
               </div>
-              <div className="flex justify-between items-center pb-3 border-b border-gray-50">
+              <div className="flex flex-wrap justify-between items-center pb-3 border-b border-gray-50">
                 <span className="text-[13px] text-gray-500">Tingkat</span>
                 <span className="text-[13px] font-bold text-[#1e293b]">{selectedClass?.level || "-"}</span>
               </div>
 
-              <div className="flex justify-between items-center pb-3 border-b border-gray-50">
+              <div className="flex flex-wrap justify-between items-center pb-3 border-b border-gray-50">
                 <span className="text-[13px] text-gray-500">Tahun Ajaran</span>
                 <span className="text-[13px] font-bold text-[#1e293b]">{selectedClass?.year || "-"}</span>
               </div>
@@ -236,7 +238,7 @@ const ClassDetail = ({ setView, selectedClass }) => {
 
           <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm">
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-4">Kapasitas Kelas</h3>
-            <div className="flex justify-between items-center mb-2">
+            <div className="flex flex-wrap justify-between items-center mb-2">
               <span className="text-[13px] text-gray-500">Siswa terdaftar</span>
               <span className="text-[13px] font-bold text-[#1e293b]">{selectedClass?.students || 0}/{selectedClass?.capacity || 36}</span>
             </div>
@@ -258,15 +260,15 @@ const ClassDetail = ({ setView, selectedClass }) => {
           <div className="bg-white rounded-[24px] border border-gray-100 p-5 shadow-sm">
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-4">Informasi Data</h3>
             <div className="space-y-3">
-              <div className="flex justify-between items-center">
+              <div className="flex flex-wrap justify-between items-center">
                 <span className="text-[13px] text-gray-500">Dibuat</span>
                 <span className="text-[13px] text-[#1e293b] font-medium">12 Jul 2023</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex flex-wrap justify-between items-center">
                 <span className="text-[13px] text-gray-500">Diperbarui</span>
                 <span className="text-[13px] text-[#1e293b] font-medium">5 Nov 2023</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex flex-wrap justify-between items-center">
                 <span className="text-[13px] text-gray-500">Status</span>
                 <span className="text-[#059669] text-[13px] font-bold">Aktif</span>
               </div>
@@ -276,19 +278,19 @@ const ClassDetail = ({ setView, selectedClass }) => {
           <div className="bg-[#F8FAFC] rounded-[24px] border border-gray-200 p-5">
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-4">Aksi Terkait</h3>
             <div className="space-y-2">
-              <button className="w-full flex items-center justify-between p-2 hover:bg-white rounded-lg transition-colors group">
+              <button className="w-full flex flex-wrap items-center justify-between p-2 hover:bg-white rounded-lg transition-colors group">
                 <span className="text-[13px] font-bold text-[#3B82F6]">Lihat Jadwal Lengkap</span>
                 <svg width="16" height="16" fill="none" stroke="#3B82F6" strokeWidth="2" className="opacity-0 group-hover:opacity-100 transition-opacity"><polyline points="9 18 15 12 9 6"></polyline></svg>
               </button>
-              <button className="w-full flex items-center justify-between p-2 hover:bg-white rounded-lg transition-colors group">
+              <button className="w-full flex flex-wrap items-center justify-between p-2 hover:bg-white rounded-lg transition-colors group">
                 <span className="text-[13px] font-bold text-[#3B82F6]">Rekap Nilai Siswa</span>
                 <svg width="16" height="16" fill="none" stroke="#3B82F6" strokeWidth="2" className="opacity-0 group-hover:opacity-100 transition-opacity"><polyline points="9 18 15 12 9 6"></polyline></svg>
               </button>
-              <button className="w-full flex items-center justify-between p-2 hover:bg-white rounded-lg transition-colors group">
+              <button className="w-full flex flex-wrap items-center justify-between p-2 hover:bg-white rounded-lg transition-colors group">
                 <span className="text-[13px] font-bold text-[#3B82F6]">Rekap Absensi Kelas</span>
                 <svg width="16" height="16" fill="none" stroke="#3B82F6" strokeWidth="2" className="opacity-0 group-hover:opacity-100 transition-opacity"><polyline points="9 18 15 12 9 6"></polyline></svg>
               </button>
-              <button className="w-full flex items-center justify-between p-2 hover:bg-white rounded-lg transition-colors group">
+              <button className="w-full flex flex-wrap items-center justify-between p-2 hover:bg-white rounded-lg transition-colors group">
                 <span className="text-[13px] font-bold text-[#3B82F6]">Generate Rapor Kelas</span>
                 <svg width="16" height="16" fill="none" stroke="#3B82F6" strokeWidth="2" className="opacity-0 group-hover:opacity-100 transition-opacity"><polyline points="9 18 15 12 9 6"></polyline></svg>
               </button>

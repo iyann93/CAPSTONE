@@ -99,7 +99,7 @@ const AcademicYear = () => {
               </div>
 
               <div className="p-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="col-span-1 md:col-span-2 space-y-2">
                     <label className="text-[11px] font-bold text-gray-500 ml-1 uppercase tracking-widest">Label Tahun Ajaran</label>
                     <input
@@ -159,7 +159,7 @@ const AcademicYear = () => {
                     <div className="w-2 h-2 rounded-full bg-[#16A34A]" />
                     <h4 className="text-[14px] font-bold text-[#16A34A]">Semester Ganjil</h4>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-[11px] font-bold text-gray-500 ml-1">Tanggal Mulai Semester</label>
                       <div className="relative">
@@ -197,7 +197,7 @@ const AcademicYear = () => {
                     <div className="w-2 h-2 rounded-full bg-[#3B82F6]" />
                     <h4 className="text-[14px] font-bold text-[#1A3D63]">Semester Genap</h4>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <label className="text-[11px] font-bold text-gray-500 ml-1">Tanggal Mulai Semester</label>
                       <div className="relative">
@@ -246,7 +246,7 @@ const AcademicYear = () => {
               </div>
               
               <div className="p-6 space-y-4">
-                <div className="py-4 px-6 bg-[#F0FDF4] border border-[#DCFCE7] rounded-full flex items-center justify-between gap-4">
+                <div className="py-4 px-6 bg-[#F0FDF4] border border-[#DCFCE7] rounded-full flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <h4 className="text-[14px] font-bold text-[#16A34A]">Jadikan Aktif Saat Ini</h4>
                     <p className="text-[10px] text-[#2B8B67] mt-0.5 leading-relaxed">Otomatis menonaktifkan tahun ajaran sebelumnya.</p>
@@ -282,7 +282,7 @@ const AcademicYear = () => {
                   Salin referensi data dari tahun ajaran sebelumnya untuk mempercepat pengaturan.
                 </p>
 
-                <label className="flex items-center gap-4 py-3.5 px-5 border border-gray-200 rounded-full cursor-pointer hover:bg-gray-50 transition-colors">
+                <label className="flex flex-wrap items-center gap-4 py-3.5 px-5 border border-gray-200 rounded-full cursor-pointer hover:bg-gray-50 transition-colors">
                   <div className="relative flex items-center shrink-0">
                     <input type="checkbox" className="peer w-5 h-5 appearance-none border border-gray-300 rounded focus:outline-none checked:bg-[#1A3D63] checked:border-[#1A3D63] transition-colors" defaultChecked />
                     <svg className="absolute w-5 h-5 text-white pointer-events-none opacity-0 peer-checked:opacity-100 p-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
@@ -292,7 +292,7 @@ const AcademicYear = () => {
                   </div>
                 </label>
 
-                <label className="flex items-center gap-4 py-3.5 px-5 border border-gray-200 rounded-full cursor-pointer hover:bg-gray-50 transition-colors">
+                <label className="flex flex-wrap items-center gap-4 py-3.5 px-5 border border-gray-200 rounded-full cursor-pointer hover:bg-gray-50 transition-colors">
                   <div className="relative flex items-center shrink-0">
                     <input type="checkbox" className="peer w-5 h-5 appearance-none border border-gray-300 rounded focus:outline-none checked:bg-[#1A3D63] checked:border-[#1A3D63] transition-colors" defaultChecked />
                     <svg className="absolute w-5 h-5 text-white pointer-events-none opacity-0 peer-checked:opacity-100 p-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
@@ -303,7 +303,7 @@ const AcademicYear = () => {
                   </div>
                 </label>
 
-                <label className="flex items-center gap-4 py-3.5 px-5 border border-gray-200 rounded-full cursor-pointer hover:bg-gray-50 transition-colors">
+                <label className="flex flex-wrap items-center gap-4 py-3.5 px-5 border border-gray-200 rounded-full cursor-pointer hover:bg-gray-50 transition-colors">
                   <div className="relative flex items-center shrink-0">
                     <input type="checkbox" className="peer w-5 h-5 appearance-none border border-gray-300 rounded focus:outline-none checked:bg-[#1A3D63] checked:border-[#1A3D63] transition-colors" />
                     <svg className="absolute w-5 h-5 text-white pointer-events-none opacity-0 peer-checked:opacity-100 p-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
@@ -367,7 +367,7 @@ const AcademicYear = () => {
               </div>
 
               <div className="p-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="col-span-1 md:col-span-2 space-y-2">
                     <label className="text-[11px] font-bold text-gray-500 ml-1 uppercase tracking-widest">Nama Semester</label>
                     <input
@@ -436,7 +436,7 @@ const AcademicYear = () => {
               </div>
               
               <div className="p-6 space-y-4">
-                <div className="py-4 px-6 bg-[#F0FDF4] border border-[#DCFCE7] rounded-full flex items-center justify-between gap-4">
+                <div className="py-4 px-6 bg-[#F0FDF4] border border-[#DCFCE7] rounded-full flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <h4 className="text-[14px] font-bold text-[#16A34A]">Jadikan Aktif Saat Ini</h4>
                     <p className="text-[10px] text-[#2B8B67] mt-0.5 leading-relaxed">Mengaktifkan semester ini untuk input nilai dan absensi.</p>
@@ -468,7 +468,7 @@ const AcademicYear = () => {
               </div>
 
               <div className="p-6 space-y-4">
-                <div className="py-4 px-6 bg-white border border-gray-200 rounded-full flex items-center justify-between gap-4 shadow-sm hover:border-gray-300 transition-colors">
+                <div className="py-4 px-6 bg-white border border-gray-200 rounded-full flex flex-wrap items-center justify-between gap-4 shadow-sm hover:border-gray-300 transition-colors">
                   <div>
                     <h4 className="text-[13px] font-bold text-[#1F2937]">Kunci Input Nilai</h4>
                     <p className="text-[10px] text-gray-400 mt-0.5">Guru tidak bisa lagi mengubah nilai rapor</p>
@@ -479,7 +479,7 @@ const AcademicYear = () => {
                   </label>
                 </div>
 
-                <div className="py-4 px-6 bg-white border border-gray-200 rounded-full flex items-center justify-between gap-4 shadow-sm hover:border-gray-300 transition-colors">
+                <div className="py-4 px-6 bg-white border border-gray-200 rounded-full flex flex-wrap items-center justify-between gap-4 shadow-sm hover:border-gray-300 transition-colors">
                   <div>
                     <h4 className="text-[13px] font-bold text-[#1F2937]">Buka Publikasi Rapor</h4>
                     <p className="text-[10px] text-gray-400 mt-0.5">Siswa dapat melihat rapor di portal</p>
@@ -522,7 +522,7 @@ const AcademicYear = () => {
       {
     /* ── Top Summary Cards ── */
   }
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-[#4A7FA7] p-6 rounded-2xl shadow-sm relative">
            <div className="text-[12px] font-medium text-white/70 mb-1">Tahun Ajaran Aktif</div>
            <div className="text-[28px] font-bold text-white mb-1">2025/2026</div>
@@ -547,7 +547,7 @@ const AcademicYear = () => {
         <div className="lg:col-span-8 space-y-6">
           {years_data.map((year) => <div key={year.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div
-    className="p-6 flex items-center justify-between group cursor-pointer hover:bg-gray-50/50 transition-colors"
+    className="p-6 flex flex-wrap items-center justify-between group cursor-pointer hover:bg-gray-50/50 transition-colors"
     onClick={() => setExpandedYear(expandedYear === year.id ? null : year.id)}
   >
                 <div className="flex items-center gap-6">
@@ -559,7 +559,7 @@ const AcademicYear = () => {
                     <p className="text-[13px] text-gray-400 mt-0.5">{year.range}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4">
                   <span className={`px-4 py-1 rounded-full text-[11px] font-bold ${year.status === "Aktif" ? "bg-[#5EE9B5]/20 text-[#2B8B67]" : "bg-gray-100 text-gray-400"}`}>
                     {year.status}
                   </span>
@@ -571,12 +571,12 @@ const AcademicYear = () => {
 
               {expandedYear === year.id && <div className="p-8 pt-2 border-t border-gray-50 animate-fadeIn">
                   <div className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">Semester</div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6">
                     {
     /* Ganjil */
   }
                     <div className="border-2 border-[#5EE9B5] bg-[#5EE9B5]/5 rounded-2xl p-6 relative">
-                      <div className="flex justify-between items-start mb-4">
+                      <div className="flex flex-wrap justify-between items-start mb-4">
                         <h4 className="text-[16px] font-bold text-[#1F2937]">Semester Ganjil</h4>
                         <span className="bg-[#5EE9B5] text-[#0A1931] text-[10px] font-bold px-2.5 py-0.5 rounded-full">Aktif</span>
                       </div>
@@ -596,7 +596,7 @@ const AcademicYear = () => {
     /* Genap */
   }
                     <div className="border-2 border-gray-200 bg-white rounded-2xl p-6 relative">
-                      <div className="flex justify-between items-start mb-4">
+                      <div className="flex flex-wrap justify-between items-start mb-4">
                         <h4 className="text-[16px] font-bold text-[#1F2937]">Semester Genap</h4>
                         <span className="bg-[#E5E7EB] text-gray-500 text-[10px] font-bold px-2.5 py-0.5 rounded-full">Belum Mulai</span>
                       </div>

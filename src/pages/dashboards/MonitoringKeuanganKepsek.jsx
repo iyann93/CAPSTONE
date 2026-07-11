@@ -111,8 +111,7 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
           const pembayaran = Array.isArray(pembayaranRes.data || pembayaranRes) ? (pembayaranRes.data || pembayaranRes) : [];
           const danaBeasiswaList = Array.isArray(danaBeasiswaRes.data || danaBeasiswaRes) ? (danaBeasiswaRes.data || danaBeasiswaRes) : [];
 
-          const totalSemuaOperasional = operasional.filter(d => d.tipe === 'pengeluaran').reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
-          const totalOperasionalSaja = operasional.filter(d => d.tipe === 'pengeluaran' && d.kategori !== 'Gaji Pegawai').reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+          const totalOperasionalSaja = operasional.filter(d => d.tipe === 'pengeluaran').reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
           const totalOperasionalMasuk = operasional.filter(d => d.tipe === 'pemasukan').reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
           const totalBeasiswa = danaBeasiswaList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
           const totalSppTahunan = pembayaran.reduce((acc, curr) => {
@@ -120,10 +119,73 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
             return acc + amount;
           }, 0);
 
+          // Merge backend beasiswa data with any saved programs in localStorage similar to BendaharaDashboard
           let backendList = beasiswaListRaw || [];
-          const totalPenyaluranBeasiswa = backendList.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+          let savedPrograms = [];
+          try {
+            const raw = localStorage.getItem('capstone_program_beasiswa');
+            if (raw) savedPrograms = JSON.parse(raw);
+          } catch (e) { savedPrograms = []; }
 
-          const totalPengeluaranTahunan = totalSemuaOperasional + totalPenyaluranBeasiswa;
+          // Group backend penerima by nama_beasiswa
+          const grouped = {};
+          backendList.forEach(b => {
+            if (!grouped[b.nama_beasiswa]) grouped[b.nama_beasiswa] = { penerima: [] };
+            grouped[b.nama_beasiswa].penerima.push({
+              id: b.id,
+              siswa_id: b.siswa_id,
+              siswa_nama: b.siswa_nama || b.nama_siswa,
+              nis: b.nis,
+              nama_kelas: b.nama_kelas || b.kelas || "-",
+              nama_beasiswa: b.nama_beasiswa,
+              nominal: b.nominal,
+              periode: b.periode,
+              status: b.status,
+              tanggal_mulai: b.tanggal_mulai,
+              tanggal_selesai: b.tanggal_selesai
+            });
+          });
+
+          // Start from saved programs metadata and merge penerima from backend
+          const dedupMap = new Map();
+          (savedPrograms || []).forEach(p => {
+            const key = (p.title || "").trim().toLowerCase();
+            if (!dedupMap.has(key)) dedupMap.set(key, { ...p, penerima: [] });
+          });
+
+          const mergedPrograms = Array.from(dedupMap.values()).map(prog => {
+            const key = (prog.title || "").trim().toLowerCase();
+            const matchedGroupKey = Object.keys(grouped).find(k => k.trim().toLowerCase() === key);
+            return {
+              ...prog,
+              title: matchedGroupKey || prog.title,
+              penerima: matchedGroupKey ? grouped[matchedGroupKey].penerima : (prog.penerima || [])
+            };
+          });
+
+          // Also include any backend programs that weren't in savedPrograms
+          Object.keys(grouped).forEach(k => {
+            const key = k.trim().toLowerCase();
+            if (!dedupMap.has(key)) {
+              mergedPrograms.push({ title: k, penerima: grouped[k].penerima, status: 'Aktif', amount: '0' });
+            }
+          });
+
+          let totalPenyaluranBeasiswa = 0;
+          mergedPrograms.forEach(p => {
+            if (p.status === 'Aktif') {
+              const amountStr = String(p.amount || p.nominal || "0").replace(/[^0-9]/g, '');
+              const amountNum = parseInt(amountStr, 10) || 0;
+              const activePenerima = (p.penerima || []).filter(r => !r.status || String(r.status).toLowerCase() === 'aktif');
+              const disalurkan = activePenerima.reduce((s, r) => {
+                const rNominal = r.nominal ? Number(r.nominal) : amountNum;
+                return s + (rNominal || 0);
+              }, 0);
+              totalPenyaluranBeasiswa += disalurkan;
+            }
+          });
+
+          const totalPengeluaranTahunan = totalOperasionalSaja + totalPenyaluranBeasiswa;
           const totalPemasukanTahunan = totalSppTahunan + totalOperasionalMasuk + totalBeasiswa;
 
           setData(prev => ({
@@ -290,7 +352,7 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
       </div>
 
       {/* Ringkasan Keuangan Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col justify-center">
           <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Total Pemasukan Tahunan</div>
           <div className="text-[24px] font-black text-gray-800">{formatCurrency(data.pemasukan)}</div>
@@ -300,16 +362,16 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
           <div className="text-[24px] font-black text-gray-800">{formatCurrency(data.pengeluaran)}</div>
         </div>
         <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col justify-center">
-          <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Sisa Saldo Keuangan</div>
+          <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Saldo Keuangan</div>
           <div className="text-[24px] font-black text-gray-800">{formatCurrency(data.saldo)}</div>
         </div>
       </div>
 
       {/* Penyaluran Beasiswa & Status Penggajian */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6">
         {/* Penyaluran Beasiswa */}
         <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col">
-          <div className="flex items-start justify-between gap-4 mb-5">
+          <div className="flex flex-wrap items-start justify-between gap-4 mb-5">
             <div>
               <h3 className="text-[16px] font-bold text-gray-800">Pemberian Beasiswa</h3>
               <p className="text-[12px] text-gray-500 mt-1">Ringkasan realisasi program beasiswa</p>
@@ -330,15 +392,15 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
           </div>
 
           <div className="flex-1 flex flex-col justify-center gap-3 mt-1">
-            <div className="flex items-center justify-between py-2 border-b border-gray-100">
+            <div className="flex flex-wrap items-center justify-between py-2 border-b border-gray-100">
               <span className="text-[12px] font-medium text-gray-500">Penerima Aktif</span>
               <span className="text-[13px] font-black text-gray-800">{beasiswaSummary.penerimaAktif} Siswa</span>
             </div>
-            <div className="flex items-center justify-between py-2 border-b border-gray-100">
+            <div className="flex flex-wrap items-center justify-between py-2 border-b border-gray-100">
               <span className="text-[12px] font-medium text-gray-500">Alokasi Dana Masuk</span>
               <span className="text-[13px] font-black text-gray-800">{formatCurrency(beasiswaSummary.totalDanaMasuk)}</span>
             </div>
-            <div className="flex items-center justify-between py-2">
+            <div className="flex flex-wrap items-center justify-between py-2">
               <span className="text-[12px] font-medium text-gray-600">Tersalurkan</span>
               <span className="text-[13px] font-black text-[#1e3a8a]">{formatCurrency(beasiswaSummary.tersalurkan)}</span>
             </div>
@@ -352,7 +414,7 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
           
           <div className="mt-auto space-y-6">
             <div>
-              <div className="flex justify-between items-center mb-3">
+              <div className="flex flex-wrap justify-between items-center mb-3">
                 <span className="text-[12px] font-medium text-gray-500">Persentase Realisasi</span>
                 <span className="px-2.5 py-1 bg-green-50 text-green-600 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-green-100">
                   {gajiSummary.persentase}% Terealisasi
@@ -368,7 +430,7 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
                 <div className="text-[10px] font-bold text-[#1A3D63] uppercase tracking-wider mb-1">Realisasi Gaji</div>
                 <div className="text-[16px] font-black text-[#1A3D63]">{formatCurrency(gajiSummary.realisasi)}</div>
               </div>
-              <div className="flex justify-between items-center pt-2 border-t border-gray-50">
+              <div className="flex flex-wrap justify-between items-center pt-2 border-t border-gray-50">
                 <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Pegawai Yang Diterima</span>
                 <span className="text-[15px] font-black text-gray-800">{gajiSummary.jumlahPegawai} dari {gajiSummary.totalPegawai || 0} Orang</span>
               </div>
@@ -396,7 +458,7 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
           </div>
 
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-y-4 gap-x-4">
+            <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-4">
               <div className="p-3 rounded-xl bg-gray-50 border border-gray-100">
                 <div className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Total Tagihan</div>
                 <div className="text-[14px] font-black text-gray-800">{sppLoaded ? formatCurrency(sppData.totalTagihan) : '…'}</div>
@@ -410,7 +472,7 @@ const MonitoringKeuanganKepsek = ({ user, onNavigate }) => {
             {sppData.tunggakanPerKelas && sppData.tunggakanPerKelas.length > 0 && (
               <div>
                 {sppData.tunggakanPerKelas.map((kelas, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors">
+                  <div key={idx} className="flex flex-wrap items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-gray-50 border border-gray-100 text-gray-500 flex items-center justify-center font-black text-[12px]">{kelas.tingkat}</div>
                       <div>

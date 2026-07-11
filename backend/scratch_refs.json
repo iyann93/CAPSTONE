@@ -1,0 +1,7 @@
+[
+  {
+    "table_schema": "academic",
+    "table_name": "absensi",
+    "column_name": "jadwal_id"
+  }
+]

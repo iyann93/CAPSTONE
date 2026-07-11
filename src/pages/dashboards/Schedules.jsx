@@ -38,12 +38,12 @@ const Schedules = () => {
 
   const handleAdd = () => {
     fetchSchedules();
-    setView("list");
+    setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
   };
 
   const handleEdit = () => {
     fetchSchedules();
-    setView("list");
+    setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
   };
 
   const handleDelete = async (id) => {
@@ -53,7 +53,7 @@ const Schedules = () => {
         fetchSchedules();
       } catch (err) {
         console.error("Gagal menghapus jadwal:", err);
-        alert("Gagal menghapus jadwal.");
+        alert("Gagal menghapus jadwal: " + (err.response?.data?.message || err.message));
       }
     }
   };
@@ -88,7 +88,7 @@ const Schedules = () => {
             Ekspor Jadwal
           </button>
           <button 
-            onClick={() => setView("add")}
+            onClick={() => { setView("add"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }}
             className="bg-[#3B82F6] hover:bg-[#2563EB] text-white px-5 py-2.5 rounded-xl font-bold text-[13px] shadow-sm transition-all flex items-center gap-2"
           >
             <span className="text-lg leading-none">+</span>
@@ -98,7 +98,7 @@ const Schedules = () => {
       </div>
 
       {/* Stats Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
+      <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
             <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Jadwal</div>
@@ -266,7 +266,7 @@ const Schedules = () => {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center justify-center gap-2">
-                        <button onClick={() => { setCurrentEditItem(item); setView("edit"); }} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                        <button onClick={() => { setCurrentEditItem(item); setView("edit"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
                         <button onClick={() => handleDelete(item.id)} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors">
@@ -281,7 +281,7 @@ const Schedules = () => {
           </div>
 
           {/* Table Pagination */}
-          <div className="px-2 py-4 flex items-center justify-between border-t border-gray-50">
+          <div className="px-2 py-4 flex flex-wrap items-center justify-between border-t border-gray-50">
             <div className="text-[13px] text-gray-500">
               Menampilkan {schedules.length === 0 ? 0 : 1}-{Math.min(12, schedules.length)} dari {schedules.length} jadwal
             </div>

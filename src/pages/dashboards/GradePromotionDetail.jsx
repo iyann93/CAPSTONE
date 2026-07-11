@@ -31,7 +31,15 @@ const GradePromotionDetail = ({ setView, classData, activeTahunAjaran, onSave })
         const dbClasses = kelasRes.data?.data || [];
         setClassesList(dbClasses);
 
-        const classSiswa = allSiswa.filter(s => s.kelas_id === classData?.kode);
+        const classSiswa = allSiswa.filter(s => {
+          const kDataForStudent = kenaikanData.find(kd => kd.siswa_id === s.id);
+          if (kDataForStudent) {
+            // Jika sudah diproses tahun ajaran ini, tampilkan jika kelas asalnya adalah kelas ini
+            return kDataForStudent.kelas_asal_id === classData?.kode;
+          }
+          // Jika belum diproses, tampilkan berdasarkan kelas_id saat ini
+          return s.kelas_id === classData?.kode;
+        });
         
         let baseStudents = [];
         
@@ -167,13 +175,13 @@ const GradePromotionDetail = ({ setView, classData, activeTahunAjaran, onSave })
 
       {/* Breadcrumb */}
       <div className="text-[13px] font-medium text-gray-400 mb-4">
-        Dashboard &gt; <button onClick={() => setView("list")} className="text-gray-500 hover:text-[#2A4365]">Kenaikan Kelas</button> &gt; <span className="text-[#2A4365] font-semibold">{classData?.kelas || "Kelas VII A"}</span>
+        Dashboard &gt; <button onClick={() => { setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} className="text-gray-500 hover:text-[#2A4365]">Kenaikan Kelas</button> &gt; <span className="text-[#2A4365] font-semibold">{classData?.kelas || "Kelas VII A"}</span>
       </div>
 
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between md:items-start gap-4 mb-6">
         <div className="flex items-start gap-3">
-          <button onClick={() => setView("list")} className="p-2 mt-1 rounded-xl bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 shadow-sm">
+          <button onClick={() => { setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} className="p-2 mt-1 rounded-xl bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 shadow-sm">
             <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
           <div>
@@ -187,9 +195,23 @@ const GradePromotionDetail = ({ setView, classData, activeTahunAjaran, onSave })
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <button onClick={handleProses} disabled={processing || processed || students.length === 0} className="flex items-center gap-2 px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl text-[13px] font-bold text-gray-700 hover:bg-gray-50 shadow-sm disabled:opacity-50">
-            <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-            Auto Proses
+          <button 
+            onClick={handleProses} 
+            disabled={processing || processed || students.length === 0} 
+            className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-[13px] font-bold shadow-sm transition-all ${
+              processed 
+                ? "bg-emerald-50 text-emerald-600 border border-emerald-200 cursor-default" 
+                : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            }`}
+          >
+            {processed ? (
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+            ) : processing ? (
+              <svg className="animate-spin w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+            ) : (
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            )}
+            {processed ? "Selesai Diproses" : processing ? "Memproses..." : "Auto Proses"}
           </button>
 
           <button onClick={handleSaveDecision} disabled={saving} className="flex items-center gap-2 px-3.5 py-2.5 bg-[#2A4365] hover:bg-[#1A365D] text-white rounded-xl text-[13px] font-bold shadow-sm disabled:opacity-50">
@@ -208,23 +230,23 @@ const GradePromotionDetail = ({ setView, classData, activeTahunAjaran, onSave })
         <div className="flex-1 space-y-4 min-w-0">
           {/* Progress */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex flex-wrap items-center justify-between mb-3">
               <p className="text-[14px] font-bold text-gray-700">Progress Proses</p>
               <span className="text-[14px] font-bold text-blue-600">{pct}%</span>
             </div>
             <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden mb-4">
               <div className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-700" style={{ width: `${pct}%` }} />
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="flex items-center justify-between bg-green-50 border border-green-100 rounded-xl px-4 py-3">
+            <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="flex flex-wrap items-center justify-between bg-green-50 border border-green-100 rounded-xl px-4 py-3">
                 <span className="text-[13px] font-semibold text-green-700">Naik Kelas</span>
                 <span className="text-[20px] font-bold text-green-600">{naik}</span>
               </div>
-              <div className="flex items-center justify-between bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between bg-red-50 border border-red-100 rounded-xl px-4 py-3">
                 <span className="text-[13px] font-semibold text-red-600">Tidak Naik</span>
                 <span className="text-[20px] font-bold text-red-500">{tidakNaik}</span>
               </div>
-              <div className="flex items-center justify-between bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
                 <span className="text-[13px] font-semibold text-amber-600">Belum Ditentukan</span>
                 <span className="text-[20px] font-bold text-amber-500">{belum}</span>
               </div>
@@ -239,9 +261,9 @@ const GradePromotionDetail = ({ setView, classData, activeTahunAjaran, onSave })
               </div>
               <h3 className="text-[14px] font-bold text-gray-700">Kriteria Kelulusan</h3>
             </div>
-            <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
               {[["Nilai Rata-rata","≥ 70"],["Kehadiran","≥ 80%"],["Nilai per Mapel","≥ 60"],["Maks. Mapel Tidak Lulus","≤ 2 mapel"]].map(([l,v],i) => (
-                <div key={i} className="flex items-center justify-between py-2 border-b border-gray-50">
+                <div key={i} className="flex flex-wrap items-center justify-between py-2 border-b border-gray-50">
                   <span className="text-[13px] text-gray-500">{l}</span>
                   <span className="text-[13px] font-bold text-gray-700">{v}</span>
                 </div>
@@ -327,7 +349,7 @@ const GradePromotionDetail = ({ setView, classData, activeTahunAjaran, onSave })
             <h3 className="text-[14px] font-bold text-gray-700 mb-4">Informasi Kelas</h3>
             <div className="space-y-3">
               {[["Total Siswa", students.length],["Semester", activeTahunAjaran?.tahun_ajaran || "Aktif"]].map(([l,v],i)=>(
-                <div key={i} className="flex items-center justify-between">
+                <div key={i} className="flex flex-wrap items-center justify-between">
                   <span className="text-[13px] text-gray-400">{l}</span>
                   <span className="text-[13px] font-semibold text-gray-700">{v}</span>
                 </div>

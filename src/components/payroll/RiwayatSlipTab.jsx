@@ -232,7 +232,7 @@ const RiwayatSlipTab = ({ triggerToast }) => {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {[
           { label: "TOTAL DATA SLIP", value: `${summary.total} Slip` },
           { label: "SUDAH DIBAYAR", value: summary.dibayar.toString() },
@@ -275,7 +275,7 @@ const RiwayatSlipTab = ({ triggerToast }) => {
 
       {/* Bulk Action Toolbar */}
       {selectedSlips.length > 0 && (
-        <div className="mb-4 bg-red-50 border border-red-200 rounded-xl p-3 flex justify-between items-center animate-fadeIn">
+        <div className="mb-4 bg-red-50 border border-red-200 rounded-xl p-3 flex flex-wrap justify-between items-center animate-fadeIn">
           <span className="text-red-700 text-sm font-bold ml-2">
             {selectedSlips.length} slip gaji draft terpilih
           </span>
@@ -405,7 +405,7 @@ const RiwayatSlipTab = ({ triggerToast }) => {
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             {/* Header modal */}
-            <div className="flex items-center justify-between p-5 border-b border-gray-100">
+            <div className="flex flex-wrap items-center justify-between p-5 border-b border-gray-100">
               <div>
                 <h3 className="text-base font-bold text-gray-800">Detail Slip Gaji</h3>
                 {detailData && (
@@ -429,7 +429,7 @@ const RiwayatSlipTab = ({ triggerToast }) => {
             ) : detailData ? (
               <div className="p-5 space-y-5">
                 {/* Ringkasan */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {[
                     { label: 'Gaji Pokok', value: formatRupiah(detailData.gaji_pokok), color: 'text-gray-800' },
                     { label: 'Total Tunjangan', value: formatRupiah(detailData.total_tunjangan), color: 'text-green-600' },
@@ -497,7 +497,7 @@ const RiwayatSlipTab = ({ triggerToast }) => {
                 )}
 
                 {/* Total bersih */}
-                <div className="bg-[#1A3D63] rounded-xl p-4 flex justify-between items-center">
+                <div className="bg-[#1A3D63] rounded-xl p-4 flex flex-wrap justify-between items-center">
                   <span className="text-white text-sm font-bold">GAJI BERSIH</span>
                   <span className="text-white text-lg font-black">{formatRupiah(detailData.gaji_bersih)}</span>
                 </div>

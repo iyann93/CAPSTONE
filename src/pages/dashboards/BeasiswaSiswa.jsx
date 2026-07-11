@@ -51,20 +51,20 @@ const BeasiswaSiswa = ({ user }) => {
         <p className="text-[14px] text-gray-500 mt-1">{studentName} · {studentClass.toLowerCase().includes('kelas') ? studentClass : `Kelas ${studentClass}`} · Rincian program beasiswa yang sedang berjalan</p>
       </div>
 
-      {loading ? (
-        <div className="text-center p-8 text-gray-500">Memuat data beasiswa...</div>
-      ) : beasiswaList.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center p-12 text-center text-gray-400">
-          <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" className="mb-4 opacity-50"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          <p className="text-[16px] font-medium text-gray-600 mb-2">Tidak Ada Beasiswa Aktif</p>
-          <p className="text-[14px]">Siswa ini tidak terdaftar dalam program beasiswa apapun saat ini.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left: Program List */}
-          <div className="lg:col-span-1 space-y-3">
-            <h3 className="text-[15px] font-bold text-gray-800 mb-2">Rincian Program Beasiswa yang diterima</h3>
-            {beasiswaList.map((item) => {
+      <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Left: Program List */}
+        <div className="lg:col-span-1 space-y-3">
+          <h3 className="text-[15px] font-bold text-gray-800 mb-2">Rincian Program Beasiswa yang diterima</h3>
+          {loading ? (
+            <div className="bg-white border border-gray-100 rounded-2xl p-6 text-center text-gray-500 text-[13px] shadow-sm">
+              Memuat data beasiswa...
+            </div>
+          ) : beasiswaList.length === 0 ? (
+            <div className="bg-white border border-gray-100 rounded-2xl p-6 text-center shadow-sm">
+              <p className="text-[13px] font-bold text-gray-500">Tidak ada beasiswa aktif</p>
+            </div>
+          ) : (
+            beasiswaList.map((item) => {
               const isSelected = selectedProgram?.id === item.id;
               const statusDisplay = item.status ? item.status.charAt(0).toUpperCase() + item.status.slice(1) : "-";
               return (
@@ -76,7 +76,7 @@ const BeasiswaSiswa = ({ user }) => {
                   }`}
                 >
                   <div className="flex flex-col gap-1">
-                    <div className="flex justify-between items-start">
+                    <div className="flex flex-wrap justify-between items-start">
                       <h3 className={`text-[15px] font-bold ${isSelected ? "text-[#1A3D63]" : "text-gray-800"} truncate pr-2`}>{item.nama_beasiswa}</h3>
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold flex-shrink-0 ${
                         item.status === "aktif" ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-500"
@@ -88,44 +88,54 @@ const BeasiswaSiswa = ({ user }) => {
                   </div>
                 </div>
               );
-            })}
-          </div>
+            })
+          )}
+        </div>
 
-          {/* Right: Program Detail Panel */}
-          <div className="lg:col-span-2">
-            {selectedProgram ? (
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 lg:p-8 animate-fadeIn h-full">
-                {/* Header Title */}
-                <div className="flex items-start justify-between mb-2">
-                  <h2 className="text-[26px] font-bold text-gray-800 capitalize leading-tight">{selectedProgram.nama_beasiswa}</h2>
-                  <span className={`px-3 py-1 rounded text-[11px] font-bold uppercase tracking-wider flex-shrink-0 ${
-                    selectedProgram.status === "aktif" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
-                  }`}>
-                    {selectedProgram.status ? selectedProgram.status.charAt(0).toUpperCase() + selectedProgram.status.slice(1) : "-"}
-                  </span>
+        {/* Right: Program Detail Panel */}
+        <div className="lg:col-span-2">
+          {loading ? (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-12 flex items-center justify-center h-full">
+              <span className="text-gray-400">Memuat detail...</span>
+            </div>
+          ) : selectedProgram ? (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 lg:p-8 animate-fadeIn h-full">
+              {/* Header Title */}
+              <div className="flex flex-wrap items-start justify-between mb-2">
+                <h2 className="text-[26px] font-bold text-gray-800 capitalize leading-tight">{selectedProgram.nama_beasiswa}</h2>
+                <span className={`px-3 py-1 rounded text-[11px] font-bold uppercase tracking-wider flex-shrink-0 ${
+                  selectedProgram.status === "aktif" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
+                }`}>
+                  {selectedProgram.status ? selectedProgram.status.charAt(0).toUpperCase() + selectedProgram.status.slice(1) : "-"}
+                </span>
+              </div>
+              <p className="text-[14px] text-gray-500 mb-8">
+                Tahun Ajaran {selectedProgram.periode ? (selectedProgram.periode.match(/\d{4}\/\d{4}$/) || ["2025/2026"])[0] : "2025/2026"}
+              </p>
+
+              {/* Grid Info */}
+              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-4 mb-8">
+                <div>
+                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Nominal Bantuan</p>
+                  <p className="text-[16px] font-bold text-gray-800">{formatCurrency(selectedProgram.nominal)}</p>
                 </div>
-                <p className="text-[14px] text-gray-500 mb-8">
-                  Tahun Ajaran {selectedProgram.periode ? (selectedProgram.periode.match(/\d{4}\/\d{4}$/) || ["2025/2026"])[0] : "2025/2026"}
-                </p>
-
-                {/* Grid Info */}
-                <div className="grid grid-cols-2 gap-y-8 gap-x-4 mb-8">
-                  <div>
-                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Nominal Bantuan</p>
-                    <p className="text-[16px] font-bold text-gray-800">{formatCurrency(selectedProgram.nominal)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Periode Berlaku</p>
-                    <p className="text-[14px] font-bold text-gray-800">
-                      {getPeriodeBerlaku(selectedProgram)}
-                    </p>
-                  </div>
+                <div>
+                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Periode Berlaku</p>
+                  <p className="text-[14px] font-bold text-gray-800">
+                    {getPeriodeBerlaku(selectedProgram)}
+                  </p>
                 </div>
               </div>
-            ) : null}
-          </div>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col items-center justify-center p-12 text-center text-gray-400 h-full min-h-[300px]">
+              <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5" className="mb-4 opacity-50"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <p className="text-[16px] font-medium text-gray-600 mb-2">Tidak Ada Beasiswa Aktif</p>
+              <p className="text-[14px]">Siswa ini tidak terdaftar dalam program beasiswa apapun saat ini.</p>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };

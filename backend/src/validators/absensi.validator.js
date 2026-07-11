@@ -26,12 +26,12 @@ const updateAbsensiValidator = [
 const rekapBulananValidator = [
   query('bulan').notEmpty().withMessage('Parameter bulan wajib diisi').isInt({ min: 1, max: 12 }).withMessage('Bulan tidak valid'),
   query('tahun').notEmpty().withMessage('Parameter tahun wajib diisi').isInt({ min: 2000, max: 2100 }).withMessage('Tahun tidak valid'),
-  query('kelas_id').optional().isUUID().withMessage('kelas_id tidak valid'),
+  query('kelas_id').optional().matches(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/).withMessage('kelas_id tidak valid'),
 ];
 
 const rekapSemesterValidator = [
-  query('semester_id').notEmpty().withMessage('Parameter semester_id wajib diisi').isUUID().withMessage('semester_id tidak valid'),
-  query('kelas_id').optional().isUUID().withMessage('kelas_id tidak valid'),
+  query('semester_id').notEmpty().withMessage('Parameter semester_id wajib diisi').matches(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/).withMessage('semester_id tidak valid'),
+  query('kelas_id').optional().matches(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/).withMessage('kelas_id tidak valid'),
 ];
 
 const statistikValidator = [

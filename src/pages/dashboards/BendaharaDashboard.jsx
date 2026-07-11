@@ -1417,7 +1417,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
             </div>
 
             {/* Stat Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-5">
+            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-5">
               {[
                 {
                   title: "Total SPP Terkumpul",
@@ -1461,10 +1461,10 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
             </div>
 
             {/* Tables Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-5">
               {/* Left Table: Pembayaran SPP Terbaru */}
               <div className="bg-white rounded-[24px] border border-gray-50 p-5 shadow-sm">
-                <div className="flex justify-between items-center mb-5">
+                <div className="flex flex-wrap justify-between items-center mb-5">
                   <h3 className="text-sm font-bold text-gray-800">Pembayaran SPP Terbaru</h3>
                   <button
                     onClick={() => onViewChange && onViewChange("Monitoring Pembayaran")}
@@ -1509,7 +1509,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
               {/* Right Table: Status Penggajian Guru & Staf */}
               <div className="bg-white rounded-[24px] border border-gray-50 p-5 shadow-sm">
-                <div className="flex justify-between items-center mb-5">
+                <div className="flex flex-wrap justify-between items-center mb-5">
                   <h3 className="text-sm font-bold text-gray-800">Status Penggajian Guru &amp; Staf</h3>
                   <button
                     onClick={() => onViewChange && onViewChange("Riwayat Slip Gaji")}
@@ -1569,7 +1569,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
             </div>
 
             <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-sm">
-              <div className="flex justify-between items-center mb-6">
+              <div className="flex flex-wrap justify-between items-center mb-6">
                 <h3 className="text-sm font-bold text-gray-800">Daftar Pembayaran Terbaru</h3>
                 <span className="text-[11px] font-bold text-[#1A3D63] bg-blue-50 px-3 py-1 rounded-lg">Update Otomatis</span>
               </div>
@@ -1709,7 +1709,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
               }, 0);
 
               return (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                   {/* Card 1: Total Siswa */}
                   <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
                     <div className="text-2xl font-bold text-white">{totalSiswaMenunggak} Siswa</div>
@@ -1891,7 +1891,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
             {showVerifyModal && verifyData && (
               <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                 <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
-                  <div className="p-5 sm:p-6 border-b border-gray-100 flex items-center justify-between bg-white">
+                  <div className="p-5 sm:p-6 border-b border-gray-100 flex flex-wrap items-center justify-between bg-white">
                     <h2 className="text-lg font-bold text-gray-800">Verifikasi Bukti Pembayaran</h2>
                     <button onClick={() => { setShowVerifyModal(false); setVerifyData(null); }} className="text-gray-400 hover:text-gray-600 bg-transparent border-none cursor-pointer p-1">
                       <IconX />
@@ -1969,7 +1969,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
               return (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                   <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
-                    <div className="p-5 sm:p-6 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0 z-10">
+                    <div className="p-5 sm:p-6 border-b border-gray-100 flex flex-wrap items-center justify-between bg-white sticky top-0 z-10">
                       <div>
                         <h2 className="text-lg sm:text-xl font-bold text-gray-800">Kirim Tagihan SPP</h2>
                         <p className="text-xs sm:text-sm text-gray-500 mt-1">Tahun Ajaran: {selectedYear} | Kelas: {billClassFilter}</p>
@@ -1991,7 +1991,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                       ) : (
                         <div className="flex flex-col gap-4">
                           {/* Control Bar */}
-                          <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                          <div className="flex flex-wrap items-center justify-between bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
                             <label className="flex items-center gap-3 cursor-pointer">
                               <input 
                                 type="checkbox" 
@@ -2140,7 +2140,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
             {sppSettingTab === "nominal" && (
               <div className="flex flex-col gap-5">
                 {/* 3 Quick View Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-3 gap-4">
                   {(() => {
                     // Sort sppList by class order: VII, VIII, IX
                     const sortOrder = { 'VII': 1, 'VIII': 2, 'IX': 3 };
@@ -2169,7 +2169,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
                 {/* Daftar Pengaturan SPP */}
                 <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-                  <div className="flex items-center justify-between mb-5">
+                  <div className="flex flex-wrap items-center justify-between mb-5">
                     <h3 className="text-sm font-bold text-gray-800">Daftar Pengaturan SPP</h3>
                   </div>
 
@@ -2187,7 +2187,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                             className={`border rounded-xl transition-all duration-200 ${isEditing ? "border-[#1A3D63] shadow-[0_0_0_3px_rgba(26,61,99,0.1)] p-5" : "border-gray-100 hover:bg-gray-50/50 p-4"}`}
                           >
                           {/* Header row (always visible) */}
-                          <div className="flex items-center gap-4">
+                          <div className="flex flex-wrap items-center gap-4">
                             {/* Icon */}
 
 
@@ -2274,7 +2274,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                           {/* Inline Expand Edit Form */}
                           {isEditing && (
                             <div className="mt-5 pt-5 border-t border-gray-100">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                   <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Tahun Ajaran</label>
                                   <div className="relative">
@@ -2420,7 +2420,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
                   return (
                     <div key={group} className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm flex flex-col">
-                      <h3 className="text-sm font-bold text-[#1A3D63] mb-4 pb-3 border-b border-gray-100 flex items-center justify-between">
+                      <h3 className="text-sm font-bold text-[#1A3D63] mb-4 pb-3 border-b border-gray-100 flex flex-wrap items-center justify-between">
                         {group}
                         <span className="bg-[#EBF3FA] text-[#1A3D63] px-2.5 py-0.5 rounded-md text-[10px] font-bold">{groupData.length} Siswa</span>
                       </h3>
@@ -2431,7 +2431,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                           return (
                           <React.Fragment key={item.id}>
                             <div className={`flex flex-col gap-3 transition-all ${isExpanded ? 'bg-gray-50/50 p-3.5 rounded-xl border border-gray-200' : ''}`}>
-                              <div className="flex items-center justify-between">
+                              <div className="flex flex-wrap items-center justify-between">
                                 <div className="flex items-center gap-3">
                                   <div className="w-6 h-6 rounded-full bg-[#EBF3FA] flex items-center justify-center text-[10px] font-bold text-[#1A3D63] flex-shrink-0 shadow-sm">
                                     {idx + 1}
@@ -2455,7 +2455,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                               {isExpanded && (
                                 <div className="mt-2 pt-3 border-t border-gray-200 animate-fadeIn space-y-3">
                                   {/* Student & Payment Info */}
-                                  <div className="grid grid-cols-2 gap-3 text-xs">
+                                  <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                                     <div>
                                       <div className="text-gray-400 font-semibold mb-1">NIS</div>
                                       <div className="font-bold text-gray-800">{item.nis}</div>
@@ -2470,7 +2470,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                                   </div>
 
                                   {/* Payment Details */}
-                                  <div className="border-t border-gray-100 pt-3 grid grid-cols-2 gap-3 text-xs">
+                                  <div className="border-t border-gray-100 pt-3 grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                                     <div>
                                       <div className="text-gray-400 font-semibold mb-1">Bulan Tagihan</div>
                                       <div className="font-bold text-gray-800">{item.month} 2026</div>
@@ -2606,7 +2606,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
               };
 
               return (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               <div className="bg-[#1A3D63] rounded-xl p-5 shadow-sm">
                 <div className="text-2xl font-bold text-white">{programAktif}</div>
                 <div className="text-[11px] text-blue-200 mt-1 font-semibold uppercase tracking-wider">Program Beasiswa Aktif</div>
@@ -2629,10 +2629,10 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
             {/* Tabs */}
             {/* Tab Content */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-4">
                 {programList.map((item, i) => (
                   <div key={i} className="bg-white rounded-xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between gap-4">
-                    <div className="flex justify-between items-start gap-4">
+                    <div className="flex flex-wrap justify-between items-start gap-4">
                       <div className="flex items-start gap-3">
                         <div className="w-8 h-8 rounded-full bg-[#EBF3FA] flex items-center justify-center text-[13px] font-bold text-[#1A3D63] shrink-0 shadow-sm">
                           {i + 1}
@@ -2678,7 +2678,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
                 return (
                   <div className="flex flex-col gap-4 animate-fadeIn">
-                    <div className="flex justify-between items-center mb-4">
+                    <div className="flex flex-wrap justify-between items-center mb-4">
                       <div className="flex items-center gap-3">
                         <button onClick={() => setSelectedProgramForView(null)} className="w-9 h-9 flex items-center justify-center bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors cursor-pointer border-none shrink-0">
                           <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
@@ -2691,7 +2691,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+                    <div className="grid grid-cols-1 xl:grid-cols-1 md:grid-cols-1 md:grid-cols-3 gap-6 items-start">
                       {/* Left Column: Program Info */}
                       {(() => {
                         const amtStr = String(activeProgram.amount || "0").replace(/[^0-9]/g, '');
@@ -2740,7 +2740,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm xl:sticky xl:top-6 flex flex-col">
                         {/* Header Section */}
                         <div className="p-6 border-b border-gray-100">
-                          <div className="flex justify-between items-start mb-2">
+                          <div className="flex flex-wrap justify-between items-start mb-2">
                             <h3 className="text-xl font-bold text-gray-800 leading-tight pr-4">{activeProgram.title}</h3>
                             <span className={`inline-flex shrink-0 px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${activeProgram.status === 'Aktif' ? 'bg-[#E6F4EA] text-[#059669]' : 'bg-gray-100 text-gray-500'}`}>
                               {activeProgram.status || 'Aktif'}
@@ -2750,7 +2750,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                         </div>
 
                         {/* Details Grid */}
-                        <div className="p-6 grid grid-cols-2 gap-y-4 gap-x-4 border-b border-gray-100 items-start">
+                        <div className="p-6 grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-4 border-b border-gray-100 items-start">
                           <div>
                             <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1.5">Nominal Bantuan</div>
                             <div className="text-sm font-bold text-gray-800">{activeProgram.amount}</div>
@@ -3022,7 +3022,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
             </div>
 
             {/* Stat Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
               {[
                 {
                   title: "Total Siswa Menunggak",
@@ -3199,9 +3199,9 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
             </div>
 
             {/* Stat Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
               {/* Card Pendapatan */}
-              <div className="bg-[#1A3D63] rounded-2xl border border-[#1A3D63] p-5 shadow-sm flex items-center gap-4">
+              <div className="bg-[#1A3D63] rounded-2xl border border-[#1A3D63] p-5 shadow-sm flex flex-wrap items-center gap-4">
                 <div>
                   <div className="text-[11px] font-bold text-blue-200 mb-1 uppercase tracking-wide">Pendapatan</div>
                   <div className="text-xl sm:text-2xl font-black text-white">
@@ -3211,7 +3211,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
               </div>
 
               {/* Card Potongan */}
-              <div className="bg-[#1A3D63] rounded-2xl border border-[#1A3D63] p-5 shadow-sm flex items-center gap-4">
+              <div className="bg-[#1A3D63] rounded-2xl border border-[#1A3D63] p-5 shadow-sm flex flex-wrap items-center gap-4">
                 <div>
                   <div className="text-[11px] font-bold text-blue-200 mb-1 uppercase tracking-wide">Potongan</div>
                   <div className="text-xl sm:text-2xl font-black text-white">
@@ -3221,7 +3221,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
               </div>
 
               {/* Card Total */}
-              <div className="bg-[#1A3D63] rounded-2xl border border-[#1A3D63] p-5 shadow-sm flex items-center gap-4">
+              <div className="bg-[#1A3D63] rounded-2xl border border-[#1A3D63] p-5 shadow-sm flex flex-wrap items-center gap-4">
                 <div>
                   <div className="text-[11px] font-bold text-blue-200 mb-1 uppercase tracking-wide">Total</div>
                   <div className="text-xl sm:text-2xl font-black text-white">
@@ -3575,7 +3575,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
             </div>
 
             {/* Bulan & Tahun */}
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Bulan</label>
                 <select
@@ -3600,7 +3600,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
             </div>
 
             {/* Tanggal Dibuat & Jatuh Tempo */}
-            <div className="grid grid-cols-2 gap-4 mb-5">
+            <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-4 mb-5">
               <div>
                 <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Tanggal Dibuat</label>
                 <input
@@ -3701,7 +3701,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
               <p className="text-[13px] text-gray-400 mt-1">Hapus tagihan SPP massal untuk bulan tertentu</p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-5">
+            <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-4 mb-5">
               <div>
                 <label className="block text-[11px] font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Bulan</label>
                 <select
@@ -3787,7 +3787,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-6 md:p-10">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCancelProgram} />
           <div className="bg-white rounded-[24px] p-5 sm:p-6 max-w-2xl w-full relative z-10 shadow-2xl animate-scaleUp font-sans border border-gray-100 flex flex-col max-h-[calc(100vh-100px)] overflow-hidden">
-            <div className="flex justify-between items-center mb-4 shrink-0">
+            <div className="flex flex-wrap justify-between items-center mb-4 shrink-0">
               <h2 className="text-lg font-bold text-gray-800">{editingProgramTitle ? "Edit Program Beasiswa" : "Tambah Program Baru"}</h2>
               <button onClick={handleCancelProgram} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors cursor-pointer border-none">
                 <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -3796,7 +3796,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
             <div className="overflow-y-auto overflow-x-hidden pr-2 flex-1 scrollbar-hide">
               <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Nama Program <span className="text-red-500">*</span></label>
                     <input
@@ -3829,7 +3829,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Sumber Dana <span className="text-red-500">*</span></label>
                     <div className="relative">
@@ -3869,7 +3869,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Kuota Penerima</label>
                     <input
@@ -3896,7 +3896,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">Periode Berlaku <span className="text-red-500">*</span></label>
                     <div className="relative">
@@ -4040,7 +4040,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
         <div className="fixed inset-0 z-[998] flex items-center justify-center p-4 md:p-6 lg:p-10">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowKelolaDanaModal(false)} />
           <div className="bg-white rounded-[24px] p-0 w-full max-w-4xl relative z-10 shadow-2xl animate-scaleUp font-sans border border-gray-100 flex flex-col overflow-hidden max-h-[90vh]">
-            <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100 shrink-0 bg-white">
+            <div className="flex flex-wrap justify-between items-center px-6 py-5 border-b border-gray-100 shrink-0 bg-white">
               <div>
                 <h2 className="text-lg font-bold text-gray-800">Kelola Dana Beasiswa</h2>
                 <p className="text-xs text-gray-500 mt-0.5">Riwayat dana beasiswa yang masuk</p>
@@ -4111,7 +4111,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-6 md:p-10">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCancelDana} />
           <div className="bg-white rounded-[24px] p-5 sm:p-6 max-w-lg w-full relative z-10 shadow-2xl animate-scaleUp font-sans border border-gray-100 flex flex-col">
-            <div className="flex justify-between items-center mb-6 shrink-0">
+            <div className="flex flex-wrap justify-between items-center mb-6 shrink-0">
               <h2 className="text-lg font-bold text-gray-800">Tambah Dana Masuk</h2>
               <button onClick={handleCancelDana} className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors cursor-pointer border-none">
                 <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -4184,7 +4184,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
               </div>
             </div>
 
-            <div className="mt-6 pt-5 border-t border-gray-100 flex justify-end items-center gap-4 shrink-0">
+            <div className="mt-6 pt-5 border-t border-gray-100 flex flex-wrap justify-end items-center gap-4 shrink-0">
               <button onClick={handleCancelDana} className="text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors cursor-pointer border-none bg-transparent">Batal</button>
               <button onClick={handleSaveDana} disabled={isSavingDana} className={`${isSavingDana ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#1A3D63] hover:bg-[#122A44] cursor-pointer'} text-white py-2.5 px-6 rounded-xl text-sm font-bold border-none shadow-md transition-all active:scale-95 flex items-center justify-center gap-2`}
               >
@@ -4208,7 +4208,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCancelBeasiswa}></div>
           <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl relative animate-scaleIn z-10">
             {/* Modal Header */}
-            <div className="flex justify-between items-center p-6 border-b border-gray-100">
+            <div className="flex flex-wrap justify-between items-center p-6 border-b border-gray-100">
               <h2 className="text-lg font-bold text-gray-800">{selectedBeasiswa ? "Edit Penerima Beasiswa" : "Tambah Penerima Beasiswa"}</h2>
               <button
                 onClick={handleCancelBeasiswa}
@@ -4311,7 +4311,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                      </div>
                    )}
                  </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Nama Program Beasiswa <span className="text-red-500">*</span></label>
                     <div className="relative">
@@ -4482,7 +4482,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
           />
           <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl relative animate-scaleIn z-10 flex flex-col font-sans">
             {/* Header */}
-            <div className="p-6 pb-4 border-b border-gray-100 flex justify-between items-center">
+            <div className="p-6 pb-4 border-b border-gray-100 flex flex-wrap justify-between items-center">
               <div>
                 <h2 className="text-xl font-bold text-gray-800 tracking-tight">Catatan Transaksi</h2>
                 <p className="text-[13px] text-gray-400 mt-1">Tambah catatan pengeluaran atau pemasukan</p>
@@ -4498,7 +4498,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
             {/* Body */}
             <div className="p-6 flex-1 overflow-y-auto">
               {/* Tabs */}
-              <div className="grid grid-cols-2 gap-3 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-3 mb-6">
                 <button
                   onClick={() => { setTransactionTab("Pemasukan"); setTransactionCategory("SPP"); }}
                   className={`py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all border cursor-pointer ${transactionTab === "Pemasukan"
@@ -4619,7 +4619,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDeleteKomponenModal(false)} />
           <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl relative z-10 font-sans">
-            <div className="p-6 pb-4 border-b border-gray-100 flex justify-between items-center">
+            <div className="p-6 pb-4 border-b border-gray-100 flex flex-wrap justify-between items-center">
               <div>
                 <h2 className="text-xl font-bold text-gray-800 tracking-tight">Hapus Komponen Gaji</h2>
                 <p className="text-[13px] text-gray-400 mt-0.5">Tindakan ini tidak dapat dibatalkan</p>
@@ -4641,11 +4641,11 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                 </div>
               </div>
               <div className="bg-gray-50 rounded-xl p-4 space-y-2.5 text-xs">
-                <div className="flex justify-between items-center">
+                <div className="flex flex-wrap justify-between items-center">
                   <span className="text-gray-500 font-medium">Nama Komponen</span>
                   <span className="font-bold text-gray-800">{selectedKomponen.name}</span>
                 </div>
-                <div className="flex justify-between items-center">
+                <div className="flex flex-wrap justify-between items-center">
                   <span className="text-gray-500 font-medium">Kategori</span>
                   <span className={`font-bold px-2 py-0.5 rounded text-[10px] ${selectedKomponen.category === 'Pendapatan' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'
                     }`}>{selectedKomponen.category}</span>
@@ -4677,7 +4677,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDetailGajiModal(false)} />
           <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl relative z-10 font-sans overflow-hidden">
             {/* Header */}
-            <div className="bg-[#1A3D63] p-6 pb-5 flex justify-between items-start text-white">
+            <div className="bg-[#1A3D63] p-6 pb-5 flex flex-wrap justify-between items-start text-white">
               <div>
                 <div className="text-[10px] text-blue-200/80 uppercase tracking-widest font-bold mb-1">DETAIL PEMBAYARAN GAJI</div>
                 <h2 className="text-lg font-bold tracking-tight">{selectedDetailGaji.name}</h2>
@@ -4690,7 +4690,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
             <div className="p-6 pb-4">
               {/* Status Badge */}
-              <div className="flex justify-between items-center mb-6 pb-6 border-b border-gray-100 border-dashed">
+              <div className="flex flex-wrap justify-between items-center mb-6 pb-6 border-b border-gray-100 border-dashed">
                 <span className="text-sm font-medium text-gray-500">Status Pembayaran</span>
                 <span className={`px-3 py-1.5 rounded-full text-[11px] font-bold ${selectedDetailGaji.status === 'Sudah Dibayar' ? 'bg-[#E6F4EA] text-[#059669]' :
                   selectedDetailGaji.status === 'Proses Transfer' ? 'bg-blue-50 text-blue-600' :
@@ -4702,23 +4702,23 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
               {/* Info List */}
               <div className="space-y-3.5 mb-6 text-sm">
-                <div className="flex justify-between">
+                <div className="flex flex-wrap justify-between">
                   <span className="text-gray-400 font-medium">ID Transaksi</span>
                   <span className="font-bold text-gray-800">G-101</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex flex-wrap justify-between">
                   <span className="text-gray-400 font-medium">Tanggal Bayar</span>
                   <span className="font-bold text-gray-800">{selectedDetailGaji.date}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex flex-wrap justify-between">
                   <span className="text-gray-400 font-medium">Metode</span>
                   <span className="font-bold text-gray-800">Transfer Bank</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex flex-wrap justify-between">
                   <span className="text-gray-400 font-medium">Bank Tujuan</span>
                   <span className="font-bold text-gray-800">{selectedDetailGaji.bank}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex flex-wrap justify-between">
                   <span className="text-gray-400 font-medium">No. Rekening</span>
                   <span className="font-bold text-gray-800">8821-****-9901</span>
                 </div>
@@ -4728,15 +4728,15 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
               <div className="bg-gray-50/50 border border-gray-100 rounded-2xl p-5 mb-2">
                 <div className="text-[10px] font-bold text-gray-400 mb-3 tracking-wider uppercase">RINCIAN GAJI</div>
                 <div className="space-y-2.5 text-sm">
-                  <div className="flex justify-between">
+                  <div className="flex flex-wrap justify-between">
                     <span className="text-gray-600 font-medium">Gaji Pokok</span>
                     <span className="font-bold text-gray-800">Rp 3.500.000</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex flex-wrap justify-between">
                     <span className="text-[#059669] font-medium">+ Tunjangan</span>
                     <span className="font-bold text-[#059669]">+Rp 1.000.000</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex flex-wrap justify-between">
                     <span className="text-[#EF4444] font-medium">- Potongan</span>
                     <span className="font-bold text-[#EF4444]">-Rp 394.500</span>
                   </div>
@@ -4744,7 +4744,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
 
                 <div className="border-t border-dashed border-gray-200 my-4"></div>
 
-                <div className="flex justify-between items-center">
+                <div className="flex flex-wrap justify-between items-center">
                   <span className="font-bold text-gray-800">Gaji Bersih</span>
                   <span className="text-xl font-black text-[#059669]">{selectedDetailGaji.salary}</span>
                 </div>
@@ -4768,7 +4768,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+            <div className="flex flex-wrap items-center justify-between px-6 py-5 border-b border-gray-100">
               <div>
                 <h2 className="text-base font-bold text-gray-800">
                   {selectedKomponen ? 'Edit Komponen Gaji' : 'Tambah Komponen Gaji'}
@@ -4800,7 +4800,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
               </div>
 
               {/* Kategori & Tipe */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-gray-600 mb-1.5">Kategori</label>
                   <select

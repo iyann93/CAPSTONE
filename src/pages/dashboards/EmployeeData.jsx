@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import EmployeeDetail from "./EmployeeDetail";
 import api from "../../api/axios";
 const SearchIcon = () => <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-gray-400">
@@ -51,6 +52,12 @@ const EmployeeData = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [toastMsg, setToastMsg] = useState(null);
+
+  const showToast = (msg, type = "success") => {
+    setToastMsg({ msg, type });
+    setTimeout(() => setToastMsg(null), 3000);
+  };
 
   // Form states
   const [form, setForm] = useState({
@@ -138,12 +145,13 @@ const EmployeeData = () => {
       });
       await fetchEmployees();
       setIsAdding(false);
+      showToast("Berhasil menambahkan data pegawai", "success");
     } catch (err) {
       let errorMsg = err.response?.data?.message || err.message;
       if (err.response?.data?.errors) {
-        errorMsg += "\\n" + err.response.data.errors.map(e => e.msg).join("\\n");
+        errorMsg += "\n" + err.response.data.errors.map(e => e.msg).join("\n");
       }
-      alert("Gagal menambahkan data: " + errorMsg);
+      showToast("Gagal menambahkan data: " + errorMsg, "error");
     }
   };
 
@@ -162,12 +170,13 @@ const EmployeeData = () => {
       });
       await fetchEmployees();
       setIsEditing(false);
+      showToast("Berhasil memperbarui data pegawai", "success");
     } catch (err) {
       let errorMsg = err.response?.data?.message || err.message;
       if (err.response?.data?.errors) {
-        errorMsg += "\\n" + err.response.data.errors.map(e => e.msg).join("\\n");
+        errorMsg += "\n" + err.response.data.errors.map(e => e.msg).join("\n");
       }
-      alert("Gagal memperbarui data: " + errorMsg);
+      showToast("Gagal memperbarui data: " + errorMsg, "error");
     }
   };
 
@@ -176,8 +185,9 @@ const EmployeeData = () => {
       try {
         await api.delete(`/guru/${id}`);
         await fetchEmployees();
+        showToast("Berhasil menghapus data pegawai", "success");
       } catch (err) {
-        alert("Gagal menghapus data: " + (err.response?.data?.message || err.message));
+        showToast("Gagal menghapus data: " + (err.response?.data?.message || err.message), "error");
       }
     }
   };
@@ -216,7 +226,7 @@ const EmployeeData = () => {
                 </h3>
               </div>
               <div className="p-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="col-span-1 md:col-span-2 space-y-2">
                     <label className="text-[11px] font-bold text-gray-500 ml-1">Nama Lengkap (beserta gelar)</label>
                     <input type="text" value={form.nama} onChange={e => setForm({...form, nama: e.target.value})} placeholder="Masukkan nama lengkap..." className="w-full px-4 py-3 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/5 focus:bg-white transition-all" />
@@ -283,7 +293,7 @@ const EmployeeData = () => {
                 </h3>
               </div>
               <div className="p-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold text-gray-500 ml-1">Nomor Induk Pegawai (NIP)</label>
                     <input type="text" maxLength={6} value={form.nip} onChange={e => setForm({...form, nip: e.target.value.replace(/\\D/g, '')})} placeholder="Masukkan 6 angka NIP..." className="w-full px-4 py-3 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/5 focus:bg-white transition-all" />
@@ -418,7 +428,7 @@ const EmployeeData = () => {
                 </h3>
               </div>
               <div className="p-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="col-span-1 md:col-span-2 space-y-2">
                     <label className="text-[11px] font-bold text-gray-500 ml-1">Nama Lengkap (beserta gelar)</label>
                     <input type="text" value={form.nama} onChange={e => setForm({...form, nama: e.target.value})} className="w-full px-4 py-3 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/5 focus:bg-white transition-all" />
@@ -465,7 +475,7 @@ const EmployeeData = () => {
                 </h3>
               </div>
               <div className="p-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-[11px] font-bold text-gray-500 ml-1">Nomor Induk Pegawai (NIP)</label>
                     <input type="text" maxLength={6} value={form.nip} onChange={e => setForm({...form, nip: e.target.value.replace(/\\D/g, '')})} placeholder="Masukkan 6 angka NIP..." className="w-full px-4 py-3 bg-[#F9FAFB] border border-gray-200 rounded-xl text-[14px] font-semibold text-[#1F2937] focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/5 focus:bg-white transition-all" />
@@ -546,7 +556,7 @@ const EmployeeData = () => {
   }
   return <div className="animate-fadeIn space-y-6">
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <svg width="32" height="32" fill="currentColor" viewBox="0 0 24 24" className="text-[#1A3D63]">
             <path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z" />
           </svg>
@@ -644,6 +654,20 @@ const EmployeeData = () => {
           </table>
         </div>
       </div>
+      {/* Toast Notification */}
+      {toastMsg && createPortal(
+        <div className={`fixed top-6 right-6 z-[9999] px-6 py-4 rounded-2xl text-white text-sm font-bold shadow-2xl flex items-center gap-3 animate-slideDown ${
+          toastMsg.type === 'error' ? 'bg-red-500' : 'bg-emerald-500'
+        }`}>
+          {toastMsg.type === 'error' ? (
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          ) : (
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          )}
+          {toastMsg.msg}
+        </div>,
+        document.body
+      )}
     </div>;
 };
 var EmployeeData_default = EmployeeData;

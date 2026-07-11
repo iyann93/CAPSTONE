@@ -7,7 +7,7 @@ const authorize = require('../middleware/authorize');
 const { createTahunAjaranValidator, updateTahunAjaranValidator } = require('../validators/tahun_ajaran.validator');
 
 // Special route for getting active
-router.get('/active', verifyToken, authorize('tahun_ajaran.read'), TahunAjaranController.getActive);
+router.get('/active', verifyToken, TahunAjaranController.getActive);
 // Special route for setting active
 router.put('/:id/active', verifyToken, authorize('tahun_ajaran.update'), TahunAjaranController.setActive);
 

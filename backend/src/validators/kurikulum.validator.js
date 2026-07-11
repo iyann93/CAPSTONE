@@ -14,7 +14,8 @@ const createKurikulumValidator = validate([
     .trim(),
   body('tahun_ajaran_id')
     .notEmpty().withMessage('Tahun ajaran wajib diisi')
-    .isUUID().withMessage('Format ID tahun ajaran tidak valid'),
+    .isString().withMessage('Format ID tahun ajaran harus teks')
+    .isLength({ min: 36, max: 36 }).withMessage('Format ID tahun ajaran tidak valid'),
   body('status')
     .optional()
     .isIn(['Draft', 'Aktif', 'Arsip']).withMessage('Status hanya boleh Draft, Aktif, atau Arsip'),
@@ -37,7 +38,8 @@ const updateKurikulumValidator = validate([
     .trim(),
   body('tahun_ajaran_id')
     .optional()
-    .isUUID().withMessage('Format ID tahun ajaran tidak valid'),
+    .isString().withMessage('Format ID tahun ajaran harus teks')
+    .isLength({ min: 36, max: 36 }).withMessage('Format ID tahun ajaran tidak valid'),
   body('status')
     .optional()
     .isIn(['Draft', 'Aktif', 'Arsip']).withMessage('Status hanya boleh Draft, Aktif, atau Arsip'),

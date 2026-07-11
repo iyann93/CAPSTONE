@@ -162,7 +162,7 @@ const SubjectForm = ({ mode = "add", initialData = null, onBack, onSave, onDelet
               <h2 className="text-[15px] font-bold text-[#1e293b]">Pengaturan Kurikulum</h2>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-5 mb-6">
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-2">
                   Kelompok Mata Pelajaran <span className="text-red-500">*</span>
@@ -234,7 +234,7 @@ const SubjectForm = ({ mode = "add", initialData = null, onBack, onSave, onDelet
               <h2 className="text-[15px] font-bold text-[#1e293b]">Alokasi Waktu</h2>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-3 gap-5">
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-2">
                   Jam / Minggu <span className="text-red-500">*</span>
@@ -324,7 +324,7 @@ const SubjectForm = ({ mode = "add", initialData = null, onBack, onSave, onDelet
         </div>
 
         {/* Right Column (Sidebar Settings) */}
-        <div className="lg:w-[340px] space-y-6">
+        <div className="lg:w-full max-w-[340px] space-y-6">
           
           {/* Guru Pengampu — Multi Checkbox */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
@@ -334,7 +334,7 @@ const SubjectForm = ({ mode = "add", initialData = null, onBack, onSave, onDelet
             </div>
 
             {/* Selected count badge */}
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex flex-wrap items-center justify-between mb-3">
               <span className="text-[13px] text-gray-500">
                 Pilih satu atau lebih guru pengampu
               </span>
@@ -419,7 +419,7 @@ const SubjectForm = ({ mode = "add", initialData = null, onBack, onSave, onDelet
             </div>
             
             <div className="space-y-5">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between">
                 <div>
                   <div className="text-[13px] font-bold text-gray-800 mb-0.5">Mata Pelajaran Aktif</div>
                   <div className="text-[11px] text-gray-500 font-medium">Aktifkan agar tampil di jadwal dan rapor.</div>
@@ -427,7 +427,7 @@ const SubjectForm = ({ mode = "add", initialData = null, onBack, onSave, onDelet
                 <ToggleSwitch checked={formData.aktif} onChange={(val) => setFormData({...formData, aktif: val})} />
               </div>
               <div className="h-px bg-gray-100 w-full"></div>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between">
                 <div>
                   <div className="text-[13px] font-bold text-gray-800 mb-0.5">Masuk dalam Rapor</div>
                   <div className="text-[11px] text-gray-500 font-medium">Nilai akan dicetak pada rapor siswa.</div>
@@ -440,19 +440,19 @@ const SubjectForm = ({ mode = "add", initialData = null, onBack, onSave, onDelet
               <div className="mt-6 pt-5 border-t border-gray-100">
                 <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Informasi Data</div>
                 <div className="space-y-2">
-                  <div className="flex justify-between text-[12px]">
+                  <div className="flex flex-wrap justify-between text-[12px]">
                     <span className="text-gray-500">Dibuat</span>
                     <span className="font-bold text-gray-700">17 Jul 2023</span>
                   </div>
-                  <div className="flex justify-between text-[12px]">
+                  <div className="flex flex-wrap justify-between text-[12px]">
                     <span className="text-gray-500">Terakhir diperbarui</span>
                     <span className="font-bold text-gray-700">12 Okt 2023</span>
                   </div>
-                  <div className="flex justify-between text-[12px]">
+                  <div className="flex flex-wrap justify-between text-[12px]">
                     <span className="text-gray-500">Diperbarui oleh</span>
                     <span className="font-bold text-gray-700">Siti Rahayu</span>
                   </div>
-                  <div className="flex justify-between text-[12px]">
+                  <div className="flex flex-wrap justify-between text-[12px]">
                     <span className="text-gray-500">Kelas yang mengampu</span>
                     <span className="font-bold text-gray-700">32 kelas</span>
                   </div>

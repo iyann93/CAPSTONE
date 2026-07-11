@@ -189,7 +189,7 @@ const MonitoringSiswaKepsek = () => {
       {showDetailModal && selectedSiswa && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fadeIn">
           <div className="bg-white rounded-2xl w-[95%] max-w-2xl shadow-xl flex flex-col overflow-hidden animate-slideUp">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-[#1A3D63] text-white">
+            <div className="px-6 py-4 border-b border-gray-100 flex flex-wrap justify-between items-center bg-[#1A3D63] text-white">
               <h3 className="text-[16px] font-bold">Rapor Akademik Lengkap - {selectedSiswa.nama}</h3>
               <button onClick={() => setShowDetailModal(false)} className="text-white/70 hover:text-white transition-colors">
                 <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -197,7 +197,7 @@ const MonitoringSiswaKepsek = () => {
             </div>
             
             <div className="p-6 max-h-[65vh] overflow-y-auto space-y-6">
-              <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
+              <div className="flex flex-wrap items-center gap-4 bg-gray-50 p-4 rounded-xl border border-gray-100">
                 <div className="w-14 h-14 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xl font-bold">
                   {selectedSiswa.nama.charAt(0)}
                 </div>
@@ -334,7 +334,7 @@ const MonitoringSiswaKepsek = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden min-h-[400px] flex flex-col">
           {(!filter.kelas || !filter.semester) ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
@@ -425,7 +425,7 @@ const MonitoringSiswaKepsek = () => {
               <div className="p-6 space-y-5">
                 <div>
                   <h4 className="text-[13px] font-bold text-gray-400 uppercase tracking-wider mb-3">Ringkasan Akademik</h4>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 text-center">
                       <p className="text-[11px] text-gray-500 mb-1">Rata-rata Nilai</p>
                       <p className="text-[20px] font-bold text-[#1A3D63]">{selectedSiswa.rataRata}</p>

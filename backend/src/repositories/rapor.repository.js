@@ -124,9 +124,15 @@ const RaporRepository = {
       for (const row of siswaList.rows) {
         const sId = row.id;
         const { avg, kategori } = await RaporRepository._computeRataRata(client, sId, semesterId);
+        
+        // Ambil catatan wali kelas untuk siswa ini (jika ada)
+        const catSql = `SELECT isi_catatan FROM academic.catatan_siswa WHERE siswa_id = $1 AND semester_id = $2`;
+        const catRes = await client.query(catSql, [sId, semesterId]);
+        const catatanWali = catRes.rows.length > 0 ? catRes.rows[0].isi_catatan : null;
+
         // Kita tangkap error jika is_published true secara per-siswa
         try {
-          await RaporRepository._upsertRapor(client, sId, semesterId, kelasId, userId, avg, kategori, null);
+          await RaporRepository._upsertRapor(client, sId, semesterId, kelasId, userId, avg, kategori, catatanWali);
         } catch (e) {
           // Skip if already published
           if (!e.message.includes('sudah dipublish')) throw e;
@@ -158,16 +164,34 @@ const RaporRepository = {
     }
   },
 
-  publish: async (kelasId, semesterId, userId) => {
-    const sql = `
+  publish: async (kelasId, semesterId, userId, siswaId = null) => {
+    let sql = `
       UPDATE academic.rapor
       SET is_published = true,
           published_at = NOW(),
           published_by = $1
       WHERE kelas_id = $2 AND semester_id = $3 AND is_published = false
+    `;
+    const params = [userId, kelasId, semesterId];
+    if (siswaId) {
+      sql += ` AND siswa_id = $4`;
+      params.push(siswaId);
+    }
+    sql += ` RETURNING id`;
+    const result = await query(sql, params);
+    return result.rows;
+  },
+
+  unpublish: async (siswaId, semesterId) => {
+    const sql = `
+      UPDATE academic.rapor
+      SET is_published = false,
+          published_at = NULL,
+          published_by = NULL
+      WHERE siswa_id = $1 AND semester_id = $2
       RETURNING id
     `;
-    const result = await query(sql, [userId, kelasId, semesterId]);
+    const result = await query(sql, [siswaId, semesterId]);
     return result.rows;
   }
 };

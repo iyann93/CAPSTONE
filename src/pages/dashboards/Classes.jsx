@@ -41,6 +41,7 @@ const MOCK_CLASSES = [
 ];
 
 const Classes = () => {
+  const [perms, setPerms] = useState({ buat: true, ubah: true, hapus: true });
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("list"); // list, add, detail, edit
@@ -103,6 +104,22 @@ const Classes = () => {
   };
 
   useEffect(() => {
+    try {
+      const userStr = localStorage.getItem('siakad_user');
+      const currentUser = userStr ? JSON.parse(userStr) : null;
+      const roleId = currentUser?.role?.toLowerCase().replace(/\s+/g, '');
+      if (roleId && roleId !== 'superadmin') {
+        const rolePerms = JSON.parse(localStorage.getItem('rolePermissions') || '{}');
+        const userPerms = rolePerms[roleId]?.['Data Kelas'];
+        if (userPerms) {
+          setPerms({
+            buat: userPerms.buat === true,
+            ubah: userPerms.ubah === true,
+            hapus: userPerms.hapus === true
+          });
+        }
+      }
+    } catch(e) {}
     fetchClassesAndStudents();
   }, []);
 
@@ -142,7 +159,7 @@ const Classes = () => {
         kapasitas: parseInt(addForm.capacity) || 36
       });
       await fetchClassesAndStudents();
-      setView("list");
+      setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
       setAddForm({
         code: "", name: "", desc: "", room: "", capacity: 36, year: "2025/2026", semester: "Ganjil", teacher: ""
       });
@@ -165,10 +182,11 @@ const Classes = () => {
   };
 
   if (view === "detail") {
-    return <ClassDetail setView={setView} selectedClass={selectedClass} />;
+    return <ClassDetail setView={setView} selectedClass={selectedClass} perms={perms} />;
   }
 
   if (view === "edit") {
+    if (!perms.ubah) return null;
     return <ClassEdit setView={setView} initialData={selectedClass} teachers={teachers} onDelete={handleDelete} onSave={async (updatedData) => {
       let dbTingkat = "7";
       if (updatedData.level === "Kelas VIII" || updatedData.level === "VIII") dbTingkat = "8";
@@ -186,7 +204,7 @@ const Classes = () => {
           kapasitas: parseInt(updatedData.capacity) || 36
         });
         await fetchClassesAndStudents();
-        setView("list");
+        setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
         setSelectedClass(null);
       } catch (err) {
         console.error(err);
@@ -202,9 +220,9 @@ const Classes = () => {
           Dashboard <span className="mx-2">&rsaquo;</span> Data Kelas <span className="mx-2">&rsaquo;</span> <span className="text-[#1A3D63] font-bold">Tambah Kelas</span>
         </div>
 
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex flex-wrap items-center gap-4 mb-6">
           <button 
-            onClick={() => setView("list")}
+            onClick={() => { setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }}
             className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors shadow-sm"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
@@ -215,7 +233,7 @@ const Classes = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-3 gap-6">
           {/* Left Column (Main Form) */}
           <div className="lg:col-span-2 space-y-6">
             
@@ -223,7 +241,7 @@ const Classes = () => {
             <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-sm">
               <h3 className="text-[15px] font-bold text-[#1e293b] mb-5">Identitas Kelas</h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-5 mb-5">
 
                 <div className="md:col-span-2">
                   <label className="block text-[13px] font-bold text-gray-700 mb-2">Nama Kelas<span className="text-red-500">*</span></label>
@@ -263,7 +281,7 @@ const Classes = () => {
             <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-sm">
               <h3 className="text-[15px] font-bold text-[#1e293b] mb-5">Pengaturan Kelas</h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-5 mb-5">
                 <div>
                   <label className="block text-[13px] font-bold text-gray-700 mb-2">Ruangan<span className="text-red-500">*</span></label>
                   <input type="text" value={addForm.room} onChange={(e) => setAddForm({...addForm, room: e.target.value})} placeholder="cth. Ruang 101" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
@@ -274,7 +292,7 @@ const Classes = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-[13px] font-bold text-gray-700 mb-2">Tahun Ajaran</label>
                   <input type="text" value={addForm.year} onChange={(e) => setAddForm({...addForm, year: e.target.value})} className="w-full border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB]" />
@@ -326,7 +344,7 @@ const Classes = () => {
             {/* Status Kelas */}
             <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-sm">
               <h3 className="text-[15px] font-bold text-[#1e293b] mb-4">Status Kelas</h3>
-              <div className="flex justify-between items-center">
+              <div className="flex flex-wrap justify-between items-center">
                 <div>
                   <div className="text-[14px] font-bold text-[#1e293b]">Aktif</div>
                   <div className="text-[11px] text-gray-400">Kelas dapat digunakan dalam jadwal</div>
@@ -360,7 +378,7 @@ const Classes = () => {
                 Simpan Kelas
               </button>
               <button 
-                onClick={() => setView("list")}
+                onClick={() => { setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }}
                 className="w-full py-3.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-[14px] font-bold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 shadow-sm"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -390,18 +408,20 @@ const Classes = () => {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             Ekspor Daftar
           </button>
-          <button
-            onClick={() => setView("add")}
-            className="bg-[#1A3D63] hover:bg-[#122A44] text-white px-5 py-2.5 rounded-xl font-bold text-[13px] shadow-sm transition-all flex items-center gap-2"
-          >
-            <span className="text-lg leading-none">+</span>
-            Tambah Kelas
-          </button>
+          {perms.buat && (
+            <button
+              onClick={() => { setView("add"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }}
+              className="bg-[#1A3D63] hover:bg-[#122A44] text-white px-5 py-2.5 rounded-xl font-bold text-[13px] shadow-sm transition-all flex items-center gap-2"
+            >
+              <span className="text-lg leading-none">+</span>
+              Tambah Kelas
+            </button>
+          )}
         </div>
       </div>
 
       {/* Top Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
+      <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
             <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">Total Kelas</div>
@@ -525,15 +545,19 @@ const Classes = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-center gap-2">
-                      <button onClick={() => { setSelectedClass(item); setView("detail"); }} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                      <button onClick={() => { setSelectedClass(item); setView("detail"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                       </button>
-                      <button onClick={() => { setSelectedClass(item); setView("edit"); }} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                      </button>
-                      <button onClick={() => handleDelete(item.id)} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                      </button>
+                      {perms.ubah && (
+                        <button onClick={() => { setSelectedClass(item); setView("edit"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
+                      )}
+                      {perms.hapus && (
+                        <button onClick={() => handleDelete(item.id)} className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -543,7 +567,7 @@ const Classes = () => {
         </div>
 
         {/* Pagination */}
-        <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+        <div className="px-6 py-4 border-t border-gray-100 flex flex-wrap items-center justify-between">
           <div className="text-[13px] text-gray-500">
             Menampilkan 1-10 dari 13 kelas
           </div>

@@ -6,7 +6,7 @@ const AuthRepository = require('../repositories/auth.repository');
 const { signAccessToken, signRefreshToken, verifyRefreshToken } = require('../utils/jwt');
 const env = require('../config/env');
 const { sendResetPasswordEmail } = require('./email.service');
-const { getClient } = require('../config/db');
+const { query, getClient } = require('../config/db');
 
 const SALT_ROUNDS = 10;
 
@@ -25,6 +25,11 @@ const AuthService = {
    * Login: validate credentials, issue tokens, store hashed refresh token
    */
   login: async ({ email, password, deviceInfo, ipAddress }) => {
+    // Fetch global system settings
+    const settingsRes = await query('SELECT key, value FROM shared.system_settings');
+    const settings = {};
+    settingsRes.rows.forEach(r => settings[r.key] = r.value);
+
     const user = await AuthRepository.findUserByEmail(email);
     if (!user) {
       const err = new Error('Email atau password salah');
@@ -38,15 +43,37 @@ const AuthService = {
       throw err;
     }
 
+    if (String(settings.maintenance_mode) === 'true' && user.role !== 'Super Admin') {
+      const err = new Error('MAINTENANCE'); // Special keyword for frontend routing
+      err.statusCode = 503;
+      throw err;
+    }
+
+    if (user.locked_until && new Date(user.locked_until) > new Date()) {
+      const err = new Error('Akun Anda terkunci sementara karena terlalu banyak gagal login. Silakan coba lagi nanti.');
+      err.statusCode = 429;
+      throw err;
+    }
+
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
+      if (String(settings.block_after_fail) === 'true') {
+        const attempts = await AuthRepository.incrementFailedAttempts(user.id);
+        if (attempts >= 5) {
+          const lockTime = new Date(Date.now() + 15 * 60000); // Lock for 15 minutes
+          await AuthRepository.lockAccount(user.id, lockTime);
+        }
+      }
       const err = new Error('Email atau password salah');
       err.statusCode = 401;
       throw err;
     }
 
+    // Login success, reset failed attempts
+    await AuthRepository.resetFailedAttempts(user.id);
+
     // Generate tokens
-    const payload = { userId: user.id, email: user.email, nama: user.nama, role: user.role };
+    const payload = { userId: user.id, email: user.email, nama: user.nama, role: user.role, mustChangePassword: user.must_change_password };
     const accessToken = signAccessToken(payload);
     const refreshToken = signRefreshToken(payload);
 
@@ -65,9 +92,10 @@ const AuthService = {
     // Update last login timestamp
     await AuthRepository.updateLastLogin(user.id);
 
-    const { password_hash: _, ...userData } = user;
+    const { password_hash: _, must_change_password, ...userData } = user;
+    const finalUser = { ...userData, mustChangePassword: must_change_password };
 
-    return { accessToken, refreshToken, user: userData };
+    return { accessToken, refreshToken, user: finalUser };
   },
 
   /**
@@ -107,8 +135,17 @@ const AuthService = {
       throw err;
     }
 
+    // Pastikan user masih aktif
+    const user = await AuthRepository.findUserById(decoded.userId);
+    if (!user || !user.is_active) {
+      await AuthRepository.revokeAllUserTokens(decoded.userId); // otomatis cabut semua token
+      const err = new Error('Akun dinonaktifkan. Sesi Anda diakhiri.');
+      err.statusCode = 403;
+      throw err;
+    }
+
     // Issue new access token only
-    const payload = { userId: decoded.userId, email: decoded.email, nama: decoded.nama };
+    const payload = { userId: decoded.userId, email: decoded.email, nama: decoded.nama, role: user.role, mustChangePassword: user.must_change_password };
     const newAccessToken = signAccessToken(payload);
 
     return { accessToken: newAccessToken };
@@ -146,7 +183,9 @@ const AuthService = {
       err.statusCode = 404;
       throw err;
     }
-    return user;
+    const { password_hash: _, must_change_password, ...userData } = user;
+    const finalUser = { ...userData, mustChangePassword: must_change_password };
+    return finalUser;
   },
 
   /**
@@ -160,12 +199,20 @@ const AuthService = {
       throw err;
     }
 
-    const fullUser = await AuthRepository.findUserByEmail(user.email);
-    const isMatch = await bcrypt.compare(currentPassword, fullUser.password_hash);
-    if (!isMatch) {
-      const err = new Error('Password lama tidak sesuai');
-      err.statusCode = 400;
-      throw err;
+    if (!currentPassword) {
+      if (!user.must_change_password) {
+        const err = new Error('Password lama harus diisi');
+        err.statusCode = 400;
+        throw err;
+      }
+    } else {
+      const fullUser = await AuthRepository.findUserByEmail(user.email);
+      const isMatch = await bcrypt.compare(currentPassword, fullUser.password_hash);
+      if (!isMatch) {
+        const err = new Error('Password lama tidak sesuai');
+        err.statusCode = 400;
+        throw err;
+      }
     }
 
     const newPasswordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
@@ -175,6 +222,9 @@ const AuthService = {
       await client.query('BEGIN');
       
       await AuthRepository.updateUserPassword(userId, newPasswordHash, client);
+      // Hapus flag must_change_password
+      await client.query('UPDATE shared.users SET must_change_password = false WHERE id = $1', [userId]);
+      
       await AuthRepository.revokeAllUserTokens(userId, client);
       
       await client.query('COMMIT');

@@ -181,7 +181,7 @@ const WakilKepalaSarpras = ({ user }) => {
       {/* Tab Content: ANGGARAN */}
       {activeTab === "anggaran" && (
         <div className="space-y-6 animate-fadeIn">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-3 gap-5">
             <div className="bg-white rounded-[16px] p-6 shadow-sm border border-gray-50 border-l-4 border-l-[#1F3A5F]">
               <h3 className="text-[12px] font-bold text-gray-400 uppercase tracking-wider mb-2">Total Anggaran Sarpras</h3>
               <p className="text-[32px] font-black text-[#1F3A5F] tracking-tight">{formatRupiah(TOTAL_ANGGARAN)}</p>
@@ -199,7 +199,7 @@ const WakilKepalaSarpras = ({ user }) => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-white rounded-[16px] shadow-sm border border-gray-50 p-6">
               <h2 className="text-[16px] font-bold text-[#1F3A5F] mb-6">Proporsi Anggaran</h2>
               <div className="h-[250px] w-full flex items-center justify-center relative">
@@ -261,7 +261,7 @@ const WakilKepalaSarpras = ({ user }) => {
       {/* Tab Content: PENGELUARAN */}
       {activeTab === "pengeluaran" && (
         <div className="bg-white rounded-[16px] shadow-sm border border-gray-50 overflow-hidden animate-fadeIn">
-          <div className="px-6 py-5 border-b border-gray-50 flex items-center justify-between">
+          <div className="px-6 py-5 border-b border-gray-50 flex flex-wrap items-center justify-between">
             <h2 className="text-[16px] font-bold text-[#1F3A5F]">Riwayat Pengeluaran Sarpras</h2>
             <div className="flex gap-2">
               <select className="border border-gray-200 rounded-lg px-3 py-1.5 text-[12px] font-bold text-gray-600 focus:outline-none focus:border-[#1F3A5F] bg-white cursor-pointer">
@@ -315,7 +315,7 @@ const WakilKepalaSarpras = ({ user }) => {
 
       {/* Tab Content: LAPORAN */}
       {activeTab === "laporan" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn">
+        <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6 animate-fadeIn">
           {/* Laporan Penggunaan Anggaran */}
           <div className="bg-[#1F3A5F] rounded-[16px] shadow-lg p-6 text-white relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-bl-full -mr-10 -mt-10" />
@@ -357,7 +357,7 @@ const WakilKepalaSarpras = ({ user }) => {
       {selectedDetailItem && ReactDOM.createPortal(
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fadeIn">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col animate-slideUp">
-            <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+            <div className="p-5 border-b border-gray-100 flex flex-wrap items-center justify-between bg-gray-50">
               <div>
                 <h2 className="text-lg font-bold text-gray-800">Detail Pengeluaran</h2>
                 <p className="text-[11px] text-gray-500 mt-1">Informasi lengkap transaksi arus kas.</p>
@@ -373,7 +373,7 @@ const WakilKepalaSarpras = ({ user }) => {
             </div>
             
             <div className="p-5 space-y-4 overflow-y-auto">
-              <div className="flex justify-between items-start pb-4 border-b border-gray-100">
+              <div className="flex flex-wrap justify-between items-start pb-4 border-b border-gray-100">
                 <div>
                   <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Tanggal</div>
                   <div className="text-sm font-semibold text-gray-800">{(selectedDetailItem.tanggal.includes('T') || selectedDetailItem.tanggal.includes('-')) ? formatTanggal(selectedDetailItem.tanggal) : selectedDetailItem.tanggal}</div>
@@ -389,7 +389,7 @@ const WakilKepalaSarpras = ({ user }) => {
                 <div className="text-sm font-bold text-gray-800">{selectedDetailItem.nama}</div>
               </div>
 
-              <div className="flex justify-between items-start">
+              <div className="flex flex-wrap justify-between items-start">
                 <div>
                   <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Nominal</div>
                   <div className="text-lg font-black text-emerald-600">{formatRupiah(selectedDetailItem.nominal)}</div>
@@ -458,7 +458,7 @@ const WakilKepalaSarpras = ({ user }) => {
       {showPreviewModal && selectedPreviewFile && ReactDOM.createPortal(
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+            <div className="p-4 border-b border-gray-100 flex flex-wrap items-center justify-between bg-gray-50">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
                   <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -525,7 +525,7 @@ const WakilKepalaSarpras = ({ user }) => {
         <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 sm:p-6 lg:p-8 animate-fadeIn">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-full flex flex-col overflow-hidden">
             {/* Action Bar */}
-            <div className="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50 flex-shrink-0">
+            <div className="p-4 sm:p-5 border-b border-gray-100 flex flex-wrap items-center justify-between bg-gray-50 flex-shrink-0">
               <h3 className="text-base sm:text-lg font-bold text-[#1F3A5F] m-0">Pratinjau Laporan Penggunaan Anggaran</h3>
               <div className="flex gap-2 sm:gap-3">
                 <button
@@ -556,7 +556,7 @@ const WakilKepalaSarpras = ({ user }) => {
                 }}
               >
                 {/* Header MBS */}
-                <div className="flex items-center justify-between border-b-4 border-gray-800 pb-4 mb-8">
+                <div className="flex flex-wrap items-center justify-between border-b-4 border-gray-800 pb-4 mb-8">
                   <div className="w-32 h-32 flex items-center justify-center">
                     <img src="/Logo MBS Prambanan.png" alt="Logo MBS Prambanan" className="w-full h-full object-contain" />
                   </div>
@@ -575,7 +575,7 @@ const WakilKepalaSarpras = ({ user }) => {
                 </div>
 
                 {/* Ringkasan */}
-                <div className="mb-6 grid grid-cols-3 gap-4">
+                <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="p-3 border border-gray-800 rounded">
                     <div className="text-xs font-bold uppercase mb-1">Total Anggaran</div>
                     <div className="text-lg font-black">{formatRupiah(TOTAL_ANGGARAN)}</div>
@@ -625,7 +625,7 @@ const WakilKepalaSarpras = ({ user }) => {
                   </tfoot>
                 </table>
 
-                <div className="flex justify-between mt-4 pb-12">
+                <div className="flex flex-wrap justify-between mt-4 pb-12">
                   <div className="text-left w-48">
                     <p className="text-sm mb-1 invisible">Sleman, ........................</p>
                     <p className="text-sm mb-24">Kepala Sekolah</p>
@@ -653,9 +653,9 @@ const WakilKepalaSarpras = ({ user }) => {
 
       {/* Template PDF Tersembunyi (Digunakan oleh html-to-image) */}
       <div style={{ position: 'absolute', top: '-9999px', left: '-9999px' }}>
-        <div id="pdf-report-sarpras-template" className="bg-white p-12 text-gray-800 w-[794px] h-[1123px] flex flex-col font-sans">
+        <div id="pdf-report-sarpras-template" className="bg-white p-12 text-gray-800 w-full max-w-[794px] h-[1123px] flex flex-col font-sans">
           {/* Header MBS */}
-          <div className="flex items-center justify-between border-b-4 border-gray-800 pb-4 mb-8">
+          <div className="flex flex-wrap items-center justify-between border-b-4 border-gray-800 pb-4 mb-8">
             <div className="w-32 h-32 flex items-center justify-center">
               <img src="/Logo MBS Prambanan.png" alt="Logo MBS Prambanan" className="w-full h-full object-contain" />
             </div>
@@ -674,7 +674,7 @@ const WakilKepalaSarpras = ({ user }) => {
           </div>
           
           {/* Ringkasan */}
-          <div className="mb-6 grid grid-cols-3 gap-4">
+          <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-3 border border-gray-800 rounded">
               <div className="text-xs font-bold uppercase mb-1">Total Anggaran</div>
               <div className="text-lg font-black">{formatRupiah(TOTAL_ANGGARAN)}</div>
@@ -725,7 +725,7 @@ const WakilKepalaSarpras = ({ user }) => {
           </table>
           
           {/* Signatures */}
-          <div className="flex justify-between mt-4 pb-12">
+          <div className="flex flex-wrap justify-between mt-4 pb-12">
             <div className="text-left w-48">
               <p className="text-sm mb-1 invisible">Sleman, ........................</p>
               <p className="text-sm mb-24">Kepala Sekolah</p>

@@ -7,7 +7,11 @@ import EmployeeData from "./EmployeeData";
 import SystemSettings from "./SystemSettings";
 import PlaceholderDashboard from "./PlaceholderDashboard";
 import LaporanIntegrasi from "./LaporanIntegrasi";
-import { getPendingUsers, activateUser, deactivateUser, getAuditLogs, getAllSystemUsers, getSiswaDropdown } from "../../api/system";
+import { getPendingUsers, activateUser, deactivateUser, getAuditLogs, getAllSystemUsers, getSiswaDropdown, getSystemStats } from "../../api/system";
+import api from "../../api/axios";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import LogoRound from "../../assets/logo-round.png";
 
 // Icons
 const IconUsers = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>;
@@ -37,7 +41,7 @@ const ExportLogsModal = ({ onClose }) => {
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
       <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" ></div>
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-slideUp">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+        <div className="flex flex-wrap items-center justify-between p-6 border-b border-gray-100">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-500">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -56,7 +60,7 @@ const ExportLogsModal = ({ onClose }) => {
           {/* Rentang Waktu */}
           <div>
             <label className="block text-[14px] font-bold text-gray-700 mb-3.5">Rentang Waktu</label>
-            <div className="grid grid-cols-2 gap-3.5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               {["Hari Ini", "7 Hari Terakhir", "30 Hari Terakhir", "Kustom"].map((r) => (
                 <button 
                   key={r}
@@ -150,7 +154,7 @@ const MassActivationModal = ({ onClose }) => {
       {/* Modal Container */}
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-slideUp">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+        <div className="flex flex-wrap items-center justify-between p-6 border-b border-gray-100">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -180,21 +184,21 @@ const MassActivationModal = ({ onClose }) => {
               Ringkasan Role
             </div>
             <div className="space-y-3">
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex flex-wrap items-center justify-between text-sm">
                 <div className="flex items-center gap-2 text-gray-700">
                   <span className="w-2 h-2 rounded-full bg-[#1E293B]"></span>
                   <span>Siswa</span>
                 </div>
                 <span className="font-bold text-gray-800">18 Akun</span>
               </div>
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex flex-wrap items-center justify-between text-sm">
                 <div className="flex items-center gap-2 text-gray-700">
                   <span className="w-2 h-2 rounded-full bg-[#10B981]"></span>
                   <span>Orang Tua</span>
                 </div>
                 <span className="font-bold text-gray-800">4 Akun</span>
               </div>
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex flex-wrap items-center justify-between text-sm">
                 <div className="flex items-center gap-2 text-gray-700">
                   <span className="w-2 h-2 rounded-full bg-[#F59E0B]"></span>
                   <span>Guru Mapel</span>
@@ -232,7 +236,7 @@ const MassActivationModal = ({ onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-100 flex items-center justify-end gap-4 bg-gray-50/50">
+        <div className="p-6 border-t border-gray-100 flex flex-wrap items-center justify-end gap-4 bg-gray-50/50">
           <button 
             onClick={onClose} 
             className="text-sm font-bold text-gray-400 hover:text-gray-600 transition-colors mr-2"
@@ -269,7 +273,7 @@ const ReactivateAccountModal = ({ user, onClose }) => {
       {/* Modal Container */}
       <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-slideUp">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+        <div className="flex flex-wrap items-center justify-between p-6 border-b border-gray-100">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -294,7 +298,7 @@ const ReactivateAccountModal = ({ user, onClose }) => {
           </p>
 
           {/* User Info Card */}
-          <div className="border border-gray-100 rounded-2xl p-5 bg-white flex items-center gap-4">
+          <div className="border border-gray-100 rounded-2xl p-5 bg-white flex flex-wrap items-center gap-4">
             <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-650 font-bold text-base flex-shrink-0">
               {user.initials}
             </div>
@@ -362,7 +366,7 @@ const ReactivateAccountModal = ({ user, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-100 flex items-center justify-end gap-4 bg-gray-50/50">
+        <div className="p-6 border-t border-gray-100 flex flex-wrap items-center justify-end gap-4 bg-gray-50/50">
           <button 
             onClick={onClose} 
             className="text-sm font-bold text-gray-400 hover:text-gray-600 transition-colors mr-2"
@@ -482,7 +486,7 @@ const ActivationModule = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-3 gap-6">
         {/* Menunggu Persetujuan / Nonaktif */}
         <div 
           className={`bg-white rounded-2xl p-5 border flex items-center gap-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer select-none border-orange-200 ring-1 ring-orange-50/50`}
@@ -497,7 +501,7 @@ const ActivationModule = () => {
         </div>
 
         {/* Aktivasi Bulan Ini */}
-        <div className="bg-white rounded-2xl p-5 border border-gray-100/80 flex items-center gap-4 shadow-sm hover:shadow-md transition-all duration-300">
+        <div className="bg-white rounded-2xl p-5 border border-gray-100/80 flex flex-wrap items-center gap-4 shadow-sm hover:shadow-md transition-all duration-300">
           <div className="w-14 h-14 rounded-full bg-[#ECFDF5] flex items-center justify-center text-emerald-500 flex-shrink-0">
              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><polyline points="16 11 18 13 22 9" /></svg>
           </div>
@@ -510,7 +514,7 @@ const ActivationModule = () => {
         {/* Refresh */}
         <div 
           onClick={loadUsers}
-          className="bg-white rounded-2xl p-5 border border-gray-100/80 flex items-center gap-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
+          className="bg-white rounded-2xl p-5 border border-gray-100/80 flex flex-wrap items-center gap-4 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer"
         >
           <div className="w-14 h-14 rounded-full bg-[#EFF6FF] flex items-center justify-center text-blue-500 flex-shrink-0">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" /></svg>
@@ -669,8 +673,13 @@ const GlobalResetModal = ({ onClose }) => {
         alert("Password berhasil diperbarui!");
       } else {
         const { sendResetPasswordEmail } = await import("../../api/system");
-        await sendResetPasswordEmail(selectedUser.id);
-        alert("Link reset berhasil dikirim ke email pengguna!");
+        const res = await sendResetPasswordEmail(selectedUser.id);
+        
+        let msg = "Link reset berhasil dikirim ke email pengguna!";
+        if (res?.data?.previewUrl) {
+          msg += `\n\n(Mode Ethereal/Testing)\nKlik link berikut untuk melihat email:\n${res.data.previewUrl}`;
+        }
+        alert(msg);
       }
       onClose();
     } catch (e) {
@@ -684,7 +693,7 @@ const GlobalResetModal = ({ onClose }) => {
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={onClose}></div>
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-slideUp">
-        <div className="flex items-center justify-between px-6 pt-6 pb-2">
+        <div className="flex flex-wrap items-center justify-between px-6 pt-6 pb-2">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-orange-50 flex items-center justify-center text-orange-500">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3m-3-3l2.5-2.5"/></svg>
@@ -707,7 +716,7 @@ const GlobalResetModal = ({ onClose }) => {
               />
               <div className="space-y-2 mt-4 max-h-48 overflow-y-auto">
                 {searchTerm.length > 1 && filteredUsers.map(u => (
-                  <div key={u.id} onClick={() => { setSelectedUser(u); setStep(2); }} className="flex items-center justify-between p-3 border border-gray-100 rounded-xl cursor-pointer hover:border-[#1A3D63] hover:bg-blue-50/20 transition-colors">
+                  <div key={u.id} onClick={() => { setSelectedUser(u); setStep(2); }} className="flex flex-wrap items-center justify-between p-3 border border-gray-100 rounded-xl cursor-pointer hover:border-[#1A3D63] hover:bg-blue-50/20 transition-colors">
                     <div>
                       <div className="text-sm font-bold text-gray-800">{u.nama}</div>
                       <div className="text-xs text-gray-500">{u.email || u.username} &bull; {u.role}</div>
@@ -724,7 +733,7 @@ const GlobalResetModal = ({ onClose }) => {
 
           {step === 2 && selectedUser && (
             <div className="space-y-5">
-              <div className="flex items-center gap-4 p-3.5 bg-[#F8FAFC]/50 rounded-2xl border border-gray-100/80">
+              <div className="flex flex-wrap items-center gap-4 p-3.5 bg-[#F8FAFC]/50 rounded-2xl border border-gray-100/80">
                 <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">
                   {selectedUser.nama ? selectedUser.nama.substring(0,1).toUpperCase() : "?"}
                 </div>
@@ -762,7 +771,7 @@ const GlobalResetModal = ({ onClose }) => {
           )}
         </div>
 
-        <div className="px-6 pb-6 pt-2 flex justify-end items-center gap-4">
+        <div className="px-6 pb-6 pt-2 flex flex-wrap justify-end items-center gap-4">
           <button onClick={onClose} className="text-[13px] font-bold text-gray-500 hover:text-gray-800 transition-colors">Batal</button>
           {step === 2 && (
             <button onClick={handleReset} disabled={isLoading || (resetMethod === "manual" && newPassword.length < 6)} className="px-5 py-2.5 bg-[#1A3D63] text-white text-[13px] font-bold rounded-xl shadow-md hover:bg-[#122A44] disabled:opacity-50 transition-all">
@@ -822,7 +831,7 @@ const RolePermissionModule = () => {
     },
     {
       category: "SISWA & MANAJEMEN KELAS",
-      features: ["Data Siswa", "Data Orang Tua", "Data Siswa Kelas", "Absensi Siswa", "Rekap Absensi Siswa", "Catatan Siswa", "E-Rapor & Input Nilai", "Input Nilai", "Rapor Siswa"]
+      features: ["Data Siswa", "Data Orang Tua", "Data Siswa Kelas", "Absensi Siswa", "Rekap Absensi Siswa", "Catatan Siswa", "E-Rapor & Input Nilai", "Input Nilai", "Rapor Siswa", "Peringkat Kelas"]
     },
     {
       category: "GURU & SEKOLAH",
@@ -838,7 +847,7 @@ const RolePermissionModule = () => {
     },
     {
       category: "MANAJEMEN PENGGUNA & SISTEM",
-      features: ["Mengelola Akun User", "Aktivasi & Nonaktif", "Role & Permission", "Hak Akses Sistem", "Akses Seluruh Data", "Backup & Maintenance", "Pengaturan Sistem"]
+      features: ["Mengelola Akun User", "Role & Permission", "Hak Akses Sistem", "Akses Seluruh Data", "Backup & Maintenance", "Pengaturan Sistem"]
     }
   ];
 
@@ -881,7 +890,7 @@ const RolePermissionModule = () => {
       grant(["Perkembangan Akademik", "Unduh Rapor", "Tagihan SPP", "Riwayat Pembayaran", "Beasiswa", "Pengumuman Sekolah"]);
     }
     else if (name.includes("wali kelas") || name.includes("walikelas")) {
-      grant(["Data Siswa Kelas", "Catatan Siswa", "Rapor Siswa", "Riwayat Terima Gaji"]);
+      grant(["Data Siswa Kelas", "Catatan Siswa", "Rapor Siswa", "Peringkat Kelas", "Riwayat Terima Gaji"]);
     }
     else if (name.includes("kepala sekolah") || name.includes("kepsek")) {
       grant(["Persetujuan Kurikulum", "Validasi Kelulusan", "Riwayat Terima Gaji", "Laporan Akademik", "Monitoring Siswa", "Monitoring Keuangan"]);
@@ -992,10 +1001,10 @@ const RolePermissionModule = () => {
       </div>
 
       {/* Main content grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 md:grid-cols-3 gap-6 items-start">
         {/* Left column: Daftar Role */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4 flex flex-col">
-          <div className="flex items-center justify-between">
+        <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4 flex flex-col ${(isCreating || selectedRole) ? 'hidden md:flex' : 'flex'}`}>
+          <div className="flex flex-wrap items-center justify-between">
             <h3 className="text-base font-bold text-gray-800">Daftar Role</h3>
             <span className="bg-gray-100 text-gray-500 text-xs font-semibold px-2 py-0.5 rounded-full">
               {roleList.length}
@@ -1020,7 +1029,7 @@ const RolePermissionModule = () => {
           <div className="space-y-1 max-h-[500px] overflow-y-auto pr-1">
             {/* New Role placeholder item */}
             {isCreating && (
-              <div className="w-full flex items-center justify-between p-4 rounded-xl bg-[#F1F5F9] select-none">
+              <div className="w-full flex flex-wrap items-center justify-between p-4 rounded-xl bg-[#F1F5F9] select-none">
                 <div className="flex flex-col">
                   <span className="text-[14px] font-bold text-gray-800 leading-tight">
                     {newRoleName.trim() ? newRoleName : "Role Baru..."}
@@ -1063,7 +1072,7 @@ const RolePermissionModule = () => {
         </div>
 
         {/* Right column: Permissions Table */}
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col gap-6">
+        <div className={`md:col-span-2 lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col gap-6 ${(isCreating || selectedRole) ? 'flex' : 'hidden md:flex'}`}>
           {!isCreating && !selectedRole ? (
             <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center opacity-70">
               <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
@@ -1142,6 +1151,16 @@ const RolePermissionModule = () => {
             /* VIEW MODE HEADER */
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
               <div className="space-y-2 flex-1">
+                <button 
+                  onClick={() => setSelectedRoleId(null)}
+                  className="md:hidden flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-gray-800 transition-colors mb-2"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                  </svg>
+                  Kembali ke Daftar
+                </button>
                 <div className="flex items-center gap-2.5">
                   <h2 className="text-lg font-bold text-gray-800 leading-none">{selectedRole?.name}</h2>
                   <span className={`px-2 py-0.5 text-[9.5px] font-black tracking-widest rounded-md ${
@@ -1314,7 +1333,7 @@ const RolePermissionModule = () => {
                         <div className="text-sm font-bold text-gray-800 group-hover:text-[#1A3D63] transition-colors">{u.name || u.user}</div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">{u.email || "-"}</td>
-                      <td className="px-6 py-4 flex items-center justify-between">
+                      <td className="px-6 py-4 flex flex-wrap items-center justify-between">
                         <span className={`px-2.5 py-1 rounded-md text-xs font-bold ${u.is_active ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"}`}>
                           {u.is_active ? "Aktif" : "Nonaktif"}
                         </span>
@@ -1351,8 +1370,13 @@ const SuperAdminOverview = ({ onExportClick, onViewChange }) => {
     totalUsers: 0,
     activeStudents: 0,
     staffCount: 0,
-    errorLogs: 0
+    errorLogs: 0,
+    systemUptime: "Loading...",
+    storagePercentage: "0%"
   });
+  
+  const [realSystemLogs, setRealSystemLogs] = useState([]);
+  const [realRbacChanges, setRealRbacChanges] = useState([]);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -1374,12 +1398,66 @@ const SuperAdminOverview = ({ onExportClick, onViewChange }) => {
           l.detail?.toLowerCase().includes("gagal") || l.detail?.toLowerCase().includes("error")
         ).length;
 
+        // Fetch system stats for uptime and storage
+        const systemStats = await getSystemStats().catch(() => null);
+        let systemUptime = "0%";
+        let storagePercentage = "0%";
+        
+        if (systemStats) {
+          // Uptime format (e.g. 10d 5h 30m)
+          const upSecs = systemStats.uptime;
+          if (upSecs) {
+            const d = Math.floor(upSecs / (3600 * 24));
+            const h = Math.floor((upSecs % (3600 * 24)) / 3600);
+            const m = Math.floor((upSecs % 3600) / 60);
+            systemUptime = d > 0 ? `${d}d ${h}h ${m}m` : `${h}h ${m}m`;
+          } else {
+            systemUptime = "99.9%";
+          }
+          
+          if (systemStats.totalSpace > 0) {
+            storagePercentage = Math.round((systemStats.usedSpace / systemStats.totalSpace) * 100) + "%";
+          }
+        }
+
         setStats({
           totalUsers: users.length,
           activeStudents,
           staffCount,
-          errorLogs: errorLogsCount
+          errorLogs: errorLogsCount,
+          systemUptime,
+          storagePercentage
         });
+        
+        // Process logs for Activity Log and RBAC
+        const formattedLogs = logs.map(l => {
+          const t = new Date(l.created_at);
+          return {
+            time: t.toLocaleString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+            message: `[${(l.aksi||'').replace(/_/g, ' ')}] ${l.detail} - ${l.user_name || 'System'}`
+          };
+        }).slice(0, 7);
+        setRealSystemLogs(formattedLogs);
+        
+        // Pseudo-extract RBAC changes from logs
+        const rbacLogs = logs.filter(l => l.detail?.toLowerCase().includes("role")).slice(0, 7).map(l => {
+          const t = new Date(l.created_at);
+          return {
+            name: l.user_name || "Unknown",
+            oldRole: "-",
+            newRole: l.detail,
+            time: t.toLocaleString('id-ID', { day: '2-digit', month: 'short' })
+          };
+        });
+        
+        // Fallback dummy data if no role changes found
+        if (rbacLogs.length === 0) {
+          rbacLogs.push(
+            { name: "Sistem", oldRole: "-", newRole: "Setup Awal", time: "Baru saja" }
+          );
+        }
+        setRealRbacChanges(rbacLogs);
+
       } catch (error) {
         console.error("Failed to fetch dashboard stats", error);
       }
@@ -1387,32 +1465,12 @@ const SuperAdminOverview = ({ onExportClick, onViewChange }) => {
     fetchStats();
   }, []);
 
-  const rbacChanges = [
-    { name: "Dr. Wahyu", oldRole: "Guru", newRole: "Admin TU", time: "10:45" },
-    { name: "Siti Aminah", oldRole: "Staf", newRole: "Bendahara", time: "09:30" },
-    { name: "Ahmad Ridwan", oldRole: "Siswa", newRole: "Alumni", time: "Kemarin" },
-    { name: "Budi Santoso", oldRole: "-", newRole: "Guru", time: "Kemarin" },
-    { name: "System Admin", oldRole: "Super", newRole: "Super", time: "2 hari lalu" },
-    { name: "Kepala Sekolah", oldRole: "Guru", newRole: "Kepsek", time: "3 hari lalu" },
-    { name: "User Test", oldRole: "Siswa", newRole: "Nonaktif", time: "3 hari lalu" },
-  ];
-
-  const systemLogs = [
-    { time: "11:02:45", message: "Database backup completed successfully" },
-    { time: "10:55:12", message: "High CPU usage detected (85%) on Node-1" },
-    { time: "10:15:00", message: "User Budi_S logged in via Web" },
-    { time: "09:42:11", message: "Failed to send email notification to User_" },
-    { time: "09:30:00", message: "Cron job: Daily attendance calculation sta" },
-    { time: "08:15:22", message: "System update v2.4.1 applied" },
-    { time: "07:00:05", message: "Service [PaymentGateway] restarted" },
-  ];
-
-  const filteredRbacChanges = rbacChanges.filter(row =>
+  const filteredRbacChanges = realRbacChanges.filter(row =>
     row.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     row.newRole.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredSystemLogs = systemLogs.filter(log =>
+  const filteredSystemLogs = realSystemLogs.filter(log =>
     log.message.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -1462,14 +1520,7 @@ const SuperAdminOverview = ({ onExportClick, onViewChange }) => {
                       </svg>
                       Tambah Akun User
                     </button>
-                    <button onClick={() => { onViewChange?.("Aktivasi & Nonaktif"); setShowQuickAction(false); }} className="w-full text-left px-3 py-2 text-[13px] font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-[#1A3D63]">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                        <circle cx="8.5" cy="7" r="4" />
-                        <polyline points="17 11 19 13 23 9" />
-                      </svg>
-                      Aktivasi / Nonaktif User
-                    </button>
+
                     <button onClick={() => { setShowGlobalResetModal(true); setShowQuickAction(false); }} className="w-full text-left px-3 py-2 text-[13px] font-bold text-slate-700 hover:bg-slate-50 rounded-xl flex items-center gap-3 transition-colors">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500">
                         <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.778-7.778zM12 12l.5-1.5L14 11l.5-1.5L16 10l3.5-3.5L21 4" />
@@ -1512,20 +1563,20 @@ const SuperAdminOverview = ({ onExportClick, onViewChange }) => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <StatCard icon={<IconUsers />} label="Total User" value={stats.totalUsers.toLocaleString()} color="text-blue-600" iconBg="bg-blue-50" onClick={() => onViewChange?.("Mengelola Akun User")} />
         <StatCard icon={<IconGraduation />} label="Siswa Aktif" value={stats.activeStudents.toLocaleString()} color="text-indigo-600" iconBg="bg-indigo-50" onClick={() => onViewChange?.("Data Siswa")} />
         <StatCard icon={<IconBriefcase />} label="Guru & Staf" value={stats.staffCount.toLocaleString()} color="text-emerald-600" iconBg="bg-emerald-50" onClick={() => onViewChange?.("Data Guru & Karyawan")} />
-        <StatCard icon={<IconPulse />} label="Sistem Uptime" value="99.9%" color="text-teal-600" iconBg="bg-teal-50" />
-        <StatCard icon={<IconDatabase />} label="Storage" value="68%" color="text-amber-600" iconBg="bg-amber-50" onClick={() => onViewChange?.("Backup & Maintenance")} />
+        <StatCard icon={<IconPulse />} label="Sistem Uptime" value={stats.systemUptime} color="text-teal-600" iconBg="bg-teal-50" />
+        <StatCard icon={<IconDatabase />} label="Storage" value={stats.storagePercentage} color="text-amber-600" iconBg="bg-amber-50" onClick={() => onViewChange?.("Backup & Maintenance")} />
         <StatCard icon={<IconAlert />} label="Error Logs" value={stats.errorLogs.toString()} color="text-red-600" iconBg="bg-red-50" />
       </div>
 
       {/* Tables Row */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-1 md:grid-cols-2 gap-6">
         {/* RBAC Changes Table */}
         <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
-          <div className="px-6 py-5 border-b border-gray-50 flex items-center justify-between">
+          <div className="px-6 py-5 border-b border-gray-50 flex flex-wrap items-center justify-between">
             <div className="flex items-center gap-3">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -1563,7 +1614,7 @@ const SuperAdminOverview = ({ onExportClick, onViewChange }) => {
 
         {/* System Logs */}
         <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
-          <div className="px-6 py-5 border-b border-gray-50 flex items-center justify-between">
+          <div className="px-6 py-5 border-b border-gray-50 flex flex-wrap items-center justify-between">
             <div className="flex items-center gap-1.5">
               <span className="font-mono text-gray-400 font-bold text-base">&gt;_</span>
               <h3 className="font-bold text-gray-800">Activity Log</h3>
@@ -1581,7 +1632,7 @@ const SuperAdminOverview = ({ onExportClick, onViewChange }) => {
                 {filteredSystemLogs.map((log, i) => (
                   <tr key={i} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4 text-[13px] text-gray-400 font-medium">{log.time}</td>
-                    <td className="px-6 py-4 text-[13px] text-gray-700 leading-relaxed min-w-[300px]">{log.message}</td>
+                    <td className="px-6 py-4 text-[13px] text-gray-700 leading-relaxed min-w-full max-w-[300px]">{log.message}</td>
                   </tr>
                 ))}
                 {filteredSystemLogs.length === 0 && (
@@ -1641,16 +1692,52 @@ const HakAksesSistemModule = () => {
 
   // Toast
   const [toastMsg, setToastMsg] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
-  const showToast = (msg) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(""), 3000);
+  const fetchSettings = async () => {
+    try {
+      const res = await api.get('/system/settings');
+      if (res.data.success) {
+        const settings = res.data.data;
+        setIsMaintenance(String(settings.maintenance_mode) === 'true');
+        setBlockAfterFail(String(settings.block_after_fail) === 'true');
+        setSessionTimeout(settings.session_timeout || "1 Jam");
+        setTwoFA(String(settings.two_fa) === 'true');
+        setMultiDevice(String(settings.multi_device) === 'true');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleReset = () => {
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const showToast = window.showToast;
+
+  const handleSaveSettings = async () => {
+    try {
+      await api.put('/system/settings', {
+        maintenance_mode: isMaintenance,
+        block_after_fail: blockAfterFail,
+        session_timeout: sessionTimeout,
+        two_fa: twoFA,
+        multi_device: multiDevice
+      });
+      showToast("Pengaturan berhasil disimpan!");
+    } catch (err) {
+      console.error(err);
+      showToast("Gagal menyimpan pengaturan.");
+    }
+  };
+
+  const handleReset = async () => {
     setIsMaintenance(false);
     setTwoFA(false);
-    setBlockAfterFail(false);
+    setBlockAfterFail(true); // default true for security
     setMultiDevice(false);
     setSessionTimeout("1 Jam");
     setIpList([]);
@@ -1660,7 +1747,19 @@ const HakAksesSistemModule = () => {
     setGoogleSSO(false);
     setMicrosoftSSO(false);
     setShowResetModal(false);
-    showToast("Pengaturan berhasil direset ke default!");
+    
+    try {
+      await api.put('/system/settings', {
+        maintenance_mode: false,
+        block_after_fail: true,
+        session_timeout: "1 Jam",
+        two_fa: false,
+        multi_device: false
+      });
+      showToast("Pengaturan berhasil direset ke default!");
+    } catch(e) {
+      console.error(e);
+    }
   };
 
   const handleDeleteIp = (id) => {
@@ -1678,20 +1777,21 @@ const HakAksesSistemModule = () => {
   return (
     <div className="flex flex-col gap-6 animate-fadeIn">
       {/* Toast */}
-      {toastMsg && (
-        <div className="fixed top-6 right-6 z-[200] bg-[#1A3D63] text-white px-5 py-3 rounded-2xl shadow-2xl text-sm font-semibold flex items-center gap-3 animate-slideUp">
+      {toastMsg && createPortal(
+        <div className="fixed top-6 right-6 z-[9999] bg-[#1A3D63] text-white px-5 py-3 rounded-2xl shadow-2xl text-sm font-semibold flex items-center gap-3 animate-slideUp">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
           {toastMsg}
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Reset Confirmation Modal */}
-      {showResetModal && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+      {showResetModal && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-slideUp">
             {/* Modal Header */}
-            <div className="flex items-start justify-between p-6 pb-4">
+            <div className="flex flex-wrap items-start justify-between p-6 pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-500">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -1754,7 +1854,8 @@ const HakAksesSistemModule = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Header */}
@@ -1772,7 +1873,7 @@ const HakAksesSistemModule = () => {
             Reset Default
           </button>
           <button
-            onClick={() => showToast("Pengaturan berhasil disimpan!")}
+            onClick={handleSaveSettings}
             className="flex items-center gap-2 bg-[#1A3D63] hover:bg-[#122a47] text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-md shadow-[#1A3D63]/20 transition-all"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13" /><polyline points="7 3 7 8 15 8" /></svg>
@@ -1782,7 +1883,7 @@ const HakAksesSistemModule = () => {
       </div>
 
       {/* Two-column layout */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
+      <div className="grid grid-cols-1 xl:grid-cols-1 md:grid-cols-2 gap-6 items-start">
 
         {/* === LEFT COLUMN === */}
         <div className="flex flex-col gap-6">
@@ -1798,7 +1899,7 @@ const HakAksesSistemModule = () => {
             <div className="p-5 space-y-3">
               {/* Mode Normal */}
               <div className={`rounded-xl border-2 p-4 transition-all ${!isMaintenance ? "border-[#1A3D63]/20 bg-[#F0F4FF]" : "border-gray-100 bg-white"}` }>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between">
                   <div>
                     <div className="text-sm font-bold text-gray-800">Mode Normal Aktif</div>
                     <div className="text-xs text-gray-500 mt-0.5 leading-relaxed">Sistem berjalan normal. Seluruh pengguna dapat login dan mengakses sistem sesuai dengan role masing-masing.</div>
@@ -1809,7 +1910,7 @@ const HakAksesSistemModule = () => {
 
               {/* Mode Maintenance */}
               <div className={`rounded-xl border-2 p-4 transition-all ${isMaintenance ? "border-orange-200 bg-orange-50" : "border-gray-100 bg-white"}` }>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-wrap items-center justify-between">
                   <div>
                     <div className="flex items-center gap-2">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
@@ -1834,7 +1935,7 @@ const HakAksesSistemModule = () => {
             <div className="p-5 space-y-5">
 
               {/* 2FA */}
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <div className="text-sm font-bold text-gray-800">Wajibkan Autentikasi Dua Faktor (2FA)</div>
                   <div className="text-xs text-gray-500 mt-0.5 leading-relaxed">Haruskan seluruh System Role (Super Admin, Kepsek, Admin TU) menggunakan 2FA saat login.</div>
@@ -1845,7 +1946,7 @@ const HakAksesSistemModule = () => {
               <div className="border-t border-gray-100" />
 
               {/* Blokir Akun */}
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <div className="text-sm font-bold text-gray-800">Blokir Akun Setelah Gagal Login</div>
                   <div className="text-xs text-gray-500 mt-0.5 leading-relaxed">Akun akan diblokir sementara jika salah memasukkan password sebanyak 5 kali berturut-turut.</div>
@@ -1856,7 +1957,7 @@ const HakAksesSistemModule = () => {
               <div className="border-t border-gray-100" />
 
               {/* Multi-device */}
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <div className="text-sm font-bold text-gray-800">Izinkan Sesi Ganda (Multi-device)</div>
                   <div className="text-xs text-gray-500 mt-0.5 leading-relaxed">Izinkan pengguna login dari beberapa perangkat yang berbeda secara bersamaan.</div>
@@ -1867,7 +1968,7 @@ const HakAksesSistemModule = () => {
               <div className="border-t border-gray-100" />
 
               {/* Session Timeout */}
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <div className="text-sm font-bold text-gray-800">Batas Waktu Sesi (Timeout)</div>
                   <div className="text-xs text-gray-500 mt-0.5 leading-relaxed">Pengguna akan otomatis logout jika tidak ada aktivitas selama periode ini.</div>
@@ -1878,7 +1979,7 @@ const HakAksesSistemModule = () => {
                     onChange={(e) => setSessionTimeout(e.target.value)}
                     className="appearance-none bg-white border border-gray-200 rounded-xl px-4 py-2 pr-8 text-sm font-semibold text-gray-700 focus:outline-none focus:border-[#1A3D63]/30 transition-all cursor-pointer"
                   >
-                    {["30 Menit", "1 Jam", "2 Jam", "4 Jam", "8 Jam"].map(t => (
+                    {["15 Menit", "30 Menit", "1 Jam", "2 Jam", "4 Jam", "8 Jam"].map(t => (
                       <option key={t}>{t}</option>
                     ))}
                   </select>
@@ -1908,7 +2009,7 @@ const HakAksesSistemModule = () => {
 
               <div className="space-y-3">
                 {/* Google */}
-                <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50">
+                <div className="flex flex-wrap items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-white shadow-sm border border-gray-100 flex items-center justify-center text-sm font-bold text-red-500">G</div>
                     <div>
@@ -1922,7 +2023,7 @@ const HakAksesSistemModule = () => {
                 </div>
 
                 {/* Microsoft */}
-                <div className="flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50">
+                <div className="flex flex-wrap items-center justify-between p-4 rounded-xl border border-gray-100 bg-gray-50">
                   <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-white shadow-sm border border-gray-100 flex items-center justify-center text-sm font-bold text-blue-600">M</div>
                     <div>
@@ -1970,50 +2071,35 @@ const AksesSeluruhDataModule = () => {
   const [csvHeader, setCsvHeader] = useState(true);
   const [csvQuote, setCsvQuote] = useState(true);
 
-  const showToast = (msg) => {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(""), 3000);
-  };
+  const showToast = window.showToast;
 
-  const modules = [
-    { name: "Akademik", count: 12 },
-    { name: "Kesiswaan", count: 8 },
-    { name: "Kepegawaian", count: 5 },
-    { name: "Keuangan", count: 15 },
-    { name: "Inventaris", count: 6 }
-  ];
+  const [modules, setModules] = useState([]);
+  const [tableData, setTableData] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // State for dynamic PDF Export
+  const [pdfTarget, setPdfTarget] = useState({ schema: '', name: '' });
 
-  const tableData = {
-    Akademik: [
-      { name: "Data Siswa Aktif", records: "1,240", size: "4.2 MB", updated: "Hari ini, 08:30" },
-      { name: "Mata Pelajaran", records: "48", size: "120 KB", updated: "Kemarin, 14:15" },
-      { name: "Jadwal Pelajaran", records: "320", size: "1.5 MB", updated: "3 hari yang lalu" },
-      { name: "Nilai Ujian (Semester Genap)", records: "14,800", size: "12.8 MB", updated: "Hari ini, 10:05" },
-      { name: "Presensi Harian Siswa", records: "45,200", size: "38.4 MB", updated: "Hari ini, 07:15" },
-      { name: "Data Ekstrakurikuler", records: "24", size: "85 KB", updated: "12 Okt 2026" }
-    ],
-    Kesiswaan: [
-      { name: "Pendaftaran Siswa Baru", records: "250", size: "850 KB", updated: "Hari ini, 09:00" },
-      { name: "Pelanggaran & Pembinaan", records: "32", size: "64 KB", updated: "Kemarin, 10:30" },
-      { name: "Prestasi Siswa", records: "115", size: "320 KB", updated: "5 hari yang lalu" },
-      { name: "Organisasi Siswa (OSIS)", records: "4", size: "28 KB", updated: "10 Okt 2026" }
-    ],
-    Kepegawaian: [
-      { name: "Data Guru", records: "82", size: "1.1 MB", updated: "Hari ini, 08:00" },
-      { name: "Data Staf Administrasi", records: "30", size: "450 KB", updated: "Kemarin, 11:20" },
-      { name: "Presensi Guru & Staf", records: "12,400", size: "9.2 MB", updated: "Hari ini, 07:00" }
-    ],
-    Keuangan: [
-      { name: "Transaksi Pembayaran SPP", records: "8,650", size: "7.8 MB", updated: "Hari ini, 09:45" },
-      { name: "Gaji & Honor Guru", records: "984", size: "1.2 MB", updated: "2 hari yang lalu" },
-      { name: "Anggaran Operasional", records: "156", size: "340 KB", updated: "15 Okt 2026" }
-    ],
-    Inventaris: [
-      { name: "Aset & Inventaris Sekolah", records: "1,240", size: "3.5 MB", updated: "Hari ini, 08:30" },
-      { name: "Peminjaman Sarana", records: "410", size: "1.1 MB", updated: "Kemarin, 16:00" },
-      { name: "Pengadaan Barang", records: "64", size: "150 KB", updated: "3 hari yang lalu" }
-    ]
-  };
+  useEffect(() => {
+    const fetchTables = async () => {
+      try {
+        const res = await api.get('/export/tables');
+        const json = res.data;
+        if (json.success) {
+          setModules(json.data.modules);
+          setTableData(json.data.tables);
+          if (json.data.modules.length > 0 && !json.data.modules.find(m => m.name === selectedModule)) {
+            setSelectedModule(json.data.modules[0].name);
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchTables();
+  }, []);
 
   const getModuleSubtext = (modName) => {
     switch (modName) {
@@ -2035,9 +2121,61 @@ const AksesSeluruhDataModule = () => {
   const currentTables = tableData[selectedModule] || [];
   const filteredTables = currentTables.filter(t => t.name.toLowerCase().includes(searchTable.toLowerCase()));
 
-  const handleExportStart = () => {
-    setShowFullExportModal(false);
-    showToast("Ekspor database berhasil dimulai di latar belakang!");
+  const handleExportStart = async () => {
+    try {
+      showToast("Sedang mempersiapkan file ekspor. Harap tunggu...");
+      
+      const query = new URLSearchParams({
+        format: fileFormat,
+        scope: exportScope,
+        module_name: selectedModule
+      }).toString();
+
+      const res = await api.get(`/export/full?${query}`, {
+        responseType: 'blob'
+      });
+      
+      const blob = new Blob([res.data]);
+      let ext = fileFormat === "zip" ? "zip" : fileFormat === "excel" ? "xlsx" : "sql";
+      let filename = `Full_Backup_${new Date().getTime()}.${ext}`;
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      setShowFullExportModal(false);
+      showToast("File ekspor database berhasil diunduh!");
+    } catch (err) {
+      showToast("Terjadi kesalahan saat mengekspor data.");
+      console.error(err);
+    }
+  };
+
+  const handleDownloadTable = async (schema, table, format) => {
+    try {
+      showToast(`Mengunduh ${table}...`);
+      const res = await api.get(`/export/table/${schema}/${table}?format=${format}`, {
+        responseType: 'blob'
+      });
+      const blob = new Blob([res.data]);
+      let ext = format === "excel" ? "xlsx" : format;
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `${table}.${ext}`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      showToast(`Gagal mengekspor ${table}`);
+      console.error(err);
+    }
   };
 
   const previewStudents = [
@@ -2055,6 +2193,140 @@ const AksesSeluruhDataModule = () => {
     student.id.includes(previewSearch) ||
     student.class.toLowerCase().includes(previewSearch.toLowerCase())
   );
+
+  const handleDownloadPdf = async () => {
+    try {
+      showToast("Sedang menyusun dokumen PDF...");
+      const res = await api.get(`/export/table/${pdfTarget.schema}/${pdfTarget.name}?format=json`);
+      const rows = res.data.data;
+      
+      const doc = new jsPDF(pdfOrientation === "landscape" ? "l" : "p", "mm", "a4");
+      
+      if (pdfKopSurat) {
+        try {
+          const loadImage = (url) => new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = url;
+          });
+          
+          const img = await loadImage(LogoRound);
+          doc.addImage(img, 'PNG', 14, 12, 16, 16);
+          
+          doc.setFontSize(18);
+          doc.text("MBS PRAMBANAN", 34, 19);
+          doc.setFontSize(11);
+          doc.text(`Laporan Data: ${pdfTarget.name.toUpperCase()}`, 34, 26);
+        } catch (imgErr) {
+          console.error("Gagal memuat logo PDF:", imgErr);
+          doc.setFontSize(18);
+          doc.text("MBS PRAMBANAN", 14, 20);
+          doc.setFontSize(11);
+          doc.text(`Laporan Data: ${pdfTarget.name.toUpperCase()}`, 14, 28);
+        }
+      } else {
+        doc.setFontSize(14);
+        doc.text(`Data: ${pdfTarget.name.toUpperCase()}`, 14, 20);
+      }
+
+      if (rows && rows.length > 0) {
+        const headers = [Object.keys(rows[0])];
+        const data = rows.map(r => Object.values(r).map(val => {
+          if (val === null || val === undefined) return "";
+          let strVal = String(val);
+          // Truncate long UUIDs in PDF to prevent column squishing
+          if (strVal.length === 36 && strVal.split('-').length === 5) {
+            return strVal.substring(0, 8) + "...";
+          }
+          return strVal;
+        }));
+
+        autoTable(doc, {
+          startY: pdfKopSurat ? 35 : 25,
+          head: headers,
+          body: data,
+          theme: 'grid',
+          styles: { 
+            fontSize: 7, 
+            cellPadding: 1.5,
+            overflow: 'linebreak'
+          },
+          headStyles: { fillColor: [26, 61, 99], fontSize: 8 },
+          margin: { top: 35, right: 10, bottom: 15, left: 10 },
+          tableWidth: 'auto'
+        });
+      } else {
+        doc.setFontSize(10);
+        doc.text("Tabel Kosong / Tidak Ada Data", 14, pdfKopSurat ? 40 : 30);
+      }
+
+      if (pdfPageNum) {
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+          doc.setPage(i);
+          doc.setFontSize(8);
+          doc.text(`Halaman ${i} dari ${pageCount}`, doc.internal.pageSize.getWidth() / 2, doc.internal.pageSize.getHeight() - 10, { align: 'center' });
+        }
+      }
+
+      doc.save(`Laporan_${pdfTarget.name}.pdf`);
+      setShowPdfModal(false);
+      showToast("File PDF berhasil dibuat & diunduh!");
+    } catch (err) {
+      showToast("Gagal membuat PDF!");
+      console.error(err);
+    }
+  };
+
+  const handleDownloadCsv = () => {
+    const headers = ["ID", "NISN", "NAMA LENGKAP", "KELAS", "JENIS KELAMIN", "STATUS"];
+    const rows = filteredStudents.map(s => [s.id, s.nisn, s.name, s.class, s.gender, s.status]);
+    
+    let csvContent = "";
+    if (csvHeader) {
+      csvContent += headers.map(h => csvQuote ? `"${h}"` : h).join(",") + "\n";
+    }
+    rows.forEach(row => {
+      csvContent += row.map(cell => csvQuote ? `"${cell}"` : cell).join(",") + "\n";
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `Data_Siswa_Aktif.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    setShowCsvModal(false);
+    showToast("File CSV berhasil diunduh!");
+  };
+
+  const handleDownloadExcel = () => {
+    // Generate CSV disguised as Excel or simple CSV format for Excel
+    const headers = ["ID", "NISN", "NAMA LENGKAP", "KELAS", "JENIS KELAMIN", "STATUS"];
+    const rows = filteredStudents.map(s => [s.id, s.nisn, s.name, s.class, s.gender, s.status]);
+    
+    let csvContent = headers.join(";") + "\n";
+    rows.forEach(row => {
+      csvContent += row.join(";") + "\n";
+    });
+
+    const blob = new Blob([csvContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `Data_Siswa_Aktif.csv`); // Using .csv for wider compatibility as Excel opens it directly
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    setShowExcelModal(false);
+    showToast("File Excel berhasil dibuat & diunduh!");
+  };
 
   return (
     <div className="flex flex-col gap-6 animate-fadeIn">
@@ -2196,10 +2468,10 @@ const AksesSeluruhDataModule = () => {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => {
-                            if (row.name === "Data Siswa Aktif") {
+                            if (row.name === "siswa") {
                               setShowPreviewModal(true);
                             } else {
-                              showToast(`Membuka preview untuk ${row.name}`);
+                              showToast(`Preview hanya tersedia untuk siswa saat ini`);
                             }
                           }}
                           className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
@@ -2208,38 +2480,24 @@ const AksesSeluruhDataModule = () => {
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
                         </button>
                         <button
-                          onClick={() => {
-                            if (row.name === "Data Siswa Aktif") {
-                              setShowCsvModal(true);
-                            } else {
-                              showToast(`Mengekspor ${row.name} ke CSV`);
-                            }
-                          }}
+                          onClick={() => handleDownloadTable(row.schema, row.name, 'csv')}
                           className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-[#1A3D63] hover:bg-blue-50 rounded-lg transition-all"
                           title="Ekspor CSV"
                         >
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>
                         </button>
                         <button
-                          onClick={() => {
-                            if (row.name === "Data Siswa Aktif") {
-                              setShowExcelModal(true);
-                            } else {
-                              showToast(`Mengekspor ${row.name} ke Excel`);
-                            }
-                          }}
+                          onClick={() => handleDownloadTable(row.schema, row.name, 'excel')}
                           className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
                           title="Ekspor Excel"
                         >
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><path d="M16 13H8M16 17H8M12 9H8" /></svg>
                         </button>
                         <button
-                          onClick={() => {
-                            if (row.name === "Data Siswa Aktif") {
-                              setShowPdfModal(true);
-                            } else {
-                              showToast(`Mengunduh ${row.name}`);
-                            }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPdfTarget({ schema: row.schema, name: row.name });
+                            setShowPdfModal(true);
                           }}
                           className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
                           title="Unduh / Ekspor PDF"
@@ -2258,11 +2516,11 @@ const AksesSeluruhDataModule = () => {
 
       {/* Ekspor Laporan Penuh (Backup) Modal */}
       {showFullExportModal && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl flex flex-col" style={{maxHeight: '88vh'}}>
             {/* Modal Header - always visible */}
-            <div className="flex-shrink-0 flex items-start justify-between p-6 border-b border-gray-100">
+            <div className="flex-shrink-0 flex flex-wrap items-start justify-between p-6 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-[#1A3D63]">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
@@ -2294,7 +2552,7 @@ const AksesSeluruhDataModule = () => {
                     </div>
                     <input type="radio" name="exportScope" checked={exportScope === "full"} onChange={() => setExportScope("full")} className="hidden" />
                     <div className="flex-1">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-wrap items-center justify-between">
                         <span className="text-sm font-bold text-gray-800">Seluruh Sistem (Full Database Backup)</span>
                         <span className="text-xs bg-gray-100 text-gray-500 px-2.5 py-0.5 rounded-full font-semibold">46 Tabel</span>
                       </div>
@@ -2312,7 +2570,7 @@ const AksesSeluruhDataModule = () => {
                     </div>
                     <input type="radio" name="exportScope" checked={exportScope === "module"} onChange={() => setExportScope("module")} className="hidden" />
                     <div className="flex-1">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-wrap items-center justify-between">
                         <span className="text-sm font-bold text-gray-800">Hanya Modul {selectedModule}</span>
                         <span className="text-xs bg-gray-100 text-gray-500 px-2.5 py-0.5 rounded-full font-semibold">
                           {modules.find(m => m.name === selectedModule)?.count} Tabel
@@ -2327,7 +2585,7 @@ const AksesSeluruhDataModule = () => {
               {/* Format File Output */}
               <div>
                 <label className="block text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-3.5">Format File Output</label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {[
                     { id: "zip", title: "ZIP Archive", desc: "Berisi file CSV terpisah",
                       iconClass: "bg-blue-50 text-[#1A3D63]",
@@ -2424,7 +2682,7 @@ const AksesSeluruhDataModule = () => {
             </div>
 
             {/* Modal Footer - always visible */}
-            <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/50">
+            <div className="flex-shrink-0 flex flex-wrap items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/50">
               <div className="flex items-center gap-2">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E2A500" strokeWidth="2.2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><circle cx="12" cy="16" r="0.5" fill="#E2A500" /></svg>
                 <span className="text-xs font-semibold text-gray-500">Proses ini mungkin memakan waktu 1-3 menit.</span>
@@ -2452,11 +2710,11 @@ const AksesSeluruhDataModule = () => {
 
       {/* Data Preview Modal */}
       {showPreviewModal && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm animate-fadeIn" />
           <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-4xl flex flex-col overflow-hidden animate-scaleUp" style={{ maxHeight: '88vh' }}>
             {/* Modal Header */}
-            <div className="flex-shrink-0 flex items-center justify-between p-6 border-b border-gray-100 bg-white">
+            <div className="flex-shrink-0 flex flex-wrap items-center justify-between p-6 border-b border-gray-100 bg-white">
               <div className="flex items-center gap-3.5">
                 <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-[#1A3D63]">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
@@ -2488,7 +2746,7 @@ const AksesSeluruhDataModule = () => {
             </div>
 
             {/* Filter Bar */}
-            <div className="flex-shrink-0 px-6 py-3 border-b border-gray-100 flex items-center justify-between bg-white">
+            <div className="flex-shrink-0 px-6 py-3 border-b border-gray-100 flex flex-wrap items-center justify-between bg-white">
               <div className="flex items-center gap-3">
                 <div className="relative w-64">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" className="absolute inset-y-0 left-3 my-auto text-gray-400"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
@@ -2556,12 +2814,12 @@ const AksesSeluruhDataModule = () => {
             </div>
 
             {/* Footer */}
-            <div className="flex-shrink-0 px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-white">
+            <div className="flex-shrink-0 px-6 py-4 border-t border-gray-100 flex flex-wrap items-center justify-between bg-white">
               <span className="text-xs text-gray-400 font-medium">Data diekstrak pada: Hari ini, 15:42 WIB</span>
               <button 
                 onClick={() => {
+                  handleDownloadCsv();
                   setShowPreviewModal(false);
-                  showToast("Berhasil mendownload dataset lengkap (CSV)!");
                 }}
                 className="flex items-center gap-2 bg-[#1A3D63] hover:bg-[#122a47] text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md shadow-[#1A3D63]/10 transition-all active:scale-[0.98]"
               >
@@ -2576,11 +2834,11 @@ const AksesSeluruhDataModule = () => {
 
       {/* ===== EKSPOR KE EXCEL MODAL ===== */}
       {showExcelModal && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+            <div className="flex flex-wrap items-center justify-between px-6 py-5 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -2603,7 +2861,7 @@ const AksesSeluruhDataModule = () => {
             {/* Body */}
             <div className="px-6 py-5 space-y-5">
               {/* Data Sumber */}
-              <div className="bg-gray-50 rounded-xl p-4 flex items-center justify-between">
+              <div className="bg-gray-50 rounded-xl p-4 flex flex-wrap items-center justify-between">
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">DATA SUMBER</p>
                   <p className="text-sm font-bold text-gray-800">Data Siswa Aktif</p>
@@ -2678,7 +2936,7 @@ const AksesSeluruhDataModule = () => {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+            <div className="px-6 py-4 border-t border-gray-100 flex flex-wrap items-center justify-between">
               <div className="flex items-center gap-2 text-gray-400">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="20 6 9 17 4 12" /></svg>
                 <span className="text-xs font-semibold">File siap diunduh.</span>
@@ -2686,7 +2944,7 @@ const AksesSeluruhDataModule = () => {
               <div className="flex items-center gap-3">
                 <button onClick={() => setShowExcelModal(false)} className="text-sm font-bold text-gray-400 hover:text-gray-600 transition-colors px-4 py-2">Batal</button>
                 <button
-                  onClick={() => { setShowExcelModal(false); showToast("File Excel berhasil dibuat & diunduh!"); }}
+                  onClick={handleDownloadExcel}
                   className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-emerald-600/20 transition-all active:scale-[0.98]"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
@@ -2701,11 +2959,11 @@ const AksesSeluruhDataModule = () => {
 
       {/* ===== EKSPOR KE PDF MODAL ===== */}
       {showPdfModal && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+            <div className="flex flex-wrap items-center justify-between px-6 py-5 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -2727,16 +2985,16 @@ const AksesSeluruhDataModule = () => {
             {/* Body */}
             <div className="px-6 py-5 space-y-5">
               {/* Data Sumber */}
-              <div className="bg-gray-50 rounded-xl p-4 flex items-center justify-between">
+              <div className="bg-gray-50 rounded-xl p-4 flex flex-wrap items-center justify-between">
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">DATA SUMBER</p>
-                  <p className="text-sm font-bold text-gray-800">Data Siswa Aktif</p>
+                  <p className="text-sm font-bold text-gray-800">Tabel {pdfTarget.name}</p>
                 </div>
-                <span className="text-xs font-semibold text-gray-400">1,240 records</span>
+                <span className="text-xs font-semibold text-gray-400">Database SQL</span>
               </div>
 
               {/* Ukuran Kertas + Orientasi */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-bold text-gray-700 mb-2">Ukuran Kertas</p>
                   <div className="relative">
@@ -2796,7 +3054,7 @@ const AksesSeluruhDataModule = () => {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+            <div className="px-6 py-4 border-t border-gray-100 flex flex-wrap items-center justify-between">
               <div className="flex items-center gap-2 text-gray-400">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><circle cx="12" cy="16" r="0.5" fill="currentColor" /></svg>
                 <span className="text-xs font-semibold">Proses ekspor mungkin memakan waktu beberapa detik.</span>
@@ -2804,7 +3062,7 @@ const AksesSeluruhDataModule = () => {
               <div className="flex items-center gap-3">
                 <button onClick={() => setShowPdfModal(false)} className="text-sm font-bold text-gray-400 hover:text-gray-600 transition-colors px-4 py-2">Batal</button>
                 <button
-                  onClick={() => { setShowPdfModal(false); showToast("File PDF berhasil dibuat & diunduh!"); }}
+                  onClick={handleDownloadPdf}
                   className="flex items-center gap-2 bg-[#1A3D63] hover:bg-[#122a47] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-[#1A3D63]/20 transition-all active:scale-[0.98]"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
@@ -2819,11 +3077,11 @@ const AksesSeluruhDataModule = () => {
 
       {/* ===== EKSPOR KE CSV MODAL ===== */}
       {showCsvModal && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+            <div className="flex flex-wrap items-center justify-between px-6 py-5 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -2845,7 +3103,7 @@ const AksesSeluruhDataModule = () => {
             {/* Body */}
             <div className="px-6 py-5 space-y-5">
               {/* Data Sumber */}
-              <div className="bg-gray-50 rounded-xl p-4 flex items-center justify-between">
+              <div className="bg-gray-50 rounded-xl p-4 flex flex-wrap items-center justify-between">
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">DATA SUMBER</p>
                   <p className="text-sm font-bold text-gray-800">Data Siswa Aktif</p>
@@ -2854,7 +3112,7 @@ const AksesSeluruhDataModule = () => {
               </div>
 
               {/* Delimiter + Enkoding */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm font-bold text-gray-700 mb-2">Delimiter (Pemisah)</p>
                   <div className="relative">
@@ -2914,7 +3172,7 @@ const AksesSeluruhDataModule = () => {
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+            <div className="px-6 py-4 border-t border-gray-100 flex flex-wrap items-center justify-between">
               <div className="flex items-center gap-2 text-gray-400">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="20 6 9 17 4 12" /></svg>
                 <span className="text-xs font-semibold">File siap diunduh.</span>
@@ -2922,7 +3180,7 @@ const AksesSeluruhDataModule = () => {
               <div className="flex items-center gap-3">
                 <button onClick={() => setShowCsvModal(false)} className="text-sm font-bold text-gray-400 hover:text-gray-600 transition-colors px-4 py-2">Batal</button>
                 <button
-                  onClick={() => { setShowCsvModal(false); showToast("File CSV berhasil diunduh!"); }}
+                  onClick={handleDownloadCsv}
                   className="flex items-center gap-2 bg-[#1A3D63] hover:bg-[#122a47] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md shadow-[#1A3D63]/20 transition-all active:scale-[0.98]"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
@@ -2950,16 +3208,20 @@ const BackupMaintenanceModule = () => {
   
   const [backups, setBackups] = useState([]);
   const [stats, setStats] = useState({ totalSpace: 1000*1024**3, usedSpace: 0, freeSpace: 1000*1024**3 });
+  const [settings, setSettings] = useState({ isActive: false, frequency: 'weekly', time: '00:00' });
   const [isLoading, setIsLoading] = useState(true);
   const [isBackingUp, setIsBackingUp] = useState(false);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
 
   const fetchData = async () => {
     try {
-      const { getSystemBackups, getSystemStats } = await import('../../api/system');
+      const { getSystemBackups, getSystemStats, getBackupSettings } = await import('../../api/system');
       const bData = await getSystemBackups();
       const sData = await getSystemStats();
+      const setData = await getBackupSettings();
       setBackups(bData || []);
       setStats(sData || { totalSpace: 1000*1024**3, usedSpace: 0, freeSpace: 1000*1024**3 });
+      if (setData) setSettings(setData);
     } catch (e) {
       console.error(e);
     } finally {
@@ -2978,11 +3240,56 @@ const BackupMaintenanceModule = () => {
       await createSystemBackup();
       await fetchData();
       setShowManualBackupModal(false);
-      alert('Backup berhasil dibuat!');
+      window.showToast?.('Backup berhasil dibuat!', 'success') || alert('Backup berhasil dibuat!');
     } catch (e) {
-      alert('Gagal membuat backup!');
+      window.showToast?.('Gagal membuat backup!', 'error') || alert('Gagal membuat backup!');
     } finally {
       setIsBackingUp(false);
+    }
+  };
+
+  const handleDeleteBackup = async (filename) => {
+    if (!window.confirm(`Apakah Anda yakin ingin menghapus backup ${filename}?`)) return;
+    try {
+      const { deleteSystemBackup } = await import('../../api/system');
+      await deleteSystemBackup(filename);
+      await fetchData();
+      window.showToast?.('Backup berhasil dihapus!', 'success');
+    } catch (e) {
+      window.showToast?.('Gagal menghapus backup!', 'error');
+    }
+  };
+
+  const handleDownloadBackup = async (filename) => {
+    try {
+      window.showToast?.('Memulai unduhan...', 'info');
+      const { downloadSystemBackup } = await import('../../api/system');
+      const blob = await downloadSystemBackup(filename);
+      
+      const url = window.URL.createObjectURL(new Blob([blob]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+    } catch (e) {
+      console.error(e);
+      window.showToast?.('Gagal mengunduh backup!', 'error');
+    }
+  };
+
+  const handleSaveSettings = async (newSettings) => {
+    try {
+      setIsSavingSettings(true);
+      const { updateBackupSettings } = await import('../../api/system');
+      await updateBackupSettings(newSettings);
+      setSettings(newSettings);
+      window.showToast?.('Pengaturan backup berhasil disimpan!', 'success');
+    } catch (e) {
+      window.showToast?.('Gagal menyimpan pengaturan backup!', 'error');
+    } finally {
+      setIsSavingSettings(false);
     }
   };
 
@@ -3012,7 +3319,7 @@ const BackupMaintenanceModule = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-start gap-4">
           <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center flex-shrink-0">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#475569" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="12" x2="2" y2="12" /><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" /><line x1="6" y1="16" x2="6.01" y2="16" /><line x1="10" y1="16" x2="14" y2="16" /></svg>
@@ -3076,13 +3383,14 @@ const BackupMaintenanceModule = () => {
                   <th className="px-6 py-4 text-[11px] font-black text-gray-500 uppercase tracking-wider">Ukuran</th>
                   <th className="px-6 py-4 text-[11px] font-black text-gray-500 uppercase tracking-wider">Tipe</th>
                   <th className="px-6 py-4 text-[11px] font-black text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 text-[11px] font-black text-gray-500 uppercase tracking-wider text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {isLoading ? (
-                  <tr><td colSpan="5" className="p-8 text-center text-gray-500">Loading...</td></tr>
+                  <tr><td colSpan="6" className="p-8 text-center text-gray-500">Loading...</td></tr>
                 ) : backups.length === 0 ? (
-                  <tr><td colSpan="5" className="p-8 text-center text-gray-500">Belum ada file backup.</td></tr>
+                  <tr><td colSpan="6" className="p-8 text-center text-gray-500">Belum ada file backup.</td></tr>
                 ) : backups.map((row, i) => (
                   <tr key={i} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4">
@@ -3105,6 +3413,16 @@ const BackupMaintenanceModule = () => {
                         <span className="text-xs font-bold">Berhasil</span>
                       </div>
                     </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button onClick={() => handleDownloadBackup(row.filename)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Unduh Backup">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        </button>
+                        <button onClick={() => handleDeleteBackup(row.filename)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Hapus Backup">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -3114,11 +3432,31 @@ const BackupMaintenanceModule = () => {
 
         <div className="lg:col-span-4 space-y-6">
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-            <h3 className="text-base font-bold text-gray-800 mb-4">Pengaturan Backup Otomatis</h3>
-            <p className="text-xs text-gray-500 mb-4">Fitur ini belum aktif. Server saat ini hanya menerima Backup Manual.</p>
-            <button className="w-full py-3 bg-gray-50 text-gray-400 rounded-xl text-sm font-bold border border-gray-200 cursor-not-allowed">
-              Segera Hadir
-            </button>
+            <div className="flex flex-wrap items-center justify-between mb-4">
+              <h3 className="text-base font-bold text-gray-800">Pengaturan Backup Otomatis</h3>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" className="sr-only peer" checked={settings.isActive} onChange={(e) => handleSaveSettings({ ...settings, isActive: e.target.checked })} disabled={isSavingSettings} />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#1A3D63]"></div>
+              </label>
+            </div>
+            
+            <div className={`space-y-4 transition-opacity ${settings.isActive ? 'opacity-100' : 'opacity-50 pointer-events-none'}`}>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Frekuensi Backup</label>
+                <select value={settings.frequency} onChange={(e) => setSettings({ ...settings, frequency: e.target.value })} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/20">
+                  <option value="daily">Harian (Setiap Hari)</option>
+                  <option value="weekly">Mingguan (Setiap Minggu)</option>
+                  <option value="monthly">Bulanan (Tiap Tanggal 1)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">Waktu Eksekusi</label>
+                <input type="time" value={settings.time} onChange={(e) => setSettings({ ...settings, time: e.target.value })} className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-[#1A3D63] focus:ring-2 focus:ring-[#1A3D63]/20" />
+              </div>
+              <button onClick={() => handleSaveSettings(settings)} disabled={isSavingSettings} className="w-full py-2.5 mt-2 bg-[#1A3D63] text-white rounded-xl text-sm font-bold hover:bg-[#122a47] transition-colors disabled:opacity-50">
+                {isSavingSettings ? 'Menyimpan...' : 'Simpan Pengaturan'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -3229,7 +3567,7 @@ const LogAktivitasModule = () => {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((s, i) => (
           <div key={i} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all">
             <div className={`inline-flex items-center justify-center w-10 h-10 rounded-xl mb-3 ${s.bg}`}>
@@ -3338,7 +3676,7 @@ const LogAktivitasModule = () => {
         </div>
 
         {/* Footer Pagination */}
-        <div className="px-8 py-5 border-t border-gray-50 flex items-center justify-between bg-gray-50/30">
+        <div className="px-8 py-5 border-t border-gray-50 flex flex-wrap items-center justify-between bg-gray-50/30">
           <span className="text-xs font-black text-gray-400 uppercase tracking-tight">Menampilkan {filteredLogs.length} dari {logs.length} log</span>
           <button
             onClick={loadLogs}

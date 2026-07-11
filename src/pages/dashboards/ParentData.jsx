@@ -17,7 +17,7 @@ const AVATAR_COLORS = [
 const Skeleton = () => (
   <div className="animate-pulse">
     {[...Array(6)].map((_, i) => (
-      <div key={i} className="flex items-center gap-4 px-5 py-4 border-b border-gray-50">
+      <div key={i} className="flex flex-wrap items-center gap-4 px-5 py-4 border-b border-gray-50">
         <div className="w-9 h-9 rounded-full bg-gray-200 flex-shrink-0" />
         <div className="flex-1 space-y-2">
           <div className="h-3.5 bg-gray-200 rounded w-1/3" />
@@ -46,10 +46,7 @@ const ParentData = ({ readOnly = false }) => {
   const [kelasList, setKelasList] = useState([]);
   const [selectedKelas, setSelectedKelas] = useState("");
 
-  const showToast = (msg, type = "success") => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
-  };
+  const showToast = window.showToast;
 
   // ── Fetch all orang tua ──
   const fetchParents = async () => {
@@ -162,7 +159,7 @@ const ParentData = ({ readOnly = false }) => {
   if (viewMode === "form") {
     return (
       <div className="p-6 md:p-8 space-y-6 bg-[#F4F6FA] min-h-full">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <button
             onClick={() => setViewMode("list")}
             className="w-10 h-10 flex items-center justify-center bg-white border border-gray-200 rounded-full text-gray-500 hover:bg-gray-50 hover:text-[#1e293b] shadow-sm transition-colors"
@@ -178,7 +175,7 @@ const ParentData = ({ readOnly = false }) => {
         </div>
 
         <form onSubmit={handleSave} className="bg-white rounded-[16px] border border-gray-200 shadow-sm p-6 max-w-3xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="text-[13px] font-bold text-gray-700">Filter Kelas Siswa</label>
               <select

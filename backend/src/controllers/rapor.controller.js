@@ -42,6 +42,15 @@ const RaporController = {
       const data = await RaporService.publish(req.body, req.user.userId);
       return response.success(res, 200, 'Rapor berhasil di-publish', data);
     } catch (err) { next(err); }
+  },
+
+  unpublish: async (req, res, next) => {
+    try {
+      const { siswaId, semesterId } = req.body;
+      if (!siswaId || !semesterId) return response.error(res, 400, 'siswaId dan semesterId wajib diisi');
+      const data = await RaporService.unpublish(siswaId, semesterId);
+      return response.success(res, 200, 'Status rapor berhasil direset', data);
+    } catch (err) { next(err); }
   }
 };
 

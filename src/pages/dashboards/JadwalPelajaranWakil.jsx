@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api/axios";
 
-// Map frontend string to backend integer
-const HARI_MAP = { "Senin": 1, "Selasa": 2, "Rabu": 3, "Kamis": 4, "Jumat": 5, "Sabtu": 6, "Minggu": 7 };
-const HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"];
+const HARI = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 const JAM = ["07:00", "08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00"];
 
 const emptyForm = { mapelId: "", guruId: "", kelasId: "", hari: "Senin", jamMulai: "07:00", jamSelesai: "08:00", semesterId: "" };
@@ -58,12 +56,7 @@ const JadwalPelajaranWakil = () => {
       setSemesterList(resSemester.data.data || []);
       
       const jadwalDataRaw = resJadwal.data.data || [];
-      const INVERSE_HARI_MAP = { 1: "Senin", 2: "Selasa", 3: "Rabu", 4: "Kamis", 5: "Jumat", 6: "Sabtu", 7: "Minggu" };
-      const jadwalData = jadwalDataRaw.map(j => ({
-        ...j,
-        hari: INVERSE_HARI_MAP[j.hari] || j.hari
-      }));
-      setJadwal(jadwalData);
+      setJadwal(jadwalDataRaw);
     } catch (err) {
       console.error("Gagal memuat master data:", err);
     }
@@ -72,7 +65,7 @@ const JadwalPelajaranWakil = () => {
   const conflicts = detectConflicts(jadwal);
   const conflictIds = new Set(conflicts.flatMap(c => c.ids));
 
-  const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast(null), 3000); };
+  const showToast = window.showToast;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -82,7 +75,7 @@ const JadwalPelajaranWakil = () => {
         guruId: form.guruId,
         kelasId: form.kelasId,
         semesterId: form.semesterId,
-        hari: HARI_MAP[form.hari],
+        hari: form.hari,
         jamMulai: form.jamMulai,
         jamSelesai: form.jamSelesai
       };
@@ -237,7 +230,7 @@ const JadwalPelajaranWakil = () => {
 
       {viewMode === "grid" && (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
-          <div className="min-w-[700px]">
+          <div className="min-w-full max-w-[700px]">
             <div className="grid grid-cols-6 border-b border-gray-100">
               <div className="px-4 py-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Jam</div>
               {HARI.map(h => (
@@ -270,14 +263,14 @@ const JadwalPelajaranWakil = () => {
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-fadeIn">
           <div className="bg-white rounded-2xl w-full max-w-[560px] shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+            <div className="px-6 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between sticky top-0 bg-white z-10">
               <h3 className="text-[17px] font-bold text-[#1e293b]">{editId ? "Edit Jadwal" : "Tambah Jadwal Baru"}</h3>
               <button onClick={() => { setShowForm(false); setEditId(null); }} className="text-gray-400 hover:text-gray-600">
                 <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
               </button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[12px] font-bold text-gray-600 mb-1.5">Mata Pelajaran</label>
                   <select value={form.mapelId} onChange={e => setForm({ ...form, mapelId: e.target.value })} required className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-[13px] focus:outline-none focus:ring-2 focus:ring-blue-100">

@@ -3,8 +3,10 @@ import api from "./api/axios";
 import Sidebar from "./components/Sidebar";
 import TopBar from "./components/TopBar";
 import Login from "./pages/Login";
+import Maintenance from "./pages/Maintenance";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import ForceChangePassword from "./pages/ForceChangePassword";
 import SuperAdminDashboard from "./pages/dashboards/SuperAdminDashboard";
 import PlaceholderDashboard from "./pages/dashboards/PlaceholderDashboard";
 import BendaharaDashboard from "./pages/dashboards/BendaharaDashboard";
@@ -17,7 +19,12 @@ import KepalaSekolahDashboard from "./pages/dashboards/KepalaSekolahDashboard";
 const App = () => {
   const [user, setUser] = useState(null);
   const [collapsed, setCollapsed] = useState(true);
-  const [authView, setAuthView] = useState("login");
+  const [authView, setAuthView] = useState(() => {
+    const path = window.location.pathname;
+    if (path === '/reset-password') return 'reset';
+    if (path === '/forgot-password') return 'forgot';
+    return 'login';
+  });
   const [activeMenu, setActiveMenu] = useState("Dashboard");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const scrollContainerRef = React.useRef(null);
@@ -33,24 +40,42 @@ const App = () => {
   }, [activeMenu, user]);
 
   React.useEffect(() => {
-    // Observer to globally detect if any modal is open across the app
-    const checkModals = () => {
-      // Check for any modal that uses the fixed inset-0 pattern
-      // We exclude those with pointer-events-none to prevent false positives
-      const modalElements = document.querySelectorAll('.fixed.inset-0:not(.pointer-events-none)');
-      let hasVisibleModal = false;
-      
-      modalElements.forEach(el => {
-        // Only count if it's not hidden
-        if (window.getComputedStyle(el).display !== 'none' && !el.classList.contains('hidden')) {
-          hasVisibleModal = true;
+    if (!scrollContainerRef.current) return;
+    const scrollObserver = new MutationObserver((mutations) => {
+      let shouldScroll = false;
+      for (const mutation of mutations) {
+        if (mutation.addedNodes) {
+          for (const node of mutation.addedNodes) {
+            if (node.nodeType === 1 && (node.classList.contains('animate-fadeIn') || node.querySelector('.animate-fadeIn'))) {
+              shouldScroll = true;
+              break;
+            }
+          }
         }
-      });
-      
-      setIsModalOpen(hasVisibleModal);
+        if (shouldScroll) break;
+      }
+      if (shouldScroll) {
+        scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
+    scrollObserver.observe(scrollContainerRef.current, { childList: true, subtree: true });
+    return () => scrollObserver.disconnect();
+  }, [user, activeMenu]);
+
+  React.useEffect(() => {
+    // Observer to globally detect if any modal is open across the app
+    let timeoutId;
+    const checkModals = () => {
+      // Debounced check to avoid layout thrashing during React renders
+      const modalElements = document.querySelectorAll('.fixed.inset-0:not(.pointer-events-none):not(.hidden)');
+      // React mostly removes modals from DOM or uses 'hidden' class, so we can skip expensive getComputedStyle
+      setIsModalOpen(modalElements.length > 0);
     };
 
-    const observer = new MutationObserver(checkModals);
+    const observer = new MutationObserver(() => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(checkModals, 50); // Debounce to run after render cycle
+    });
     
     observer.observe(document.body, {
       childList: true,
@@ -62,7 +87,10 @@ const App = () => {
     // Initial check
     checkModals();
     
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, []);
 
   // Inactivity / Idle Timeout Logic
@@ -254,6 +282,7 @@ const App = () => {
     }
   };
   if (!user) {
+    if (authView === "maintenance") return <Maintenance />;
     if (authView === "forgot") {
       return <ForgotPassword
         onBack={() => setAuthView("login")}
@@ -276,8 +305,21 @@ const App = () => {
     return <Login
       onLogin={handleLogin}
       onForgotPassword={() => setAuthView("forgot")}
+      setAuthView={setAuthView}
     />;
   }
+
+  if (user.mustChangePassword) {
+    return <ForceChangePassword 
+      onSuccess={() => {
+        const updatedUser = { ...user, mustChangePassword: false };
+        setUser(updatedUser);
+        localStorage.setItem("siakad_user", JSON.stringify(updatedUser));
+      }} 
+      onLogout={handleLogout} 
+    />;
+  }
+
   return <div className="flex flex-col min-h-screen bg-[#F4F6FA] font-sans h-screen overflow-hidden">
     <div className={`transition-opacity duration-300 ${isModalOpen ? 'pointer-events-none' : ''}`}>
       <TopBar

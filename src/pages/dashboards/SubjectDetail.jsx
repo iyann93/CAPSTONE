@@ -43,8 +43,8 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
       </div>
 
       {/* 4 Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-wrap items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-500">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect></svg>
           </div>
@@ -53,7 +53,7 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
             <div className="text-[24px] font-bold text-[#1e293b] leading-tight mt-0.5">32</div>
           </div>
         </div>
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
+        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-wrap items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
           </div>
@@ -62,7 +62,7 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
             <div className="text-[24px] font-bold text-[#1e293b] leading-tight mt-0.5">1,248</div>
           </div>
         </div>
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
+        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-wrap items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-500">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
           </div>
@@ -71,7 +71,7 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
             <div className="text-[24px] font-bold text-[#1e293b] leading-tight mt-0.5">4 <span className="text-[14px] text-gray-500 font-medium">jam</span></div>
           </div>
         </div>
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4">
+        <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex flex-wrap items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-500">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
           </div>
@@ -88,7 +88,7 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
           
           {/* Card 1: Rata-rata Nilai per Tingkat */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-wrap justify-between items-center mb-6">
               <div className="flex items-center gap-2.5">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
                 <h2 className="text-[15px] font-bold text-[#1e293b]">Rata-rata Nilai per Tingkat</h2>
@@ -98,7 +98,7 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
 
             <div className="space-y-6">
               <div>
-                <div className="flex justify-between items-end mb-2">
+                <div className="flex flex-wrap justify-between items-end mb-2">
                   <div className="text-[13px] font-bold text-gray-700">Kelas VII</div>
                   <div className="text-[12px] text-gray-500 flex gap-3">
                     <span>Rata-rata: <span className="font-bold text-gray-800">80.2</span></span>
@@ -112,7 +112,7 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
               </div>
 
               <div>
-                <div className="flex justify-between items-end mb-2">
+                <div className="flex flex-wrap justify-between items-end mb-2">
                   <div className="text-[13px] font-bold text-gray-700">Kelas VIII</div>
                   <div className="text-[12px] text-gray-500 flex gap-3">
                     <span>Rata-rata: <span className="font-bold text-gray-800">77.8</span></span>
@@ -126,7 +126,7 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
               </div>
 
               <div>
-                <div className="flex justify-between items-end mb-2">
+                <div className="flex flex-wrap justify-between items-end mb-2">
                   <div className="text-[13px] font-bold text-gray-700">Kelas IX</div>
                   <div className="text-[12px] text-gray-500 flex gap-3">
                     <span>Rata-rata: <span className="font-bold text-gray-800">76.4</span></span>
@@ -149,7 +149,7 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
 
           {/* Card 2: Jadwal Mengajar */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+            <div className="p-6 border-b border-gray-100 flex flex-wrap justify-between items-center">
               <div className="flex items-center gap-2.5">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                 <h2 className="text-[15px] font-bold text-[#1e293b]">Jadwal Mengajar</h2>
@@ -214,7 +214,7 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
               </table>
             </div>
             
-            <div className="px-6 py-4 bg-gray-50/50 border-t border-gray-100 flex justify-between items-center">
+            <div className="px-6 py-4 bg-gray-50/50 border-t border-gray-100 flex flex-wrap justify-between items-center">
               <span className="text-[12px] font-medium text-gray-500">Menampilkan 5 dari 32 kelas</span>
               <button className="text-[12px] font-bold text-[#1e293b] flex items-center gap-1 hover:text-blue-600 transition-colors">
                 Lihat semua kelas <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
@@ -224,7 +224,7 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
 
           {/* Card 3: Distribusi Rentang Nilai */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <div className="flex justify-between items-center mb-10">
+            <div className="flex flex-wrap justify-between items-center mb-10">
               <div className="flex items-center gap-2.5">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                 <h2 className="text-[15px] font-bold text-[#1e293b]">Distribusi Rentang Nilai — Semua Kelas</h2>
@@ -233,7 +233,7 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
             </div>
 
             {/* Simple Bar Chart Visualization */}
-            <div className="flex items-end justify-between h-40 border-b border-gray-200 pb-2 mb-6 px-4">
+            <div className="flex flex-wrap items-end justify-between h-40 border-b border-gray-200 pb-2 mb-6 px-4">
               <div className="flex flex-col items-center gap-2">
                 <span className="text-[11px] font-bold text-gray-700">62</span>
                 <div className="w-16 bg-[#ef4444] rounded-t-md" style={{ height: '20px' }}></div>
@@ -276,7 +276,7 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
         </div>
 
         {/* Right Column */}
-        <div className="lg:w-[340px] space-y-6">
+        <div className="lg:w-full max-w-[340px] space-y-6">
                   {/* Card 1: Informasi */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <div className="flex items-center gap-2.5 mb-6">
@@ -285,37 +285,37 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
             </div>
             
             <div className="space-y-4">
-              <div className="flex justify-between border-b border-dashed border-gray-100 pb-3">
+              <div className="flex flex-wrap justify-between border-b border-dashed border-gray-100 pb-3">
                 <span className="text-[13px] text-gray-500 font-medium">Kode</span>
                 <span className="text-[13px] font-bold text-gray-800">{data.kode}</span>
               </div>
-              <div className="flex justify-between border-b border-dashed border-gray-100 pb-3">
+              <div className="flex flex-wrap justify-between border-b border-dashed border-gray-100 pb-3">
                 <span className="text-[13px] text-gray-500 font-medium">Kelompok</span>
                 <span className="text-[13px] font-bold text-gray-800">{data.kelompok}</span>
               </div>
-              <div className="flex justify-between border-b border-dashed border-gray-100 pb-3">
+              <div className="flex flex-wrap justify-between border-b border-dashed border-gray-100 pb-3">
                 <span className="text-[13px] text-gray-500 font-medium">Kurikulum</span>
                 <span className="text-[13px] font-bold text-gray-800">{data.kurikulum || "Kurikulum Merdeka"}</span>
               </div>
-              <div className="flex justify-between border-b border-dashed border-gray-100 pb-3">
+              <div className="flex flex-wrap justify-between border-b border-dashed border-gray-100 pb-3">
                 <span className="text-[13px] text-gray-500 font-medium">Jenjang</span>
                 <span className="text-[13px] font-bold text-gray-800">
                   {data.jenjang ? data.jenjang.map(l => l.replace("Kelas ", "")).join(", ") : (data.levels || "")}
                 </span>
               </div>
-              <div className="flex justify-between border-b border-dashed border-gray-100 pb-3">
+              <div className="flex flex-wrap justify-between border-b border-dashed border-gray-100 pb-3">
                 <span className="text-[13px] text-gray-500 font-medium">Jam / Minggu</span>
                 <span className="text-[13px] font-bold text-gray-800">{data.jam || data.hours} jam</span>
               </div>
-              <div className="flex justify-between border-b border-dashed border-gray-100 pb-3">
+              <div className="flex flex-wrap justify-between border-b border-dashed border-gray-100 pb-3">
                 <span className="text-[13px] text-gray-500 font-medium">Durasi Sesi</span>
                 <span className="text-[13px] font-bold text-gray-800">{data.durasi || "45"} menit</span>
               </div>
-              <div className="flex justify-between border-b border-dashed border-gray-100 pb-3">
+              <div className="flex flex-wrap justify-between border-b border-dashed border-gray-100 pb-3">
                 <span className="text-[13px] text-gray-500 font-medium">KKM</span>
                 <span className="text-[13px] font-bold text-gray-800">{data.kkm || "75"}</span>
               </div>
-              <div className="flex justify-between pt-1">
+              <div className="flex flex-wrap justify-between pt-1">
                 <span className="text-[13px] text-gray-500 font-medium">Masuk Rapor</span>
                 <span className="text-[13px] font-bold text-gray-800">{data.masukRapor ? "Ya" : "Tidak"}</span>
               </div>
@@ -330,7 +330,7 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
             </div>
             
             {data.guru && data.guru.name && data.guru.name !== "-" ? (
-              <div className="border border-gray-200 rounded-xl p-4 flex items-center gap-4">
+              <div className="border border-gray-200 rounded-xl p-4 flex flex-wrap items-center gap-4">
                 <div className="w-11 h-11 rounded-full bg-[#1e293b] flex items-center justify-center text-white text-[14px] font-bold shadow-sm flex-shrink-0">
                   {data.guru.id || data.guru.name.substring(0, 2).toUpperCase()}
                 </div>
@@ -394,15 +394,15 @@ const SubjectDetail = ({ data, onBack, onEdit, onDelete }) => {
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Informasi Data</div>
             <div className="space-y-3">
-              <div className="flex justify-between text-[12px]">
+              <div className="flex flex-wrap justify-between text-[12px]">
                 <span className="text-gray-500">Dibuat</span>
                 <span className="font-bold text-gray-800">17 Jul 2023</span>
               </div>
-              <div className="flex justify-between text-[12px]">
+              <div className="flex flex-wrap justify-between text-[12px]">
                 <span className="text-gray-500">Terakhir diperbarui</span>
                 <span className="font-bold text-gray-800">12 Okt 2023</span>
               </div>
-              <div className="flex justify-between text-[12px]">
+              <div className="flex flex-wrap justify-between text-[12px]">
                 <span className="text-gray-500">Diperbarui oleh</span>
                 <span className="font-bold text-gray-800">Siti Rahayu</span>
               </div>

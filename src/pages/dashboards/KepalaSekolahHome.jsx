@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import StatCard from "../../components/StatCard";
 import { getGlobalFinanceSummary } from "../../utils/financeHelpers";
+import { getAnnouncements } from "../../utils/announcementStore";
 
 const UsersIcon = () => (
   <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
@@ -52,6 +53,11 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
     totalPemasukan: 0,
     totalPengeluaran: 0
   });
+  const [liveAnn, setLiveAnn] = useState([]);
+
+  useEffect(() => {
+    setLiveAnn(getAnnouncements().slice(0, 3));
+  }, []);
 
   const [stats, setStats] = useState({
     total_siswa: "...",
@@ -99,6 +105,8 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
   };
 
   const formatShortRupiah = (value) => {
+    if (value >= 1000000000) return `Rp ${(value / 1000000000).toFixed(2)} M`;
+    if (value >= 1000000) return `Rp ${(value / 1000000).toFixed(0)} Jt`;
     return formatRupiah(value);
   };
 
@@ -117,7 +125,7 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="animate-fadeIn cursor-pointer" onClick={() => onNavigate("Persetujuan Kurikulum")} style={{ animationDelay: "0ms" }}>
           <StatCard
             title="Total Guru"
@@ -160,12 +168,12 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-2">
+      <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6 mt-2">
         
         {/* Ringkasan Arus Kas */}
         <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm flex flex-col justify-between animate-fadeIn" style={{ animationDelay: "320ms" }}>
           <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-wrap justify-between items-center mb-6">
               <div>
                 <h3 className="text-[16px] font-bold text-gray-800">Ringkasan Arus Kas</h3>
                 <p className="text-[12px] text-gray-500 mt-0.5">Total akumulasi keuangan sekolah</p>
@@ -177,7 +185,7 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
             
             <div className="space-y-5">
               <div>
-                <div className="flex justify-between text-[13px] font-medium text-gray-500 mb-2">
+                <div className="flex flex-wrap justify-between text-[13px] font-medium text-gray-500 mb-2">
                   <span>Total Pemasukan</span>
                   <span className="text-gray-800 font-black">{formatShortRupiah(financialData.totalPemasukan)}</span>
                 </div>
@@ -187,22 +195,12 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
               </div>
               
               <div>
-                <div className="flex justify-between text-[13px] font-medium text-gray-500 mb-2">
+                <div className="flex flex-wrap justify-between text-[13px] font-medium text-gray-500 mb-2">
                   <span>Total Pengeluaran</span>
                   <span className="text-gray-800 font-black">{formatShortRupiah(financialData.totalPengeluaran)}</span>
                 </div>
                 <div className="w-full bg-gray-50 rounded-full h-2.5 overflow-hidden border border-gray-100">
                   <div className="bg-[#e11d48] h-full rounded-full" style={{ width: financialData.totalPemasukan > 0 ? `${Math.min((financialData.totalPengeluaran / financialData.totalPemasukan) * 100, 100)}%` : '0%' }}></div>
-                </div>
-              </div>
-              
-              <div>
-                <div className="flex justify-between text-[13px] font-medium text-gray-500 mb-2">
-                  <span>Sisa Saldo Keuangan</span>
-                  <span className="text-gray-800 font-black">{formatShortRupiah(financialData.totalPemasukan - financialData.totalPengeluaran)}</span>
-                </div>
-                <div className="w-full bg-gray-50 rounded-full h-2.5 overflow-hidden border border-gray-100">
-                  <div className="bg-[#10b981] h-full rounded-full" style={{ width: financialData.totalPemasukan > 0 ? `${Math.max(0, ((financialData.totalPemasukan - financialData.totalPengeluaran) / financialData.totalPemasukan) * 100)}%` : '0%' }}></div>
                 </div>
               </div>
             </div>
@@ -217,6 +215,51 @@ const KepalaSekolahHome = ({ user, onNavigate }) => {
         </div>
 
       </div>
+
+      {/* Pengumuman Sekolah Terbaru */}
+      {liveAnn.length > 0 && (
+        <div className="bg-white border border-gray-100 rounded-[24px] p-6 shadow-sm animate-fadeIn" style={{ animationDelay: "480ms" }}>
+          <div className="flex flex-wrap justify-between items-center mb-5">
+            <div>
+              <h3 className="text-[16px] font-bold text-gray-800">Pengumuman Sekolah Terbaru</h3>
+              <p className="text-[12px] text-gray-500 mt-0.5">Informasi resmi dari Admin TU</p>
+            </div>
+            <button
+              onClick={() => onNavigate && onNavigate("Pengumuman Sekolah")}
+              className="text-[12px] font-bold text-[#1A3D63] hover:underline"
+            >
+              Lihat Semua →
+            </button>
+          </div>
+          <div className="space-y-3">
+            {liveAnn.map(ann => (
+              <div key={ann.id} className="flex items-start gap-3 p-4 rounded-2xl bg-gray-50 border border-gray-100 hover:bg-blue-50/30 transition-colors">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                  ann.importance === "Penting" ? "bg-red-100" : "bg-blue-100"
+                }`}>
+                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke={ann.importance === "Penting" ? "#dc2626" : "#2563eb"} strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832"/>
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <p className="text-[13px] font-bold text-gray-800 truncate">{ann.title}</p>
+                    {ann.importance === "Penting" && (
+                      <span className="px-1.5 py-0.5 bg-red-100 text-red-600 text-[9px] font-bold rounded flex-shrink-0">PENTING</span>
+                    )}
+                  </div>
+                  <p className="text-[12px] text-gray-500 line-clamp-1">{ann.desc}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[11px] text-gray-400">{ann.date}</span>
+                    <span className="w-1 h-1 bg-gray-300 rounded-full"/>
+                    <span className="text-[11px] text-blue-500 font-medium">{ann.category}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

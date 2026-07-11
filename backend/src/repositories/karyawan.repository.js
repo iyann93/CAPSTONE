@@ -7,28 +7,28 @@ const KaryawanRepository = {
     const sql = `
       SELECT id, nip, nama, jenis_kelamin, tanggal_lahir,
              alamat, no_telepon, email, jabatan, departemen, is_active, created_at
-      FROM shared.karyawan
+      FROM academic.karyawan
       ORDER BY nama ASC
       LIMIT $1 OFFSET $2
     `;
-    const countSql = `SELECT COUNT(*) FROM shared.karyawan`;
+    const countSql = `SELECT COUNT(*) FROM academic.karyawan`;
     const [data, count] = await Promise.all([query(sql, [limit, offset]), query(countSql)]);
     return { rows: data.rows, total: parseInt(count.rows[0].count, 10) };
   },
 
   findById: async (id) => {
-    const result = await query('SELECT * FROM shared.karyawan WHERE id = $1', [id]);
+    const result = await query('SELECT * FROM academic.karyawan WHERE id = $1', [id]);
     return result.rows[0] || null;
   },
 
   findByNip: async (nip) => {
-    const result = await query('SELECT id FROM shared.karyawan WHERE nip = $1', [nip]);
+    const result = await query('SELECT id FROM academic.karyawan WHERE nip = $1', [nip]);
     return result.rows[0] || null;
   },
 
   create: async ({ nip, nama, jenisKelamin, tanggalLahir, alamat, noTelepon, email, jabatan, departemen }) => {
     const sql = `
-      INSERT INTO shared.karyawan
+      INSERT INTO academic.karyawan
         (nip, nama, jenis_kelamin, tanggal_lahir, alamat, no_telepon, email, jabatan, departemen, is_active, created_at)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true, NOW())
       RETURNING *
@@ -39,7 +39,7 @@ const KaryawanRepository = {
 
   update: async (id, { nip, nama, jenisKelamin, tanggalLahir, alamat, noTelepon, email, jabatan, departemen, isActive }) => {
     const sql = `
-      UPDATE shared.karyawan
+      UPDATE academic.karyawan
       SET nip           = COALESCE($1, nip),
           nama          = COALESCE($2, nama),
           jenis_kelamin = COALESCE($3, jenis_kelamin),
@@ -58,7 +58,7 @@ const KaryawanRepository = {
   },
 
   delete: async (id) => {
-    const result = await query('DELETE FROM shared.karyawan WHERE id = $1 RETURNING id', [id]);
+    const result = await query('DELETE FROM academic.karyawan WHERE id = $1 RETURNING id', [id]);
     return result.rows[0] || null;
   },
 };

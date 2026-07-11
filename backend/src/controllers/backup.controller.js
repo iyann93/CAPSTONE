@@ -102,23 +102,96 @@ exports.deleteBackup = (req, res, next) => {
   }
 };
 
-exports.getStats = (req, res, next) => {
-  try {
-    // We simulate total disk stats using fs.statfsSync if available, or just mock it for Windows compatibility
-    let totalSpace = 1000 * 1024 * 1024 * 1024; // 1 TB
-    let freeSpace = 150 * 1024 * 1024 * 1024; // 150 GB
+const SETTINGS_FILE = path.join(__dirname, '../../data/backup_settings.json');
 
+const getSettingsData = () => {
+  if (fs.existsSync(SETTINGS_FILE)) {
+    return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
+  }
+  return { isActive: false, frequency: 'weekly', time: '00:00' };
+};
+
+exports.getSettings = (req, res, next) => {
+  try {
+    res.json({ success: true, data: getSettingsData() });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.updateSettings = (req, res, next) => {
+  try {
+    const newSettings = req.body;
+    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(newSettings, null, 2));
+    
+    // We will create the scheduler module next
     try {
-      if (fs.statfsSync) {
-        const stats = fs.statfsSync(__dirname);
-        totalSpace = stats.blocks * stats.bsize;
-        freeSpace = stats.bfree * stats.bsize;
-      }
-    } catch (e) {
-      // ignore
+      const scheduler = require('../utils/scheduler');
+      scheduler.reload();
+    } catch(e) {}
+    
+    res.json({ success: true, data: newSettings });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.downloadBackup = (req, res, next) => {
+  try {
+    const { filename } = req.params;
+    const filePath = path.join(BACKUP_DIR, filename);
+    
+    if (fs.existsSync(filePath)) {
+      res.download(filePath, filename);
+    } else {
+      res.status(404).json({ success: false, message: 'Backup not found' });
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getStats = async (req, res, next) => {
+  try {
+    // 1. Get Database size
+    const dbRes = await pool.query(`SELECT pg_database_size(current_database()) as size`);
+    let dbSize = 0;
+    if (dbRes.rows.length > 0) {
+      dbSize = parseInt(dbRes.rows[0].size, 10);
     }
 
-    const usedSpace = totalSpace - freeSpace;
+    // 2. Get backup folder size
+    let backupSize = 0;
+    let lastBackup = 'Belum Ada';
+    if (fs.existsSync(BACKUP_DIR)) {
+      const files = fs.readdirSync(BACKUP_DIR).filter(file => file.endsWith('.json'));
+      files.forEach(file => {
+        const stats = fs.statSync(path.join(BACKUP_DIR, file));
+        backupSize += stats.size;
+      });
+      
+      if (files.length > 0) {
+        lastBackup = 'Berhasil';
+      }
+    }
+
+    // 3. Get announcements folder size
+    const ANNOUNCEMENT_DIR = path.join(__dirname, '../../data/announcements');
+    let announcementsSize = 0;
+    if (fs.existsSync(ANNOUNCEMENT_DIR)) {
+      const files = fs.readdirSync(ANNOUNCEMENT_DIR);
+      files.forEach(file => {
+        const stats = fs.statSync(path.join(ANNOUNCEMENT_DIR, file));
+        announcementsSize += stats.size;
+      });
+    }
+
+    // 4. Return combined used space
+    const usedSpace = dbSize + backupSize + announcementsSize;
+    
+    // Let's set total space to 5 GB (or 10 GB) to show a realistic percentage for a small web app
+    const totalSpace = 5 * 1024 * 1024 * 1024; // 5 GB
+    const freeSpace = totalSpace - usedSpace;
 
     res.json({
       success: true,
@@ -126,8 +199,9 @@ exports.getStats = (req, res, next) => {
         totalSpace,
         usedSpace,
         freeSpace,
-        lastBackup: 'Berhasil', // we can compute from files but this is fine
-        dbStatus: 'Optimal'
+        lastBackup,
+        dbStatus: 'Optimal',
+        uptime: process.uptime()
       }
     });
   } catch (err) {

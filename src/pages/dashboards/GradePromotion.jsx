@@ -62,7 +62,13 @@ const GradePromotion = () => {
         const isVIII = nameUpper.includes("VIII");
         const tingkat = isVII ? "Kelas VII" : isVIII ? "Kelas VIII" : "Kelas IX";
         
-        const classStudents = allSiswa.filter(s => s.kelas_id === c.id);
+        const classStudents = allSiswa.filter(s => {
+          const kDataForStudent = kenaikanData.find(kd => kd.siswa_id === s.id);
+          if (kDataForStudent) {
+            return kDataForStudent.kelas_asal_id === c.id;
+          }
+          return s.kelas_id === c.id;
+        });
         const actualCount = classStudents.length;
         const finalTotal = actualCount > 0 ? actualCount : (c.kapasitas || 0);
         
@@ -105,7 +111,7 @@ const GradePromotion = () => {
 
   const handleSavePromotion = async () => {
     await fetchState();
-    setView("list");
+    setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
   };
 
   const filtered = activeTab === "Semua Tingkat"
@@ -175,13 +181,13 @@ const GradePromotion = () => {
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#10b981" strokeWidth="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
             Progress Kenaikan Kelas — {activeTahunAjaran?.tahun_ajaran || "Tahun Ajaran Aktif"}
           </div>
-          <div className="flex items-center gap-4 text-[13px]">
+          <div className="flex flex-wrap items-center gap-4 text-[13px]">
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-green-500 inline-block" /> Selesai: {selesai} kelas</span>
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block" /> Proses: {proses} kelas</span>
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-gray-300 inline-block" /> Belum: {belumProses} kelas</span>
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
             <div className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all" style={{ width: `${progressPct}%` }} />
           </div>
@@ -191,7 +197,7 @@ const GradePromotion = () => {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
+      <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
         {[
           { label: "Total Siswa", value: totalSiswa, subText: "Seluruh kelas" },
           { label: "Naik Kelas", value: totalNaik, subText: `${totalSiswa > 0 ? Math.round((totalNaik/totalSiswa)*100) : 0}% dari total` },
@@ -264,12 +270,12 @@ const GradePromotion = () => {
                   <td className="px-5 py-4"><StatusBadge status={row.status} /></td>
                   <td className="px-5 py-4">
                     {row.status === "Belum Diproses" ? (
-                      <button onClick={() => { setSelectedClass(row); setView("process"); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#2A4365] hover:bg-[#1A365D] text-white rounded-lg text-[12px] font-bold transition-colors">
+                      <button onClick={() => { setSelectedClass(row); setView("process"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-[#2A4365] hover:bg-[#1A365D] text-white rounded-lg text-[12px] font-bold transition-colors">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
                         Proses
                       </button>
                     ) : (
-                      <button onClick={() => { setSelectedClass(row); setView("detail"); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg text-[12px] font-bold transition-colors">
+                      <button onClick={() => { setSelectedClass(row); setView("detail"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 rounded-lg text-[12px] font-bold transition-colors">
                         <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                         Detail
                       </button>
@@ -282,7 +288,7 @@ const GradePromotion = () => {
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
+        <div className="flex flex-wrap items-center justify-between px-6 py-4 border-t border-gray-100">
           <p className="text-[13px] text-gray-500">Menampilkan {(page - 1) * perPage + 1}-{Math.min(page * perPage, filtered.length)} dari {filtered.length} kelas</p>
           <div className="flex items-center gap-1">
             <button
@@ -335,7 +341,7 @@ const GradePromotion = () => {
                 { label: "Nilai per mata pelajaran minimum", value: "≥ 60", color: "bg-purple-50 text-purple-600 border border-purple-100" },
                 { label: "Maks. mapel nilai di bawah KKM", value: "≤ 2 mapel", color: "bg-amber-50 text-amber-600 border border-amber-100" },
               ].map((item, i) => (
-                <div key={i} className="flex items-center justify-between py-3.5 border-b border-gray-50 last:border-0">
+                <div key={i} className="flex flex-wrap items-center justify-between py-3.5 border-b border-gray-50 last:border-0">
                   <div className="flex items-center gap-2.5">
                     <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="#94a3b8" strokeWidth="2" className="flex-shrink-0">
                       <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
@@ -358,7 +364,7 @@ const GradePromotion = () => {
               <button onClick={() => setShowCriteria(false)} className="flex-1 py-3 rounded-xl border border-gray-200 text-[14px] font-bold text-gray-600 hover:bg-gray-50 transition-colors">
                 Tutup
               </button>
-              <button onClick={() => { setShowCriteria(false); setView("criteria"); }} className="flex-1 py-3 rounded-xl bg-[#2A4365] hover:bg-[#1A365D] text-white text-[14px] font-bold transition-colors">
+              <button onClick={() => { setShowCriteria(false); setView("criteria"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} className="flex-1 py-3 rounded-xl bg-[#2A4365] hover:bg-[#1A365D] text-white text-[14px] font-bold transition-colors">
                 Edit Kriteria
               </button>
             </div>

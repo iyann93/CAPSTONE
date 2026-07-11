@@ -31,7 +31,7 @@ const SalaryEstimation = () => {
       </div>
       <div className="flex flex-col gap-4">
         {salaryItems.map((item) => <div key={item.label}>
-            <div className="flex justify-between items-center mb-1.5">
+            <div className="flex flex-wrap justify-between items-center mb-1.5">
               <span className="text-xs text-gray-500">
                 {item.label}{" "}
                 <span className="text-gray-400">({item.count})</span>

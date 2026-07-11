@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { getAnnouncements } from "../../utils/announcementStore";
+import { getNotifications } from "../../utils/notificationStore";
 
 const WaliKelasHome = ({ user, onNavigate }) => {
   const classData = {
@@ -8,6 +10,16 @@ const WaliKelasHome = ({ user, onNavigate }) => {
     jumlahSiswa: 32,
   };
 
+  const [liveAnn, setLiveAnn] = useState([]);
+  const [liveNotifications, setLiveNotifications] = useState([]);
+
+  useEffect(() => {
+    setLiveAnn(getAnnouncements().slice(0, 3));
+    const allNotifs = getNotifications();
+    const waliNotifs = allNotifs.filter(n => n.roleTarget === "Wali Kelas");
+    setLiveNotifications(waliNotifs.slice(0, 3));
+  }, []);
+
   const today = new Date().toLocaleDateString("id-ID", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
 
   return (
@@ -15,7 +27,7 @@ const WaliKelasHome = ({ user, onNavigate }) => {
       {/* Header Greeting */}
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
-          <h1 className="text-[26px] font-bold text-[#1e293b]">Selamat Datang! 👋</h1>
+          <h1 className="text-[26px] font-bold text-[#1e293b]">Selamat Datang!</h1>
           <p className="text-[14px] text-gray-500 mt-1">
             {classData.waliKelas} · Wali Kelas {classData.kelas}
           </p>
@@ -31,7 +43,7 @@ const WaliKelasHome = ({ user, onNavigate }) => {
       {/* Class Overview Card */}
       <div className="bg-gradient-to-r from-[#1A3D63] to-[#2A5F8F] rounded-2xl p-6 text-white shadow-lg">
         <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-white text-[20px] font-bold border-2 border-white/30">
               <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
@@ -45,7 +57,7 @@ const WaliKelasHome = ({ user, onNavigate }) => {
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-right">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-right">
             <div>
               <p className="text-blue-200 text-[11px]">Total Siswa</p>
               <p className="text-[14px] font-bold">{classData.jumlahSiswa} Orang</p>
@@ -59,10 +71,10 @@ const WaliKelasHome = ({ user, onNavigate }) => {
       </div>
 
       {/* Content Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-3 gap-5">
         {/* Stat Card */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col justify-center">
-          <div className="flex items-start justify-between mb-3">
+          <div className="flex flex-wrap items-start justify-between mb-3">
             <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
               <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2" className="text-blue-600">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/>
@@ -153,6 +165,76 @@ const WaliKelasHome = ({ user, onNavigate }) => {
           </div>
         </div>
       </div>
+
+      {/* Notifikasi Sistem / Akademik */}
+      {liveNotifications.length > 0 && (
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-5 shadow-sm space-y-4">
+          <div className="flex items-center gap-2 mb-2">
+            <h3 className="text-[15px] font-bold text-[#1A3D63]">Notifikasi Akademik</h3>
+            <span className="px-2 py-0.5 bg-blue-600 text-white text-[10px] font-bold rounded-full">{liveNotifications.length} Baru</span>
+          </div>
+          <div className="space-y-3">
+            {liveNotifications.map(notif => (
+              <div key={notif.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-blue-100 shadow-sm">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+                    <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#2563eb" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-[14px] font-bold text-gray-800">{notif.title}</h4>
+                    <p className="text-[12px] text-gray-500 mt-0.5 leading-snug">{notif.message}</p>
+                    <span className="text-[10px] text-gray-400 mt-1.5 block">{notif.date}</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => onNavigate && onNavigate("Rapor Siswa")}
+                  className="flex shrink-0 items-center justify-center gap-2 px-4 py-2 bg-[#1A3D63] hover:bg-[#122A44] text-white text-[12px] font-bold rounded-lg transition-colors border-none cursor-pointer"
+                >
+                  Generate Rapor
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Pengumuman Sekolah Terbaru */}
+      {liveAnn.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+          <div className="flex flex-wrap items-center justify-between mb-4">
+            <h3 className="text-[15px] font-bold text-gray-800">Pengumuman Sekolah Terbaru</h3>
+            <button onClick={() => onNavigate && onNavigate("Pengumuman Sekolah")} className="text-[12px] font-bold text-[#1A3D63] hover:underline">Lihat Semua →</button>
+          </div>
+          <div className="space-y-3">
+            {liveAnn.map(ann => (
+              <div
+                key={ann.id}
+                onClick={() => onNavigate && onNavigate("Pengumuman Sekolah")}
+                className="flex items-start gap-3 p-3.5 rounded-xl bg-gray-50 border border-gray-100 hover:bg-blue-50/30 cursor-pointer transition-colors"
+              >
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${ann.importance === "Penting" ? "bg-red-100" : "bg-blue-100"}`}>
+                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke={ann.importance === "Penting" ? "#dc2626" : "#2563eb"} strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832"/>
+                  </svg>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <p className="text-[13px] font-semibold text-gray-800 truncate">{ann.title}</p>
+                    {ann.importance === "Penting" && <span className="px-1.5 py-0.5 bg-red-100 text-red-600 text-[9px] font-bold rounded flex-shrink-0">PENTING</span>}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] text-gray-400">{ann.date}</span>
+                    <span className="w-1 h-1 bg-gray-300 rounded-full"/>
+                    <span className="text-[11px] text-blue-500 font-medium">{ann.category}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

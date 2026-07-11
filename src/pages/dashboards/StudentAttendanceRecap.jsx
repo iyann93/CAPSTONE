@@ -57,7 +57,7 @@ const StudentAttendanceRecap = ({ classData, onBack }) => {
         {/* Left Content */}
         <div className="flex-1 space-y-6">
           {/* Stat Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-blue-50 rounded-[16px] p-5">
               <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center text-blue-500 mb-3">
                 <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
@@ -115,7 +115,7 @@ const StudentAttendanceRecap = ({ classData, onBack }) => {
 
           {/* Table - Rekap Per Siswa */}
           <div className="bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-gray-100 flex justify-between items-center">
+            <div className="p-5 border-b border-gray-100 flex flex-wrap justify-between items-center">
               <h3 className="text-[15px] font-bold text-[#1e293b]">Rekap Per Siswa</h3>
               <div className="relative w-[220px]">
                 <input type="text" placeholder="Cari siswa..." className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] bg-gray-50 focus:bg-white transition-all" />
@@ -217,7 +217,7 @@ const StudentAttendanceRecap = ({ classData, onBack }) => {
                 </svg>
               </div>
               {/* VII-axis labels */}
-              <div className="flex justify-between text-[11px] text-gray-400 font-medium mt-2">
+              <div className="flex flex-wrap justify-between text-[11px] text-gray-400 font-medium mt-2">
                 <span>Jul</span><span>Ags</span><span>Sep</span><span>Okt</span><span>Nov</span>
               </div>
             </div>
@@ -229,7 +229,7 @@ const StudentAttendanceRecap = ({ classData, onBack }) => {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
               Kehadiran Rendah (&lt;80%)
             </h3>
-            <div className="bg-orange-50 border border-orange-100 rounded-xl p-4 flex justify-between items-center">
+            <div className="bg-orange-50 border border-orange-100 rounded-xl p-4 flex flex-wrap justify-between items-center">
               <div>
                 <p className="text-[14px] font-bold text-[#1e293b]">Fajar Setiawan</p>
                 <p className="text-[11px] text-gray-400 font-mono">2023005</p>
@@ -244,7 +244,7 @@ const StudentAttendanceRecap = ({ classData, onBack }) => {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
               Siswa dengan Alpha
             </h3>
-            <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex justify-between items-center">
+            <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex flex-wrap justify-between items-center">
               <div>
                 <p className="text-[14px] font-bold text-[#1e293b]">Fajar Setiawan</p>
                 <p className="text-[11px] text-gray-400 font-mono">2023005</p>
@@ -258,7 +258,7 @@ const StudentAttendanceRecap = ({ classData, onBack }) => {
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-4">Informasi Rekap</h3>
             <div className="space-y-3">
               {[["Kelas", classData.name],["Bulan","November 2023"],["Total Hari Efektif","19 hari"],["Total Siswa","10 siswa"],["Rata-rata Kehadiran", avgPct + "%"]].map(([k,v]) => (
-                <div key={k} className="flex justify-between text-[13px]">
+                <div key={k} className="flex flex-wrap justify-between text-[13px]">
                   <span className="text-gray-500">{k}</span>
                   <span className="font-bold text-[#1e293b]">{v}</span>
                 </div>

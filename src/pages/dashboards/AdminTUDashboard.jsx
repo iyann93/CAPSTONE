@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import Profile from "../Profile";
 import PlaceholderDashboard from "./PlaceholderDashboard";
 import Subjects from "./Subjects";
@@ -8,6 +9,7 @@ import Schedules from "./Schedules";
 import GradePromotion from "./GradePromotion";
 import GraduationData from "./GraduationData";
 import StudentData from "./StudentData";
+import StudentForm from "./StudentForm";
 import StudentAttendance from "./StudentAttendance";
 import ParentData from "./ParentData";
 import EmployeeData from "./EmployeeData";
@@ -26,6 +28,32 @@ const AdminTUDashboard = ({ user, activeMenu, onViewChange }) => {
   const [totalTidakHadir, setTotalTidakHadir] = useState(0);
   const [totalMapel, setTotalMapel] = useState(0);
   const [totalMapelAktif, setTotalMapelAktif] = useState(0);
+  const [toastMsg, setToastMsg] = useState(null);
+
+  const showToast = (msg, type = "error") => {
+    setToastMsg({ msg, type });
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
+  const hasPermission = (menu) => {
+    if (menu === "Dashboard" || menu === "My Profile") return true;
+    try {
+      const perms = JSON.parse(localStorage.getItem('rolePermissions') || '{}');
+      const roleId = user?.role?.toLowerCase().replace(/\s+/g, '');
+      if (roleId === 'superadmin' || !perms || Object.keys(perms).length === 0) return true;
+      const userPerms = perms[roleId];
+      if (userPerms && userPerms[menu]) return userPerms[menu].lihat === true;
+      return false;
+    } catch { return true; }
+  };
+
+  const handleViewChange = (menu) => {
+    if (hasPermission(menu)) {
+      if (onViewChange) onViewChange(menu);
+    } else {
+      showToast(`Akses ditolak: Anda tidak memiliki izin untuk membuka menu ${menu}.`, "error");
+    }
+  };
 
   useEffect(() => {
     if (activeMenu === "Dashboard" || !activeMenu) {
@@ -109,64 +137,33 @@ const AdminTUDashboard = ({ user, activeMenu, onViewChange }) => {
       fetchDashboardData();
     }
   }, [activeMenu]);
-  if (activeMenu === "Mata Pelajaran") {
-    return <Subjects />;
-  }
-
-  if (activeMenu === "Semester") {
-    return <Semester />;
-  }
-
-  if (activeMenu === "Data Kelas") {
-    return <Classes />;
-  }
-
-  if (activeMenu === "Jadwal Pelajaran") {
-    return <Schedules />;
-  }
-
-  if (activeMenu === "Kenaikan Kelas") {
-    return <GradePromotion />;
-  }
-
-  if (activeMenu === "Data Kelulusan") {
-    return <GraduationData />;
-  }
-
+  if (activeMenu === "Mata Pelajaran") return hasPermission(activeMenu) ? <Subjects /> : <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
+  if (activeMenu === "Semester") return hasPermission(activeMenu) ? <Semester /> : <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
+  if (activeMenu === "Data Kelas") return hasPermission(activeMenu) ? <Classes /> : <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
+  if (activeMenu === "Jadwal Pelajaran") return hasPermission(activeMenu) ? <Schedules /> : <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
+  if (activeMenu === "Kenaikan Kelas") return hasPermission(activeMenu) ? <GradePromotion /> : <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
+  if (activeMenu === "Data Kelulusan") return hasPermission(activeMenu) ? <GraduationData /> : <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
+  
   if (activeMenu === "Data Siswa") {
-    return <StudentData />;
+    if (!hasPermission(activeMenu)) return <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
+    const iv = sessionStorage.getItem("studentInitialView") || "list";
+    sessionStorage.removeItem("studentInitialView"); // reset for next normal navigation
+    return <StudentData initialView={iv} />;
   }
 
-  if (activeMenu === "Absensi Siswa") {
-    return <StudentAttendance />;
-  }
-
-  if (activeMenu === "Data Orang Tua") {
-    return <ParentData />;
-  }
-
-  if (activeMenu === "My Profile") {
-    return <Profile user={user} />;
-  }
-
-  if (activeMenu === "Riwayat Terima Gaji") {
-    return <GuruRiwayatTerimaGaji user={user} />;
-  }
-
-  if (activeMenu === "Data Guru") {
-    return <EmployeeData />;
-  }
-
-  if (activeMenu === "Pengumuman Sekolah") {
-    return <PengumumanSekolah user={user} />;
-  }
+  if (activeMenu === "Absensi Siswa") return hasPermission(activeMenu) ? <StudentAttendance /> : <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
+  if (activeMenu === "Data Orang Tua") return hasPermission(activeMenu) ? <ParentData /> : <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
+  if (activeMenu === "My Profile") return <Profile user={user} />;
+  if (activeMenu === "Riwayat Terima Gaji") return hasPermission(activeMenu) ? <GuruRiwayatTerimaGaji user={user} /> : <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
+  if (activeMenu === "Data Guru") return hasPermission(activeMenu) ? <EmployeeData /> : <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
+  if (activeMenu === "Pengumuman Sekolah") return hasPermission(activeMenu) ? <PengumumanSekolah user={user} /> : <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
 
   if (activeMenu !== "Dashboard") {
     return <PlaceholderDashboard user={user} activeMenu={activeMenu} />;
   }
 
   if (viewMode === "detail" && selectedStudent) {
-    return <StudentDetail student={selectedStudent} onBack={() => setViewMode("dashboard")} onEdit={() => { onViewChange && onViewChange("Data Siswa"); setViewMode("dashboard"); }} />;
+    return <StudentDetail student={selectedStudent} onBack={() => setViewMode("dashboard")} onEdit={() => { handleViewChange("Data Siswa"); setViewMode("dashboard"); }} />;
   }
 
   return (
@@ -191,7 +188,7 @@ const AdminTUDashboard = ({ user, activeMenu, onViewChange }) => {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
+      <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
         {/* Card 1: Total Siswa — dari API */}
         <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
           <div>
@@ -241,26 +238,26 @@ const AdminTUDashboard = ({ user, activeMenu, onViewChange }) => {
       </div>
 
       {/* Middle Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Left Col (Aksi Cepat & Chart) */}
         <div className="lg:col-span-1 space-y-6">
           {/* Aksi Cepat */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <h3 className="font-bold text-[#1e293b] mb-4">Aksi Cepat</h3>
             <div className="space-y-3">
-              <button onClick={() => onViewChange && onViewChange("Data Siswa")} className="w-full flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all text-left">
+              <button onClick={() => { sessionStorage.setItem("studentInitialView", "add"); handleViewChange("Data Siswa"); }} className="w-full flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all text-left">
                 <div className="w-8 h-8 rounded-lg bg-[#E8EEF2] flex items-center justify-center text-[#1A3D63]">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
                 </div>
                 <span className="text-sm font-bold text-[#334155]">Tambah Siswa Baru</span>
               </button>
-              <button onClick={() => onViewChange && onViewChange("Absensi Siswa")} className="w-full flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all text-left">
+              <button onClick={() => handleViewChange("Absensi Siswa")} className="w-full flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all text-left">
                 <div className="w-8 h-8 rounded-lg bg-[#E8EEF2] flex items-center justify-center text-[#1A3D63]">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                 </div>
                 <span className="text-sm font-bold text-[#334155]">Input Absensi Harian</span>
               </button>
-              <button onClick={() => onViewChange && onViewChange("Pengumuman Sekolah")} className="w-full flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all text-left">
+              <button onClick={() => handleViewChange("Pengumuman Sekolah")} className="w-full flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-gray-200 hover:bg-gray-50 transition-all text-left">
                 <div className="w-8 h-8 rounded-lg bg-[#E8EEF2] flex items-center justify-center text-[#1A3D63]">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l18-5v12L3 14v-3z"></path><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path></svg>
                 </div>
@@ -271,11 +268,11 @@ const AdminTUDashboard = ({ user, activeMenu, onViewChange }) => {
 
           {/* Absensi Minggu Ini */}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-wrap items-center justify-between mb-6">
               <h3 className="font-bold text-[#1e293b]">Absensi Minggu Ini</h3>
-              <button onClick={() => onViewChange && onViewChange("Absensi Siswa")} className="text-sm font-semibold text-gray-500 hover:text-gray-700">Detail</button>
+              <button onClick={() => handleViewChange("Absensi Siswa")} className="text-sm font-semibold text-gray-500 hover:text-gray-700">Detail</button>
             </div>
-            <div className="flex items-end justify-between h-32 px-2 gap-2">
+            <div className="flex flex-wrap items-end justify-between h-32 px-2 gap-2">
               {[
                 { day: "Sen", value: 96, height: "h-[96%]" },
                 { day: "Sel", value: 93, height: "h-[93%]" },
@@ -297,12 +294,12 @@ const AdminTUDashboard = ({ user, activeMenu, onViewChange }) => {
 
         {/* Center Col (Data Siswa Terbaru) */}
         <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col">
-          <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+          <div className="p-5 border-b border-gray-100 flex flex-wrap items-center justify-between">
             <div className="flex items-center gap-2">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
               <h3 className="font-bold text-[#1e293b]">Data Siswa Terbaru</h3>
             </div>
-            <button onClick={() => onViewChange && onViewChange("Data Siswa")} className="text-sm font-semibold text-gray-500 hover:text-[#1A3D63] flex items-center gap-1">
+            <button onClick={() => handleViewChange("Data Siswa")} className="text-sm font-semibold text-gray-500 hover:text-[#1A3D63] flex items-center gap-1">
               Lihat Semua <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
             </button>
           </div>
@@ -358,18 +355,18 @@ const AdminTUDashboard = ({ user, activeMenu, onViewChange }) => {
 
       {/* Pengumuman Sekolah Terbaru */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-wrap items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><path d="M3 11l18-5v12L3 14v-3z"></path><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path></svg>
             <h3 className="font-bold text-[#1e293b]">Pengumuman Sekolah Terbaru</h3>
           </div>
-          <button onClick={() => onViewChange && onViewChange("Pengumuman Sekolah")} className="bg-[#1A3D63] text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-sm hover:bg-[#122A44] transition-all flex items-center gap-2">
+          <button onClick={() => handleViewChange("Pengumuman Sekolah")} className="bg-[#1A3D63] text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-sm hover:bg-[#122A44] transition-all flex items-center gap-2">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             Buat Pengumuman
           </button>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Item 1 */}
           <div className="border border-gray-100 rounded-xl p-4 hover:border-gray-200 transition-all">
             <div className="w-10 h-10 rounded-lg bg-[#E8EEF2] flex items-center justify-center text-[#1A3D63] mb-4">
@@ -386,7 +383,7 @@ const AdminTUDashboard = ({ user, activeMenu, onViewChange }) => {
                 Semua
               </div>
             </div>
-            <button onClick={() => onViewChange && onViewChange("Pengumuman Sekolah")} className="text-[12px] font-bold text-[#1A3D63] flex items-center gap-1 hover:underline">
+            <button onClick={() => handleViewChange("Pengumuman Sekolah")} className="text-[12px] font-bold text-[#1A3D63] flex items-center gap-1 hover:underline">
               Lihat detail <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
             </button>
           </div>
@@ -407,7 +404,7 @@ const AdminTUDashboard = ({ user, activeMenu, onViewChange }) => {
                 Siswa & Guru
               </div>
             </div>
-            <button onClick={() => onViewChange && onViewChange("Pengumuman Sekolah")} className="text-[12px] font-bold text-[#1A3D63] flex items-center gap-1 hover:underline">
+            <button onClick={() => handleViewChange("Pengumuman Sekolah")} className="text-[12px] font-bold text-[#1A3D63] flex items-center gap-1 hover:underline">
               Lihat detail <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
             </button>
           </div>
@@ -428,7 +425,7 @@ const AdminTUDashboard = ({ user, activeMenu, onViewChange }) => {
                 Guru & Staff
               </div>
             </div>
-            <button onClick={() => onViewChange && onViewChange("Pengumuman Sekolah")} className="text-[12px] font-bold text-[#1A3D63] flex items-center gap-1 hover:underline">
+            <button onClick={() => handleViewChange("Pengumuman Sekolah")} className="text-[12px] font-bold text-[#1A3D63] flex items-center gap-1 hover:underline">
               Lihat detail <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
             </button>
           </div>
@@ -449,12 +446,27 @@ const AdminTUDashboard = ({ user, activeMenu, onViewChange }) => {
                 Siswa
               </div>
             </div>
-            <button onClick={() => onViewChange && onViewChange("Pengumuman Sekolah")} className="text-[12px] font-bold text-[#1A3D63] flex items-center gap-1 hover:underline">
+            <button onClick={() => handleViewChange("Pengumuman Sekolah")} className="text-[12px] font-bold text-[#1A3D63] flex items-center gap-1 hover:underline">
               Lihat detail <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
             </button>
           </div>
         </div>
       </div>
+
+      {/* Toast Notification */}
+      {toastMsg && createPortal(
+        <div className={`fixed top-6 right-6 z-[9999] px-6 py-4 rounded-2xl text-white text-sm font-bold shadow-2xl flex items-center gap-3 animate-slideDown ${
+          toastMsg.type === 'error' ? 'bg-red-500' : 'bg-emerald-500'
+        }`}>
+          {toastMsg.type === 'error' ? (
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          ) : (
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          )}
+          {toastMsg.msg}
+        </div>,
+        document.body
+      )}
     </div>
   );
 };

@@ -1,13 +1,11 @@
 import React, { useState, useMemo, useEffect } from "react";
-import ReactDOM from "react-dom";
+import ReactDOM, { createPortal } from "react-dom";
 
 const InputNilai = ({ user }) => {
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedMapel, setSelectedMapel] = useState("");
   const [selectedSemester, setSelectedSemester] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [notification, setNotification] = useState(null);
-  
   const [classes, setClasses] = useState([]);
   const [mapels, setMapels] = useState([]);
   const [semesters, setSemesters] = useState([]);
@@ -16,9 +14,17 @@ const InputNilai = ({ user }) => {
   const [dbMapels, setDbMapels] = useState([]);
   const [dbSemesters, setDbSemesters] = useState([]);
   const [dbJadwal, setDbJadwal] = useState([]);
+  const [myGuruId, setMyGuruId] = useState(null);
   
   const [studentsData, setStudentsData] = useState({});
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [toastMsg, setToastMsg] = useState(null);
+
+  const showToast = (msg, type = "success") => {
+    setToastMsg({ msg, type });
+    setTimeout(() => setToastMsg(null), 3000);
+  };
 
   // Fetch classes, students, mapels, and semesters from backend
   useEffect(() => {
@@ -26,12 +32,13 @@ const InputNilai = ({ user }) => {
       try {
         setLoading(true);
         const { default: api } = await import('../../api/axios');
-        const [kelasRes, siswaRes, mapelRes, semesterRes, jadwalRes] = await Promise.all([
+        const [kelasRes, siswaRes, mapelRes, semesterRes, jadwalRes, guruRes] = await Promise.all([
           api.get('/kelas').catch(e => ({ data: { data: [] } })),
           api.get('/siswa').catch(e => ({ data: { data: [] } })),
           api.get('/mapel').catch(e => ({ data: { data: [] } })),
           api.get('/semester').catch(e => ({ data: { data: [] } })),
-          api.get('/jadwal_pelajaran').catch(e => ({ data: { data: [] } }))
+          api.get('/jadwal_pelajaran').catch(e => ({ data: { data: [] } })),
+          api.get('/guru').catch(e => ({ data: { data: [] } }))
         ]);
         
         const dbClassList = kelasRes.data?.data || [];
@@ -39,6 +46,10 @@ const InputNilai = ({ user }) => {
         const dbMapelList = mapelRes.data?.data || [];
         const dbSemesterList = semesterRes.data?.data || [];
         const dbJadwalList = jadwalRes.data?.data || [];
+        const dbGuruList = guruRes?.data?.data || [];
+
+        const myGuru = dbGuruList.find(g => g.user_id === user?.userId || g.email_pribadi === user?.email);
+        setMyGuruId(myGuru ? myGuru.id : null);
 
         setDbClasses(dbClassList);
         setDbMapels(dbMapelList);
@@ -111,36 +122,41 @@ const InputNilai = ({ user }) => {
 
         // Auto-determine mapel based on guru's jadwal OR their default mapel
         let autoMapel = "";
-        const guruIdentifier = user?.fullName || user?.nip || user?.userId;
+        let actualMapelId = null;
+
         const jadwalGuru = dbJadwal.find(j => 
-          j.kelas_id === cls.id && 
-          (j.guru_nama === guruIdentifier || j.nip === guruIdentifier)
+          j.kelas_id === cls.id && j.guru_id === myGuruId
         );
 
-        if (jadwalGuru && jadwalGuru.nama_mapel) {
-          autoMapel = jadwalGuru.nama_mapel;
+        if (jadwalGuru) {
+          actualMapelId = jadwalGuru.mata_pelajaran_id;
+          autoMapel = jadwalGuru.nama_mapel || dbMapels.find(m => m.id === actualMapelId)?.nama;
         } else {
-          // Find the Guru's actual guru_id from ANY of their schedules
-          const anyJadwal = dbJadwal.find(j => j.guru_nama === guruIdentifier || j.nip === guruIdentifier);
-          const myGuruId = anyJadwal ? anyJadwal.guru_id : null;
-          
-          // Fallback to finding ANY mapel this guru teaches (useful if jadwal is not fully configured)
-          const defaultMapel = dbMapels.find(m => m.guru_pengampu_id === myGuruId || m.guru_pengampu_id === user?.userId);
-          if (defaultMapel) autoMapel = defaultMapel.nama;
-          else if (mapels.length > 0) autoMapel = mapels[0];
+          // Fallback to finding ANY mapel this guru teaches
+          const defaultMapel = dbMapels.find(m => m.guru_pengampu_id === myGuruId);
+          if (defaultMapel) {
+            actualMapelId = defaultMapel.id;
+            autoMapel = defaultMapel.nama;
+          } else if (mapels.length > 0) {
+            autoMapel = mapels[0];
+            actualMapelId = dbMapels.find(m => m.nama === autoMapel)?.id;
+          }
         }
         
-        if (selectedMapel !== autoMapel) {
+        if (selectedMapel !== autoMapel && autoMapel) {
           setSelectedMapel(autoMapel);
           return; // The state change will trigger this useEffect again with the correct selectedMapel
         }
 
-        const semId = dbSemesters.length > 0 ? dbSemesters[0].id : "00000002-0000-0000-0000-000000000001";
-        const mapelId = dbMapels.find(m => m.nama === autoMapel)?.id || dbMapels[0]?.id;
+        const activeSemester = dbSemesters.find(s => s.is_aktif) || dbSemesters[0];
+        const semId = activeSemester ? activeSemester.id : "00000002-0000-0000-0000-000000000001";
+        
+        const mapelId = actualMapelId || dbMapels.find(m => m.nama === autoMapel)?.id || dbMapels.find(m => m.nama === selectedMapel)?.id || dbMapels[0]?.id;
         if (!mapelId) return;
 
         const res = await api.get(`/nilai/kelas/${cls.id}?semester_id=${semId}&mata_pelajaran_id=${mapelId}`);
         const existingData = res.data?.data || [];
+        
         
         setStudentsData(prev => {
           const updatedList = (prev[selectedClass] || []).map(student => {
@@ -149,9 +165,9 @@ const InputNilai = ({ user }) => {
               return { 
                 ...student, 
                 nilai_id: record.id,
-                harian: record.nilai_harian !== null ? record.nilai_harian.toString() : "",
-                uts: record.nilai_uts !== null ? record.nilai_uts.toString() : "",
-                uas: record.nilai_uas !== null ? record.nilai_uas.toString() : "",
+                harian: record.nilai_harian !== null ? parseInt(record.nilai_harian).toString() : "",
+                uts: record.nilai_uts !== null ? parseInt(record.nilai_uts).toString() : "",
+                uas: record.nilai_uas !== null ? parseInt(record.nilai_uas).toString() : "",
                 catatan: record.catatan || ""
               };
             }
@@ -169,11 +185,22 @@ const InputNilai = ({ user }) => {
     };
 
     fetchExistingNilai();
-  }, [selectedClass, selectedMapel, dbClasses, dbMapels, dbSemesters, loading]);
+  }, [selectedClass, selectedMapel, dbClasses, dbMapels, dbSemesters, dbJadwal, myGuruId, loading]);
 
   const handleGradeChange = (studentId, field, value) => {
-    const sanitizedVal = value.replace(/[^0-9]/g, "");
-    if (sanitizedVal !== "" && parseInt(sanitizedVal) > 100) return;
+    // Hilangkan karakter selain angka
+    let sanitizedVal = value.replace(/[^0-9]/g, "");
+    
+    // Jika lebih dari 100, cegah penambahan angka baru, tapi izinkan penghapusan (backspace)
+    if (sanitizedVal !== "" && parseInt(sanitizedVal) > 100) {
+      // Jika pengguna mencoba mengetik angka lebih besar dari 100, kita kembalikan saja nilai sebelumnya
+      // Namun, karena ini sulit dilacak tanpa state tambahan, cara terbaik adalah tidak mengubah state.
+      // TETAPI jika state sebelumnya sudah kadung error (misal 800 karena desimal), kita harus izinkan!
+      // Jadi kita batasi saja panjang karakternya, nilai max 100
+      if (parseInt(sanitizedVal) > 100) {
+        sanitizedVal = "100";
+      }
+    }
 
     setStudentsData((prev) => {
       const updatedList = (prev[selectedClass] || []).map((student) => {
@@ -217,25 +244,43 @@ const InputNilai = ({ user }) => {
   }, [currentStudents, searchQuery]);
 
   const handleSave = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
     try {
       const { default: api } = await import('../../api/axios');
       
       const cls = dbClasses.find(c => c.nama_kelas === selectedClass);
       if (!cls) throw new Error("Data kelas tidak ditemukan");
 
-      const semId = dbSemesters.length > 0 ? dbSemesters[0].id : "00000002-0000-0000-0000-000000000001";
-      const mapelId = dbMapels.find(m => m.nama === selectedMapel)?.id;
+      const activeSemester = dbSemesters.find(s => s.is_aktif) || dbSemesters[0];
+      const semId = activeSemester ? activeSemester.id : "00000002-0000-0000-0000-000000000001";
+      
+      let actualMapelId = null;
+      let autoMapel = "";
+      const jadwalGuru = dbJadwal.find(j => j.kelas_id === cls.id && j.guru_id === myGuruId);
+      
+      if (jadwalGuru) {
+        actualMapelId = jadwalGuru.mata_pelajaran_id;
+      } else {
+        const defaultMapel = dbMapels.find(m => m.guru_pengampu_id === myGuruId);
+        if (defaultMapel) {
+          actualMapelId = defaultMapel.id;
+          autoMapel = defaultMapel.nama;
+        } else if (mapels.length > 0) {
+          autoMapel = mapels[0];
+        }
+      }
+
+      const mapelId = actualMapelId || dbMapels.find(m => m.nama === autoMapel)?.id || dbMapels.find(m => m.nama === selectedMapel)?.id || dbMapels[0]?.id;
+      
       if (!mapelId) throw new Error("Mata pelajaran belum dipilih");
 
       const studentsToSave = currentStudents.filter(s => s.harian !== "" || s.uts !== "" || s.uas !== "");
       
       if (studentsToSave.length === 0) {
-        setNotification("Gagal: Tidak ada nilai yang diinput.");
-        setTimeout(() => setNotification(null), 4000);
+        showToast("Gagal: Tidak ada nilai yang diinput.", "error");
         return;
       }
-
-      setNotification("Menyimpan nilai ke database...");
 
       for (const student of studentsToSave) {
         const payload = {
@@ -267,15 +312,16 @@ const InputNilai = ({ user }) => {
         }
       }
 
-      setNotification(`Berhasil menyimpan nilai untuk kelas ${selectedClass}!`);
+      showToast(`Berhasil menyimpan nilai untuk kelas ${selectedClass}!`, "success");
     } catch (error) {
       console.error("Error saving grades:", error);
       const errorMsg = error.response?.data?.errors 
         ? error.response.data.errors.map(e => e.msg).join(', ')
         : error.response?.data?.message || error.message || "Terjadi kesalahan";
-      setNotification(`Gagal: ${errorMsg}`);
+      showToast(`Gagal: ${errorMsg}`, "error");
+    } finally {
+      setIsSaving(false);
     }
-    setTimeout(() => setNotification(null), 4000);
   };
 
   if (loading) {
@@ -294,14 +340,16 @@ const InputNilai = ({ user }) => {
 
   return (
     <div className="p-6 md:p-8 space-y-6 animate-fadeIn bg-[#F8FAFC] min-h-screen relative">
-      {notification && ReactDOM.createPortal(
-        <div style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 9999 }} className="flex items-center gap-3 bg-slate-900 text-white px-5 py-4 rounded-2xl shadow-xl animate-slideIn">
-          <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          </div>
-          <span className="text-xs font-black tracking-tight">{notification}</span>
+      {toastMsg && createPortal(
+        <div className={`fixed top-6 right-6 z-[9999] px-6 py-4 rounded-2xl text-white text-sm font-bold shadow-2xl flex items-center gap-3 animate-slideDown ${
+          toastMsg.type === 'error' ? 'bg-red-500' : 'bg-emerald-500'
+        }`}>
+          {toastMsg.type === 'error' ? (
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          ) : (
+             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          )}
+          {toastMsg.msg}
         </div>,
         document.body
       )}
@@ -495,15 +543,22 @@ const InputNilai = ({ user }) => {
 
         <button
           onClick={handleSave}
-          disabled={totalStudents === 0}
+          disabled={totalStudents === 0 || isSaving}
           className="flex items-center justify-center gap-2.5 bg-[#1A3D63] hover:bg-[#122A44] disabled:opacity-50 disabled:pointer-events-none text-white px-7 py-3.5 rounded-2xl text-xs font-black transition-all shadow-lg shadow-[#1A3D63]/15 active:scale-95 w-full sm:w-auto"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-            <polyline points="17 21 17 13 7 13 7 21" />
-            <polyline points="7 3 7 8 15 8" />
-          </svg>
-          Simpan Nilai
+          {isSaving ? (
+            <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+              <polyline points="17 21 17 13 7 13 7 21" />
+              <polyline points="7 3 7 8 15 8" />
+            </svg>
+          )}
+          {isSaving ? "Menyimpan..." : "Simpan Nilai"}
         </button>
       </div>
     </div>

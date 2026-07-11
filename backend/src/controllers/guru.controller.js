@@ -9,7 +9,7 @@ const GuruController = {
     try {
       const page = parseInt(req.query.page, 10) || 1;
       const limit = parseInt(req.query.limit, 10) || 20;
-      const result = await GuruService.getAll({ page, limit });
+      const result = await GuruService.getAll({ ...req.query, page, limit });
       return response.success(res, 200, 'Data guru berhasil diambil', result.data, result.meta);
     } catch (err) { next(err); }
   },

@@ -123,7 +123,7 @@ const ManageUsers = ({ onViewChange }) => {
         await createSystemUser(formData);
         triggerToast('Pengguna berhasil ditambahkan');
       }
-      setView("list");
+      setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
       fetchData();
     } catch (e) {
       console.error(e);
@@ -198,26 +198,26 @@ const ManageUsers = ({ onViewChange }) => {
     setFormData({
       nama: user.name || '',
       email: user.email || '',
-      password: '', // blank on edit
       roleId: roles.find(r => r.nama_role === user.role)?.id || '',
       siswaId: user.linked_siswa_id || '', // pre-fill dari relasi yang sudah ada
       isActive: user.is_active,
-      tanggal_lahir: user.tanggal_lahir || '',
+      tanggal_lahir: user.tanggal_lahir ? new Date(user.tanggal_lahir).toISOString().split('T')[0] : '',
       jenis_kelamin: user.jenis_kelamin || '',
       telepon: user.telepon || '',
-      alamat: user.alamat || ''
+      alamat: user.alamat || '',
+      mustChangePassword: user.mustChangePassword || false
     });
     setShowPassword(false);
     setShowConfirmPassword(false);
-    setView("edit");
+    setView("edit"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
   };
 
   const handleAddClick = () => {
     setSelectedUser(null);
-    setFormData({ nama: '', email: '', password: '', roleId: '', siswaId: '', isActive: true, tanggal_lahir: '', jenis_kelamin: '', telepon: '', alamat: '' });
+    setFormData({ nama: '', email: '', password: '', roleId: '', siswaId: '', isActive: true, tanggal_lahir: '', jenis_kelamin: '', telepon: '', alamat: '', mustChangePassword: true });
     setShowPassword(false);
     setShowConfirmPassword(false);
-    setView("add");
+    setView("add"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
   };
 
   if (view === "add" || view === "edit") {
@@ -228,16 +228,17 @@ const ManageUsers = ({ onViewChange }) => {
     return (
       <div className="animate-fadeIn space-y-6 pb-20 max-w-4xl mx-auto">
         {/* Toast */}
-        {toast && (
-          <div className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl text-white text-sm font-bold shadow-xl ${
+        {toast && createPortal(
+          <div className={`fixed top-6 right-6 z-[9999] px-5 py-3 rounded-xl text-white text-sm font-bold shadow-xl ${
             toast.type === 'error' ? 'bg-red-500' : 'bg-emerald-500'
-          }`}>{toast.msg}</div>
+          }`}>{toast.msg}</div>,
+          document.body
         )}
 
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <button onClick={() => setView("list")} className="flex items-center gap-1.5 text-sm font-semibold text-gray-400 hover:text-[#1A3D63] transition-colors mb-3">
+            <button onClick={() => { setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }} className="flex items-center gap-1.5 text-sm font-semibold text-gray-400 hover:text-[#1A3D63] transition-colors mb-3">
               <ArrowLeftIcon /> Kembali ke Daftar
             </button>
             <h1 className="text-2xl font-black text-gray-800 tracking-tight">{title}</h1>
@@ -245,7 +246,7 @@ const ManageUsers = ({ onViewChange }) => {
           </div>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto shrink-0">
             <button
-              onClick={() => setView("list")}
+              onClick={() => { setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }}
               className="w-full sm:w-auto text-center px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50 transition-all bg-white shadow-sm"
             >
               Batal
@@ -289,7 +290,7 @@ const ManageUsers = ({ onViewChange }) => {
                   className="w-full px-4 py-3 bg-white border border-gray-200 focus:border-[#1A3D63] rounded-xl text-sm font-semibold text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:ring-1 focus:ring-[#1A3D63]"
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Tanggal Lahir</label>
                   <input
@@ -312,7 +313,7 @@ const ManageUsers = ({ onViewChange }) => {
                   </select>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Nomor Telepon</label>
                   <input
@@ -394,7 +395,7 @@ const ManageUsers = ({ onViewChange }) => {
               </div>
               
               <div className="space-y-5">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Password Sementara</label>
                   <div className="relative">
@@ -444,9 +445,9 @@ const ManageUsers = ({ onViewChange }) => {
                 </div>
               </div>
               <p className="text-xs text-gray-400">Minimal 8 karakter, kombinasi huruf dan angka.</p>
-              <label className="flex items-start gap-3 cursor-pointer">
-                <div className="mt-0.5 shrink-0 w-5 h-5 rounded flex items-center justify-center bg-[#1A3D63] border-2 border-[#1A3D63]">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              <label className="flex items-start gap-3 cursor-pointer group" onClick={() => setFormData({...formData, mustChangePassword: !formData.mustChangePassword})}>
+                <div className={`mt-0.5 shrink-0 w-5 h-5 rounded flex items-center justify-center transition-colors border-2 ${formData.mustChangePassword ? 'bg-[#1A3D63] border-[#1A3D63]' : 'border-gray-200 bg-white group-hover:border-gray-300'}`}>
+                  {formData.mustChangePassword && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
                 </div>
                 <div>
                   <p className="text-sm font-bold text-gray-800">Wajib Ganti Password</p>
@@ -457,7 +458,7 @@ const ManageUsers = ({ onViewChange }) => {
             </div>
           ) : (
             <div className="p-8 border-b border-gray-100">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex flex-wrap items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500">
                     <KeyIcon />
@@ -483,8 +484,9 @@ const ManageUsers = ({ onViewChange }) => {
                   <p className="text-xs text-gray-400 mt-2">Minimal 8 karakter, kombinasi huruf dan angka.</p>
                 </div>
                 
-                 <label className="flex items-start gap-3 cursor-pointer group">
-                  <div className="mt-0.5 shrink-0 w-5 h-5 rounded flex items-center justify-center transition-colors border-2 border-gray-200 bg-white group-hover:border-gray-300">
+                 <label className="flex items-start gap-3 cursor-pointer group" onClick={() => setFormData({...formData, mustChangePassword: !formData.mustChangePassword})}>
+                  <div className={`mt-0.5 shrink-0 w-5 h-5 rounded flex items-center justify-center transition-colors border-2 ${formData.mustChangePassword ? 'bg-[#1A3D63] border-[#1A3D63]' : 'border-gray-200 bg-white group-hover:border-gray-300'}`}>
+                    {formData.mustChangePassword && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
                   </div>
                   <div>
                     <p className="text-sm font-bold text-gray-800">Wajib Ganti Password</p>
@@ -503,7 +505,7 @@ const ManageUsers = ({ onViewChange }) => {
               </div>
               <h3 className="text-base font-bold text-gray-800">Status Pengguna</h3>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-4">
               <label className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer ${formData.isActive ? "border-[#1A3D63] bg-blue-50/20" : "border-gray-200 bg-white hover:border-gray-300 transition-colors"}`}>
                 <div className={`mt-0.5 shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.isActive ? "border-[#1A3D63]" : "border-gray-300"}`}>
                   {formData.isActive && <div className="w-2 h-2 rounded-full bg-[#1A3D63]"></div>}
@@ -539,10 +541,11 @@ const ManageUsers = ({ onViewChange }) => {
   return (
     <div className="animate-fadeIn space-y-8">
       {/* Toast */}
-      {toast && (
-        <div className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl text-white text-sm font-bold shadow-xl ${
+      {toast && createPortal(
+        <div className={`fixed top-6 right-6 z-[9999] px-5 py-3 rounded-xl text-white text-sm font-bold shadow-xl ${
           toast.type === 'error' ? 'bg-red-500' : 'bg-emerald-500'
-        }`}>{toast.msg}</div>
+        }`}>{toast.msg}</div>,
+        document.body
       )}
 
       {/* Header Area */}
@@ -645,7 +648,7 @@ const ManageUsers = ({ onViewChange }) => {
                 <tr key={user.id} className="hover:bg-gray-50/50 transition-colors group">
                   <td className="px-8 py-6 text-center"><input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-[#1A3D63] focus:ring-[#1A3D63]/20" /></td>
                   <td className="px-4 py-6">
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-4">
                        <div className="w-11 h-11 rounded-full bg-gray-50 flex items-center justify-center text-[13px] font-bold text-gray-600">
                           {getInitials(user.name)}
                        </div>
@@ -656,7 +659,7 @@ const ManageUsers = ({ onViewChange }) => {
                     </div>
                   </td>
                   <td className="px-4 py-6">
-                    <div className="flex items-center justify-between gap-4 max-w-[200px]">
+                    <div className="flex flex-wrap items-center justify-between gap-4 max-w-[200px]">
                       <div className="flex items-center gap-3">
                         <span className="text-[10px] font-bold text-gray-400 uppercase bg-gray-100 px-2.5 py-1 rounded-md">{user.role || 'Tanpa Role'}</span>
                       </div>
@@ -701,7 +704,7 @@ const ManageUsers = ({ onViewChange }) => {
           <div className="absolute inset-0 bg-gray-900/50 backdrop-blur-sm" />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-slideUp">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+            <div className="flex flex-wrap items-center justify-between px-6 py-5 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500">
                   <KeyIcon />

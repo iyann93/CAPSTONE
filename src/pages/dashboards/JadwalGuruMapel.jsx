@@ -1,27 +1,72 @@
-﻿import React from "react";
-
-const mockJadwal = [
-  { hari: "Senin", jam: "07:30 - 09:00", kelas: "VII A", subject: "Bahasa Indonesia" },
-  { hari: "Senin", jam: "09:15 - 10:45", kelas: "VII B", subject: "Bahasa Indonesia" },
-  { hari: "Senin", jam: "11:00 - 12:30", kelas: "VIII A", subject: "Bahasa Indonesia" },
-  { hari: "Selasa", jam: "07:30 - 09:00", kelas: "VIII B", subject: "Bahasa Indonesia" },
-  { hari: "Selasa", jam: "09:15 - 10:45", kelas: "IX A", subject: "Bahasa Indonesia" },
-  { hari: "Rabu", jam: "07:30 - 09:00", kelas: "IX B", subject: "Bahasa Indonesia" },
-  { hari: "Rabu", jam: "09:15 - 10:45", kelas: "VII A", subject: "Bahasa Indonesia" },
-  { hari: "Kamis", jam: "07:30 - 09:00", kelas: "VII B", subject: "Bahasa Indonesia" },
-  { hari: "Jumat", jam: "07:30 - 09:00", kelas: "VIII A", subject: "Bahasa Indonesia" },
-  { hari: "Jumat", jam: "09:15 - 10:45", kelas: "VIII B", subject: "Bahasa Indonesia" },
-];
+import React, { useState, useEffect } from "react";
+import api from "../../api/axios";
 
 const JadwalGuruMapel = ({ user, onNavigate }) => {
-  // Group by hari
-  const groupedJadwal = mockJadwal.reduce((acc, curr) => {
-    if (!acc[curr.hari]) acc[curr.hari] = [];
-    acc[curr.hari].push(curr);
-    return acc;
-  }, {});
+  const [groupedJadwal, setGroupedJadwal] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        // Ambil ID Guru
+        const searchQuery = user?.fullName || user?.nama || user?.email || "";
+        const resGuru = await api.get(`/guru?search=${encodeURIComponent(searchQuery)}`);
+        const dataGuru = resGuru.data?.data?.[0];
+        const fetchedId = dataGuru?.id;
+
+        // Ambil jadwal
+        const resJadwal = await api.get('/jadwal-pelajaran?limit=1000');
+        let rawJadwal = resJadwal.data?.data || [];
+        
+        if (fetchedId) {
+          rawJadwal = rawJadwal.filter(j => j.guru_id === fetchedId);
+        } else {
+          rawJadwal = rawJadwal.filter(j => j.guru_nama?.toLowerCase().includes(user?.fullName?.toLowerCase()));
+        }
+
+        const hariMap = {
+          1: "Senin", 2: "Selasa", 3: "Rabu", 4: "Kamis", 5: "Jumat", 6: "Sabtu", 7: "Minggu"
+        };
+
+        const mappedJadwal = rawJadwal.map(j => ({
+          jam: `${(j.jam_mulai || "").substring(0, 5)} - ${(j.jam_selesai || "").substring(0, 5)}`,
+          jamMulai: j.jam_mulai,
+          kelas: j.nama_kelas,
+          subject: j.nama_mapel,
+          hari: hariMap[j.hari] || j.hari
+        }));
+
+        // Grouping
+        const grouped = mappedJadwal.reduce((acc, curr) => {
+          if (!acc[curr.hari]) acc[curr.hari] = [];
+          acc[curr.hari].push(curr);
+          return acc;
+        }, {});
+
+        // Sort jam per hari
+        Object.keys(grouped).forEach(hari => {
+          grouped[hari].sort((a,b) => a.jamMulai?.localeCompare(b.jamMulai));
+        });
+
+        setGroupedJadwal(grouped);
+
+      } catch (err) {
+        console.error("Error fetching jadwal guru:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (user?.email || user?.fullName) {
+      fetchData();
+    }
+  }, [user]);
 
   const hariUrutan = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+
+  if (loading) {
+    return <div className="p-6 md:p-8 flex justify-center items-center h-full">Memuat jadwal akademik...</div>;
+  }
 
   return (
     <div className="p-6 md:p-8 space-y-6 animate-fadeIn bg-[#F4F6FA] min-h-full">
@@ -48,45 +93,49 @@ const JadwalGuruMapel = ({ user, onNavigate }) => {
       </div>
 
       <div className="space-y-6">
-        {hariUrutan.map(hari => {
-          if (!groupedJadwal[hari]) return null;
-          return (
-            <div key={hari} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="bg-[#1A3D63] px-6 py-3">
-                <h2 className="text-white font-bold text-[16px]">{hari}</h2>
-              </div>
-              <div className="p-0">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="bg-gray-50/80 border-b border-gray-100">
-                      <th className="py-3 px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wider w-[150px]">Waktu</th>
-                      <th className="py-3 px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wider w-[120px]">Kelas</th>
-                      <th className="py-3 px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Mata Pelajaran</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {groupedJadwal[hari].map((jadwal, idx) => (
-                      <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="py-4 px-6 text-[13px] font-bold text-gray-800">
-                          <div className="bg-blue-50 text-blue-600 border border-blue-100 px-3 py-1.5 rounded-lg inline-block">
-                            {jadwal.jam}
-                          </div>
-                        </td>
-                        <td className="py-4 px-6 text-[13px] font-bold text-[#1A3D63]">{jadwal.kelas}</td>
-                        <td className="py-4 px-6 text-[13px] text-gray-600 font-medium">{jadwal.subject}</td>
+        {Object.keys(groupedJadwal).length === 0 ? (
+          <div className="text-center p-12 text-gray-400 font-medium bg-white rounded-2xl border border-gray-100 shadow-sm">
+            Tidak ada jadwal mengajar yang ditemukan untuk akun Anda.
+          </div>
+        ) : (
+          hariUrutan.map(hari => {
+            if (!groupedJadwal[hari]) return null;
+            return (
+              <div key={hari} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="bg-[#1A3D63] px-6 py-3">
+                  <h2 className="text-white font-bold text-[16px]">{hari}</h2>
+                </div>
+                <div className="p-0">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="bg-gray-50/80 border-b border-gray-100">
+                        <th className="py-3 px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wider w-[150px]">Waktu</th>
+                        <th className="py-3 px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wider w-[120px]">Kelas</th>
+                        <th className="py-3 px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Mata Pelajaran</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {groupedJadwal[hari].map((jadwal, idx) => (
+                        <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                          <td className="py-4 px-6 text-[13px] font-bold text-gray-800">
+                            <div className="bg-blue-50 text-blue-600 border border-blue-100 px-3 py-1.5 rounded-lg inline-block">
+                              {jadwal.jam}
+                            </div>
+                          </td>
+                          <td className="py-4 px-6 text-[13px] font-bold text-[#1A3D63]">{jadwal.kelas}</td>
+                          <td className="py-4 px-6 text-[13px] text-gray-600 font-medium">{jadwal.subject}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
     </div>
   );
 };
 
 export default JadwalGuruMapel;
-
-

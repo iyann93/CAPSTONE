@@ -114,7 +114,7 @@ const StudentAttendance = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
-          <h1 className="text-[26px] font-bold text-[#1e293b]">Absensi Siswa</h1>
+          <h1 className="text-[26px] font-bold text-[#1e293b]">Input Absensi</h1>
           <p className="text-gray-500 text-[15px] mt-1">
             Monitor dan input kehadiran siswa harian per kelas.
           </p>
@@ -132,12 +132,12 @@ const StudentAttendance = () => {
 
       {/* Progress Card */}
       <div className="bg-white rounded-[16px] border border-gray-100 shadow-sm p-6">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-wrap items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A3D63" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
             <h3 className="text-[15px] font-bold text-[#1e293b]">Progress Input Absensi — {selectedDate}</h3>
           </div>
-          <div className="flex items-center gap-4 text-[13px] font-medium">
+          <div className="flex flex-wrap items-center gap-4 text-[13px] font-medium">
             <span className="flex items-center gap-1.5 text-emerald-600"><div className="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>Sudah: {inputtedClasses} kelas</span>
             <span className="flex items-center gap-1.5 text-gray-500"><div className="w-2.5 h-2.5 rounded-full bg-gray-300"></div>Belum: {totalClasses - inputtedClasses} kelas</span>
           </div>
@@ -145,14 +145,14 @@ const StudentAttendance = () => {
         <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden mb-2">
           <div className="h-full bg-[#1A3D63] rounded-full transition-all" style={{ width: `${inputProgressPct}%` }}></div>
         </div>
-        <div className="flex justify-between text-[13px]">
+        <div className="flex flex-wrap justify-between text-[13px]">
           <span className="text-gray-500">{inputtedClasses} dari {totalClasses} kelas telah diinput</span>
           <span className="font-bold text-[#1A3D63]">{inputProgressPct}%</span>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
+      <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-5">
         {[
           { label: "Tingkat Kehadiran", val: `${avgAttendancePct}%`, subText: `${totalHadir} dari ${finishedClassesStudents} siswa` },
           { label: "Hadir", val: String(totalHadir), subText: "Siswa hadir hari ini" },
@@ -170,14 +170,14 @@ const StudentAttendance = () => {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white rounded-[16px] border border-gray-100 shadow-sm p-6">
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-wrap justify-between items-center mb-6">
             <h3 className="text-[15px] font-bold text-[#1e293b] flex items-center gap-2">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A3D63" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
               Trend Kehadiran Mingguan
             </h3>
-            <div className="flex items-center gap-4 text-[12px] font-medium text-gray-500">
+            <div className="flex flex-wrap items-center gap-4 text-[12px] font-medium text-gray-500">
               <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded bg-[#1A3D63]"></div>Hadir</span>
               <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded bg-amber-500"></div>Sakit</span>
               <span className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded bg-violet-500"></div>Izin</span>
@@ -187,7 +187,7 @@ const StudentAttendance = () => {
           
           <div className="h-[220px] flex flex-col relative px-4">
             {/* Chart Area */}
-            <div className="flex-1 flex items-end justify-between relative pl-8 pb-2 border-b border-gray-100">
+            <div className="flex-1 flex flex-wrap items-end justify-between relative pl-8 pb-2 border-b border-gray-100">
               {/* Y Axis */}
               <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-[11px] text-gray-400 py-2">
                 <span>280</span><span>180</span><span>120</span><span>60</span><span>0</span>
@@ -253,19 +253,19 @@ const StudentAttendance = () => {
             </div>
 
             <div className="w-full space-y-3">
-              <div className="flex items-center justify-between text-[13px]">
+              <div className="flex flex-wrap items-center justify-between text-[13px]">
                 <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-[#1A3D63] border-2 border-white shadow-sm"></div><span className="text-gray-600">Hadir</span></div>
                 <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-full h-full bg-[#1A3D63] rounded-full" style={{ width: `${avgAttendancePct}%` }}></div></div><span className="font-bold text-[#1e293b] w-6 text-right">{totalHadir}</span></div>
               </div>
-              <div className="flex items-center justify-between text-[13px]">
+              <div className="flex flex-wrap items-center justify-between text-[13px]">
                 <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-amber-500 border-2 border-white shadow-sm"></div><span className="text-gray-600">Sakit</span></div>
                 <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-full h-full bg-amber-500 rounded-full" style={{ width: `${finishedClassesStudents > 0 ? (totalSakit / finishedClassesStudents) * 100 : 0}%` }}></div></div><span className="font-bold text-[#1e293b] w-6 text-right">{totalSakit}</span></div>
               </div>
-              <div className="flex items-center justify-between text-[13px]">
+              <div className="flex flex-wrap items-center justify-between text-[13px]">
                 <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-violet-500 border-2 border-white shadow-sm"></div><span className="text-gray-600">Izin</span></div>
                 <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-full h-full bg-violet-500 rounded-full" style={{ width: `${finishedClassesStudents > 0 ? (totalIzin / finishedClassesStudents) * 100 : 0}%` }}></div></div><span className="font-bold text-[#1e293b] w-6 text-right">{totalIzin}</span></div>
               </div>
-              <div className="flex items-center justify-between text-[13px]">
+              <div className="flex flex-wrap items-center justify-between text-[13px]">
                 <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-rose-500 border-2 border-white shadow-sm"></div><span className="text-gray-600">Alpha</span></div>
                 <div className="flex items-center gap-3"><div className="w-16 h-1.5 bg-gray-100 rounded-full"><div className="w-full h-full bg-rose-500 rounded-full" style={{ width: `${finishedClassesStudents > 0 ? (totalAlpha / finishedClassesStudents) * 100 : 0}%` }}></div></div><span className="font-bold text-[#1e293b] w-6 text-right">{totalAlpha}</span></div>
               </div>
@@ -276,8 +276,22 @@ const StudentAttendance = () => {
 
       {/* Table Section */}
       <div className="bg-white border border-gray-200 rounded-[16px] shadow-sm overflow-hidden flex flex-col">
-        <div className="p-5 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="flex bg-gray-100 p-1 rounded-xl">
+        <div className="p-5 border-b border-gray-100 flex flex-col gap-4">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <h3 className="text-base font-bold text-[#1e293b]">Input Absensi</h3>
+            <div className="relative w-full md:w-[280px]">
+              <input
+                type="text"
+                placeholder="Cari kelas..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all bg-gray-50 focus:bg-white"
+              />
+              <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            </div>
+          </div>
+
+          <div className="flex bg-gray-100 p-1 rounded-xl w-fit">
             {["Semua Kelas", "Kelas VII", "Kelas VIII", "Kelas IX"].map((tab) => (
               <button
                 key={tab}
@@ -291,17 +305,6 @@ const StudentAttendance = () => {
                 {tab}
               </button>
             ))}
-          </div>
-
-          <div className="relative w-full md:w-[280px]">
-            <input
-              type="text"
-              placeholder="Cari kelas..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#1A3D63]/20 focus:border-[#1A3D63] transition-all bg-gray-50 focus:bg-white"
-            />
-            <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           </div>
         </div>
 
@@ -411,15 +414,8 @@ const StudentAttendance = () => {
           </table>
         </div>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-gray-100 flex items-center justify-between text-[13px]">
-          <div className="text-gray-500">
-            Total {classes.length} kelas ditampilkan
-          </div>
-          <button className="px-4 py-2 bg-[#1A3D63] hover:bg-[#122A44] text-white rounded-xl text-[13px] font-bold flex items-center gap-2 shadow-sm transition-colors">
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            Input Absensi Cepat
-          </button>
+        <div className="p-4 border-t border-gray-100 text-[13px] text-gray-500">
+          Total {classes.length} kelas ditampilkan
         </div>
       </div>
     </div>

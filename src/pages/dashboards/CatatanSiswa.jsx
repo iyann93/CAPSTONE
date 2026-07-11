@@ -10,7 +10,6 @@ const CatatanSiswa = ({ user }) => {
   const [classes, setClasses] = useState([]);
   const [studentsData, setStudentsData] = useState({});
   const [loading, setLoading] = useState(true);
-  const [notification, setNotification] = useState(null);
 
   // Fetch classes and students from backend
   useEffect(() => {
@@ -183,15 +182,13 @@ const CatatanSiswa = ({ user }) => {
       });
 
       setSaveSuccess(true);
-      setNotification(`Catatan untuk ${selectedStudent.name} berhasil disimpan!`);
+      alert(`Catatan untuk ${selectedStudent.name} berhasil disimpan!`);
       setTimeout(() => {
-        setNotification(null);
         setSaveSuccess(false);
       }, 4000);
     } catch (e) {
       console.error("Gagal menyimpan catatan:", e);
-      setNotification("Gagal menyimpan catatan!");
-      setTimeout(() => setNotification(null), 4000);
+      alert("Gagal menyimpan catatan!");
     }
   };
 
@@ -201,17 +198,6 @@ const CatatanSiswa = ({ user }) => {
 
   return (
     <div className="p-6 md:p-8 space-y-6 animate-fadeIn bg-[#F8FAFC] min-h-screen relative">
-      {notification && ReactDOM.createPortal(
-        <div style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 9999 }} className="flex items-center gap-3 bg-slate-900 text-white px-5 py-4 rounded-2xl shadow-xl animate-slideIn">
-          <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          </div>
-          <span className="text-xs font-black tracking-tight">{notification}</span>
-        </div>,
-        document.body
-      )}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex flex-col gap-1">
           <div className="flex items-center text-xs font-semibold text-gray-400 gap-1.5">
@@ -343,7 +329,7 @@ const CatatanSiswa = ({ user }) => {
           {selectedStudent ? (
             <>
               <div className="bg-[#1A3D63] p-6 text-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 flex-shrink-0">
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4">
                   <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-white font-black text-lg border border-white/10">
                     {selectedStudent.name[0]}
                   </div>

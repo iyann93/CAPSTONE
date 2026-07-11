@@ -115,6 +115,16 @@ const NilaiRepository = {
           bobot_harian, bobot_uts, bobot_uas, created_at
         )
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
+        ON CONFLICT (siswa_id, mata_pelajaran_id, semester_id) 
+        DO UPDATE SET
+          nilai_harian = EXCLUDED.nilai_harian,
+          nilai_uts = EXCLUDED.nilai_uts,
+          nilai_uas = EXCLUDED.nilai_uas,
+          catatan = EXCLUDED.catatan,
+          bobot_harian = EXCLUDED.bobot_harian,
+          bobot_uts = EXCLUDED.bobot_uts,
+          bobot_uas = EXCLUDED.bobot_uas,
+          guru_id = EXCLUDED.guru_id
         RETURNING *
       `;
       const result = await client.query(sql, [

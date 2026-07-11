@@ -126,7 +126,7 @@ const OverridePegawaiTab = ({ triggerToast }) => {
         <p className="text-sm text-gray-500">Buat pengecualian (override) nominal komponen gaji untuk pegawai tertentu.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-3 gap-6">
         {/* Kolom Kiri: Daftar Pegawai */}
         <div className="col-span-1 border border-gray-100 rounded-xl bg-gray-50/50 flex flex-col h-[600px]">
           <div className="p-4 border-b border-gray-100">

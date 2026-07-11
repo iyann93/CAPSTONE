@@ -1,21 +1,22 @@
 import React, { useState, useEffect } from "react";
 import api from "../../api/axios";
 import { getTagihan } from "../../api/finance";
+import { getAnnouncements } from "../../utils/announcementStore";
 
 const mockNotifications = [
   { id: 2, type: "nilai", title: "Rapor Semester Genap Tersedia", desc: "Rapor semester genap 2023/2024 sudah bisa diunduh", time: "1 hari lalu", read: false },
   { id: 3, type: "pengumuman", title: "Pengumuman Libur Akhir Tahun", desc: "Sekolah libur tanggal 20-31 Desember 2024", time: "3 hari lalu", read: true },
 ];
 
-const mockAnnouncements = [
-  { id: 1, title: "Jadwal Ujian Akhir Semester", date: "20 Jun 2024", category: "Akademik", penting: true },
-  { id: 2, title: "Pentas Seni Akhir Tahun 2024", date: "15 Jun 2024", category: "Kegiatan", penting: false },
-  { id: 3, title: "Pengumuman Penerimaan Siswa Baru", date: "10 Jun 2024", category: "Penerimaan", penting: false },
-];
-
 const OrangTuaHome = ({ user, onNavigate }) => {
   const [showAllNotif, setShowAllNotif] = useState(false);
+  const [liveAnnouncements, setLiveAnnouncements] = useState([]);
   console.log("OrangTuaHome user prop:", user);
+
+  // Baca pengumuman dari localStorage (dibuat oleh Admin TU)
+  useEffect(() => {
+    setLiveAnnouncements(getAnnouncements().slice(0, 3));
+  }, []);
 
   const [akademikStats, setAkademikStats] = useState({
     rataRata: "-",
@@ -179,7 +180,7 @@ const OrangTuaHome = ({ user, onNavigate }) => {
       {/* Header Greeting */}
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
         <div>
-          <h1 className="text-[26px] font-bold text-[#1e293b]">Selamat Datang! 👋</h1>
+          <h1 className="text-[26px] font-bold text-[#1e293b]">Selamat Datang!</h1>
           <p className="text-[14px] text-gray-500 mt-1">
             {user?.fullName || "Orang Tua"} · Pantau perkembangan putra/putri Anda
           </p>
@@ -195,7 +196,7 @@ const OrangTuaHome = ({ user, onNavigate }) => {
       {/* Student Card */}
       <div className="bg-gradient-to-r from-[#1A3D63] to-[#2A5F8F] rounded-2xl p-6 text-white shadow-lg">
         <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center text-white text-[20px] font-bold border-2 border-white/30">
               {studentData.avatar}
             </div>
@@ -208,7 +209,7 @@ const OrangTuaHome = ({ user, onNavigate }) => {
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-right">
+          <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-right">
             <div>
               <p className="text-blue-200 text-[11px]">Semester</p>
               <p className="text-[14px] font-bold">{studentData.semester}</p>
@@ -222,7 +223,7 @@ const OrangTuaHome = ({ user, onNavigate }) => {
       </div>
 
       {/* Stat Cards Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           {
             label: "Rata-rata Nilai",
@@ -271,7 +272,7 @@ const OrangTuaHome = ({ user, onNavigate }) => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-5">
         {/* Tagihan Terdekat */}
         <div className="lg:col-span-1 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="px-5 pt-5 pb-3 border-b border-gray-50">
@@ -280,7 +281,7 @@ const OrangTuaHome = ({ user, onNavigate }) => {
           <div className="p-5 space-y-4">
             {tagihanTerdekat ? (
               <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex flex-wrap items-center justify-between mb-2">
                   <span className="text-[12px] font-bold text-amber-700">SPP {getBulanNama(tagihanTerdekat.bulan)} {tagihanTerdekat.tahun}</span>
                   <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${tagihanTerdekat.status === 'menunggu_konfirmasi' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
                     {tagihanTerdekat.status === 'menunggu_konfirmasi' ? 'Menunggu Konfirmasi' : 'Belum Lunas'}
@@ -309,12 +310,12 @@ const OrangTuaHome = ({ user, onNavigate }) => {
 
         {/* Pengumuman Terbaru */}
         <div className="lg:col-span-1 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="px-5 pt-5 pb-3 border-b border-gray-50 flex items-center justify-between">
+          <div className="px-5 pt-5 pb-3 border-b border-gray-50 flex flex-wrap items-center justify-between">
             <h3 className="text-[15px] font-bold text-gray-800">Pengumuman</h3>
             <button onClick={() => onNavigate("Pengumuman Sekolah")} className="text-[12px] text-[#2A4365] font-semibold hover:underline">Lihat Semua</button>
           </div>
           <div className="divide-y divide-gray-50">
-            {mockAnnouncements.map((ann) => (
+            {(liveAnnouncements.length > 0 ? liveAnnouncements : []).map((ann) => (
               <div key={ann.id} className="px-5 py-4 flex items-start gap-3 hover:bg-gray-50/50 cursor-pointer" onClick={() => onNavigate("Pengumuman Sekolah")}>
                 <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
                   <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#2563eb" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5.882V19.24a1.76 1.76 0 0 1-3.417.592l-2.147-6.15M18 13a3 3 0 1 0 0-6M5.436 13.683A4.001 4.001 0 0 1 7 6h1.832"/></svg>

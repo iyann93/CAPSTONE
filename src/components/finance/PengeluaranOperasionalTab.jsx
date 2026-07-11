@@ -298,8 +298,6 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
     .reduce((acc, curr) => acc + (Number(String(curr.amount).replace(/[^0-9]/g, '')) || 0), 0);
   const totalSppTahunan = sppPayments.reduce((acc, curr) => acc + (Number(String(curr.amount).replace(/[^0-9]/g, '')) || 0), 0);
 
-  const dataForTotals = activeTab === 'pengeluaran' ? currentData.filter(item => item.kategori !== 'Gaji Pegawai') : currentData;
-
   const totalBulanIni = currentData
     .filter(item => isFilteredMonthAndYear(item.tanggal))
     .reduce((acc, curr) => acc + Number(curr.nominal), 0) + 
@@ -308,7 +306,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
     (activeTab === "pemasukan" ? totalBulanIniSpp : 0);
     
   const totalKeseluruhan = currentData.reduce((acc, curr) => acc + Number(curr.nominal), 0) + currentBeasiswa.reduce((acc, curr) => acc + Number(curr.nominal), 0) + (activeTab === "pemasukan" ? totalSppTahunan : 0);
-  const totalOperasionalSaja = dataForTotals.reduce((acc, curr) => acc + Number(curr.nominal), 0);
+  const totalOperasionalSaja = currentData.reduce((acc, curr) => acc + Number(curr.nominal), 0);
 
   const card1Title = activeTab === "pemasukan" 
     ? (selectedMonthFilter === "Semua Bulan" ? "Total Pemasukan" : `Pemasukan ${selectedMonthFilter}`) 
@@ -463,7 +461,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
         {activeTab === 'pengeluaran' && (
           <div className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px] relative overflow-hidden">
             <div className="relative z-10">
-              <div className="text-xs font-bold text-white/80 uppercase tracking-wider mb-2">Sisa Saldo Keuangan</div>
+              <div className="text-xs font-bold text-white/80 uppercase tracking-wider mb-2">Sisa Dana</div>
               <div className="text-2xl font-black text-white">Rp {sisaDanaGaji.toLocaleString('id-ID')}</div>
               <div className="text-[10px] font-semibold text-white/70 mt-2">
                 {sisaDanaGaji <= 0
@@ -830,7 +828,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
             {/* Header Modal */}
-            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+            <div className="p-5 border-b border-gray-100 flex flex-wrap items-center justify-between">
               <div>
                 <h2 className="text-lg font-bold text-gray-800">{activeTab === "pemasukan" ? "Tambah Pemasukan" : "Tambah Pengeluaran"}</h2>
                 <p className="text-[11px] text-gray-500 mt-1">{activeTab === "pemasukan" ? "Catat transaksi pemasukan dana sekolah." : "Catat transaksi pengeluaran operasional sekolah."}</p>
@@ -849,7 +847,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
 
                   <div className="space-y-4">
                     {/* Row 1: Tanggal + Kategori */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold text-gray-700 mb-1.5">
                           {activeTab === "pemasukan" ? "Tanggal Pemasukan" : "Tanggal Pengeluaran"} <span className="text-red-500">*</span>
@@ -917,7 +915,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
                     </div>
 
                     {/* Row 3: Nominal + Sumber Dana */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold text-gray-700 mb-1.5">
                           {activeTab === "pemasukan" ? "Nominal Pemasukan" : "Nominal Pengeluaran"} <span className="text-red-500">*</span>
@@ -1002,7 +1000,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
                       {item.uploadedFiles.length > 0 && (
                         <div className="mt-2 space-y-2">
                           {item.uploadedFiles.map((file, fIdx) => (
-                            <div key={fIdx} className="flex items-center justify-between bg-white border border-gray-200 p-2.5 rounded-xl hover:border-blue-300 transition-colors">
+                            <div key={fIdx} className="flex flex-wrap items-center justify-between bg-white border border-gray-200 p-2.5 rounded-xl hover:border-blue-300 transition-colors">
                               <div className="flex items-center gap-2.5 overflow-hidden">
                                 <div
                                   className="w-8 h-8 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center shrink-0 overflow-hidden cursor-pointer border border-blue-100 hover:opacity-80 transition-opacity"
@@ -1114,7 +1112,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
       {selectedDetailItem && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
-            <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+            <div className="p-5 border-b border-gray-100 flex flex-wrap items-center justify-between bg-gray-50">
               <div>
                 <h2 className="text-lg font-bold text-gray-800">{activeTab === "pemasukan" ? "Detail Pemasukan" : "Detail Pengeluaran"}</h2>
                 <p className="text-[11px] text-gray-500 mt-1">Informasi lengkap transaksi arus kas.</p>
@@ -1128,7 +1126,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
             </div>
             
             <div className="p-5 space-y-4">
-              <div className="flex justify-between items-start pb-4 border-b border-gray-100">
+              <div className="flex flex-wrap justify-between items-start pb-4 border-b border-gray-100">
                 <div>
                   <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Tanggal</div>
                   <div className="text-sm font-semibold text-gray-800">{formatTanggal(selectedDetailItem.tanggal)}</div>
@@ -1144,7 +1142,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
                 <div className="text-sm font-bold text-gray-800">{selectedDetailItem.nama}</div>
               </div>
 
-              <div className="flex justify-between items-start">
+              <div className="flex flex-wrap justify-between items-start">
                 <div>
                   <div className="text-[10px] font-bold text-gray-400 uppercase mb-1">Nominal</div>
                   <div className="text-lg font-black text-emerald-600">Rp {Number(selectedDetailItem.nominal).toLocaleString('id-ID')}</div>
@@ -1171,7 +1169,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
                                 onClick={() => { setSelectedPreviewFile(file); setShowPreviewModal(true); }}
                                 title="Klik untuk memperbesar"
                               />
-                              <div className="px-3 py-2 flex items-center justify-between">
+                              <div className="px-3 py-2 flex flex-wrap items-center justify-between">
                                 <span className="text-[10px] text-gray-500 font-medium">Bukti Transaksi {idx + 1}</span>
                                 <button
                                   onClick={() => { setSelectedPreviewFile(file); setShowPreviewModal(true); }}
@@ -1280,7 +1278,7 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
       {showPreviewModal && selectedPreviewFile && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+            <div className="p-4 border-b border-gray-100 flex flex-wrap items-center justify-between bg-gray-50">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
                   <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">

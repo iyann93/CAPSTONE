@@ -8,6 +8,7 @@ export default defineConfig({
     tailwindcss(),
   ],
   server: {
+    host: true, // Allow connections from other devices on the same WiFi
     port: 5173,
     strictPort: true,
     proxy: {
@@ -38,5 +39,8 @@ export default defineConfig({
   },
   esbuild: {
     target: 'esnext',
+  },
+  optimizeDeps: {
+    include: ['jspdf', 'jspdf-autotable']
   },
 })

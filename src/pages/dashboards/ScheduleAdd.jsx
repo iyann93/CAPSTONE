@@ -44,9 +44,11 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === "class") {
-      setFormData({ class: value, subject: "", teacher: "", room: formData.room });
+      setFormData({ ...formData, class: value });
     } else if (name === "subject") {
-      setFormData({ ...formData, subject: value, teacher: "" });
+      const selectedSubject = subjectsList.find(s => s.id === value);
+      const defaultTeacherId = selectedSubject ? selectedSubject.guru_pengampu_id : "";
+      setFormData({ ...formData, subject: value, teacher: defaultTeacherId || "" });
     } else {
       setFormData({ ...formData, [name]: value });
     }
@@ -88,9 +90,9 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
       </div>
 
       {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex flex-wrap items-center gap-4 mb-6">
         <button
-          onClick={() => setView("list")}
+          onClick={() => { setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }}
           className="w-10 h-10 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors shadow-sm shrink-0"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -103,7 +105,7 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left — Main Form */}
         <div className="lg:col-span-2 space-y-6">
 
@@ -111,7 +113,7 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
           <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-sm">
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-5">Informasi Kelas &amp; Mata Pelajaran</h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+            <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-5 mb-5">
               {/* Kelas */}
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-2">Kelas<span className="text-red-500">*</span></label>
@@ -129,9 +131,9 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-2">Mata Pelajaran<span className="text-red-500">*</span></label>
                 <div className="relative">
-                  <select name="subject" value={formData.subject} onChange={handleChange} disabled={!formData.class}
-                    className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700 disabled:bg-gray-50 disabled:text-gray-400">
-                    <option value="">{formData.class ? "Pilih mata pelajaran..." : "Pilih kelas dulu"}</option>
+                  <select name="subject" value={formData.subject} onChange={handleChange}
+                    className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700">
+                    <option value="">Pilih mata pelajaran...</option>
                     {subjectsList.map(s => <option key={s.id} value={s.id}>{s.nama}</option>)}
                   </select>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-4 top-4 text-gray-400 pointer-events-none"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -144,12 +146,9 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
               <label className="block text-[13px] font-bold text-gray-700 mb-2">Guru Pengampu<span className="text-red-500">*</span></label>
               <div className="relative">
                 <select name="teacher" value={formData.teacher} onChange={handleChange}
-                  disabled={!formData.subject}
-                  className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700 disabled:bg-gray-50 disabled:text-gray-400">
-                  <option value="">
-                    {!formData.class ? "Pilih kelas dulu" : !formData.subject ? "Pilih mata pelajaran dulu" : "Pilih guru pengampu..."}
-                  </option>
-                  {teachersList.map(t => <option key={t.id} value={t.id}>{t.nama_lengkap}</option>)}
+                  className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-3 text-[14px] focus:outline-none focus:border-[#2563EB] bg-white text-gray-700">
+                  <option value="">Pilih guru pengampu...</option>
+                  {teachersList.map(t => <option key={t.id} value={t.id}>{t.nama_lengkap || t.nama || t.name || t.email}</option>)}
                 </select>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-4 top-4 text-gray-400 pointer-events-none"><polyline points="6 9 12 15 18 9"></polyline></svg>
               </div>
@@ -159,7 +158,7 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
           {/* Waktu & Tempat */}
           <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-sm">
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-5">Waktu &amp; Tempat Belajar</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-5">
+            <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-6 mb-5">
               <div>
                 <label className="block text-[13px] font-bold text-gray-700 mb-3">Hari<span className="text-red-500">*</span></label>
                 <div className="flex flex-wrap gap-2">
@@ -211,7 +210,7 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
                 </div>
                 <div className="text-[12px] text-gray-500 space-y-1">
                   <p>🏫 <strong>{classesList.find(c => c.id == formData.class)?.nama_kelas || formData.class}</strong></p>
-                  <p>👨‍🏫 {teachersList.find(t => t.id == formData.teacher)?.nama || formData.teacher}</p>
+                  <p>👨‍🏫 {teachersList.find(t => t.id == formData.teacher)?.nama_lengkap || teachersList.find(t => t.id == formData.teacher)?.nama || teachersList.find(t => t.id == formData.teacher)?.name || formData.teacher}</p>
                   {selectedDay && <p>📅 {selectedDay} · {selectedSlot}</p>}
                 </div>
               </div>
@@ -229,7 +228,7 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
           {/* Status */}
           <div className="bg-white rounded-[24px] border border-gray-100 p-6 shadow-sm">
             <h3 className="text-[15px] font-bold text-[#1e293b] mb-4">Status Jadwal</h3>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap justify-between items-center">
               <div>
                 <div className="text-[14px] font-bold text-[#1e293b]">Aktif</div>
                 <div className="text-[11px] text-gray-400">Jadwal aktif dan berlaku</div>
@@ -259,7 +258,7 @@ const ScheduleAdd = ({ setView, handleAdd }) => {
               </svg>
               Simpan Jadwal
             </button>
-            <button onClick={() => setView("list")}
+            <button onClick={() => { setView("list"); setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50); }}
               className="w-full py-3.5 bg-white border border-gray-200 text-gray-700 rounded-xl text-[14px] font-bold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 shadow-sm">
               Batalkan
             </button>

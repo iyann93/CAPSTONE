@@ -1,6 +1,7 @@
 'use strict';
 
 const SystemRepository = require('../repositories/system.repository');
+const AuthRepository = require('../repositories/auth.repository');
 
 const SystemService = {
   getAuditLogs: async (filters) => {
@@ -24,6 +25,7 @@ const SystemService = {
   },
 
   deactivateUser: async (userId) => {
+    await AuthRepository.revokeAllUserTokens(userId);
     return SystemRepository.updateUserStatus(userId, false);
   },
 
@@ -43,7 +45,12 @@ const SystemService = {
       email: data.email,
       passwordHash: passwordHash,
       roleId: data.roleId,
-      isActive: data.isActive !== undefined ? data.isActive : true
+      isActive: data.isActive !== undefined ? data.isActive : true,
+      mustChangePassword: data.mustChangePassword,
+      tanggalLahir: data.tanggal_lahir,
+      jenisKelamin: data.jenis_kelamin,
+      telepon: data.telepon,
+      alamat: data.alamat
     });
 
     // Jika role Orang Tua dan ada siswaId, simpan relasi
@@ -59,12 +66,22 @@ const SystemService = {
       nama: data.nama,
       email: data.email,
       roleId: data.roleId,
-      isActive: data.isActive
+      isActive: data.isActive,
+      mustChangePassword: data.mustChangePassword,
+      tanggalLahir: data.tanggal_lahir,
+      jenisKelamin: data.jenis_kelamin,
+      telepon: data.telepon,
+      alamat: data.alamat
     });
 
     // Jika ada siswaId baru (update relasi orang tua)
     if (data.siswaId) {
       await SystemRepository.linkOrangTuaSiswa(userId, data.siswaId);
+    }
+
+    // Cabut token (force logout) jika akun dinonaktifkan / diset menunggu verifikasi
+    if (data.isActive === false) {
+      await AuthRepository.revokeAllUserTokens(userId);
     }
 
     return { id: userId };
