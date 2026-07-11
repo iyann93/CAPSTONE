@@ -36,7 +36,7 @@ const AdminTUDashboard = ({ user, activeMenu, onViewChange }) => {
   };
 
   const hasPermission = (menu) => {
-    if (menu === "Dashboard" || menu === "My Profile") return true;
+    if (menu === "Dashboard" || menu === "My Profile" || menu === "Riwayat Terima Gaji") return true;
     try {
       const perms = JSON.parse(localStorage.getItem('rolePermissions') || '{}');
       const roleId = user?.role?.toLowerCase().replace(/\s+/g, '');

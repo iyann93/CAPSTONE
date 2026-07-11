@@ -311,6 +311,9 @@ const Sidebar = ({ collapsed, user, role, activeMenu, onMenuClick, onClose }) =>
       // Allow if explicit permission 'lihat' is true, or if no permissions loaded yet and it's super admin
       if (roleId === 'superadmin') return true;
       
+      // Personal menu should always be visible
+      if (item.label === 'Riwayat Terima Gaji') return true;
+
       // Jika permission untuk role ini belum pernah di-save oleh SuperAdmin, kembalikan ke akses default
       if (!userPerms) return true;
       
