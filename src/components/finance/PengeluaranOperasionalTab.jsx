@@ -306,14 +306,14 @@ const PengeluaranOperasionalTab = ({ triggerToast, danaBeasiswaList = [], beasis
     (activeTab === "pemasukan" ? totalBulanIniSpp : 0);
     
   const totalKeseluruhan = currentData.reduce((acc, curr) => acc + Number(curr.nominal), 0) + currentBeasiswa.reduce((acc, curr) => acc + Number(curr.nominal), 0) + (activeTab === "pemasukan" ? totalSppTahunan : 0);
-  const totalOperasionalSaja = currentData.filter(item => item.kategori !== 'Gaji Pegawai').reduce((acc, curr) => acc + Number(curr.nominal), 0);
+  const totalOperasionalSaja = currentData.filter(item => item.kategori !== 'Gaji Pegawai' && isFilteredMonthAndYear(item.tanggal)).reduce((acc, curr) => acc + Number(curr.nominal), 0);
 
   const card1Title = activeTab === "pemasukan" 
     ? (selectedMonthFilter === "Semua Bulan" ? "Total Pemasukan" : `Pemasukan ${selectedMonthFilter}`) 
     : (selectedMonthFilter === "Semua Bulan" ? "Total Pengeluaran" : `Pengeluaran ${selectedMonthFilter}`);
   const card1Value = totalBulanIni;
 
-  const card2Title = activeTab === "pemasukan" ? "Total Pemasukan Tahunan" : "Total Operasional Tahunan";
+  const card2Title = activeTab === "pemasukan" ? "Total Pemasukan Tahunan" : (selectedMonthFilter === "Semua Bulan" ? "Total Operasional Tahunan" : `Operasional ${selectedMonthFilter}`);
   const card2Value = activeTab === "pemasukan" ? totalKeseluruhan : totalOperasionalSaja;
   const jumlahKategori = new Set(currentData.map(item => item.kategori)).size;
 
