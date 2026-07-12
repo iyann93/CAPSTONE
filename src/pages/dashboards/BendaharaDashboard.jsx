@@ -721,7 +721,8 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
     } else if (laporanType.includes("Penggajian")) {
       hasData = paidSlips.length > 0;
     } else if (laporanType.includes("Operasional")) {
-      hasData = false; // TODO: Fetch operasional data for reports if needed
+      const operasionalExpenses = currentPengeluaranData.filter(d => d.kategori !== 'Gaji Pegawai');
+      hasData = operasionalExpenses.length > 0;
     }
 
     if (!hasData) {
@@ -2691,8 +2692,7 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                         Edit Program
                       </button>
                     </div>
-
-                    <div className="grid grid-cols-1 xl:grid-cols-1 md:grid-cols-1 md:grid-cols-3 gap-6 items-start">
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
                       {/* Left Column: Program Info */}
                       {(() => {
                         const amtStr = String(activeProgram.amount || "0").replace(/[^0-9]/g, '');
@@ -5092,17 +5092,22 @@ const BendaharaDashboard = ({ user, activeMenu, onViewChange, navGuardRef }) => 
                 <tr><td colSpan="4" className="py-4 text-center text-gray-500">Tidak ada data penggajian.</td></tr>
               ))}
               
-              {laporanType.includes("Operasional") && ([].length > 0 ? [].map((o, i) => (
-                <tr key={i} className="border-b border-gray-300">
-                  <td className="py-2 px-3">{i + 1}</td>
-                  <td className="py-2 px-3">{o.tanggal}</td>
-                  <td className="py-2 px-3">{o.nama}</td>
-                  <td className="py-2 px-3">{o.kategori}</td>
-                  <td className="py-2 px-3">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(o.nominal)}</td>
-                </tr>
-              )) : (
-                <tr><td colSpan="5" className="py-4 text-center text-gray-500">Tidak ada data operasional.</td></tr>
-              ))}
+              {laporanType.includes("Operasional") && (
+                (() => {
+                  const operasionalExpenses = currentPengeluaranData.filter(d => d.kategori !== 'Gaji Pegawai').sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+                  return operasionalExpenses.length > 0 ? operasionalExpenses.map((o, i) => (
+                    <tr key={i} className="border-b border-gray-300">
+                      <td className="py-2 px-3">{i + 1}</td>
+                      <td className="py-2 px-3">{o.tanggal}</td>
+                      <td className="py-2 px-3">{o.nama}</td>
+                      <td className="py-2 px-3">{o.kategori}</td>
+                      <td className="py-2 px-3">{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(o.nominal)}</td>
+                    </tr>
+                  )) : (
+                    <tr><td colSpan="5" className="py-4 text-center text-gray-500">Tidak ada data operasional.</td></tr>
+                  );
+                })()
+              )}
             </tbody>
           </table>
           

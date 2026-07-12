@@ -198,7 +198,9 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
   }, []);
 
   // Pemasukan difilter khusus yang tipe pemasukan dari form Operasional (biasanya untuk Dana BOS)
-  const totalPemasukanTahunan = currentPemasukanData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
+  const totalPemasukanTahunan = currentPemasukanData
+    .filter(curr => curr.kategori === 'Dana BOS')
+    .reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
   const totalPengeluaranTahunan = currentPengeluaranData.reduce((acc, curr) => acc + (Number(curr.nominal) || 0), 0);
 
   const formatDateIndo = (dateStr) => {
@@ -369,91 +371,7 @@ const WakilKepalaHome = ({ user, onNavigate }) => {
         </div>
       </section>
 
-      {/* ========================================================================= */}
-      {/* BAGIAN KEUANGAN & OPERASIONAL */}
-      {/* ========================================================================= */}
-      <section className="space-y-6 pt-6 border-t border-gray-200">
-        <h2 className="text-xl font-bold text-[#1F3A5F]">Monitoring Operasional &amp; Keuangan</h2>
 
-        {/* Ringkasan Operasional Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-1 md:grid-cols-2 gap-5">
-          {[
-            {
-              title: "Total Pemasukan Dana BOS",
-              value: formatRupiah(totalPemasukanTahunan),
-              subText: `Akumulasi Tahun Ajaran 2025/2026`
-            },
-            {
-              title: "Total Operasional Tahunan",
-              value: formatRupiah(totalPengeluaranTahunan),
-              subText: `Akumulasi Tahun Ajaran 2025/2026`
-            }
-          ].map((card, i) => (
-            <div key={i} className="bg-[#1A3D63] rounded-2xl p-6 shadow-sm flex flex-col justify-center min-h-[120px]">
-              <div>
-                <div className="text-xs font-bold text-blue-200 uppercase tracking-wider mb-2">{card.title}</div>
-                <div className="text-xl lg:text-2xl xl:text-[22px] font-black text-white">{card.value}</div>
-                <div className="text-[10px] font-medium text-blue-300 mt-2">{card.subText}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="space-y-6">
-          {/* Recent Expenditures */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-[16px] shadow-sm border border-gray-50 overflow-hidden">
-              <div className="px-6 py-5 border-b border-gray-50 flex flex-wrap items-center justify-between">
-                <h2 className="text-[16px] font-bold text-[#1F3A5F]">Pengeluaran Terbaru</h2>
-                <button 
-                  onClick={() => {
-                    localStorage.setItem('wakil_sarpras_tab', 'pengeluaran');
-                    if (onNavigate) onNavigate("Sarana & Prasarana");
-                  }}
-                  className="text-[12px] font-bold text-[#1F3A5F] hover:underline cursor-pointer bg-transparent border-none"
-                >
-                  Lihat Riwayat Pengeluaran →
-                </button>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[700px]">
-                  <thead>
-                    <tr className="bg-gray-50/50">
-                      <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Tanggal</th>
-                      <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Nama Pengeluaran</th>
-                      <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Jenis Pengeluaran</th>
-                      <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Nominal</th>
-                      <th className="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider text-right">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {currentPengeluaranData.slice(0, 5).map((tx) => (
-                      <tr key={tx.id} className="hover:bg-gray-50/50 transition-colors">
-                        <td className="px-6 py-4 text-[13px] text-gray-500 whitespace-nowrap">{(tx.tanggal.includes('T') || tx.tanggal.includes('-')) ? formatDateIndo(tx.tanggal) : tx.tanggal}</td>
-                        <td className="px-6 py-4 text-[13px] font-bold text-gray-800 whitespace-nowrap">{tx.nama}</td>
-                        <td className="px-6 py-4 text-[13px] text-gray-500 whitespace-nowrap">
-                          <span className="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg font-medium text-[11px]">
-                            {tx.kategori}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-[13px] font-bold text-[#1F3A5F] whitespace-nowrap">{formatRupiah(tx.nominal)}</td>
-                        <td className="px-6 py-4 text-right whitespace-nowrap">
-                          <button 
-                            onClick={() => setSelectedDetailItem(tx)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-[#1F3A5F] rounded-lg text-[11px] font-bold transition-colors border-none cursor-pointer"
-                          >
-                            <EyeIcon /> Lihat Detail
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Pengumuman Sekolah Terbaru */}
       {liveAnn.length > 0 && (
